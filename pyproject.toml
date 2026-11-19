@@ -49,5 +49,6 @@ dev = [
 ]
 
 [tool.pytest.ini_options]
-pythonpath = ["tests"]
+pythonpath = ["tests", "tests/annotate"]
+addopts = ["--import-mode=importlib"]
 filterwarnings = ["ignore:'typing.ByteString':DeprecationWarning"]
