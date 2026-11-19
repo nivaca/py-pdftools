@@ -1,0 +1,53 @@
+[project]
+name = "py-pdftools"
+version = "0.1.0"
+description = "Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Nicolas Vaughan", email = "nicolasvaughan@proton.me" }
+]
+requires-python = ">=3.14"
+keywords = ["pdf", "annotations", "redaction", "page labels", "imposition", "booklet", "watermark"]
+classifiers = [
+    "Environment :: Console",
+    "Environment :: X11 Applications :: Qt",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: English",
+    "Natural Language :: Spanish",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business",
+    "Topic :: Printing",
+]
+dependencies = [
+    "pikepdf>=10.8",
+    "pymupdf>=1.26",
+    "pyside6-essentials>=6.10",
+    "reportlab>=4.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/nivaca/py-pdftools"
+Source = "https://github.com/nivaca/py-pdftools"
+Mirror = "https://codeberg.org/nivaca/py-pdftools"
+
+[project.scripts]
+py-pdftools = "py_pdftools.cli:main"
+
+[project.gui-scripts]
+py-pdftools-gui = "py_pdftools.gui:main"
+
+[build-system]
+requires = ["uv_build>=0.10,<0.14"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.2.0",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["tests"]
+filterwarnings = ["ignore:'typing.ByteString':DeprecationWarning"]
