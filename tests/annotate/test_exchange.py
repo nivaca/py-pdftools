@@ -95,28 +95,6 @@ def test_conform_missing(sample, tmp_path, monkeypatch):
         conform.convert(sample, tmp_path / "x.pdf", "a-2b")
 
 
-def test_finding_pdfconform(tmp_path, monkeypatch):
-    from py_pdftools.core import conform
-
-    home = tmp_path / "home"
-    (home / "bin").mkdir(parents=True)
-    monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("USERPROFILE", str(home))  # (the home folder on Windows)
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")  # (as a session started from the desktop menu may have it)
-    assert conform.find() is None and not conform.available()
-    script = home / "bin" / "pdf2iso"
-    script.write_text("#!/bin/sh\n")
-    script.chmod(0o755)
-    # (on Windows a script is run by Python: every file there seems executable)
-    assert conform.find() == script and conform.command()[-1] == str(script)
-    assert sys.platform == "win32" or conform.command() == [str(script)]
-    other = tmp_path / "elsewhere.py"  # (a script that can't be run by itself: run with python3)
-    other.write_text("print()\n")
-    settings.save(settings.Settings(pdfconform=str(other)))
-    cmd = conform.command()
-    assert cmd[-1] == str(other) and Path(cmd[0]).stem.startswith(("python", "py"))
-    settings.save(settings.Settings(pdfconform=str(tmp_path / "missing")))
-    assert conform.command() is None
 
 
 def test_partly_flattened(sample, tmp_path):

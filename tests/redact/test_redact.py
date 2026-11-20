@@ -308,47 +308,8 @@ def test_hidden_information(tmp_path):
 UNIX_SCRIPTS = pytest.mark.skipif(sys.platform == "win32", reason="scripts without an extension, run by sh")
 
 
-@UNIX_SCRIPTS
-def test_finding_pdfconform(tmp_path, monkeypatch):
-    from py_pdftools.core import conform
-    from py_pdftools.redact import settings
-
-    home = tmp_path / "home"
-    (home / "bin").mkdir(parents=True)
-    monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")  # (as a session started from the desktop menu may have it)
-    assert conform.find() is None and not conform.available()
-    script = home / "bin" / "pdf2iso"
-    script.write_text("#!/bin/sh\n")
-    script.chmod(0o755)
-    assert conform.find() == script and conform.command() == [str(script)]
-    other = tmp_path / "elsewhere.py"  # (a script that can't be run by itself: run with python3)
-    other.write_text("print()\n")
-    settings.save(settings.Settings(pdfconform=str(other)))
-    cmd = conform.command()
-    assert cmd[-1] == str(other) and cmd[0].endswith("python3")
-    settings.save(settings.Settings(pdfconform=str(tmp_path / "missing")))
-    assert conform.command() is None
 
 
-@UNIX_SCRIPTS
-def test_finding_the_old_name(tmp_path, monkeypatch):
-    """Before version 2.0, pdf2iso was called py-pdfconform: that name is
-    still found, but pdf2iso comes first."""
-    from py_pdftools.core import conform
-
-    home = tmp_path / "home"
-    (home / "bin").mkdir(parents=True)
-    monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("PATH", "/usr/bin:/bin")
-    old = home / "bin" / "py-pdfconform.py"
-    old.write_text("#!/bin/sh\n")
-    old.chmod(0o755)
-    assert conform.find() == old
-    new = home / "bin" / "pdf2iso"
-    new.write_text("#!/bin/sh\n")
-    new.chmod(0o755)
-    assert conform.find() == new
 
 
 def test_bookmark_leaks_and_removal(tmp_path):

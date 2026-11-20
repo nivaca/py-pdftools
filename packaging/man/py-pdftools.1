@@ -21,6 +21,8 @@ positional arguments:
     pages              move, delete, rotate, insert or split pages of PDFs
     impose             impose pages for printing: booklets, n-up, step and
                        repeat, bleeds, stamps, sequences and hot folders
+    pdf2iso            convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is
+                       included; it needs Ghostscript)
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -112,8 +114,8 @@ options:
   -n, --dry-run         show the labels the files would get, without writing
                         anything
   --conform STANDARD    save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                        (archiving) or x-4 (printing), made by pdf2iso,
-                        which must be installed
+                        (archiving) or x-4 (printing), made by pdf2iso with
+                        Ghostscript, which must be installed
   --password PASSWORD   the password to open the PDFs (their protection is
                         kept when they are saved)
 
@@ -175,8 +177,8 @@ options:
   -n, --dry-run        show the labels the files would get, without writing
                        anything
   --conform STANDARD   save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                       (archiving) or x-4 (printing), made by pdf2iso, which
-                       must be installed
+                       (archiving) or x-4 (printing), made by pdf2iso with
+                       Ghostscript, which must be installed
   --password PASSWORD  the password to open the PDFs (their protection is
                        kept when they are saved)
 .fi
@@ -211,8 +213,8 @@ options:
   -n, --dry-run        show the labels the files would get, without writing
                        anything
   --conform STANDARD   save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                       (archiving) or x-4 (printing), made by pdf2iso, which
-                       must be installed
+                       (archiving) or x-4 (printing), made by pdf2iso with
+                       Ghostscript, which must be installed
   --password PASSWORD  the password to open the PDFs (their protection is
                        kept when they are saved)
 .fi
@@ -250,8 +252,8 @@ options:
   -n, --dry-run         show the view the files would get, without writing
                         anything
   --conform STANDARD    save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                        (archiving) or x-4 (printing), made by pdf2iso,
-                        which must be installed
+                        (archiving) or x-4 (printing), made by pdf2iso with
+                        Ghostscript, which must be installed
   --password PASSWORD   the password to open the PDFs (their protection is
                         kept when they are saved)
 
@@ -319,8 +321,8 @@ options:
   -n, --dry-run         show the header and footer of the first and last
                         pages, without writing anything
   --conform STANDARD    save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                        (archiving) or x-4 (printing), made by pdf2iso,
-                        which must be installed
+                        (archiving) or x-4 (printing), made by pdf2iso with
+                        Ghostscript, which must be installed
   --password PASSWORD   the password to open the PDFs (their protection is
                         kept when they are saved)
 
@@ -466,8 +468,8 @@ options:
   -n, --dry-run         show the watermark of the first and last pages,
                         without writing anything
   --conform STANDARD    save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                        (archiving) or x-4 (printing), made by pdf2iso,
-                        which must be installed
+                        (archiving) or x-4 (printing), made by pdf2iso with
+                        Ghostscript, which must be installed
   --password PASSWORD   the password to open the PDFs (their protection is
                         kept when they are saved)
 
@@ -598,8 +600,8 @@ options:
   -n, --dry-run         show what the pages would be, without writing
                         anything
   --conform STANDARD    save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b
-                        (archiving) or x-4 (printing), made by pdf2iso,
-                        which must be installed
+                        (archiving) or x-4 (printing), made by pdf2iso with
+                        Ghostscript, which must be installed
   --password PASSWORD   the password to open the PDFs (their protection is
                         kept when they are saved)
 
@@ -723,7 +725,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -794,7 +796,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -892,7 +894,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -959,7 +961,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -999,7 +1001,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1041,7 +1043,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1090,7 +1092,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1162,7 +1164,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1257,7 +1259,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1324,7 +1326,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1368,7 +1370,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1434,7 +1436,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1485,7 +1487,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1580,7 +1582,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1621,7 +1623,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1713,7 +1715,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1782,7 +1784,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1824,7 +1826,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1895,7 +1897,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1932,7 +1934,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -1984,7 +1986,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2037,7 +2039,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2076,7 +2078,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2132,7 +2134,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2195,7 +2197,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2290,7 +2292,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2374,7 +2376,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2449,7 +2451,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2506,7 +2508,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2569,7 +2571,7 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
@@ -2617,10 +2619,54 @@ preferences:
   --conform {a-1b,a-2b,a-3b,x-4}
                         save the output as PDF/A (a-1b, a-2b, a-3b: for
                         archiving) or PDF/X-4 (x-4: for printing), made by
-                        pdf2iso, which must be installed
+                        pdf2iso with Ghostscript, which must be installed
   -q, --quiet           no warnings
   --interface {en,es}   the language of the interface, for this run only (to
                         keep a choice, use the 'interface' command)
+.fi
+.SS pdf2iso
+.nf
+usage: py-pdftools pdf2iso [-h] [-o OUTPUT | -d OUTDIR]
+                           [-t {a-1b,a-2b,a-3b,x-4}] [-p PASSWORD]
+                           [--suffix SUFFIX] [--icc ICC]
+                           [--condition CONDITION] [--validate] [--light]
+                           [--verapdf VERAPDF] [--version] [-v]
+                           inputs [inputs ...]
+
+Convert PDF files to PDF/A or PDF/X-4 using Ghostscript and pikepdf.
+
+positional arguments:
+  inputs                PDF file(s) to convert
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output OUTPUT   output file (only with a single input)
+  -d, --outdir OUTDIR   directory for outputs (default: next to each input)
+  -t, --target {a-1b,a-2b,a-3b,x-4}
+                        standard to convert to (default: a-2b)
+  -p, --password PASSWORD
+                        password for encrypted inputs
+  --suffix SUFFIX       suffix added to output names (default: _pdfa or
+                        _pdfx)
+  --icc ICC             ICC profile for the output intent: sRGB for PDF/A,
+                        the printer's CMYK profile for PDF/X (default:
+                        Ghostscript's own profiles)
+  --condition CONDITION
+                        PDF/X only: registered name of the printing
+                        condition the --icc profile describes, e.g. FOGRA39,
+                        FOGRA51, CGATS TR 006 (default: Custom)
+  --validate            PDF/A only: validate with veraPDF and fail if it is
+                        missing (PDF/X-4 output is always given a built-in
+                        structural check)
+  --light               PDF/A-2b and 3b only: first try a light conversion
+                        that keeps the pages as they are (pikepdf only,
+                        without Ghostscript), and keep it if veraPDF passes
+                        it; otherwise convert with Ghostscript. Useful for
+                        scans that Ghostscript makes much larger. Needs
+                        veraPDF
+  --verapdf VERAPDF     path to the veraPDF command-line tool
+  --version             show program's version number and exit
+  -v, --verbose         show Ghostscript and validator output
 .fi
 .SS completion
 .nf

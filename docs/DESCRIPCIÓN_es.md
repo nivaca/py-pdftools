@@ -40,6 +40,10 @@ Cada cambio del documento escribe primero el documento con sus anotaciones, hace
 
 Con un libro de 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos, porque las anotaciones se leían dos veces. Ahora la ventana guarda las anotaciones tal como las tiene el archivo que muestra, y las etiquetas, que son solo una entrada del catálogo, las escribe PyMuPDF al escribir las anotaciones, sin renumerar los objetos: el cambio tarda 0,3 segundos, y deshacer, menos de una décima. Quitar las anotaciones de la copia que se dibuja y leerlas se hace por los números de sus objetos, sin cargar las que ya se conocen.
 
+### pdf2iso, incluido
+
+pdf2iso, el programa del autor que hace las copias PDF/A y PDF/X, era un programa aparte, que había que instalar y que se buscaba en el PATH. Ahora es un módulo del paquete (`core/pdf2iso.py`), que se ejecuta con el mismo Python en un proceso propio, y también una orden, `py-pdftools pdf2iso`. Solo Ghostscript sigue siendo un programa externo.
+
 ### Las etiquetas de página
 
 El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su prefijo, y mostraba «ageLabeli». La ventana y las exportaciones leen ahora las etiquetas con el motor de py-foliation.
@@ -54,7 +58,7 @@ Las ventanas se revisaron además a ojo, con capturas de cada modo en los dos id
 
 ## Plataforma
 
-Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta pdf2iso, con Ghostscript; para las copias con texto buscable de páginas escaneadas, Tesseract.
+Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta Ghostscript (pdf2iso, otro programa del autor, viene incluido); para las copias con texto buscable de páginas escaneadas, Tesseract.
 
 Es una aplicación de escritorio y no necesita internet. Nada sale del equipo.
 

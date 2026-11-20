@@ -21,8 +21,8 @@ class ConformDialog(QDialog):
         self.pdfconform = QLineEdit()
         self.pdfconform.setMinimumWidth(380)
         self.pdfconform.setPlaceholderText(tr("Look for it on the PATH, in ~/bin and in ~/.local/bin"))
-        self.pdfconform.setToolTip(tr("The script pdf2iso, which makes PDF/A and PDF/X (with or without "
-                                      "the .py extension); empty to look for it"))
+        self.pdfconform.setToolTip(tr("Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py "
+                                      "extension); empty for its own"))
         # La etiqueta de abajo se actualiza con cada tecla: así se ve enseguida si la ruta existe.
         self.pdfconform.textChanged.connect(self._show_pdfconform)
         choose = QPushButton(tr("Choose…"))

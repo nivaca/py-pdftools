@@ -89,6 +89,13 @@ Lo que cambió al reunirlos:
   (`header-footer.json`, `watermark.json`) pueden copiarse de sus carpetas
   a la de py-pdftools (véase «Configuración»).
 
+Un quinto programa mío entró entero: [pdf2iso](https://github.com/nivaca/pdf2iso),
+que hace las copias como PDF/A y PDF/X. Ya no es un programa que haya que
+instalar aparte: la ventana, las órdenes con `--conform` y `py-pdftools
+pdf2iso`, que es la línea de órdenes del propio pdf2iso, usan el que trae
+py-pdftools. Solo hace falta tener instalado Ghostscript, que hace la
+conversión. En la configuración todavía puede indicarse otro pdf2iso.
+
 Los documentos que hicieron los programas anteriores se leen como antes:
 las claves que escribían en un PDF (etiquetas y categorías de las
 anotaciones, capas de encabezados, pies y marcas de agua, la historia de una
@@ -153,9 +160,10 @@ permisos de administrador, y la configuración nunca se toca.
     $ uv run py-pdftools-gui [archivo.pdf]    la ventana
     $ uv run py-pdftools --help               la línea de órdenes
 
-Para guardar copias como PDF/A o PDF/X hace falta además
-[pdf2iso](https://github.com/nivaca/pdf2iso), con Ghostscript. Para las
-copias con texto buscable de páginas escaneadas, Tesseract.
+Las copias como PDF/A o PDF/X necesitan Ghostscript, que las hace (pdf2iso,
+que las prepara y las comprueba, es parte de py-pdftools: véase «De dónde
+viene»). Para las copias con texto buscable de páginas escaneadas,
+Tesseract.
 
 La ventana
 ----------

@@ -388,7 +388,7 @@ def test_save_as_pdfa_or_pdfx(app, window, tmp_path, monkeypatch):
     monkeypatch.setattr(conform, "command", lambda path=None: None)
     window._show_output()
     assert window.output_actions[""].isEnabled() and not window.output_actions["x-4"].isEnabled()
-    assert "pdf2iso" in window.output_actions["x-4"].toolTip()
+    assert "Ghostscript" in window.output_actions["x-4"].toolTip()
     calls = []
 
     def fake(source, target, standard, password=""):

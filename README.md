@@ -85,6 +85,14 @@ What changed when they were brought together:
   `watermark.json`) can be copied from their folders into that of
   py-pdftools (see "Settings").
 
+A fifth program of mine came in whole:
+[pdf2iso](https://github.com/nivaca/pdf2iso), which makes the copies as
+PDF/A and PDF/X. It is no longer a program to install apart: the window,
+the commands with `--conform`, and `py-pdftools pdf2iso`, which is pdf2iso's
+own command line, all use the one in py-pdftools. Only Ghostscript, which
+does the conversion, must be installed. Settings can still name another
+pdf2iso to use instead.
+
 The documents the old programs made are read as before: the keys they wrote
 in a PDF (tags and categories of annotations, layers of headers, footers
 and watermarks, the history of an imposition) kept their names, and the
@@ -147,9 +155,9 @@ needs administrator rights, and the settings are never touched.
     $ uv run py-pdftools-gui [file.pdf]       the window
     $ uv run py-pdftools --help               the command line
 
-To save copies as PDF/A or PDF/X, [pdf2iso](https://github.com/nivaca/pdf2iso)
-is needed too, with Ghostscript. For searchable copies of scanned pages,
-Tesseract.
+Copies as PDF/A or PDF/X need Ghostscript, which makes them (pdf2iso, which
+prepares and checks them, is part of py-pdftools: see "Where it comes
+from"). For searchable copies of scanned pages, Tesseract.
 
 The window
 ----------

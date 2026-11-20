@@ -1424,8 +1424,8 @@
     <tr>El panel de las anotaciones</tr>
   </text>
   <text>
-    <en>The script pdf2iso, which makes PDF/A and PDF/X (with or without the .py extension); empty to look for it</en>
-    <tr>El script pdf2iso, que hace PDF/A y PDF/X (con o sin la extensión .py); vacío para buscarlo</tr>
+    <en>Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py extension); empty for its own</en>
+    <tr>Otro pdf2iso que usar en lugar del de py-pdftools (un script, con o sin la extensión .py); vacío para el propio</tr>
   </text>
   <text>
     <en>There is no such file</en>
@@ -5739,8 +5739,8 @@ los visores que siguen esas indicaciones.</tr>
     <tr>NORMA</tr>
   </text>
   <text>
-    <en>save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b (archiving) or x-4 (printing), made by pdf2iso, which must be installed</en>
-    <tr>guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b (archivo) o x-4 (imprenta); los hace pdf2iso, que debe estar instalado</tr>
+    <en>save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b (archiving) or x-4 (printing), made by pdf2iso with Ghostscript, which must be installed</en>
+    <tr>guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b (archivo) o x-4 (imprenta); los hace pdf2iso con Ghostscript, que debe estar instalado</tr>
   </text>
   <text>
     <en>{path} was saved as a plain PDF, but it could not be made {standard}: {error}</en>
@@ -8850,8 +8850,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>El resultado se guardó como PDF corriente: {command} no está instalado (o no está donde dicen los Ajustes)</tr>
   </text>
   <text>
-    <en>save the output as PDF/A (a-1b, a-2b, a-3b: for archiving) or PDF/X-4 (x-4: for printing), made by pdf2iso, which must be installed</en>
-    <tr>guardar la salida como PDF/A (a-1b, a-2b, a-3b: para archivo) o PDF/X-4 (x-4: para imprenta), hecho por pdf2iso, que debe estar instalado</tr>
+    <en>save the output as PDF/A (a-1b, a-2b, a-3b: for archiving) or PDF/X-4 (x-4: for printing), made by pdf2iso with Ghostscript, which must be installed</en>
+    <tr>guardar la salida como PDF/A (a-1b, a-2b, a-3b: para archivo) o PDF/X-4 (x-4: para imprenta), hecho por pdf2iso con Ghostscript, que debe estar instalado</tr>
   </text>
   <text>
     <en>{command} is not installed (or not on the PATH), and --conform needs it</en>
@@ -9056,5 +9056,9 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Text markup</en>
     <tr>Marcas de texto</tr>
+  </text>
+  <text>
+    <en>convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is included; it needs Ghostscript)</en>
+    <tr>convertir PDF a PDF/A o PDF/X-4 (pdf2iso, que viene incluido; necesita Ghostscript)</tr>
   </text>
 </interface>

@@ -33,7 +33,7 @@ BuildRequires:  poppler-utils
 # PyMuPDF, pikepdf and reportlab come from the package's metadata (pyproject.toml).
 # The window: Fedora's PySide6 (pyproject.toml names the PyPI wheel, pyside6-essentials).
 Requires:       python3-pyside6
-# (for copies as PDF/A and PDF/X, made by pdf2iso, another program of the author's)
+# (for copies as PDF/A and PDF/X: Ghostscript makes them, for the pdf2iso py-pdftools includes)
 Recommends:     ghostscript
 Requires:       hicolor-icon-theme
 # (for the searchable copies of scanned pages: OCR)

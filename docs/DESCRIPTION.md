@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in ten stages.
+py-imposition. Here I explain how it was made, in eleven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -207,6 +207,23 @@ kind of annotation, replies, groups, a link and a pop-up: the same
 annotations, and pages drawn alike to the pixel. A change of labels now
 takes 0.3 seconds, Undo and Redo less than a tenth, saving 0.3 instead of
 1.2, and the tests run in 28 seconds instead of 42.
+
+11. pdf2iso, included
+---------------------
+
+The copies as PDF/A and PDF/X were made, from the start, by pdf2iso,
+another program of mine: a single script that prepares a PDF with pikepdf,
+has Ghostscript convert it, and checks the result. Until now it had to be
+installed apart, and was looked for on the PATH and in `~/bin`. Now it is a
+module of the package, `core/pdf2iso.py`, run in a process of its own with
+the program's own Python, and a command, `py-pdftools pdf2iso`, with its own
+options. Two things had to change in it. As a script, it stopped the
+program when pikepdf was missing or too old, and a module must never do
+that when it is imported; and its parser was taken out of its `main`, so
+that the command line of py-pdftools can include it. Only Ghostscript is
+still a program apart, and the window now says that it is Ghostscript that
+is missing, not pdf2iso. The setting that named a pdf2iso remains, for
+another one, and the tests use it to put fake ones in its place.
 
 Testing
 -------

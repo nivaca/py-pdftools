@@ -34,7 +34,7 @@ def global_parent() -> argparse.ArgumentParser:
                    help=tr("keep a TrimBox when removing bleeds (PDF/X); to make a PDF/X-4 file, use --conform x-4"))
     g.add_argument("--conform", choices=[s for s, _ in conform.STANDARDS], default=argparse.SUPPRESS,
                    help=tr("save the output as PDF/A (a-1b, a-2b, a-3b: for archiving) or PDF/X-4 (x-4: for "
-                           "printing), made by pdf2iso, which must be installed"))
+                           "printing), made by pdf2iso with Ghostscript, which must be installed"))
     g.add_argument("-q", "--quiet", action="store_true", default=argparse.SUPPRESS, help=tr("no warnings"))
     g.add_argument("--interface", choices=sorted(interface.names()), default=argparse.SUPPRESS,
                    help=tr("the language of the interface, for this run only (to keep a choice, use the "

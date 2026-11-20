@@ -76,8 +76,8 @@ class SettingsDialog(QDialog):
         form.addRow(tr("Recovery copy every:"), self.autosave)
         self.pdfconform = QLineEdit(prefs.pdfconform)
         self.pdfconform.setPlaceholderText(tr("Look for it on the PATH, in ~/bin and in ~/.local/bin"))
-        self.pdfconform.setToolTip(tr("The script pdf2iso, which makes PDF/A and PDF/X (with or without the .py "
-                                      "extension); empty to look for it"))
+        self.pdfconform.setToolTip(tr("Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py "
+                                      "extension); empty for its own"))
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.pdfconform.textChanged.connect(self._show_pdfconform)
         choose = QPushButton(tr("Choose…"))

@@ -5,6 +5,7 @@
     py-pdftools header-footer | watermark          headers, footers and watermarks
     py-pdftools pages                              move, delete, rotate, insert or split pages
     py-pdftools impose COMMAND                     imposition (booklet, nup, step-repeat ...)
+    py-pdftools pdf2iso                            PDF/A and PDF/X (the author's pdf2iso, included)
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -81,6 +82,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "impose", (), tr("impose pages for printing: booklets, n-up, step and repeat, bleeds, stamps, "
                          "sequences and hot folders")))
+    from ..core import pdf2iso
+
+    sub._name_parser_map["pdf2iso"] = pdf2iso.build_parser(f"{PROG} pdf2iso")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "pdf2iso", (), tr("convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is included; it needs Ghostscript)")))
     _graft(sub, pages, OWN)
     return parser
 
@@ -105,6 +111,10 @@ def main(argv: list[str] | None = None) -> int:
     words = _words(argv)
     first = words[0] if words else None
     # Cada grupo de órdenes conserva su propio main, como en los programas de donde viene.
+    if first and first[1] == "pdf2iso":
+        from ..core import pdf2iso
+
+        return pdf2iso.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} pdf2iso")
     if first and first[1] == "impose":
         from ..impose import main as impose_main
 

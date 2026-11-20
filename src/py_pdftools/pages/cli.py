@@ -190,7 +190,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                         help=dry_run_help or tr("show the labels the files would get, without writing anything"))
         sp.add_argument("--conform", choices=[v for v, _ in conform.STANDARDS], metavar=tr("STANDARD"),
                         help=tr("save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b (archiving) or x-4 "
-                                "(printing), made by pdf2iso, which must be installed"))
+                                "(printing), made by pdf2iso with Ghostscript, which must be installed"))
         password(sp)
 
     def stamp_options(sp, what: str):
