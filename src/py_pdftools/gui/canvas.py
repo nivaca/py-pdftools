@@ -681,11 +681,20 @@ class PageCanvas(QGraphicsView):
         if self._here:
             self.local_timer.start()
 
-    def _arrived(self, key: tuple, image: QImage | None):
-        """A rendering (None: it couldn't be made in the other process: here, then)."""
+    def _arrived(self, key: tuple, image):
+        """A rendering (None: it couldn't be made in the other process: here, then; a Skipped: the page
+        took too long, or made that process die: a grey page that says so)."""
+        from .renderer import Skipped, skipped_image
+
         # A rendering of a document no longer open (key[0] is its id) is dropped.
         if self.doc is None or key[0] != id(self.doc):
             return
+        if isinstance(image, Skipped):
+            try:
+                r = self.doc[key[1]].rect
+            except (RuntimeError, ValueError, IndexError):
+                return
+            image = skipped_image(round(r.width * key[2]), round(r.height * key[2]), image)
         if image is None:
             try:
                 image = page_image(self.doc[key[1]], key[2])

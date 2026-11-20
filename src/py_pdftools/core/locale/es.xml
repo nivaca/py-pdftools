@@ -9081,4 +9081,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The one of py-pdftools; but PDF/A and PDF/X can't be made: {error}</en>
     <tr>El de py-pdftools; pero no se pueden hacer PDF/A ni PDF/X: {error}</tr>
   </text>
+  <text>
+    <en>it took longer than {seconds:g} seconds to draw</en>
+    <tr>tardaba más de {seconds:g} segundos en dibujarse</tr>
+  </text>
+  <text>
+    <en>its drawing stopped the process that drew it</en>
+    <tr>al dibujarla se detuvo el proceso que la dibujaba</tr>
+  </text>
+  <text>
+    <en>This page was not drawn: {reason}.</en>
+    <tr>Esta página no se dibujó: {reason}.</tr>
+  </text>
 </interface>

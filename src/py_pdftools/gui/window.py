@@ -2408,9 +2408,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self._thumbs[n] = page_image(page, scale)
         self._thumb(n)
 
-    def _thumb_arrived(self, source, n: int, scale: float, image: QImage | None):
+    def _thumb_arrived(self, source, n: int, scale: float, image):
+        from .renderer import Skipped, skipped_image
+
         if self.doc is None or source != self.canvas.source:
             return  # (of a document no longer open)
+        if isinstance(image, Skipped):  # (a page skipped: grey, without words, at the thumbnail's size)
+            r = self.doc[n].rect
+            image = skipped_image(round(r.width * scale), round(r.height * scale), image, words=False)
         # Si el otro proceso no pudo, la miniatura se hace aquí.
         self._thumbs[n] = image if image is not None else page_image(self.doc[n], scale)
         self._thumb(n)

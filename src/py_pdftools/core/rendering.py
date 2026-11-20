@@ -45,10 +45,17 @@ def _document(path: str, password: str, stamp: tuple, bare: bool = False) -> pym
     return doc
 
 
+def ready() -> bool:
+    """Nothing: a new process runs this first, so that the time it takes to start (and to import
+    PyMuPDF) is not counted against the first page it renders (see renderer.py, LIMIT)."""
+    return True
+
+
 def render(path: str, password: str, stamp: tuple, number: int, scale: float,
-           bare: bool = False) -> tuple[int, int, int, bytes]:
+           bare: bool = False, clip: tuple | None = None) -> tuple[int, int, int, bytes]:
     """Page NUMBER of the document at PATH rendered at SCALE (BARE: without the annotations that
-    the window draws itself): its width, height, bytes per line and RGB pixels."""
+    the window draws itself): its width, height, bytes per line and RGB pixels. CLIP: only that
+    part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom."""
     doc = _document(path, password, stamp, bare)
     if bare and number not in _bare.setdefault(path, set()):
         from ..annotate.annots import remove_editable
@@ -56,5 +63,6 @@ def render(path: str, password: str, stamp: tuple, number: int, scale: float,
         remove_editable(doc, [number])
         _bare[path].add(number)
     # alpha=False: the window wants plain RGB; the stride (bytes per line) may be more than width * 3.
-    pix = doc[number].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
+    pix = doc[number].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
+                                 clip=pymupdf.Rect(clip) if clip is not None else None)
     return pix.width, pix.height, pix.stride, bytes(pix.samples)
