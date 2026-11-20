@@ -10133,4 +10133,84 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Top level</en>
     <tr>Primer nivel</tr>
   </text>
+  <text>
+    <en>Add a bookmark</en>
+    <tr>Añadir un marcador</tr>
+  </text>
+  <text>
+    <en>Add a bookmark here…</en>
+    <tr>Añadir un marcador aquí…</tr>
+  </text>
+  <text>
+    <en>Bookmark added</en>
+    <tr>Marcador añadido</tr>
+  </text>
+  <text>
+    <en>Bookmark changed</en>
+    <tr>Marcador cambiado</tr>
+  </text>
+  <text>
+    <en>Bookmark deleted</en>
+    <tr>Marcador borrado</tr>
+  </text>
+  <text>
+    <en>Bookmark moved</en>
+    <tr>Marcador movido</tr>
+  </text>
+  <text>
+    <en>Bookmark moved to page {page}</en>
+    <tr>Marcador llevado a la página {page}</tr>
+  </text>
+  <text>
+    <en>Bookmark renamed</en>
+    <tr>Marcador renombrado</tr>
+  </text>
+  <text>
+    <en>Bookmarks changed</en>
+    <tr>Marcadores cambiados</tr>
+  </text>
+  <text>
+    <en>Bookmarks from the headings</en>
+    <tr>Marcadores a partir de los títulos</tr>
+  </text>
+  <text>
+    <en>Bookmarks from the headings…</en>
+    <tr>Marcadores a partir de los títulos…</tr>
+  </text>
+  <text>
+    <en>Bookmarks made from {count} headings</en>
+    <tr>Marcadores hechos a partir de {count} títulos</tr>
+  </text>
+  <text>
+    <en>Colour…</en>
+    <tr>Color…</tr>
+  </text>
+  <text>
+    <en>Indent</en>
+    <tr>Sangrar</tr>
+  </text>
+  <text>
+    <en>Its title:</en>
+    <tr>Su título:</tr>
+  </text>
+  <text>
+    <en>No heading was found: no line is in a larger type than the body</en>
+    <tr>No se encontró ningún título: ninguna línea tiene un cuerpo de letra mayor que el del texto</tr>
+  </text>
+  <text>
+    <en>Outdent</en>
+    <tr>Quitar sangría</tr>
+  </text>
+  <text>
+    <en>Point it here</en>
+    <tr>Que lleve aquí</tr>
+  </text>
+  <text>
+    <en>Rename</en>
+    <tr>Renombrar</tr>
+  </text>
+  <text>
+    <en>Replace the bookmarks the document has with these {count}? (No: add them after them)</en>
+    <tr>¿Reemplazar los marcadores del documento por estos {count}? (No: añadirlos después de ellos)</tr>
+  </text>
 </interface>

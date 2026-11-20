@@ -67,3 +67,74 @@ def test_the_panel_in_every_mode(window):
         window.set_mode(mode)
         window.a_outline.trigger() if not window.outline_dock.isVisibleTo(window) else None
         assert window.outline_dock.isVisibleTo(window), mode
+
+
+def titles(window) -> list[tuple[int, str]]:
+    return [(e[0], e[1]) for e in window.doc.get_toc()]
+
+
+def test_editing_bookmarks(window, monkeypatch):
+    """Added at the place shown, renamed, moved, indented, styled, pointed elsewhere, deleted; each a change
+    of the document, undone like the others."""
+    from PySide6.QtWidgets import QColorDialog
+
+    tree = window.outline_tree
+    window.show_page(2)
+    assert window.add_bookmark("Interlude")
+    # (after the bookmark marked for page 3: Chapter 1, its branch closed)
+    assert titles(window) == [(1, "Chapter 1"), (2, "Section 1.1"), (1, "Interlude"), (1, "Chapter 2")]
+    tree.setCurrentItem(next(item for _, item in window._outline_items() if item.text(0) == "Interlude"))
+    assert window.move_bookmark("in")  # (under Chapter 1, after Section 1.1)
+    assert (2, "Interlude") in titles(window)
+    item = next(i for _, i in window._outline_items() if i.text(0) == "Interlude")
+    tree.setCurrentItem(item)
+    assert window.move_bookmark("up")
+    assert titles(window)[:3] == [(1, "Chapter 1"), (2, "Interlude"), (2, "Section 1.1")]
+    tree.setCurrentItem(next(i for _, i in window._outline_items() if i.text(0) == "Interlude"))
+    item = tree.currentItem()
+    item.setText(0, "Prelude")  # (as typed after F2)
+    assert ("Prelude" in [t for _, t in titles(window)])
+    tree.setCurrentItem(next(i for _, i in window._outline_items() if i.text(0) == "Prelude"))
+    assert window.style_bookmark("bold")
+    monkeypatch.setattr(QColorDialog, "getColor", staticmethod(lambda *a, **k: __import__(
+        "PySide6.QtGui", fromlist=["QColor"]).QColor("#ff0000")))
+    tree.setCurrentItem(next(i for _, i in window._outline_items() if i.text(0) == "Prelude"))
+    assert window.style_bookmark("color")
+    full = {e[1]: e[3] for e in window.doc.get_toc(simple=False)}
+    assert full["Prelude"].get("bold") and full["Prelude"].get("color") == (1.0, 0.0, 0.0)
+    window.show_page(5)
+    tree.setCurrentItem(next(i for _, i in window._outline_items() if i.text(0) == "Prelude"))
+    assert window.point_bookmark_here()
+    assert {e[1]: e[2] for e in window.doc.get_toc()}["Prelude"] == 6
+    tree.setCurrentItem(next(i for _, i in window._outline_items() if i.text(0) == "Prelude"))
+    assert window.delete_bookmark()
+    assert "Prelude" not in [t for _, t in titles(window)]
+    window.undo()
+    assert "Prelude" in [t for _, t in titles(window)]
+
+
+def test_bookmarks_from_the_headings(tmp_path, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "headed.pdf"
+    doc = pymupdf.open()
+    for c in (1, 2):
+        page = doc.new_page()
+        page.insert_text((72, 80), f"Chapter {c}", fontsize=24)
+        page.insert_text((72, 130), f"Part {c}.1", fontsize=16)
+        for i in range(12):
+            page.insert_text((72, 170 + i * 18), "Body text of the chapter, in a smaller type.", fontsize=11)
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    assert w.open_path(path)
+    assert w.bookmarks_from_headings()
+    assert titles(w) == [(1, "Chapter 1"), (2, "Part 1.1"), (1, "Chapter 2"), (2, "Part 2.1")]
+    monkeypatch.setattr(QMessageBox, "question", staticmethod(lambda *a, **k: QMessageBox.StandardButton.No))
+    assert w.bookmarks_from_headings()  # (added after those there were)
+    assert len(titles(w)) == 8
+    w.annotations = w.saved = []
+    w.drop_work()
+    w.close()
