@@ -88,8 +88,8 @@ class HeaderFooterDialog(StampDialog):
         self.margins = {}
         margins = QFormLayout()
         margins.addRow(tr("Units"), self.units)
-        for side, title in (("top", tr("Top")), ("bottom", tr("Bottom")), ("left", tr("Left")),
-                            ("right", tr("Right"))):
+        for side, title in (("top", tr("Top")), ("bottom", tr("Bottom")), ("left", tr("Left side")),
+                            ("right", tr("Right side"))):
             spin = QDoubleSpinBox()
             spin.setRange(0, 1000)
             spin.setDecimals(2)

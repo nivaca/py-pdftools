@@ -9017,4 +9017,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>py-pdftools impose {current} --help</en>
     <tr>py-pdftools impose {current} --help</tr>
   </text>
+  <text>
+    <en>Left side</en>
+    <tr>Izquierdo</tr>
+  </text>
+  <text>
+    <en>Right side</en>
+    <tr>Derecho</tr>
+  </text>
 </interface>

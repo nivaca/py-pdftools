@@ -247,7 +247,7 @@ class BasicPanel(QWidget):
         grid = QGridLayout(box)
         grid.setColumnStretch(1, 1)
         for row, (label, spin) in enumerate(((tr("Top"), top), (tr("Bottom"), bottom),
-                                             (tr("Left"), left), (tr("Right"), right))):
+                                             (tr("Left side"), left), (tr("Right side"), right))):
             grid.addWidget(QLabel(label), row, 0)
             grid.addWidget(spin, row, 1)
         grid.addWidget(self._lock(top, bottom, tr("Keep the top and the bottom the same")), 0, 2, 2, 1)
