@@ -15,3 +15,11 @@ def own_config(tmp_path, monkeypatch):
     from py_pdftools.core import interface
 
     interface.use(None)
+
+
+@pytest.fixture(autouse=True)
+def pages_here(monkeypatch):
+    """Pages rendered in the tests' own process, at once (a test may turn this off)."""
+    from py_pdftools.gui import renderer
+
+    monkeypatch.setattr(renderer, "ENABLED", False)

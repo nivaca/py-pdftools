@@ -2424,7 +2424,7 @@
     <tr>Hacer clic donde va su firma (dibujada una vez, a mano: con el clic derecho sobre la herramienta se dibuja de nuevo)</tr>
   </text>
   <text>
-    <en>Sign above the line, with the pen or the mouse. It is kept on this computer only, in py-pdftools's settings, and put on documents with the Signature tool.</en>
+    <en>Sign above the line, with the pen or the mouse. It is kept on this computer only, in the settings of py-pdftools, and put on documents with the Signature tool.</en>
     <tr>Firme sobre la línea, con el lápiz o el ratón. Se guarda solo en este equipo, en la configuración de py-pdftools, y se pone en los documentos con la herramienta Firma.</tr>
   </text>
   <text>
