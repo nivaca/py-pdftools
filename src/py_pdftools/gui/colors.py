@@ -3,7 +3,8 @@ it means to the user), their names, and the squares that show them."""
 
 from __future__ import annotations
 
-from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
+from PySide6.QtGui import QActionGroup, QColor, QIcon, QPainter, QPixmap
+from PySide6.QtWidgets import QMenu
 
 from ..annotate import settings
 from ..core.interface import tr
@@ -70,3 +71,22 @@ def swatch(color: str, size: int = 16) -> QIcon:
     p.drawRect(0, 0, size - 1, size - 1)
     p.end()
     return QIcon(pixmap)
+
+
+def colors_menu(menu: QMenu, title: str, current: str | None, choose, choices, other) -> QMenu:
+    """A submenu TITLE of MENU with the colours CHOICES ((value, name)), CURRENT ticked, each given to
+    CHOOSE; and 'Other colour…', which calls OTHER (it shows CURRENT if that isn't among them)."""
+    sub = menu.addMenu(swatch(current) if current else QIcon(), title)
+    group = QActionGroup(sub)
+    for value, name in choices:
+        act = sub.addAction(swatch(value), name, lambda v=value: choose(v))
+        act.setCheckable(True)
+        act.setChecked(value == current)
+        group.addAction(act)
+    sub.addSeparator()
+    entry = sub.addAction(tr("Other colour…"), other)
+    # Un color fuera de la paleta se muestra en «Otro color», para que se vea cuál es.
+    if current and current not in [v for v, _ in choices]:
+        entry.setText(tr("Other colour ({color})…", color=current))
+        entry.setIcon(swatch(current))
+    return sub

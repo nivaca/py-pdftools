@@ -32,8 +32,8 @@ from ..annotate.annots import (
 from ..core.interface import N_, ntr, tr
 from . import colors
 from .canvas import PageCanvas, page_image
-from .colors import color_name, swatch, swatches
-from .files import FilesMixin
+from .colors import color_name, colors_menu, swatch, swatches
+from .files import FilesMixin, ask_save
 from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
@@ -1845,23 +1845,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     # ----------------------------------------------------------------- the menu of an annotation
 
     def _colors_menu(self, menu: QMenu, title: str, current: str | None, choose) -> QMenu:
-        """A menu of colours (CURRENT ticked), each given to CHOOSE."""
-        sub = menu.addMenu(swatch(current) if current else QIcon(), title)
-        group = QActionGroup(sub)
-        values = []
-        for value, name in swatches():
-            act = sub.addAction(swatch(value), name, lambda v=value: choose(v))
-            act.setCheckable(True)
-            act.setChecked(value == current)
-            group.addAction(act)
-            values.append(value)
-        sub.addSeparator()
-        other = sub.addAction(tr("Other colour…"), self.choose_color)
-        # A colour that is not among the swatches is shown on the Other colour entry.
-        if current and current not in values:
-            other.setText(tr("Other colour ({color})…", color=current))
-            other.setIcon(swatch(current))
-        return sub
+        """A menu of the colours of the palette (CURRENT ticked), each given to CHOOSE."""
+        return colors_menu(menu, title, current, choose, swatches(), self.choose_color)
 
     def _categories_menu(self, menu: QMenu, chosen: list[Annotation]):
         """The categories (ticked those all CHOSEN are in), each put in or taken out of them."""
@@ -2661,13 +2646,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.setWindowModified(self.is_modified())
 
     def ask_unsaved(self) -> QMessageBox.StandardButton:
-        box = QMessageBox(QMessageBox.Icon.Warning, tr("Unsaved annotations"),
-                          tr("The annotations have changed since the document was last saved. Save them before "
-                             "going on?"),
-                          QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard
-                          | QMessageBox.StandardButton.Cancel, self)
-        box.setDefaultButton(QMessageBox.StandardButton.Save)
-        return QMessageBox.StandardButton(box.exec())
+        return ask_save(self, tr("Unsaved annotations"),
+                        tr("The annotations have changed since the document was last saved. Save them before "
+                           "going on?"))
 
     def maybe_discard(self) -> bool:
         """True if it is all right to go on (nothing unsaved, saved now, or discarded)."""

@@ -39,6 +39,7 @@ from .paint import set_redaction_look
 from .redact import background
 from .redact.background import Cancelled
 from .redact.codes_dialog import CodesDialog
+from .colors import colors_menu
 from .redact.common import REPEATS, SWATCHES, color_name, mm, swatch
 from .redact.find import FindDialog
 from .redact.hidden_dialog import HiddenDialog
@@ -552,20 +553,7 @@ class RedactMixin:
 
     def _swatch_menu(self, menu: QMenu, title: str, current: str | None, choose) -> QMenu:
         """A menu of the colours of boxes (CURRENT ticked), each given to CHOOSE."""
-        sub = menu.addMenu(swatch(current) if current else QIcon(), title)
-        group = QActionGroup(sub)
-        for value, name in SWATCHES:
-            act = sub.addAction(swatch(value), tr(name), lambda v=value: choose(v))
-            act.setCheckable(True)
-            act.setChecked(value == current)
-            group.addAction(act)
-        sub.addSeparator()
-        other = sub.addAction(tr("Other colour…"), self.choose_redact_color)
-        # Un color fuera de la paleta se muestra en «Otro color», para que se vea cuál es.
-        if current and current not in [v for v, _ in SWATCHES]:
-            other.setText(tr("Other colour ({color})…", color=current))
-            other.setIcon(swatch(current))
-        return sub
+        return colors_menu(menu, title, current, choose, [(v, tr(n)) for v, n in SWATCHES], self.choose_redact_color)
 
     def _codes_menu(self, menu: QMenu, chosen: list[Annotation]):
         """Redaction codes: each set, with its codes ticked if all the boxes have them."""

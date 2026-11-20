@@ -33,6 +33,7 @@ from ...core.interface import N_, ntr, tr
 from .basic import BasicPanel
 from .forms import CommandForm, file_filter, subparsers
 from .preview import PdfPane
+from ..files import ask_save
 
 
 # El árbol de comandos del modo avanzado, por categorías; un comando que no figure aquí va a "Otros".
@@ -1203,12 +1204,8 @@ class Workspace(QMainWindow):
         self.setWindowModified(self.is_modified())
 
     def ask_unsaved(self) -> QMessageBox.StandardButton:
-        box = QMessageBox(QMessageBox.Icon.Warning, tr("Unsaved changes"),
-                          tr("The imposed document hasn't been saved. Save it before going on?"),
-                          QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard
-                          | QMessageBox.StandardButton.Cancel, self)
-        box.setDefaultButton(QMessageBox.StandardButton.Save)
-        return QMessageBox.StandardButton(box.exec())
+        return ask_save(self, tr("Unsaved changes"),
+                        tr("The imposed document hasn't been saved. Save it before going on?"))
 
     def maybe_discard(self) -> bool:
         """True if it is all right to go on (nothing unsaved, saved now, or discarded)."""

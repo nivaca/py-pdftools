@@ -21,6 +21,15 @@ from . import colors
 from .colors import color_name
 
 
+def ask_save(parent, title: str, text: str) -> QMessageBox.StandardButton:
+    """Ask whether to save what is unsaved before going on: Save (the default), Discard or Cancel."""
+    box = QMessageBox(QMessageBox.Icon.Warning, title, text,
+                      QMessageBox.StandardButton.Save | QMessageBox.StandardButton.Discard
+                      | QMessageBox.StandardButton.Cancel, parent)
+    box.setDefaultButton(QMessageBox.StandardButton.Save)
+    return QMessageBox.StandardButton(box.exec())
+
+
 class FilesMixin:
     """Methods of MainWindow (which has the document, its annotations and the status line)."""
 
