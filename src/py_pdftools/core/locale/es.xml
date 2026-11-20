@@ -5751,8 +5751,8 @@ los visores que siguen esas indicaciones.</tr>
     <tr>{path}: se guardó como PDF corriente, pero no se pudo convertir en {standard}: {error}</tr>
   </text>
   <text>
-    <en>{standard} can't be made: {command} is not installed (or not on the PATH, in ~/bin or in ~/.local/bin, or where the setting pdfconform says)</en>
-    <tr>no se puede hacer {standard}: {command} no está instalado (o no está en el PATH, en ~/bin ni en ~/.local/bin, ni donde dice el ajuste pdfconform)</tr>
+    <en>{standard} can't be made: {command} is not installed</en>
+    <tr>no se puede hacer {standard}: {command} no está instalado</tr>
   </text>
   <text>
     <en>--duplicate takes PAGES and, if wished, WHERE</en>

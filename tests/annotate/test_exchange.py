@@ -303,3 +303,23 @@ def test_search_enhanced(tmp_path):
     find_text(doc, "old", cache=cache)
     assert 0 in cache and len(find_text(doc, "old", cache=cache)) == 1
     assert fold("Æneas, ſtrange") == ("AEneas, strange", [0, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13])
+
+
+def test_summary_of_a_comment_longer_than_a_page(sample, tmp_path):
+    """A comment too long for a whole column is written smaller, on its own page: the summary ends."""
+    import signal
+
+    long = Annotation("note", 0, (300, 300, 316, 316), "#ffd54f", contents="A long comment. " * 3000)
+    target = tmp_path / "summary.pdf"
+
+    def stop(*_):
+        raise TimeoutError("the summary never ended")
+
+    signal.signal(signal.SIGALRM, stop)
+    signal.alarm(20)
+    try:
+        pages = exchange.save_summary(sample, [long], target, "", lambda c: c)
+    finally:
+        signal.alarm(0)
+    assert 1 <= pages <= 3
+    assert "A long comment" in pymupdf.open(target)[pages - 1].get_text()

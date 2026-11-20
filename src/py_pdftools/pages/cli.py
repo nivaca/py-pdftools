@@ -552,6 +552,25 @@ def print_spans(ranges: list[labels.Range], n: int) -> None:
         print(f"  {pages_text(r, last)}: {labels.describe(r, last)}")
 
 
+def conform_standard(a) -> str | None:
+    """The standard of --conform (None without it), once it is known that it can be made (else LabelError)."""
+    standard = getattr(a, "conform", None)
+    if standard and not a.dry_run and not conform.available():
+        raise LabelError(tr("{standard} can't be made: {command} is not installed",
+                            standard=conform.label(standard), command=conform.COMMAND))
+    return standard
+
+
+def make_standard(path: Path, standard: str, password: str, wrote: str) -> None:
+    """PATH, just saved as a plain PDF, made STANDARD; WROTE is what is printed of it (else LabelError)."""
+    try:
+        check = conform.convert(path, path, standard, password)
+    except conform.ConformError as e:
+        raise LabelError(tr("{path} was saved as a plain PDF, but it could not be made {standard}: "
+                            "{error}", path=path, standard=conform.label(standard), error=e)) from None
+    print(wrote + " — " + conform.label(standard) + (f" ({check})" if check else ""))
+
+
 def change(a, inputs: list[Path], make, write=labels.write_labels, describe=print_spans) -> int:
     """Give each of INPUTS what MAKE(pdf, n) returns (with WRITE(pdf, it): page labels
     by default), and save it (or, with --dry-run, only say what it would be);
@@ -562,11 +581,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
                             "<input>-labelled.pdf, or changed with --in-place"))
     if (a.in_place or a.output) and (getattr(a, "name_prefix", "") or getattr(a, "name_suffix", None) is not None):
         raise LabelError(tr("--name-prefix and --name-suffix go with --output-dir, or alone"))
-    standard = getattr(a, "conform", None)
-    if standard and not a.dry_run and not conform.available():
-        raise LabelError(tr("{standard} can't be made: {command} is not installed (or not on the PATH, in ~/bin "
-                            "or in ~/.local/bin, or where the setting pdfconform says)",
-                            standard=conform.label(standard), command=conform.COMMAND))
+    standard = conform_standard(a)
     if getattr(a, "output_dir", None) is not None and not a.dry_run:
         try:
             a.output_dir.mkdir(parents=True, exist_ok=True)
@@ -595,12 +610,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
                         print(wrote)
             # pdf2iso writes its result over the same path; if it fails, the plain PDF stays.
             if standard and not a.dry_run:  # (once the file is closed: an input changed in place is replaced)
-                try:
-                    check = conform.convert(out, out, standard, a.password)
-                except conform.ConformError as e:
-                    raise LabelError(tr("{path} was saved as a plain PDF, but it could not be made {standard}: "
-                                        "{error}", path=out, standard=conform.label(standard), error=e)) from None
-                print(wrote + " — " + conform.label(standard) + (f" ({check})" if check else ""))
+                make_standard(out, standard, a.password, wrote)
         # Un archivo que falla se informa y se sigue con los demás; el código de salida dice si alguno falló.
         except LabelError as e:
             report(e)
@@ -759,6 +769,7 @@ def split_command(a, make, write) -> int:
     """pages --split-every / --split-at: the result of the operations, saved as several files."""
     if a.output is not None or a.in_place:
         raise LabelError(tr("--split-every and --split-at save several files: use --output-dir, not -o or -i"))
+    standard = conform_standard(a)
     failed = False
     for path in a.inputs:
         try:
@@ -771,9 +782,8 @@ def split_command(a, make, write) -> int:
                 ranges = made[1]
                 # The arranged document is saved once in memory and reopened for every part.
                 data = io.BytesIO()
-                # TODO: aquí se guarda sin encryption=True, así que las partes pierden la protección del original
-                # (files.write_parts sí la conserva), y --conform no se aplica a ellas.
-                pdf.save(data)
+                # (con su protección, si la tiene: cada parte la conserva, como en files.write_parts)
+                pdf.save(data, encryption=True if pdf.is_encrypted else None)
             folder = a.output_dir or path.parent
             suffix = a.name_suffix or ""
             for k, (first, last) in enumerate(parts, 1):
@@ -790,8 +800,12 @@ def split_command(a, make, write) -> int:
                     op.apply(part)
                     labels.write_labels(part, part_ranges)
                     save_pdf(part, target)
-                print(ntr("Wrote {path} ({count} page)", "Wrote {path} ({count} pages)", last - first + 1,
-                          path=target))
+                wrote = ntr("Wrote {path} ({count} page)", "Wrote {path} ({count} pages)", last - first + 1,
+                            path=target)
+                if standard:  # (a part made PDF/A or PDF/X, as --conform makes the others)
+                    make_standard(target, standard, a.password, wrote)
+                else:
+                    print(wrote)
         except LabelError as e:
             report(e)
             failed = True

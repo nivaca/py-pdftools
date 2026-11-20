@@ -555,7 +555,7 @@ class Workspace(QMainWindow):
         # when it made several files).
         self.src_pane = PdfPane(tr("Document"))
         self.res_pane = PdfPane(tr("Result"))
-        self.res_pane.output_selected.connect(self._show_output)
+        self.res_pane.output_selected.connect(self._show_result_output)
         previews = QSplitter(Qt.Orientation.Horizontal)
         previews.addWidget(self.src_pane)
         previews.addWidget(self.res_pane)
@@ -1017,9 +1017,9 @@ class Workspace(QMainWindow):
             return f.stem[len(self._out_base.stem) + 1:]
         return ""
 
-    # TODO: this _show_output(index) is shadowed by the _show_output() defined further down (the Save as menu),
-    # so choosing another output of the result pane does not switch the file shown; one of them needs a new name.
-    def _show_output(self, index: int):
+    # (named apart from _show_output, the Save as menu: with one name, this one was hidden by that one, and
+    # choosing another output of the result pane didn't show it)
+    def _show_result_output(self, index: int):
         if 0 <= index < len(self.result_files):
             self.res_pane.load(self.result_files[index])
 

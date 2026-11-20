@@ -274,3 +274,29 @@ def test_rebuild_keeps_and_changes_the_right_pages(book, tmp_path):
                 assert got[i] == original[item.page - 1], (op, i)
             else:
                 assert got[i] == b"", (op, i)
+
+
+def test_split_keeps_the_protection_and_conforms(book, tmp_path, monkeypatch, capsys):
+    """The parts of --split-every keep the protection of the original, and --conform makes each one."""
+    from py_pdftools.core import conform
+
+    locked = tmp_path / "locked.pdf"
+    with pikepdf.open(book) as pdf:
+        pdf.save(locked, encryption=pikepdf.Encryption(owner="o", user="u"))
+    out = tmp_path / "parts"
+    assert main(["pages", str(locked), "--password", "u", "--split-every", "50", "--output-dir", str(out)]) == 0
+    parts = sorted(out.glob("*.pdf"))
+    assert len(parts) == 2
+    for part in parts:
+        with pytest.raises(pikepdf.PasswordError):
+            pikepdf.open(part)
+        with pikepdf.open(part, password="u") as pdf:
+            assert pdf.is_encrypted and len(pdf.pages) == 50
+    made = []
+    monkeypatch.setattr(conform, "available", lambda path=None: True)
+    monkeypatch.setattr(conform, "convert", lambda source, target, standard, password="": (
+        made.append((source.name, standard, password)) or "checked"))
+    assert main(["pages", str(book), "--split-every", "60", "--output-dir", str(tmp_path / "pdfa"),
+                 "--conform", "a-2b"]) == 0
+    assert [m[0] for m in made] == ["book-1.pdf", "book-2.pdf"] and all(m[1] == "a-2b" for m in made)
+    assert "PDF/A-2b (checked)" in capsys.readouterr().out

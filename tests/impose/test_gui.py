@@ -145,6 +145,8 @@ def test_multiple_outputs_and_errors(app, window, tmp_path):
     window.preview()
     wait(app, window)
     assert [window._suffix(f) for f in window.result_files] == ["even", "odd"]
+    window.res_pane.output_selected.emit(1)  # (the second output, chosen in the result pane: shown)
+    assert window.res_pane.path == window.result_files[1]
     window.select_command("shuffle")
     window.form("shuffle").set_tokens(["shuffle", "--rule", "1 2 nonsense"])
     window.preview()

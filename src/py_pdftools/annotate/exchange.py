@@ -717,11 +717,13 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
                     words = f": {html.escape(r.contents)}" if r.contents else ""
                     parts.append(f"&#8212; {html.escape(r.author or tr('(no author)'))}{state}{words}")
                 entry = "<p>" + "<br>".join(parts) + "</p>"
-                # TODO: una entrada que no cabe ni en una columna vacía hace que este bucle cree páginas sin fin (salvo
-                # en páginas muy bajas); habría que cortarla o reducir su letra.
+                fresh = False  # (whether the entry is tried at the top of a page of its own, empty)
                 while True:
                     box = pymupdf.Rect(x0, y, x0 + column, h - margin)
-                    spare, _ = page.insert_htmlbox(box, entry, css=CSS.replace("SIZE", f"{size:g}"), scale_low=1)
+                    # Una entrada que no cabe ni en una columna vacía se escribe allí más pequeña (scale_low=0: lo
+                    # que haga falta), en lugar de abrir páginas sin fin.
+                    spare, _ = page.insert_htmlbox(box, entry, css=CSS.replace("SIZE", f"{size:g}"),
+                                                   scale_low=0 if fresh else 1)
                     # SPARE: the height left unused in the box; the next entry starts below this one, 6 points apart.
                     if spare >= 0:
                         y = box.y1 - spare + 6
@@ -730,6 +732,7 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
                     page = out.new_page(width=w + column + 2 * margin, height=h)
                     title(page, heading + " " + tr("(continued)"))
                     y = margin + 24
+                    fresh = True
                     if y + 40 > h:
                         break
         # Sin anotaciones, el resumen sigue siendo un PDF válido, con una página que lo dice.
