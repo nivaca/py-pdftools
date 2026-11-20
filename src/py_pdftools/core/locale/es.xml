@@ -9101,4 +9101,48 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>What can be done in this mode, and how, shown over the pages</en>
     <tr>Lo que se puede hacer en este modo, y cómo, sobre las páginas</tr>
   </text>
+  <text>
+    <en>no language given</en>
+    <tr>no se dio ningún idioma</tr>
+  </text>
+  <text>
+    <en>{name} is not a language of tesseract</en>
+    <tr>{name} no es un idioma de tesseract</tr>
+  </text>
+  <text>
+    <en>the language {name} is not installed (tesseract has {names}; better models can be downloaded with the settings, or py-pdftools ocr --download {name})</en>
+    <tr>el idioma {name} no está instalado (tesseract tiene {names}; se pueden descargar modelos mejores desde la configuración, o con py-pdftools ocr --download {name})</tr>
+  </text>
+  <text>
+    <en>the language {name} is not installed</en>
+    <tr>el idioma {name} no está instalado</tr>
+  </text>
+  <text>
+    <en>tesseract took too long</en>
+    <tr>tesseract tardó demasiado</tr>
+  </text>
+  <text>
+    <en>tesseract failed: {error}</en>
+    <tr>tesseract falló: {error}</tr>
+  </text>
+  <text>
+    <en>tesseract is not installed: there is no OCR</en>
+    <tr>tesseract no está instalado: no hay OCR</tr>
+  </text>
+  <text>
+    <en>the orientation of the pages can't be found: tesseract's osd model is not there (it can be downloaded with the settings, or py-pdftools ocr --download osd)</en>
+    <tr>no se puede averiguar la orientación de las páginas: falta el modelo osd de tesseract (se puede descargar desde la configuración, o con py-pdftools ocr --download osd)</tr>
+  </text>
+  <text>
+    <en>page {page} could not be read: {error}</en>
+    <tr>no se pudo leer la página {page}: {error}</tr>
+  </text>
+  <text>
+    <en>there is no such language</en>
+    <tr>no existe ese idioma</tr>
+  </text>
+  <text>
+    <en>{name} could not be downloaded: {error}</en>
+    <tr>no se pudo descargar {name}: {error}</tr>
+  </text>
 </interface>
