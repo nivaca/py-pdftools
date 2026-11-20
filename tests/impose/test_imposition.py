@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -14,6 +15,12 @@ from py_pdftools.impose.impose import booklet_order
 from py_pdftools.core.pagesel import parse_pages
 from py_pdftools.impose.shuffle import parse_rule, shuffle_order
 from py_pdftools.impose.units import parse_length, parse_paper
+
+
+# (qpdf checks the files made, pdftotext reads their text: the tests that use them are skipped where they
+# are not installed, as on Windows; the RPM's build and the CI install them)
+needs_qpdf = pytest.mark.skipif(shutil.which("qpdf") is None, reason="needs qpdf")
+needs_pdftotext = pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs pdftotext (poppler-utils)")
 
 
 def main(argv: list[str]) -> int:
@@ -129,6 +136,7 @@ def test_default_booklet(sample, tmp_path):
     ["mask", "--rect", "0,0,3,2"],
     ["join", "--all"],
 ])
+@needs_qpdf
 def test_commands_run(sample, tmp_path, args):
     out = tmp_path / "o.pdf"
     assert run(*args, sample, "-o", out) == 0
@@ -138,6 +146,7 @@ def test_commands_run(sample, tmp_path, args):
     assert check.returncode == 0, check.stdout + check.stderr
 
 
+@needs_pdftotext
 def test_text_and_peel(sample, tmp_path):
     stamped = tmp_path / "t.pdf"
     assert run("text", "--text", "STAMP[#]", sample, "-o", stamped) == 0
@@ -150,6 +159,7 @@ def test_text_and_peel(sample, tmp_path):
     assert "STAMP" not in " ".join(page_texts(peeled))
 
 
+@needs_pdftotext
 def test_history_replay(sample, tmp_path):
     first = tmp_path / "first.pdf"
     assert run("text", "--text", "N[#]", sample, "-o", first) == 0
@@ -163,6 +173,7 @@ def test_history_replay(sample, tmp_path):
     assert page_texts(again) == page_texts(second)
 
 
+@needs_pdftotext
 def test_split_merge(sample, tmp_path):
     out = tmp_path / "s.pdf"
     assert run("split", "--by", "equal", "--size", "4", "--part-steps", "1=reverse", "--merge", sample,
@@ -175,6 +186,8 @@ def test_split_merge(sample, tmp_path):
 EXAMPLE = Path(__file__).resolve().parents[2] / "docs" / "example" / "numbers-100.pdf"
 
 
+@needs_pdftotext
+@needs_qpdf
 @pytest.mark.skipif(not EXAMPLE.is_file(), reason="example document not present")
 def test_example_document(tmp_path):
     """The example: 100 pages in 16-page signatures -> 7 signatures (112 pages), 28 sheets, 56 sides."""
@@ -209,6 +222,7 @@ def _page_scale(path: Path) -> float:
     return max(scales)
 
 
+@needs_pdftotext
 def test_impose_page_trim_and_negative_margins(sample, tmp_path):
     a5w, a5h = parse_paper("a5")
     cm = parse_length("1cm")

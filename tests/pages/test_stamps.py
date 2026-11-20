@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import importlib.util
 import shutil
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -26,7 +25,6 @@ from py_pdftools.pages.watermark import Watermark
 ROOT = Path(__file__).resolve().parents[2]
 EXAMPLE = ROOT / "docs" / "example" / "numbers-100.pdf"
 NOW = datetime(2007, 11, 28, 15, 5, 9)
-needs_pdftotext = pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs pdftotext (poppler-utils)")
 
 
 @pytest.fixture(autouse=True)
@@ -52,9 +50,12 @@ def contents(pdf) -> list[bytes]:
 
 
 def text_of(path: Path, page: int) -> str:
-    out = subprocess.run(["pdftotext", "-layout", "-f", str(page), "-l", str(page), str(path), "-"],
-                         capture_output=True, text=True, check=True).stdout
-    return " ".join(out.split())
+    # (with PyMuPDF, sorted as the page is seen, rotation included: pdftotext's order varies with its
+    # version, and the one of Windows put a word's letters among others)
+    import pymupdf
+
+    with pymupdf.open(path) as doc:
+        return " ".join(doc[page - 1].get_text(sort=True).split())
 
 
 # =========================================================================== layers
@@ -139,12 +140,11 @@ def test_date_formats(book):
 # =========================================================================== watermarks
 
 
-@needs_pdftotext
 def test_text_watermark(book, tmp_path):
     out = tmp_path / "out.pdf"
     with pikepdf.open(book) as pdf:
         before = contents(pdf)
-        wm = Watermark(text="DRAFT $page", opacity=0.3, pages="2-3", rotation=0)  # (pdftotext reads it level)
+        wm = Watermark(text="DRAFT $page", opacity=0.3, pages="2-3", rotation=0)  # (level, to be read as one line)
         assert watermark.apply(pdf, wm, stamps.document_of(pdf, book), NOW) == 2
         page = pdf.pages[1]
         state = next(iter(page.obj.Resources.ExtGState.values()))

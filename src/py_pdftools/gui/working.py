@@ -75,7 +75,8 @@ class WorkingMixin:
     def _new_work(self, suffix: str = "") -> Path:
         # One temporary folder per window, made on the first change and removed by drop_work (save, open, close).
         if self._work_dir is None:
-            self._work_dir = tempfile.TemporaryDirectory(prefix="py-pdftools-")
+            # (on Windows a file still open, by a rendering process, can't be removed: it is left, not an error)
+            self._work_dir = tempfile.TemporaryDirectory(prefix="py-pdftools-", ignore_cleanup_errors=True)
         self._works += 1
         return Path(self._work_dir.name) / f"work-{self._works}{suffix}.pdf"
 

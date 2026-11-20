@@ -362,7 +362,7 @@ class Workspace(QMainWindow):
         # Sus ajustes (estado de las barras, modo, comandos) se guardan aparte de los de la ventana principal.
         self.settings = QSettings("py-pdftools", "py-pdftools-impose")
         # Las vistas previas y las secuencias temporales van a una carpeta propia, que close_down borra.
-        self._tmpdir = tempfile.TemporaryDirectory(prefix="py-pdftools-impose-")
+        self._tmpdir = tempfile.TemporaryDirectory(prefix="py-pdftools-impose-", ignore_cleanup_errors=True)
         self.tmp = Path(self._tmpdir.name)
         self._id = 0
         self.original: Path | None = None

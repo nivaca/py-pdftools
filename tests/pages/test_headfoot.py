@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
 from datetime import datetime
 from pathlib import Path
 
@@ -41,13 +40,15 @@ def book(tmp_path) -> Path:
 
 
 def text_of(path: Path, page: int) -> str:
-    """The text of PAGE (1-based), as pdftotext reads it (the drawing as a viewer shows it)."""
-    out = subprocess.run(["pdftotext", "-layout", "-f", str(page), "-l", str(page), str(path), "-"],
-                         capture_output=True, text=True, check=True).stdout
-    return " ".join(out.split())
+    """The text of PAGE (1-based), as a viewer shows it."""
+    # (with PyMuPDF, sorted as the page is seen, rotation included: pdftotext's order varies with its
+    # version, and the one of Windows put a word's letters among others)
+    import pymupdf
+
+    with pymupdf.open(path) as doc:
+        return " ".join(doc[page - 1].get_text(sort=True).split())
 
 
-needs_pdftotext = pytest.mark.skipif(shutil.which("pdftotext") is None, reason="needs pdftotext (poppler-utils)")
 
 
 def doc_of(path: Path) -> headfoot.Document:
@@ -118,7 +119,6 @@ def test_widths_and_layout():
 # =========================================================================== on the pages
 
 
-@needs_pdftotext
 def test_apply_and_remove(book, tmp_path):
     out = tmp_path / "out.pdf"
     with pikepdf.open(book) as pdf:
@@ -148,7 +148,6 @@ def test_applied_again_replaces(book):
         assert b"(two)" in page.obj.Contents[2].read_bytes() and b"(one)" not in page.obj.Contents[2].read_bytes()
 
 
-@needs_pdftotext
 def test_rotated_pages_and_shrink(book, tmp_path):
     out = tmp_path / "out.pdf"
     with pikepdf.open(book) as pdf:
@@ -162,9 +161,17 @@ def test_rotated_pages_and_shrink(book, tmp_path):
         moved = [float(v) for v in pdf.pages[3].obj.Annots[0].Rect]
         assert moved != [100, 100, 200, 150] and moved[2] - moved[0] < 100  # (moved and scaled with the page)
         pdf.save(out)
-    for page in (1, 2, 3, 4):  # (as a viewer shows them: the header on top, the footer below)
-        words = text_of(out, page).split()
-        assert words[0] == "TOP" and words[-1] == "BOTTOM", (page, words)
+    import pymupdf
+
+    with pymupdf.open(out) as doc:
+        for page in doc:  # (as a viewer shows them: the header on top, the footer below)
+            if page.number > 3:
+                break
+            # (the words' rectangles are on the page unrotated: the rotation matrix gives them as shown)
+            shown = sorted((pymupdf.Rect(w[:4]) * page.rotation_matrix).y0 for w in page.get_text("words")
+                           if w[4] not in ("TOP", "BOTTOM"))
+            top, bottom = (page.search_for(w)[0] * page.rotation_matrix for w in ("TOP", "BOTTOM"))
+            assert top.y1 <= shown[0] and bottom.y0 >= shown[-1], (page.number + 1, top, bottom, shown)
     with pikepdf.open(out) as pdf:
         headfoot.remove(pdf)
         assert [float(v) for v in pdf.pages[3].obj.Annots[0].Rect] == [100, 100, 200, 150]
@@ -201,7 +208,6 @@ def test_profiles():
 # =========================================================================== the command line
 
 
-@needs_pdftotext
 def test_command(book, capsys):
     assert main(["header-footer", str(book), "--footer-center", "p. $pagelabel", "--header-right", "$totalpages",
                  "--pages", "9-", "--odd", "--font", "courier", "--bold", "-i"]) == 0
