@@ -12,7 +12,7 @@ import pytest
 from PySide6.QtWidgets import QApplication
 
 from py_pdftools.gui.window import MainWindow
-from py_pdftools.pages import stamps
+from py_pdftools.pages import labels, stamps
 from py_pdftools.pages.headfoot import HeaderFooter
 from py_pdftools.pages.labels import Range
 from py_pdftools.pages.watermark import Watermark
@@ -64,7 +64,8 @@ def test_labels_in_the_table_and_the_list(window):
     window.undo()
     assert window.page_labels()[99] == "92"
     assert window.save()
-    assert pymupdf.open(window.path)[0].get_label() == "i"
+    with pikepdf.open(window.path) as pdf:  # (PyMuPDF before 2.0 misreads some labels)
+        assert labels.page_labels(labels.read_labels(pdf), 100)[0] == "i"
 
 
 def test_list_of_labels(window, tmp_path, monkeypatch):

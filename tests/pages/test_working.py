@@ -13,6 +13,15 @@ from py_pdftools.pages import arrange, labels
 from py_pdftools.pages.labels import Range
 
 
+def file_labels(path) -> list[str]:
+    """The page labels of the PDF at PATH (read with pikepdf: PyMuPDF before 2.0 misreads some); with
+    none, the numbers viewers show."""
+    import pikepdf
+
+    with pikepdf.open(path) as pdf:
+        return labels.page_labels(labels.read_labels(pdf), len(pdf.pages))
+
+
 @pytest.fixture(scope="module")
 def app():
     return QApplication.instance() or QApplication([])
@@ -44,21 +53,21 @@ def test_labels_then_undo_redo_and_save(window, sample):
     window.add(Annotation("rect", 2, (100, 200, 200, 300), "#ff0000"))
     assert window.transform(labels.write_labels, [Range(1, "r"), Range(3, "D")])
     assert window.work is not None and window.file != sample and window.path == sample
-    assert [window.doc[i].get_label() for i in range(4)] == ["i", "ii", "1", "2"]
+    assert window.page_labels() == ["i", "ii", "1", "2"]
     assert [a.kind for a in window.annotations] == ["rect"] and window.is_modified()
-    assert pymupdf.open(sample)[0].get_label() == ""  # (the file is as it was)
+    assert file_labels(sample) == ["1", "2", "3", "4"]  # (the file is as it was: no labels)
     window.undo()
-    assert window.work is None and [window.doc[i].get_label() for i in range(4)] == ["", "", "", ""]
+    assert window.work is None and window.page_labels() == ["1", "2", "3", "4"] and window.ranges == []
     assert [a.kind for a in window.annotations] == ["rect"]
     window.undo()  # (the rectangle: undone as before)
     assert window.annotations == []
     window.redo()
     window.redo()
-    assert window.doc[0].get_label() == "i" and len(window.annotations) == 1
+    assert window.page_labels()[0] == "i" and len(window.annotations) == 1
     assert window.save()
     assert window.work is None and not window.is_modified() and window.undo_stack == []
     doc = pymupdf.open(sample)
-    assert doc[2].get_label() == "1" and [a.type[1] for a in doc[2].annots()] == ["Square"]
+    assert file_labels(sample)[2] == "1" and [a.type[1] for a in doc[2].annots()] == ["Square"]
 
 
 def test_pages_moved_with_their_annotations(window, sample):

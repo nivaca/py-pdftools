@@ -118,12 +118,34 @@ def merged(have: list[Annotation], new: list[Annotation]) -> list[Annotation]:
 
 # --------------------------------------------------------------------- what the document says of them
 
+_LABELS: dict[tuple[int, int, int], list[str]] = {}  # (id of the document, pages, objects) -> its page labels
+
+
+def doc_labels(doc: pymupdf.Document) -> list[str]:
+    """The page labels of DOC, page by page ('' for none), as py-foliation's engine reads them (pages/labels.py).
+    (PyMuPDF's own reading, before 2.0, takes the /Type /PageLabel of a range for its prefix: "ageLabeli".)"""
+    key = (id(doc), doc.page_count, doc.xref_length())
+    if key not in _LABELS:
+        import io
+
+        import pikepdf
+
+        from ..pages import labels
+
+        try:
+            with pikepdf.open(io.BytesIO(doc.tobytes())) as pdf:
+                found = labels.page_labels(labels.read_labels(pdf), doc.page_count)
+        except (pikepdf.PdfError, labels.LabelError, RuntimeError, ValueError):
+            found = [""] * doc.page_count
+        _LABELS.clear()  # (one document at a time)
+        _LABELS[key] = found
+    return _LABELS[key]
+
+
 def page_label(doc: pymupdf.Document, page: int) -> str:
     """The label of PAGE (its printed number: iv, 12...), or its number from 1 if it has none."""
-    try:
-        label = doc[page].get_label()
-    except (RuntimeError, ValueError, IndexError):
-        label = ""
+    found = doc_labels(doc)
+    label = found[page] if 0 <= page < len(found) else ""
     return label or str(page + 1)
 
 

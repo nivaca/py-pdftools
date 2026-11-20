@@ -2116,7 +2116,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.page_spin.blockSignals(True)
         self.page_spin.setValue(page + 1)
         self.page_spin.blockSignals(False)
-        label = exchange.page_label(self.doc, page) if self.doc is not None else ""
+        found = self.page_labels() if self.doc is not None else []
+        label = found[page] if page < len(found) else ""
         self.page_label.setText(f"({label})" if label and label != str(page + 1) else "")
         self.pages.blockSignals(True)
         self.pages.setCurrentRow(page)
