@@ -683,6 +683,11 @@ class PageCanvas(QGraphicsView):
             remote.drop("view", keep=lambda path, number: number in wanted)
         # (the tiles asked for pages no longer in view are dropped too: asked again if they come back)
         self._tiles_asked = {k for k in self._tiles_asked if k[1] in wanted}
+        # La cola de este proceso se rehace: las teselas que esperaban en ella dejan de estar pedidas, o no se
+        # volverían a pedir nunca.
+        for n, scale, tile in self._here:
+            if tile is not None and self.doc is not None:
+                self._tiles_asked.discard((id(self.doc), n, scale, *tile))
         self._here = []
         for n in wanted:
             item = self.pages[n]

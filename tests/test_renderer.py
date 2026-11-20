@@ -184,3 +184,30 @@ def test_deep_zoom_in_tiles(app, tmp_path, monkeypatch):
     assert not item.tiles and item.scale_shown == canvas._full_scale()
     w.annotations = w.saved = []
     w.close()
+
+
+def test_tiles_waiting_here_are_asked_again(app, tmp_path, monkeypatch):
+    """Tiles waiting to be drawn in the window, when the pages in view are worked out again (a scroll, a
+    zoom), are asked for again: they must not stay as asked forever, leaving the page blurred."""
+    from py_pdftools.gui.window import MainWindow
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "one.pdf"
+    doc = pymupdf.open()
+    doc.new_page().insert_text((72, 72), "Deep", fontsize=14)
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(1000, 700)
+    w.show()
+    assert w.open_path(path)
+    canvas = w.canvas
+    canvas.set_zoom(8)
+    canvas._render_visible()  # (the tiles wait in the window's queue)
+    assert any(tile is not None for _, _, tile in canvas._here)
+    canvas._render_visible()  # (worked out again before they were drawn)
+    wait(app, lambda: not canvas._here and not canvas._tiles_asked and not canvas.render_timer.isActive(),
+         seconds=20)
+    assert canvas.pages[0].tiles and not canvas._tiles_asked
+    w.annotations = w.saved = []
+    w.close()

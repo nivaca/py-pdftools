@@ -314,7 +314,7 @@ wrote them again.
 Testing
 -------
 
-The program has 415 tests (`uv run pytest`): those of the four programs,
+The program has 416 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
