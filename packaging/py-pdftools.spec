@@ -11,7 +11,7 @@
 
 Name:           py-pdftools
 Version:        0.1.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
 License:        GPL-3.0-or-later
@@ -26,6 +26,9 @@ BuildRequires:  /usr/bin/appstreamcli
 # For %%check: the tests run the window (headless).
 BuildRequires:  python3-pytest
 BuildRequires:  python3-pyside6
+# (the tests of imposition check each result with qpdf, and some tests read pages with pdftotext)
+BuildRequires:  qpdf
+BuildRequires:  poppler-utils
 
 # PyMuPDF, pikepdf and reportlab come from the package's metadata (pyproject.toml).
 # The window: Fedora's PySide6 (pyproject.toml names the PyPI wheel, pyside6-essentials).
@@ -93,6 +96,9 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Fri Nov 20 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.1.0-2
+- The tests need qpdf and pdftotext to build (Copr)
+
 * Thu Nov 19 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.1.0-1
 - First package: py-annotate, py-redact, py-foliation and py-imposition in one
   window, with the modes Annotate, Redact, Pages and Impose, and one command
