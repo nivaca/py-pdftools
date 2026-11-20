@@ -18,6 +18,7 @@ class HiddenDialog(QDialog):
         self.list = QListWidget()
         for key, name, what in hidden.KINDS:
             n = found.get(key, 0)
+            # -1: hay, pero no se sabe cuánto (lo no usado solo se ve al escribir la copia).
             if n < 0:
                 count = tr("(found when the copy is written)")
             elif n == 0:
@@ -27,6 +28,7 @@ class HiddenDialog(QDialog):
             item = QListWidgetItem(f"{tr(name)}  {count}")
             item.setToolTip(tr(what))
             item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+            # Kinds the document has are ticked; those it hasn't are greyed out: nothing to remove.
             item.setCheckState(Qt.CheckState.Checked if n != 0 else Qt.CheckState.Unchecked)
             if n == 0:
                 item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsEnabled)
@@ -39,6 +41,7 @@ class HiddenDialog(QDialog):
         self.b_remove = buttons.addButton(tr("Remove and save a copy…"), QDialogButtonBox.ButtonRole.AcceptRole)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
+        # Sin nada marcado no hay qué quitar, y el botón se desactiva.
         self.list.itemChanged.connect(lambda _: self.b_remove.setEnabled(bool(self.kinds())))
         lay = QVBoxLayout(self)
         lay.addWidget(QLabel(tr("What this document holds besides what its pages show:")))

@@ -23,10 +23,13 @@ EPS = 1e-6
 
 def signature_sides(n: int, direction: str = "left") -> list[tuple[int, int]]:
     """(left, right) page indices of each sheet side for a nested signature of n pages."""
+    # Cuadernillo anidado de n páginas: el pliego i (0 = el exterior) lleva en el anverso la última y la primera
+    # páginas que le tocan, y en el reverso las dos siguientes hacia dentro. Con n = 8: (7, 0), (1, 6), (5, 2), (3, 4).
     sides = []
     for i in range(n // 4):
         sides.append((n - 1 - 2 * i, 2 * i))  # front
         sides.append((2 * i + 1, n - 2 - 2 * i))  # back
+    # For right-to-left books the two cells of each side are swapped.
     if direction == "right":
         sides = [(r, l) for l, r in sides]
     return sides
@@ -40,6 +43,7 @@ def booklet_order(count: int, binding: str = "perfect", signature: int = 4, pad_
         return -(-a // b)
 
     sides: list[tuple[int | None, int | None]] = []
+    # saddle: un solo cuadernillo con todos los pliegos anidados; el total se redondea a múltiplo de 4.
     if binding == "saddle":
         total = ceil(count, 4) * 4
         sigs = [(0, total)]
@@ -48,6 +52,8 @@ def booklet_order(count: int, binding: str = "perfect", signature: int = 4, pad_
             raise ImpositionError(tr("signature size (pages per fold) must be a positive multiple of 4"))
         sigs = []
         start = 0
+        # perfect: consecutive signatures of 'signature' pages; with --pad-last multiple-of-4 the last one is only
+        # padded to the next multiple of 4.
         while start < count:
             remaining = count - start
             size = signature
@@ -55,14 +61,18 @@ def booklet_order(count: int, binding: str = "perfect", signature: int = 4, pad_
                 size = ceil(remaining, 4) * 4
             sigs.append((start, size))
             start += size
+        # Empty document: one signature of four blank pages, so there is always a sheet.
         if not sigs:
             sigs = [(0, 4)]
     elif binding == "continuous":
+        # continuous: pages in reading order, two per side, with no folding.
         total = ceil(count, 2) * 2
         for i in range(0, total, 2):
             sides.append((i, i + 1) if direction == "left" else (i + 1, i))
         return [tuple(p if p is not None and p < count else None for p in s) for s in sides]
     elif binding == "cut-stack":
+        # cut-stack: each sheet is cut in two and the stack of right halves goes under the left one, so the left
+        # halves carry the first half of the document. On the back the cells swap, since the sheet is turned over.
         if single_sided:
             s = ceil(count, 2)
             for j in range(s):
@@ -82,6 +92,7 @@ def booklet_order(count: int, binding: str = "perfect", signature: int = 4, pad_
     for start, size in sigs:
         for l, r in signature_sides(size, direction):
             sides.append((start + l, start + r))
+    # Las posiciones más allá del número real de páginas quedan en blanco (None).
     return [tuple(p if p < count else None for p in side) for side in sides]
 
 
@@ -117,9 +128,11 @@ def booklet(pdf: Pdf, a, ctx: Context):
     if count == 0:
         raise ImpositionError(tr("document has no pages"))
     order = booklet_order(count, a.binding, a.signature, a.pad_last, a.direction, a.single_sided)
+    # Todas las celdas tienen el tamaño de la página más grande, con una sola escala para todo el documento.
     maxw, maxh = max_page_size(pdf, ctx)
     ml, mb, mr, mt = get_margins(a, ctx)
     gutter = ctx.L(a.gutter)
+    # --paper auto: the sheet is exactly two of the largest pages, plus gutter and margins.
     if a.paper.lower() == "auto":
         W, H = 2 * maxw + gutter + ml + mr, maxh + mb + mt
     else:
@@ -128,6 +141,7 @@ def booklet(pdf: Pdf, a, ctx: Context):
     ch = H - mb - mt
     if cw <= 0 or ch <= 0:
         raise ImpositionError(tr("margins and gutter leave no room for pages"))
+    # Escala única: la que hace caber la página mayor en una celda (amplía si sobra pliego, salvo con --no-auto-scale).
     s = min(cw / maxw, ch / maxh)
     if a.no_scale:
         if s < 1 - 1e-4:
@@ -136,6 +150,7 @@ def booklet(pdf: Pdf, a, ctx: Context):
         s = 1.0
     elif a.no_auto_scale:
         s = min(s, 1.0)
+    # Two cells, left and right of the gutter; the fold runs down the middle of the gutter.
     cells = [(ml, mb, ml + cw, mb + ch), (ml + cw + gutter, mb, W - mr, mb + ch)]
     # clip areas: each cell extended to the sheet edge on the outside and to mid-gutter at the fold
     clips = [(0, 0, ml + cw + gutter / 2, H), (ml + cw + gutter / 2, 0, W, H)]
@@ -154,22 +169,28 @@ def booklet(pdf: Pdf, a, ctx: Context):
             pw, ph = geom.size()
             pw, ph = pw * s, ph * s
             cell = cells[k]
+            # Con --align fold/spine la página izquierda toca el medianil con su borde derecho, y la derecha con el
+            # izquierdo.
             if fold_pull:
                 x = cell[2] - pw if k == 0 else cell[0]
             else:
                 x = cell[0] + (cw - pw) / 2
             y = cell[1] + (ch - ph) / 2
+            # Clip: the page plus its (scaled) bleed, but never beyond its own half of the sheet.
             clip = pu.intersect(clips[k], pu.expand((x, y, x + pw, y + ph), *[m * s for m in geom.bleed_margins()]))
             pu.place_page(canvas, imp, page, geom, x, y, s, clip=clip)
         if a.crop_marks:
             pu.smart_crop_marks(canvas, cells, style, sheet=(0, 0, W, H))
         canvas.finish()
+    # Los pliegos salen anverso, reverso, anverso...; arrange_sides los reordena para impresoras de una cara.
     return arrange_sides(out, a.sides, a.reverse_backs)
 
 
 # =========================================================================== n-up engine
 
 
+# Una página por colocar, con su escala y su giro; w y h ya son el tamaño final en el pliego.
+# page=None es una celda vacía que ocupa sitio.
 @dataclass
 class Item:
     page: Dictionary | None
@@ -186,6 +207,7 @@ class Item:
 
 
 def _gap(lst: list[float], i: int) -> float:
+    # Spacing lists repeat: gap i uses element i mod len, so '0 40' alternates.
     return lst[i % len(lst)] if lst else 0.0
 
 
@@ -204,6 +226,7 @@ def pack(items: list[Item], AW: float, AH: float, max_cols: int | None, max_rows
     rows: list[list[Item]] = []
     row: list[Item] = []
 
+    # close_row: la fila terminada va a la hoja actual si cabe en alto (y en --rows); si no, abre hoja nueva con ella.
     def close_row():
         nonlocal rows, row
         if not row:
@@ -217,6 +240,8 @@ def pack(items: list[Item], AW: float, AH: float, max_cols: int | None, max_rows
         row = []
 
     for it in items:
+        # A row is closed when it reaches --cols or the next item would not fit in width; an item wider than
+        # the sheet still gets a row of its own.
         if row and ((max_cols and len(row) >= max_cols) or row_width(row + [it], hspace) > AW + EPS):
             close_row()
         row.append(it)
@@ -241,21 +266,25 @@ def layout_sheet(rows: list[list[Item]], spec: SheetSpec, box: tuple[float, floa
                  mirror_h: bool, mirror_v: bool) -> list[tuple[Item, pu.Rect]]:
     l, b, r, t = spec.margins
     ah, av = spec.align
+    # Mirroring for back sheets: swap the left/right (or bottom/top) margins and invert the alignment fraction.
     if mirror_h:
         l, r, ah = r, l, 1 - ah
     if mirror_v:
         b, t, av = t, b, 1 - av
     AW, AH = spec.W - l - r, spec.H - b - t
     bw, bh = box
+    # (bw, bh) es la caja que ocupa el bloque de páginas; se alinea dentro del área útil según ah y av.
     bx = l + (AW - bw) * ah
     by = b + (AH - bh) * av
     top = by + bh
     placed = []
+    # Las filas se colocan de arriba abajo; con --align-rows cada fila corta se alinea por su cuenta.
     for j, row in enumerate(rows):
         rh = max(i.h for i in row)
         rw = row_width(row, spec.hspace)
         x = bx + (bw - rw) * ah if spec.row_align else bx
         for k, it in enumerate(row):
+            # Inside a row, a page lower than the row is placed vertically with av.
             y = top - rh + (rh - it.h) * av
             placed.append((it, (x, y, x + it.w, y + it.h)))
             x += it.w + _gap(spec.hspace, k)
@@ -268,9 +297,12 @@ def bleed_clips(placed: list[tuple[Item, pu.Rect]], sheet: pu.Rect) -> list[pu.R
     rects = [r for _, r in placed]
     clips = []
     for idx, (it, r) in enumerate(placed):
+        # Sangrado disponible de la página, en puntos del pliego (ya escalado y girado).
         bl, bb, br, bt = (m * it.s for m in it.geom.bleed_margins(it.rot)) if it.geom else (0, 0, 0, 0)
         lim_l, lim_b = r[0] - sheet[0], r[1] - sheet[1]
         lim_r, lim_t = sheet[2] - r[2], sheet[3] - r[3]
+        # Each neighbour facing this page on one side limits the bleed to half the gap between them, so the two
+        # bleeds meet in the middle and never overlap.
         for j, o in enumerate(rects):
             if j == idx:
                 continue
@@ -303,6 +335,8 @@ class Backgrounds:
         self.repeat_last = repeat_last or len(idx)
 
     def page_for(self, n: int) -> Dictionary | None:
+        # Modos: 'repeat' recorre la selección en ciclo; 'once' la usa una vez y luego deja pliegos sin fondo;
+        # 'repeat-last' repite solo las últimas N páginas.
         idx = self.idx
         if n < len(idx):
             return self.pdf.pages[idx[n]].obj
@@ -314,6 +348,7 @@ class Backgrounds:
         return self.pdf.pages[idx[n % len(idx)]].obj
 
     def size(self, n: int = 0) -> tuple[float, float]:
+        # With mode 'once' the sheet size still comes from the first background page.
         page = self.page_for(n) or self.pdf.pages[self.idx[0]].obj
         return pu.geometry(page, use_bleed=False).size()
 
@@ -321,6 +356,7 @@ class Backgrounds:
 def draw_background(canvas: pu.Canvas, imp: pu.Importer, bg: Dictionary, W: float, H: float):
     geom = pu.geometry(bg, use_bleed=False)
     bw, bh = geom.size()
+    # El fondo se centra en el pliego a tamaño real, sin escalar.
     pu.place_page(canvas, imp, bg, geom, (W - bw) / 2, (H - bh) / 2, 1.0)
 
 
@@ -369,6 +405,7 @@ def _scale_value(a, items_geom, AW, AH, hspace, vspace) -> float:
     if mode == "fit":
         if not (a.cols and a.rows):
             raise ImpositionError(tr("--scale fit needs both --cols and --rows"))
+        # 'fit' uses the size of the first page only; pages of other sizes get the same scale.
         w, h = items_geom.size()
         gw = sum(_gap(hspace, k) for k in range(a.cols - 1))
         gh = sum(_gap(vspace, k) for k in range(a.rows - 1))
@@ -391,6 +428,7 @@ def _spacing(a, ctx):
 def _sheet_sizes(a, ctx, bg: Backgrounds | None):
     if bg is not None:
         return [bg.size()]
+    # 'best': se prueban las dos orientaciones y nup o step-repeat se quedan con la que aprovecha mejor el pliego.
     if a.orientation == "best":
         w, h = ctx.paper(a.paper, "tall")
         return [(w, h), (h, w)] if abs(w - h) > EPS else [(w, h)]
@@ -407,16 +445,21 @@ def render(out: Pdf, imp: pu.Importer, sheets_rows, spec: SheetSpec, a, ctx: Con
     mirroring and background selection); by default 0, 1, 2...
     """
     hspace, vspace = spec.hspace, spec.vspace
+    # Caja de cada hoja (fila más ancha por alto total). doc_box es la mayor, para que todas las hojas se alineen igual
+    # salvo con --align-sheets-independently.
     boxes = [(max(row_width(r, hspace) for r in rows), rows_height(rows, vspace)) for rows in sheets_rows]
     doc_box = (max(b[0] for b in boxes), max(b[1] for b in boxes)) if boxes else (0, 0)
+    # Only commands with mark options get marks; render() is also called with arguments that lack them.
     style = get_mark_style(a, ctx) if hasattr(a, "mark_offset") else None
     for i, rows in enumerate(sheets_rows):
         n = sheet_numbers[i] if sheet_numbers else i
         box = boxes[i] if independent else doc_box
+        # Las hojas de número impar (contando desde 0) son reversos, y a ellas se aplica --mirror.
         back = n % 2 == 1
         mh = back and mirror in ("h", "hv")
         mv = back and mirror in ("v", "hv")
         W, H = spec.W, spec.H
+        # --trim: the sheet shrinks to the block of pages plus the margins.
         if trim:
             l, b, r, t = spec.margins
             W, H = box[0] + l + r, box[1] + b + t
@@ -429,6 +472,7 @@ def render(out: Pdf, imp: pu.Importer, sheets_rows, spec: SheetSpec, a, ctx: Con
             bgp = bg.page_for(n)
             if bgp is not None:
                 draw_background(canvas, imp, bgp, W, H)
+        # Las celdas vacías (page=None, p. ej. reversos sin página en el flujo doble) ocupan sitio pero no se dibujan.
         real = [(it, r) for it, r in placed if it.page is not None]
         clips = bleed_clips(real, (0, 0, W, H))
         for (it, r), clip in zip(real, clips):
@@ -438,6 +482,7 @@ def render(out: Pdf, imp: pu.Importer, sheets_rows, spec: SheetSpec, a, ctx: Con
             pu.frame_rects(canvas, rects, style)
         if style and a.crop_marks:
             pu.smart_crop_marks(canvas, rects, style, sheet=(0, 0, W, H))
+        # double-flip: the whole back sheet is turned 180° about its centre (x -> W - x, y -> H - y).
         if flip_back_sheets and n in flip_back_sheets:
             canvas.ops = [f"q -1 0 0 -1 {pu.fmt(W)} {pu.fmt(H)} cm\n".encode()] + canvas.ops + [b"Q\n"]
         canvas.finish()
@@ -461,9 +506,11 @@ def nup(pdf: Pdf, a, ctx: Context):
     hspace, vspace = _spacing(a, ctx)
     margins = get_margins(a, ctx)
     l, b, r, t = margins
+    # La geometría de cada página se calcula una vez; el bucle de abajo solo cambia el pliego.
     geoms = [pu.geometry(p.obj, ctx.use_bleed) for p in pdf.pages]
     trim = a.trim
     best = None
+    # Try each candidate sheet size (both orientations with 'best') and keep the best one.
     for W, H in _sheet_sizes(a, ctx, bg):
         AW, AH = W - l - r, H - b - t
         if AW <= 0 or AH <= 0:
@@ -472,6 +519,7 @@ def nup(pdf: Pdf, a, ctx: Context):
         items = [Item.make(p.obj, g, s) for p, g in zip(pdf.pages, geoms)]
         need_w = max(i.w for i in items)
         need_h = max(i.h for i in items)
+        # Una página mayor que el área útil no se reduce: se agranda el pliego y se avisa.
         if need_w > AW + EPS or need_h > AH + EPS:
             ctx.warn(tr('some pages are larger than the sheet; enlarging sheet to fit'))
             W, H = max(W, need_w + l + r), max(H, need_h + b + t)
@@ -480,9 +528,12 @@ def nup(pdf: Pdf, a, ctx: Context):
             sheets = pack(items, AW, AH, a.cols, a.rows, hspace, vspace)
             key = len(sheets)
         else:
+            # Flujo doble: solo los anversos (páginas 1, 3, 5...) deciden la distribución; los reversos llevan las
+            # pares.
             fronts = items[0::2]
             sheets = pack(fronts, AW, AH, a.cols, a.rows, hspace, vspace)
             key = 2 * len(sheets)
+        # Clave de comparación: menos pliegos y, en empate, más páginas en la primera fila (de ahí el signo menos).
         cand = (key, -len(sheets[0][0]) if sheets else 0, W, H, items, sheets)
         if best is None or cand[:2] < best[:2]:
             best = cand
@@ -505,6 +556,8 @@ def nup(pdf: Pdf, a, ctx: Context):
         for row in rows:
             br = []
             for _ in row:
+                # Si no quedan páginas para el reverso, una celda vacía del mismo tamaño mantiene la posición de las
+                # demás.
                 br.append(backs[k] if k < len(backs) else Item(None, None, w=row[0].w, h=row[0].h))
                 k += 1
             back_rows.append(br)
@@ -512,6 +565,8 @@ def nup(pdf: Pdf, a, ctx: Context):
         all_rows.append(back_rows)
         front_rows = rows
 
+        # front_rows and spec are bound as default arguments, so each closure keeps the rows of its own sheet
+        # and not the value of the last loop iteration.
         def mirror_slots(placed, W_, H_, front_rows=front_rows, spec=spec):
             # put each back page in the mirror image of its front slot
             fplaced = layout_sheet(front_rows, SheetSpec(W_, H_, spec.margins, spec.align, spec.row_align,
@@ -519,6 +574,8 @@ def nup(pdf: Pdf, a, ctx: Context):
                                    False, False)
             out_ = []
             for (it, _), (_, fr) in zip(placed, fplaced):
+                # Reflejo horizontal: el centro de la celda del anverso pasa a W - cx, y al dar vuelta a la hoja
+                # coinciden.
                 cx = W_ - (fr[0] + fr[2]) / 2
                 cy = (fr[1] + fr[3]) / 2
                 out_.append((it, (cx - it.w / 2, cy - it.h / 2, cx + it.w / 2, cy + it.h / 2)))
@@ -531,6 +588,7 @@ def nup(pdf: Pdf, a, ctx: Context):
     hs = spec.hspace
     fboxes = [(max(row_width(r, hs) for r in rows), rows_height(rows, spec.vspace)) for rows in sheets]
     doc_box = (max(bx[0] for bx in fboxes), max(bx[1] for bx in fboxes))
+    # box_for se define después del bucle, pero mirror_slots solo lo lee cuando render() la llama.
     box_for = {id(rows): (fboxes[i] if a.align_sheets_independently else doc_box) for i, rows in enumerate(sheets)}
     render(out, imp, all_rows, spec, a, ctx, bg, "none", a.align_sheets_independently, trim,
            flip_back_sheets=flips, mirrored_slots=mirrored)
@@ -541,6 +599,7 @@ def nup(pdf: Pdf, a, ctx: Context):
 
 
 def _max_count(size: float, avail: float, gaps: list[float], limit: int | None) -> int:
+    # How many items of 'size' fit in 'avail' with the given gaps between them, capped by 'limit'.
     n = 0
     total = 0.0
     while True:
@@ -555,10 +614,13 @@ def step_rows(page, geom, s, AW, AH, a, hspace, vspace, allow_rotate: bool, back
     """Rows of copies of one page filling a sheet, optionally adding rows of rotated copies."""
     w, h = geom.size()
     w, h = w * s, h * s
+    # c1: copias por fila sin girar; c2: copias por fila giradas 90° (el ancho de la copia pasa a ser h).
     c1 = _max_count(w, AW, hspace, a.cols)
     c2 = _max_count(h, AW, hspace, a.cols) if allow_rotate else 0
     best = (0, 0, 0)
     max_r1 = _max_count(h, AH, vspace, a.rows) if c1 else 0
+    # Se prueba cada número de filas normales r1 y se llena el alto restante con filas giradas;
+    # en empate se prefieren menos filas giradas.
     for r1 in range(max_r1 + 1):
         heights = [h] * r1
         r2 = 0
@@ -578,6 +640,8 @@ def step_rows(page, geom, s, AW, AH, a, hspace, vspace, allow_rotate: bool, back
     rot_rot = 90.0
     plain_rot = 0.0
     rotated_first = False
+    # On mirrored back sheets the copies are turned so they back up their fronts: 270° instead of 90° for h,
+    # and 180° for v, which also puts the rotated rows first.
     if back and allow_rotate:
         if mirror in ("h", "hv"):
             rot_rot = 270.0
@@ -619,6 +683,7 @@ def step_repeat(pdf: Pdf, a, ctx: Context):
         for W, H in _sheet_sizes(a, ctx, bg):
             AW, AH = W - l - r, H - b - t
             s = _scale_value(a, geom, AW, AH, hspace, vspace)
+            # n % 2 == 1: las páginas pares del documento (2, 4...) van en reversos y se les aplica --mirror.
             rows = step_rows(page.obj, geom, s, AW, AH, a, hspace, vspace, allow_rotate, n % 2 == 1, a.mirror)
             cnt = sum(len(rw) for rw in rows)
             if best is None or cnt > best[0]:
@@ -631,6 +696,7 @@ def step_repeat(pdf: Pdf, a, ctx: Context):
         elif (W, H) != chosen and not a.trim:
             ctx.warn(tr("pages of different sizes chose different sheet orientations"))
         spec = SheetSpec(W, H, margins, parse_align(a.align), a.align_rows, hspace, vspace)
+        # Una hoja por página de origen; sheet_numbers=[n] mantiene la paridad para el reflejo y para elegir el fondo.
         render(out, imp, [rows], spec, a, ctx, bg, a.mirror, True, a.trim, sheet_numbers=[n])
     return out
 
@@ -659,6 +725,7 @@ def join(pdf: Pdf, a, ctx: Context):
         if not 0 <= f < n - 1:
             raise ImpositionError(tr("--first must leave a following page to join"))
         pairs = [(f, f + 1)]
+    # joined: first page of each pair -> the pair; skip: the second pages, drawn together with the first.
     joined = {p[0]: p for p in pairs}
     skip = {p[1] for p in pairs}
     out = Pdf.new()
@@ -672,6 +739,7 @@ def join(pdf: Pdf, a, ctx: Context):
             out.pages.append(pdf.pages[i])
             continue
         p1, p2 = pdf.pages[i].obj, pdf.pages[i + 1].obj
+        # Join ignores the bleed boxes (use_bleed=False): the spread is made of the pages as they are seen.
         g1, g2 = pu.geometry(p1, False), pu.geometry(p2, False)
         (w1, h1), (w2, h2) = g1.size(), g2.size()
         W, H = w1 + w2, max(h1, h2)

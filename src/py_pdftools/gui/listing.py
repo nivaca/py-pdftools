@@ -26,16 +26,21 @@ PAGE, KIND, AUTHOR, STATUS, CHANGED, TEXT = range(6)
 class AnnotationModel(QAbstractTableModel):
     """The rows of the list: indices of the window's annotations, in the order shown."""
 
+    # The model holds no annotations of its own: it asks the window each time (annotations()), so a
+    # change in the window never leaves the list showing a stale copy.
     def __init__(self, annotations: Callable[[], list[Annotation]], marked: Callable[[Annotation], str]):
         super().__init__()
         self._annotations = annotations
         self._marked = marked
         self.rows: list[int] = []
+        # Una sola fuente cursiva, hecha una vez: data() se llama miles de veces al desplazarse.
         self._italic = QFont()
         self._italic.setItalic(True)
 
     def set_rows(self, rows: list[int]):
         """Show ROWS; if they are the rows shown, only their contents are shown again."""
+        # Mismas filas: basta con dataChanged, que conserva la selección y la posición del desplazamiento;
+        # un reset las perdería.
         if rows == self.rows and rows:
             self.dataChanged.emit(self.index(0, 0), self.index(len(rows) - 1, self.columnCount() - 1))
             return
@@ -56,6 +61,7 @@ class AnnotationModel(QAbstractTableModel):
 
     def annotation(self, row: int) -> Annotation | None:
         annotations = self._annotations()
+        # Defensive: the window may have fewer annotations than rows for a moment, while it updates the list.
         i = self.rows[row] if 0 <= row < len(self.rows) else -1
         return annotations[i] if 0 <= i < len(annotations) else None
 
@@ -66,6 +72,7 @@ class AnnotationModel(QAbstractTableModel):
         col = index.column()
         if role == Qt.ItemDataRole.DisplayRole:
             if col == PAGE:
+                # Las páginas se cuentan desde 0 en el código y desde 1 en la pantalla.
                 return str(a.page + 1)
             if col == KIND:
                 return a.name() + (f" ({len(a.replies)})" if a.replies else "") + \
@@ -76,7 +83,9 @@ class AnnotationModel(QAbstractTableModel):
                 return tr(STATES[a.status()]) if a.status() else ""
             if col == CHANGED:
                 return date_text(a.modified or a.created)
+            # Los saltos de línea y espacios repetidos del comentario se reducen a un espacio, para una fila.
             text = " ".join(a.contents.split())
+            # Un resaltado sin comentario muestra entre comillas el texto que marca (en cursiva, ver FontRole).
             if not text and a.kind in ("highlight", "underline", "strikeout", "squiggly"):
                 marked = self._marked(a)
                 return f"“{marked}”" if marked else ""
@@ -84,6 +93,7 @@ class AnnotationModel(QAbstractTableModel):
             return f"{text}  {labels}".strip() if labels else text
         if role == Qt.ItemDataRole.DecorationRole and col == KIND:
             return swatch(a.color)
+        # The same markup kinds as in DisplayRole: the text they mark, shown instead of a comment, is in italics.
         if role == Qt.ItemDataRole.FontRole and col == TEXT and not a.contents.strip() and a.kind in (
                 "highlight", "underline", "strikeout", "squiggly"):
             return self._italic
@@ -110,6 +120,7 @@ class ReplyList(QListWidget):
     deleted = Signal()
 
     def keyPressEvent(self, event):
+        # Supr o Retroceso sobre una respuesta: la ventana pregunta y la borra.
         if event.key() in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace) and self.currentRow() >= 0:
             self.deleted.emit()
             return
@@ -122,6 +133,7 @@ class CommentEdit(QPlainTextEdit):
     finished = Signal()
 
     def focusOutEvent(self, event):
+        # Se guarda al salir del campo, no a cada tecla: así cada comentario es un solo paso de deshacer.
         super().focusOutEvent(event)
         self.finished.emit()
 
@@ -136,6 +148,7 @@ class Panel(QWidget):
         self.search.setClearButtonEnabled(True)
         self.search.setToolTip(tr("Their comments, texts, replies, tags and categories, the text they mark, their "
                                   "authors and kinds"))
+        # Six filters in two rows of three; the window fills their items from the annotations of the document.
         self.f_kind, self.f_author, self.f_color = QComboBox(), QComboBox(), QComboBox()
         self.f_status, self.f_tag, self.f_category = QComboBox(), QComboBox(), QComboBox()
         for box, tip in ((self.f_kind, tr("Only annotations of this kind")),
@@ -145,6 +158,7 @@ class Panel(QWidget):
                          (self.f_tag, tr("Only annotations with this tag")),
                          (self.f_category, tr("Only annotations in this category"))):
             box.setToolTip(tip)
+            # Sin esto, un nombre de autor largo ensancharía todo el panel.
             box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
             box.setMinimumContentsLength(6)
         self.sort = QComboBox()
@@ -154,6 +168,7 @@ class Panel(QWidget):
         self.table = QTableView()
         self.table.setModel(model)
         self.table.verticalHeader().setVisible(False)
+        # Altura fija de fila: con ella Qt no mide cada fila, lo que importa con miles.
         self.table.verticalHeader().setDefaultSectionSize(self.table.fontMetrics().height() + 8)
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
@@ -165,10 +180,12 @@ class Panel(QWidget):
         header.setResizeContentsPrecision(60)
         for col in (PAGE, KIND, AUTHOR, STATUS, CHANGED):
             header.setSectionResizeMode(col, QHeaderView.ResizeMode.ResizeToContents)
+        # The text column takes the room left by the others.
         header.setSectionResizeMode(TEXT, QHeaderView.ResizeMode.Stretch)
         self.title = QLabel()
         self.title.setWordWrap(True)
         self.color_button = QToolButton()
+        # El botón de color abre su menú al instante; la ventana lo llena con los colores de la paleta.
         self.color_button.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         self.color_button.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
         self.color_button.setMenu(QMenu(self.color_button))
@@ -189,6 +206,7 @@ class Panel(QWidget):
         self.b_props = QPushButton(tr("Properties…"))
         self.b_delete = QPushButton(tr("Delete"))
 
+        # Disposición vertical: búsqueda, filtros, orden, la lista y, debajo, la anotación seleccionada.
         filters = QHBoxLayout()
         for box in (self.f_kind, self.f_author, self.f_color):
             filters.addWidget(box, 1)
@@ -220,6 +238,7 @@ class Panel(QWidget):
         lay.addLayout(filters)
         lay.addLayout(filters2)
         lay.addLayout(sort_row)
+        # The list gets three parts of the spare height; the comment and the replies one each.
         lay.addWidget(self.table, 3)
         lay.addWidget(self.title)
         lay.addLayout(color_row)

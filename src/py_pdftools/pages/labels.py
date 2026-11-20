@@ -102,6 +102,7 @@ class Range:
         """The label of PAGE (1-based, in this range)."""
         if not self.style:
             return self.prefix
+        # START cuenta desde la primera página del intervalo; para los folios cuenta lados, no hojas.
         return self.prefix + format_number(self.start + page - self.page, self.style) + self.suffix
 
     def start_text(self) -> str:
@@ -112,8 +113,10 @@ class Range:
         or named (PAGE style=S ...) if it has a suffix."""
         if self.suffix:
             return " ".join(self.tokens()[1:])
+        # An empty field keeps the positions: '5:-::Intro' is no number, start 1, prefix 'Intro'.
         out = f"{self.page}:{self.style or NONE_CODE}"
         if self.start != 1 or self.prefix:
+            # Sin estilo no hay número, así que el campo de inicio queda vacío.
             out += f":{self.start_text()}" if self.style else ":"
         if self.prefix:
             out += f":{self.prefix}"
@@ -123,6 +126,7 @@ class Range:
         """This range as arguments of 'py-pdftools labels set'."""
         if not self.suffix:
             return [self.spec()]
+        # A suffix cannot be written in the compact form, so the range becomes the named form of --range.
         out = ["--range", str(self.page), f"style={STYLE_NAMES[self.style]}"]
         if self.start != 1:
             out.append(f"start={self.start_text()}")
@@ -133,6 +137,8 @@ class Range:
 
 def style_code(name: str) -> str:
     """The code of a style given by its code (D, r...), its name (arabic, roman...) or '-'."""
+    # Primero se buscan el código o el nombre exactos (R y r difieren solo en la caja); después, algunos nombres
+    # en cualquier caja.
     code = STYLE_ALIASES.get(name, STYLE_ALIASES_ANY_CASE.get(name.lower()))
     if code is None:
         raise LabelError(tr("unknown style {style!r} (one of: {styles})", style=name, styles=styles_help()))
@@ -153,6 +159,7 @@ def page_number(token: str, n: int) -> int:
         page = int(t)
     elif t == "LAST":
         page = n
+    # LAST-N cuenta hacia atrás desde la última página: LAST-1 es la penúltima.
     elif re.fullmatch(r"LAST-\d+", t):
         page = n - int(t[5:])
     else:
@@ -168,12 +175,14 @@ def parse_pages(spec: str, n: int) -> tuple[int, int | None]:
     if ".." in s:
         a, b = s.split("..", 1)
     else:
+        # 'LAST-3' alone matches the span pattern too (LAST, then 3); the second test keeps it as a single page.
         m = re.fullmatch(r"(\d+|LAST(?:-\d+)?)-(\d*|LAST(?:-\d+)?)", s, re.IGNORECASE)
         if m and not re.fullmatch(r"LAST-\d+", s, re.IGNORECASE):
             a, b = m.group(1), m.group(2)
         else:
             return page_number(s, n), None
     first = page_number(a, n)
+    # Un intervalo abierto ('201-') llega hasta la última página.
     last = page_number(b, n) if b.strip() else n
     if last < first:
         raise LabelError(tr("the range {spec!r} ends before it starts", spec=spec))
@@ -205,12 +214,14 @@ def _start(value: str, spec: str, style: str) -> int:
 
 def parse_compact(spec: str, n: int) -> Request:
     """PAGES:STYLE[:START[:PREFIX]] (the prefix may hold colons)."""
+    # maxsplit=3: the prefix may itself contain colons, as in '1:D:1:Vol. 2: '.
     parts = spec.split(":", 3)
     if len(parts) < 2:
         raise LabelError(tr("a range is PAGES:STYLE[:START[:PREFIX]], as 9:D or 215:D:1:App- (not {spec!r})",
                             spec=spec))
     first, last = parse_pages(parts[0], n)
     style = style_code(parts[1])
+    # Without a number the START field is ignored, even if it was given.
     start = _start(parts[2] if len(parts) > 2 and style else "", spec, style)
     prefix = parts[3] if len(parts) > 3 else ""
     return Request(Range(first, style, prefix, start), last)
@@ -251,10 +262,13 @@ def _candidates(label: str) -> list[Spec]:
     found: list[tuple[int, Spec]] = []
 
     def add(rank: int, style: str, m: re.Match, number: int):
+        # Rango menor es más probable; se penaliza un número con sufijo (+10) y, menos, uno con prefijo (+1).
         found.append((rank + (0 if m.end() == len(label) else 10) + (0 if m.start() == 0 else 1),
                       (style, label[:m.start()], number, label[m.end():])))
 
+    # Folios: digits followed by r or v, not part of a longer number nor of a word ('12rev' is not a folio).
     for m in re.finditer(r"(?<!\d)(\d+)[rv](?![a-zA-Z])", label):
+        # Los números con cero inicial (007) no los puede escribir ningún estilo, así que no son candidatos.
         if not m[1].startswith("0"):
             add(1, "f", m, parse_folio(m[0]))
     for m in re.finditer(r"\d+", label):
@@ -265,6 +279,7 @@ def _candidates(label: str) -> list[Spec]:
             n = from_roman(m[0])
             if n:
                 add(2, style, m, n)
+    # Letter labels repeat a single letter (a, bb, ccc), so only runs of the same letter are candidates.
     for style, rx in (("a", r"([a-z])\1*"), ("A", r"([A-Z])\1*")):
         for m in re.finditer(rx, label):
             add(3, style, m, from_letters(m[0]))
@@ -282,6 +297,7 @@ def from_labels(labels: list[str], first_page: int = 1) -> list[Range]:
     for i, label in enumerate(labels):
         cands = _candidates(label)
         if prev is not None:
+            # Si la etiqueta sigue a la anterior en su mismo intervalo, no hace falta un intervalo nuevo.
             if prev[0] and _following(prev) in cands:
                 prev = _following(prev)
                 continue
@@ -291,7 +307,10 @@ def from_labels(labels: list[str], first_page: int = 1) -> list[Range]:
             out.append(Range(first_page + i, "", label))
             prev = ("", label, 1, "")
             continue
+        # Los candidatos de la etiqueta siguiente se calculan aquí y otra vez en la vuelta siguiente.
         nxt = _candidates(labels[i + 1]) if i + 1 < len(labels) else []
+        # Prefer the reading that the next label continues: '9' followed by '10' is arabic, even if it could
+        # also be read as text.
         pick = next((c for c in cands if c[0] and _following(c) in nxt), None)
         if pick is None:  # (a page on its own: plainly numbered if it can be, else its text)
             pick = next((c for c in cands if c[0] in NATIVE and c[0] and not c[1] and not c[3]), cands[-1])
@@ -314,12 +333,15 @@ def from_list(listed: list[str], n: int) -> list[Range]:
 
 def _entries(node, seen: set) -> list[tuple[int, Dictionary]]:
     """The (index, label dictionary) pairs of a number tree node and its kids."""
+    # Direct objects all have objgen (0, 0), so they cannot be told apart; the loop guard only applies
+    # to indirect nodes, which is where a cycle could be.
     if not isinstance(node, Dictionary) or node.objgen in seen and node.objgen != (0, 0):
         return []
     seen.add(node.objgen)
     out = []
     nums = node.get("/Nums")
     if isinstance(nums, Array):
+        # /Nums alterna clave y valor: [índice dict índice dict ...]; un número impar de elementos deja fuera el último.
         for i in range(0, len(nums) - 1, 2):
             key, value = nums[i], nums[i + 1]
             if isinstance(value, Dictionary):
@@ -327,6 +349,7 @@ def _entries(node, seen: set) -> list[tuple[int, Dictionary]]:
                     out.append((int(key), value))
                 except (TypeError, ValueError):
                     pass
+    # Los nodos intermedios del árbol de números solo tienen /Kids; las hojas, /Nums.
     for kid in node.get("/Kids", []):
         out += _entries(kid, seen)
     return out
@@ -338,15 +361,19 @@ def read_native(pdf: Pdf) -> list[Range]:
     n = len(pdf.pages)
     ranges: dict[int, Range] = {}
     for index, d in _entries(tree, set()):
+        # Entradas fuera del documento (de páginas ya borradas, por ejemplo) se ignoran.
         if not 0 <= index < n:
             continue
         s = d.get("/S")
+        # Un /S que no es de la norma se lee como «sin número», y el prefijo se conserva.
         style = str(s)[1:] if isinstance(s, Name) and str(s)[1:] in NATIVE else ""
         prefix = str(d.get("/P", ""))
         try:
+            # /St must be at least 1 by the PDF specification; smaller values are clamped rather than rejected.
             start = max(int(d.get("/St", 1)), 1)
         except (TypeError, ValueError):
             start = 1
+        # Two entries for the same page: the last one wins, as in normalize.
         ranges[index + 1] = Range(index + 1, style, prefix, start)
     return normalize(list(ranges.values()))
 
@@ -360,6 +387,8 @@ def read_labels(pdf: Pdf) -> list[Range]:
     run: list[Range] = []
 
     def flush():
+        # A run of single-page, prefix-only entries is how virtual ranges are written; from_labels finds the
+        # folios or suffixes in it again.
         if len(run) > 1:
             out.extend(from_labels([r.prefix for r in run], run[0].page))
         else:
@@ -383,6 +412,7 @@ def entries(ranges: list[Range], n: int) -> list[tuple[int, str, str, int]]:
     out = []
     for r, last in spans(normalize(ranges), n):
         if r.virtual:
+            # Un intervalo virtual se guarda como una entrada por página, con la etiqueta entera como prefijo.
             out += [(page, "", r.label(page), 1) for page in range(r.page, last + 1)]
         else:
             out.append((r.page, r.style, r.prefix, r.start))
@@ -393,6 +423,7 @@ def write_labels(pdf: Pdf, ranges: list[Range]) -> None:
     """Give the document these ranges ([]: no page labels at all). Virtual
     ranges are written as one prefix-only entry for each page."""
     ranges = normalize(ranges)
+    # Sin intervalos se quita el árbol entero, para que el visor numere las páginas 1, 2, 3...
     if not ranges:
         if "/PageLabels" in pdf.Root:
             del pdf.Root["/PageLabels"]
@@ -403,10 +434,12 @@ def write_labels(pdf: Pdf, ranges: list[Range]) -> None:
         if style:
             d.S = Name("/" + style)
         if prefix:
+            # pikepdf.String encodes the prefix as PDFDocEncoding or UTF-16 as needed, so accents survive.
             d.P = pikepdf.String(prefix)
         if start != 1:
             d.St = start
         nums.append(page - 1)
+        # Todas las entradas van en un solo nodo /Nums, sin /Kids: con folios en un libro largo son miles.
         nums.append(pdf.make_indirect(d))
     pdf.Root.PageLabels = pdf.make_indirect(Dictionary(Nums=nums))
 
@@ -421,6 +454,7 @@ def normalize(ranges: list[Range]) -> list[Range]:
         by_page[r.page] = r
     out = [by_page[p] for p in sorted(by_page)]
     if out and out[0].page != 1:
+        # La norma pide que el árbol cubra la página 1; si nadie la etiqueta, va en arábigos desde 1.
         out.insert(0, Range(1))
     return out
 
@@ -433,6 +467,7 @@ def page_labels(ranges: list[Range], n: int) -> list[str]:
     out = []
     k = 0
     for page in range(1, n + 1):
+        # Ranges are sorted, so a single forward index finds the range of each page in linear time.
         while k + 1 < len(ranges) and ranges[k + 1].page <= page:
             k += 1
         out.append(ranges[k].label(page))
@@ -448,6 +483,7 @@ def find_label(ranges: list[Range], n: int, label: str) -> list[int]:
 
 def spans(ranges: list[Range], n: int) -> list[tuple[Range, int]]:
     """Each range of a document of N pages with its last page."""
+    # Los intervalos que empiezan después de la última página no cuentan (el documento pudo perder páginas).
     ranges = [r for r in normalize(ranges) if r.page <= n]
     return [(r, (ranges[i + 1].page - 1) if i + 1 < len(ranges) else n) for i, r in enumerate(ranges)]
 
@@ -466,6 +502,7 @@ def _compress(specs: list[Spec]) -> list[Range]:
     out: list[Range] = []
     prev = None
     for i, (style, prefix, number, suffix) in enumerate(specs):
+        # Sin estilo, dos páginas con el mismo texto siguen en el mismo intervalo aunque no haya número que avance.
         continues = (prev is not None and prev[0] == style and prev[1] == prefix and prev[3] == suffix
                      and (not style or number == prev[2] + 1))
         if not continues:
@@ -485,17 +522,21 @@ def apply(base: list[Range], requests: list[Request], n: int, remove: list[int] 
     """
     base = normalize(base)
     for page in remove:
+        # La página 1 no se puede quitar: siempre empieza un intervalo ahí.
         if page == 1 or page not in {r.page for r in base}:
             raise LabelError(tr("no range starts at page {page} (ranges start at: {pages})", page=page,
                                 pages=", ".join(str(r.page) for r in base[1:]) or "-"))
         base = [r for r in base if r.page != page]
+    # Work page by page: every page gets a (style, prefix, number, suffix) and _compress rebuilds the ranges.
     specs = _page_specs(base, n)
     open_ended = [q for q in requests if q.last is None]
     starts = {r.page for r in base} | {q.range.page for q in open_ended}
+    # Open-ended requests are laid first; bounded ones go on top, so they win where both cover a page.
     for q in open_ended + [q for q in requests if q.last is not None]:
         r = q.range
         last = q.last
         if last is None:
+            # An open-ended request stops where the next range (kept or requested) starts.
             later = [p for p in starts if p > r.page]
             last = min(later) - 1 if later else n
         for page in range(r.page, last + 1):
@@ -524,6 +565,7 @@ def number_pages(ranges: list[Range], n: int, pages, style: str, prefix: str = "
     requests = []
     count = 0
     for first, last in blocks(pages):
+        # Las páginas elegidas no consecutivas siguen la numeración de un bloque al otro, como una sola serie.
         requests.append(Request(Range(first, style, prefix, start + count if style else 1, suffix), last))
         count += last - first + 1
     return apply(ranges, requests, n)
@@ -536,6 +578,7 @@ def continue_numbering(ranges: list[Range], n: int, pages) -> list[Range]:
     for first, last in blocks(pages):
         if first == 1:
             raise LabelError(tr("page 1 has no page before it to go on from"))
+        # specs[first - 2] es la página anterior al bloque (first es 1-based y specs 0-based).
         style, prefix, number, suffix = specs[first - 2]
         requests.append(Request(Range(first, style, prefix, number + 1 if style else 1, suffix), last))
     return apply(ranges, requests, n)
@@ -548,6 +591,7 @@ def relabel(ranges: list[Range], n: int, new: dict[int, str]) -> list[Range]:
     for first, last in blocks(new):
         found = from_labels([new[p] for p in range(first, last + 1)], first)
         for i, r in enumerate(found):
+            # Each range found ends where the next begins; the last one ends with the block.
             requests.append(Request(r, found[i + 1].page - 1 if i + 1 < len(found) else last))
     return apply(ranges, requests, n)
 

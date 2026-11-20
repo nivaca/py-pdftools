@@ -78,6 +78,7 @@ def _args(p):
     g.add_argument("--page-info", action=argparse.BooleanOptionalAction, default=True,
                    help=tr("the document name, sheet number, date and time at the top left of each sheet "
                            "(on by default; --no-page-info leaves it out)"))
+    # Opción oculta (sin ayuda): da otro nombre de documento para la información del pliego, p. ej. desde la ventana.
     g.add_argument("--page-info-name", default=None, metavar="NAME", help=argparse.SUPPRESS)
 
 
@@ -89,6 +90,7 @@ def _chunks(slots: list[Slot], size: int) -> list[list[Slot]]:
 
 
 def _mirror_rows(side: list[Slot], cols: int) -> list[Slot]:
+    # Para libros de derecha a izquierda se invierte el orden de las celdas dentro de cada fila.
     return [s for r in range(0, len(side), cols) for s in reversed(side[r:r + cols])]
 
 
@@ -97,6 +99,8 @@ def _folded(count: int, rule: str, group: int, binding: str, sheets: int) -> lis
     parsed = parse_rule(rule)
     if binding == "saddle":
         return shuffle_order(count, parsed, group, "saddle")
+    # Encuadernación fresada (perfect): pilas de 'sheets' pliegos plegados juntos; cada pila se impone
+    # como un pequeño cuadernillo con su propio tramo de páginas.
     size = group * max(sheets, 1)
     out: list[Slot] = []
     for start in range(0, max(count, 1), size):
@@ -111,9 +115,12 @@ def plan(layout: str, count: int, cols: int, rows: int, binding: str, sheets: in
     """(columns, rows, sides): what goes in each cell of each sheet side."""
     if layout == "2up-booklet":
         cols, rows = 2, 1
+        # 2-up: booklet_order with 4 * sheets pages per signature (saddle binding ignores that size).
         sides = [[(l, 0), (r, 0)] for l, r in booklet_order(count, binding, 4 * max(sheets, 1), "full", direction)]
     elif layout in ("4up-booklet", "8up-booklet"):
         cols, rows, rule, group = (2, 2, RULE_4UP, 8) if layout == "4up-booklet" else (4, 2, RULE_8UP, 16)
+        # 4-up y 8-up: la regla del primer pliego (RULE_4UP, RULE_8UP) se estira a todo el documento y luego
+        # se corta en caras de cols x rows celdas.
         sides = _chunks(_folded(count, rule, group, binding, sheets), cols * rows)
         if direction == "right":
             sides = [_mirror_rows(s, cols) for s in sides]
@@ -130,6 +137,8 @@ def plan(layout: str, count: int, cols: int, rows: int, binding: str, sheets: in
             if direction == "right":
                 sides = [_mirror_rows(s, cols) for s in sides]
         else:  # cut stacks
+            # Double-sided cut stacks: odd rule positions are the fronts, cell by cell; the backs take the next page
+            # in the mirrored cell, so each piece backs up its front once the sheet is turned.
             if double:
                 mirror = [r * cols + (cols - 1 - c) for r in range(rows) for c in range(cols)]
                 rule = [2 * p + 1 for p in range(n)] + [2 * mirror[p] + 2 for p in range(n)]
@@ -146,6 +155,7 @@ def plan(layout: str, count: int, cols: int, rows: int, binding: str, sheets: in
 
 
 def registration_target(canvas: pu.Canvas, x: float, y: float, colour: bytes):
+    # Diana de registro: una cruz de 9 pt de brazo y un círculo de 5 pt de radio, en el color de registro.
     r, arm = 5.0, 9.0
     k = 0.5523 * r  # (a circle from four Bézier curves)
     path = (f"{pu.fmt(x - arm)} {pu.fmt(y)} m {pu.fmt(x + arm)} {pu.fmt(y)} l "
@@ -160,12 +170,16 @@ def registration_target(canvas: pu.Canvas, x: float, y: float, colour: bytes):
 
 def page_info(canvas: pu.Canvas, text: str, H: float, colour: bytes):
     from pikepdf import Dictionary, Name
+    # Helvetica (una de las fuentes estándar) sin incrustar y con WinAnsiEncoding; por eso el texto va en cp1252.
     fonts = canvas.res.get("/Font") or Dictionary()
     fonts["/PyImpInfo"] = Dictionary(Type=Name.Font, Subtype=Name.Type1, BaseFont=Name.Helvetica,
                                      Encoding=Name.WinAnsiEncoding)
     canvas.res.Font = fonts
+    # Paréntesis y barras invertidas se escapan, como pide una cadena literal del PDF.
     data = text.encode("cp1252", "replace").replace(b"\\", b"\\\\").replace(b"(", b"\\(").replace(b")", b"\\)")
+    # reg_color() returns stroke operators; the text needs the fill versions (lower case).
     fill = colour.replace(b" K", b" k").replace(b" G", b" g").replace(b"CS", b"cs").replace(b"SCN", b"scn")
+    # Text in 7 pt type, 8 pt from the left edge and 12 pt below the top of the sheet.
     canvas.raw(b"q " + fill + b"BT /PyImpInfo 7 Tf 8 " + pu.fmt(H - 12).encode() + b" Td (" + data
                + b") Tj ET Q\n", pu.TAG_MARKS)
 
@@ -189,9 +203,12 @@ def impose(pdf: Pdf, a, ctx: Context):
         raise ImpositionError(tr("sheets per fold must be at least 1"))
     double = not a.single_sided
     creep = ctx.L(a.creep)
+    # El corrimiento se aplica antes de imponer, con el comando creep: --creep es el desplazamiento total
+    # de las páginas más interiores.
     if creep > 0 and a.layout in BOOKLETS:
         from .pagetools import creep as creep_pages
         group = {"2up-booklet": 4, "4up-booklet": 8, "8up-booklet": 16}[a.layout]
+        # Saddle: one signature for the whole document; perfect: one signature per folded stack.
         ns = argparse.Namespace(scope="document" if a.binding == "saddle" else "signatures",
                                 signature=group * a.sheets_per_fold, thickness=None, total=a.creep,
                                 shift_most="inside", method="shift", direction=a.direction)
@@ -203,12 +220,14 @@ def impose(pdf: Pdf, a, ctx: Context):
     if gh and rows == 1:
         ctx.warn(tr("--gutter-h is ignored: there is only one row of pages"))
     spread = ctx.L(a.spread) if a.spread is not None else gv
+    # En 8-up, el hueco entre la segunda y la tercera columna es el pliegue central (--spread).
     vgaps = [spread if a.layout == "8up-booklet" and k == 1 else gv for k in range(cols - 1)]
     hgaps = [gh] * (rows - 1)
     ml, mb, mr, mt = get_margins(a, ctx)
     if a.layout in BOOKLETS and ml != mr:
         # (the fold stays in the middle of the sheet: the larger margin, never exceeded, on both sides)
         ml = mr = max(ml, mr)
+    # --page-trim recorta los bordes de cada página antes de calcular la escala.
     cut = get_margins(a, ctx, "page-trim")
     if min(cut) < 0:
         raise ImpositionError(tr("the page trim cannot be negative"))
@@ -225,6 +244,7 @@ def impose(pdf: Pdf, a, ctx: Context):
         W = cols * cw + sum(vgaps) + ml + mr
         H = rows * ch + sum(hgaps) + mb + mt
     else:
+        # Only a paper name takes --orientation; an explicit WxH is used as given.
         named = not re.search(r"\d\s*[x×*]\s*\d", a.media)
         W, H = ctx.paper(a.media, a.orientation if named else "as-is")
         # (the size of the pages comes from the sheet and the margins only: the gutters just move
@@ -255,6 +275,7 @@ def impose(pdf: Pdf, a, ctx: Context):
         s = fit_h
     else:
         s = min(fit_w, fit_h)
+    # --no-auto-scale deja la escala al 100 %, quepan o no las páginas; sin --enlarge nunca se amplía.
     if a.no_auto_scale:
         s = 1.0
     elif not a.enlarge:
@@ -271,6 +292,7 @@ def impose(pdf: Pdf, a, ctx: Context):
     bottom = mb + ((H - mt - mb) - block_h) / 2
     if left < min(ml, 0) - 0.5 or bottom < min(mb, 0) - 0.5:  # (more than the margins ask for)
         ctx.warn(tr("the gutters push the pages off the sheet: make them or the margins smaller"))
+    # Left edge of each column and bottom edge of each row; the rows go from the top down.
     xs, x = [], left
     for c in range(cols):
         xs.append(x)
@@ -279,9 +301,11 @@ def impose(pdf: Pdf, a, ctx: Context):
     for r in range(rows):
         ys.append(y - slot_h)
         y -= slot_h + (hgaps[r] if r < rows - 1 else 0)
+    # Cells are numbered row by row from the top left, the same order as the slots of a side.
     cells = [(xs[c], ys[r], xs[c] + slot_w, ys[r] + slot_h) for r in range(rows) for c in range(cols)]
 
     def clip_for(cell: pu.Rect, c: int, r: int) -> pu.Rect:
+        # Cada página puede mostrar su sangrado hasta la mitad del medianil con su vecina, o hasta el borde del pliego.
         left = cell[0] - (vgaps[c - 1] / 2 if c > 0 else cell[0])
         right = cell[2] + (vgaps[c] / 2 if c < cols - 1 else W - cell[2])
         bottom = cell[1] - (hgaps[r] / 2 if r < rows - 1 else cell[1])
@@ -300,6 +324,7 @@ def impose(pdf: Pdf, a, ctx: Context):
             if idx is None:
                 continue
             page, geom = pdf.pages[idx].obj, geoms[idx]
+            # El giro de la regla (páginas cabeza abajo) se suma al de --auto-rotate.
             total = (rot + turn(idx)) % 360
             pw, ph = geom.size(total)
             pw, ph = pw * s, ph * s
@@ -309,6 +334,7 @@ def impose(pdf: Pdf, a, ctx: Context):
             clip = clip_for(cell, k % cols, k // cols)
             rect = pu.place_page(canvas, imp, page, geom, x0, y0, s, rotate_cw=total, clip=clip)
             trims.append(rect)
+            # Bleed outline for --bleed-marks, limited to what the clip lets show.
             l, b, r, t = (m * s for m in geom.bleed_margins(total))
             if l or b or r or t:
                 bleeds.append(pu.intersect(pu.expand(rect, l, b, r, t), clip))
@@ -319,6 +345,7 @@ def impose(pdf: Pdf, a, ctx: Context):
             canvas.raw(b"q 0.3 w [3 2] 0 d\n" + colour + b"".join(pu.re_op(r) + b"\n" for r in bleeds)
                        + b"S\nQ\n", pu.TAG_MARKS)
         if a.registration_marks:
+            # Targets 12 pt in from the middle of each edge of the sheet.
             for x, y in ((W / 2, 12), (W / 2, H - 12), (12, H / 2), (W - 12, H / 2)):
                 registration_target(canvas, x, y, colour)
         if a.page_info:

@@ -28,14 +28,17 @@ class ImposeMixin:
         self.workspace = Workspace(self)
         self.central.addWidget(self.workspace)
         self._impose_key = None  # (what the source given to the workspace was made from)
+        # El menú de Imponer va justo antes de Capas en la barra de menús.
         self.menuBar().insertMenu(self.m_layers.menuAction(), self.workspace.menu)
         self.hints[KIND] = ""
+        # Impose owns no annotation: the pages are not shown, so there is nothing to select.
         # (the pages are not shown: nothing to find, to move through or to zoom)
         return Mode(KIND, lambda a: False, menus=[self.workspace.menu.menuAction()],
                     without=("find", "navigation", "zoom"),
                     entered=self._impose_entered, left=self._impose_left)
 
     def _impose_entered(self):
+        # El área central pasa de las páginas al espacio de trabajo de Imponer, y vuelve al salir.
         self.central.setCurrentWidget(self.workspace)
         self.give_impose_source()
 
@@ -46,8 +49,11 @@ class ImposeMixin:
         """The file to impose: the document's own, or, if it has changes not yet saved, a copy with them."""
         if self.path is None:
             return None
+        # Nothing unsaved: the document's own file is imposed as it is, with no copy.
         if self.work is None and self.annotations == self.saved:
             return self.path
+        # La copia va a la carpeta temporal de la ventana, con las copias de trabajo; cada clave nueva deja otra, y
+        # drop_work las borra todas juntas.
         target = self._new_work("-impose")
         try:
             annots.write(self.file, self.annotations, target, self.password, shown=self.layers)
@@ -58,6 +64,8 @@ class ImposeMixin:
 
     def give_impose_source(self):
         """Give the workspace the document as it is now (if that changed since it was last given)."""
+        # Archivo, fecha de modificación y anotaciones: si nada de eso cambió, el espacio de trabajo no recibe una
+        # copia nueva.
         key = (self.file, self.file.stat().st_mtime_ns if self.file else None, tuple(self.annotations))
         if key == self._impose_key:
             return
@@ -67,5 +75,6 @@ class ImposeMixin:
         ws.set_source(self.impose_source())
 
     def impose_document_changed(self):
+        # Only while the mode is on; on entering it, give_impose_source runs anyway.
         if self.mode == KIND:
             self.give_impose_source()

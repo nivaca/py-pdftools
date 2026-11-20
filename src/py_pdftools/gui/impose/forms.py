@@ -24,8 +24,10 @@ from ...impose.runner import build_parser, translate_paragraphs
 # Options handled elsewhere in the window (input/output files, global preferences).
 SKIP = {"help", "output", "units", "registration", "bleed", "pdfx", "quiet", "version", "interface",
         "conform"}
+# Estas opciones globales no tienen campo en los formularios: las pone la barra del espacio de trabajo en cada comando.
 PREFERENCE_DESTS = {"units", "registration", "bleed", "pdfx"}
 
+# Por el nombre (dest) de la opción se decide qué campo usar: abrir un archivo, elegir una carpeta o guardar uno.
 FILE_DESTS = {"file", "evens", "background", "layout", "fields", "data", "sequence", "example"}
 DIR_DESTS = {"out_dir", "folder", "out", "done", "errors"}
 SAVE_DESTS = {"export"}
@@ -39,6 +41,7 @@ def file_filter(kind: str) -> str:
     return tr("PDF files (*.pdf)") + ";;" + every
 
 
+# Qué filtro ofrece el diálogo de cada opción de archivo; las demás abren PDF.
 FILTERS = {"data": "data", "layout": "toml", "fields": "toml", "sequence": "toml", "export": "toml"}
 
 # argparse's group titles (translated by argparse or by the commands) -> what the form shows
@@ -78,6 +81,7 @@ def example_for(action: argparse.Action) -> str:
 
 def subparsers() -> dict[str, argparse.ArgumentParser]:
     parser = build_parser()
+    # argparse no da una forma pública de llegar a los subcomandos; se buscan entre las acciones privadas del parser.
     for action in parser._actions:
         if isinstance(action, argparse._SubParsersAction):
             return dict(action.choices)
@@ -85,11 +89,13 @@ def subparsers() -> dict[str, argparse.ArgumentParser]:
 
 
 def clean_help(text: str | None) -> str:
+    # Las ayudas son cadenas de formato de argparse, donde un signo de porcentaje literal va doble.
     return (text or "").replace("%%", "%")
 
 
 def long_option(action: argparse.Action) -> str | None:
     longs = [o for o in action.option_strings if o.startswith("--")]
+    # The long form is preferred for the label and the command line; positionals have no option string at all.
     return longs[0] if longs else (action.option_strings[0] if action.option_strings else None)
 
 
@@ -135,6 +141,8 @@ class FlagField(Field):
 
     def __init__(self, action, parent=None):
         super().__init__(action, parent)
+        # The checkbox is not put in this widget's layout: CommandForm places it as the row's label,
+        # with the help beside it.
         self.box = QCheckBox((long_option(action) or action.dest).lstrip("-"))
         self.box.setToolTip(self.toolTip())
         self.help = QLabel(clean_help(action.help))
@@ -142,6 +150,7 @@ class FlagField(Field):
         self.help.setToolTip(self.toolTip())
         self.help.setStyleSheet("color: palette(placeholder-text);")
         self.help.setMinimumWidth(120)
+        # Un clic en el texto de ayuda también marca o desmarca la casilla, como haría una etiqueta asociada.
         self.help.mousePressEvent = lambda _e: self.box.toggle()
         lay = QHBoxLayout(self)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -156,6 +165,7 @@ class FlagField(Field):
 
     def tokens(self):
         checked = self.box.isChecked()
+        # Una opción con forma --no- solo se escribe si difiere de su valor por defecto, en la forma que corresponda.
         if self.on_off:
             if checked == bool(self.action.default):
                 return []
@@ -174,6 +184,7 @@ class ChoiceField(Field):
         super().__init__(action, parent)
         self.combo = QComboBox(self)
         if action.default is None:
+            # Sin valor por defecto, la primera entrada vacía permite no pasar la opción.
             self.combo.addItem("")  # not set
         for c in action.choices:
             self.combo.addItem(str(c))
@@ -185,6 +196,7 @@ class ChoiceField(Field):
 
     def tokens(self):
         v = self.combo.currentText()
+        # El valor por defecto no se escribe: solo alargaría la línea de comandos.
         if v == "" or (self.action.default is not None and v == str(self.action.default)):
             return []
         return [self.option, v] if self.option else [v]
@@ -204,6 +216,7 @@ class ChoiceField(Field):
 class SpinField(Field):
     def __init__(self, action, parent=None):
         super().__init__(action, parent)
+        # Las opciones enteras usan un QSpinBox; las demás, un QDoubleSpinBox con tres decimales.
         is_int = action.type is int
         self.spin = QSpinBox(self) if is_int else QDoubleSpinBox(self)
         if is_int:
@@ -224,6 +237,8 @@ class SpinField(Field):
 
     def tokens(self):
         v = self.spin.value()
+        # A float default with more than three decimals is rounded by the spin box, so it no longer equals the
+        # default and is written to the command line anyway.
         if v == self.action.default:
             return []
         return [self.option, self._fmt(v)]
@@ -241,6 +256,7 @@ class TextField(Field):
     def __init__(self, action, parent=None):
         super().__init__(action, parent)
         self.edit = QLineEdit(self)
+        # SUPPRESS significa que la opción no tiene valor por defecto que mostrar; entonces se da un ejemplo.
         if action.default not in (None, argparse.SUPPRESS):
             self.edit.setPlaceholderText(tr('default: {default}', default=action.default))
         else:
@@ -280,6 +296,7 @@ class PathField(TextField):
         self.lay.addWidget(btn)
 
     def browse(self):
+        # El diálogo arranca en la ruta ya escrita, si la hay, o en la carpeta personal.
         start = self.text() or str(Path.home())
         if self.mode == "dir":
             path = QFileDialog.getExistingDirectory(self, pretty(self.dest), start)
@@ -323,11 +340,14 @@ class ListField(Field):
 
     def tokens(self):
         out = []
+        # Una opción repetible se escribe una vez por valor: --opt a --opt b.
         for v in self.values():
             out += [self.option, v] if self.option else [v]
         return out
 
     def set_value(self, value):
+        # set_value appends, so that a repeated option read from a command line accumulates its values;
+        # reset() clears the field first.
         vals = value if isinstance(value, list) else [value]
         current = self.values()
         self.edit.setPlainText("\n".join(current + [str(v) for v in vals]))
@@ -337,6 +357,8 @@ class ListField(Field):
 
 
 def make_field(action: argparse.Action) -> Field:
+    # El orden importa: los tipos más específicos (banderas, listas, opciones con valores fijos) se revisan antes
+    # que los genéricos de archivo, número y texto.
     if isinstance(action, (argparse._StoreTrueAction, argparse.BooleanOptionalAction)):
         return FlagField(action)
     if isinstance(action, argparse._AppendAction):
@@ -351,6 +373,7 @@ def make_field(action: argparse.Action) -> Field:
         return PathField(action, mode="save")
     if action.type is Path or action.dest in FILE_DESTS:
         return PathField(action, mode="open")
+    # Los números sin valor por defecto van a un TextField, porque un QSpinBox no puede quedar vacío.
     if action.type in (int, float) and action.default is not None:
         return SpinField(action)
     return TextField(action)
@@ -378,6 +401,8 @@ class CommandForm(QWidget):
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         text = translate_paragraphs(self.command.description or self.command.help)
+        # Only the first paragraph of the description is shown; the rest (examples, details) goes into a "Reference"
+        # box, closed at first.
         desc = QLabel(clean_help(text).split("\n\n")[0])
         desc.setWordWrap(True)
         desc.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
@@ -396,10 +421,12 @@ class CommandForm(QWidget):
             outer.addWidget(box)
 
         by_action = {}
+        # Un grupo por cada grupo de argparse, con los mismos títulos que --help (traducidos).
         for group in parser._action_groups:
             actions = [a for a in group._group_actions if self._wanted(a)]
             if not actions:
                 continue
+            # argparse may have translated its own group titles already, so they are matched in their translated form.
             titles = {tr(k): tr(v) for k, v in GROUP_TITLES.items()}
             box = QGroupBox(titles.get(group.title, (group.title or "").capitalize()))
             form = QFormLayout(box)
@@ -410,17 +437,21 @@ class CommandForm(QWidget):
                 by_action[action] = field
                 for opt in action.option_strings:
                     self.by_option[opt] = field
+                # Argumento por defecto: cada lambda guarda su propio campo, no el último del bucle.
                 field.changed.connect(lambda f=field: self._field_changed(f))
                 if isinstance(field, FlagField):
                     form.addRow(field.box, field)
                 else:
                     label = (long_option(action) or action.dest).lstrip("-")
+                    # Las opciones obligatorias y los argumentos posicionales sin "?" ni "*" se marcan en negrita
+                    # con asterisco.
                     if action.required or (field.positional and action.nargs not in ("?", "*")):
                         label = f"<b>{label}</b> *"
                     lab = QLabel(label)
                     lab.setToolTip(field.toolTip())
                     form.addRow(lab, field)
             outer.addWidget(box)
+        # Exclusive groups of argparse are kept so that choosing one option clears the others (see _field_changed).
         for grp in parser._mutually_exclusive_groups:
             members = [by_action[a] for a in grp._group_actions if a in by_action]
             if len(members) > 1:
@@ -428,6 +459,7 @@ class CommandForm(QWidget):
         # --margin-top and the like: empty means "the same as --margin"
         by_dest = {f.dest: f for f in self.fields}
         for f in self.fields:
+            # Un campo como margin_top cuyo campo base (margin) existe muestra "igual que --margin" cuando está vacío.
             base, _, side = f.dest.rpartition("_")
             if side in SIDES and base in by_dest and isinstance(f, TextField):
                 f.edit.setPlaceholderText(tr("same as {option}", option=by_dest[base].option))
@@ -437,6 +469,7 @@ class CommandForm(QWidget):
         if action.dest in SKIP:
             return False
         if action.dest == "input" and (self.command.needs_input in (True, "optional") or self.name == "replay"):
+            # replay también recibe el documento abierto, aunque no lo declare como entrada.
             return False  # the window supplies the current document
         return True
 
@@ -448,6 +481,7 @@ class CommandForm(QWidget):
             if field in members and field.has_value():
                 for other in members:
                     if other is not field and other.has_value():
+                        # _loading evita que el reinicio del otro campo vuelva a entrar aquí.
                         self._loading = True
                         other.reset()
                         self._loading = False
@@ -459,6 +493,8 @@ class CommandForm(QWidget):
         """The command line for this form (command name, options, positionals)."""
         opts, pos = [], []
         for f in self.fields:
+            # Las opciones van antes que los posicionales; las opciones sin campo (extra) se conservan
+            # entre unas y otros.
             (pos if f.positional else opts).extend(f.tokens())
         return [self.name] + opts + self.extra + pos
 
@@ -470,6 +506,8 @@ class CommandForm(QWidget):
             if needed and not f.has_value():
                 out.append((long_option(a) or a.dest).lstrip("-"))
         for members in self._exclusive:
+            # Un grupo exclusivo obligatorio se cumple con cualquiera de sus opciones;
+            # si falta, se informa como "a / b".
             grp_required = any(g.required for g in self.parser._mutually_exclusive_groups
                                if any(m.action in g._group_actions for m in members))
             if grp_required and not any(m.has_value() for m in members):
@@ -496,10 +534,12 @@ class CommandForm(QWidget):
         i = 0
         while i < len(tokens):
             tok = tokens[i]
+            # --opt=value se separa en opción y valor; otras fichas se buscan tal cual.
             opt, eq, inline = tok.partition("=") if tok.startswith("--") else (tok, "", "")
             field = self.by_option.get(opt)
             if field is not None:
                 if isinstance(field, FlagField):
+                    # Both --x and --no-x of an on/off option are keys of by_option and lead to the same field.
                     field.set_value(not opt.startswith("--no-"))
                 else:
                     if eq:
@@ -507,8 +547,10 @@ class CommandForm(QWidget):
                     else:
                         i += 1
                         value = tokens[i] if i < len(tokens) else ""
+                    # Una opción al final sin valor recibe una cadena vacía, en vez de fallar.
                     field.set_value(value)
             elif tok.startswith("-"):
+                # The parser tells whether the unknown option takes a value, so that the value is kept with it.
                 # an option without a field (preferences): keep it with its value
                 self.extra.append(tok)
                 action = self.parser._option_string_actions.get(opt)
@@ -516,6 +558,7 @@ class CommandForm(QWidget):
                     i += 1
                     self.extra.append(tokens[i])
             elif positionals:
+                # Positionals are filled in order; a list positional takes every value that remains.
                 target = positionals[0]
                 target.set_value(tok)
                 if not isinstance(target, ListField):
@@ -526,4 +569,5 @@ class CommandForm(QWidget):
 
 
 def _escape(s: str) -> str:
+    # Para mostrar texto de ayuda dentro de <pre>: QLabel lo interpreta como texto enriquecido.
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")

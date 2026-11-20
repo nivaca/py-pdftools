@@ -21,6 +21,8 @@ SlotEdit = TextTarget  # (the text of one place)
 class HeaderFooterDialog(StampDialog):
     """Settings for a header and footer, from HF; see StampDialog."""
 
+    # Lo que StampDialog necesita saber del tipo de capa: el módulo que la valida, la dibuja y guarda sus perfiles,
+    # y la clase de sus ajustes.
     module = headfoot
     settings_class = HeaderFooter
 
@@ -35,6 +37,8 @@ class HeaderFooterDialog(StampDialog):
 
     def build(self):
         # ------------------------------------------------- the texts
+        # Seis campos de texto, tres arriba y tres abajo; el nombre de cada uno (header_left...) es el del campo
+        # de HeaderFooter que le corresponde.
         self.slots: dict[str, TextTarget] = {}
         texts = QGridLayout()
         for row, prefix in enumerate(("header", "footer")):
@@ -46,6 +50,8 @@ class HeaderFooterDialog(StampDialog):
                 edit.textChanged.connect(self.changed)
                 self.slots[slot] = edit
                 texts.addWidget(edit, row, col)
+        # Until the user clicks a field, the buttons below insert into the centre of the footer, where page numbers
+        # usually go.
         self.target = self.slots["footer_center"]
         insert = QHBoxLayout()
         insert.addWidget(QLabel(tr("Insert:")))
@@ -53,11 +59,14 @@ class HeaderFooterDialog(StampDialog):
         date.setToolTip(f"$date: {tr(headfoot.VARIABLES['date'])}")
         date.clicked.connect(lambda *_: self.insert("$date"))
         insert.addWidget(date)
+        # date_format is built by StampDialog, which shares it with the watermark dialog; here it only takes a place.
         insert.addWidget(self.date_format)
         number = QToolButton()
         number.setText(tr("Page number"))
         number.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
         menu = QMenu(number)
+        # Los formatos de número de página se insertan traducidos ("Página $page de $totalpages"),
+        # en el idioma de la interfaz.
         for shown, text in headfoot.PAGE_FORMATS.items():
             menu.addAction(tr(shown), lambda *_, t=text: self.insert(tr(t)))
         number.setMenu(menu)
@@ -84,6 +93,8 @@ class HeaderFooterDialog(StampDialog):
         self.units = QComboBox()
         for code, title in headfoot.UNIT_TITLES.items():
             self.units.addItem(tr(title), code)
+        # Cambiar de unidad convierte los márgenes ya escritos (ver _units_changed),
+        # en vez de reinterpretar sus números.
         self.units.currentIndexChanged.connect(self._units_changed)
         self.margins = {}
         margins = QFormLayout()
@@ -96,6 +107,7 @@ class HeaderFooterDialog(StampDialog):
             spin.valueChanged.connect(self.changed)
             self.margins[side] = spin
             margins.addRow(title, spin)
+        # Shrinking scales the page content into the space left between the margins, so that nothing is covered.
         self.shrink = QCheckBox(tr("Shrink the pages"))
         self.shrink.setToolTip(tr("Scale the content of the pages down so that the header and footer don't "
                                   "cover it"))
@@ -115,6 +127,7 @@ class HeaderFooterDialog(StampDialog):
         self.font_size.setSuffix(" pt")
         self.font_size.valueChanged.connect(self.changed)
         self.color = ColorButton()
+        # ColorButton has no Qt signal: its colorChanged method is replaced by the dialog's own slot.
         self.color.colorChanged = self.changed
         self.bold = QCheckBox(tr("Bold"))
         self.italic = QCheckBox(tr("Italic"))
@@ -138,6 +151,7 @@ class HeaderFooterDialog(StampDialog):
         border_row.addStretch(1)
         self.background = QCheckBox(tr("Background"))
         self.background.toggled.connect(self.changed)
+        # El fondo se activa con la casilla; el color blanco solo es el valor inicial del botón.
         self.background_color = ColorButton("#ffffff")
         self.background_color.colorChanged = self.changed
         background_row = QHBoxLayout()
@@ -157,6 +171,7 @@ class HeaderFooterDialog(StampDialog):
         row.addWidget(margins_box)
         row.addWidget(look_box, 1)
         left.addLayout(row)
+        # pages_box y bates_box los construye la clase base; aquí solo se colocan debajo del resto.
         row = QHBoxLayout()
         row.addWidget(self.pages_box, 1)
         row.addWidget(self.bates_box)
@@ -167,6 +182,7 @@ class HeaderFooterDialog(StampDialog):
         for slot, edit in self.slots.items():
             edit.setText(getattr(hf, slot))
         self.units.setCurrentIndex(self.units.findData(hf.units))
+        # _units remembers the unit the margins are written in, for the conversion when it changes.
         self._units = hf.units
         for side, spin in self.margins.items():
             spin.setValue(getattr(hf, side))
@@ -179,6 +195,7 @@ class HeaderFooterDialog(StampDialog):
         self.border.setChecked(hf.border)
         self.border_color.set_color(hf.border_color)
         self.border_width.setValue(hf.border_width)
+        # An empty string means no background in HeaderFooter, so the color is kept only while the box is checked.
         self.background.setChecked(bool(hf.background))
         self.background_color.set_color(hf.background or "#ffffff")
 
@@ -190,12 +207,16 @@ class HeaderFooterDialog(StampDialog):
             color=self.color.color, bold=self.bold.isChecked(), italic=self.italic.isChecked(),
             border=self.border.isChecked(), border_color=self.border_color.color,
             border_width=self.border_width.value(),
+            # Si el fondo está desmarcado se guarda "" y el color elegido se pierde;
+            # al reabrir el diálogo vuelve a blanco.
             background=self.background_color.color if self.background.isChecked() else "")
 
     def _units_changed(self, *_):
         """Keep the margins where they are, in the new units."""
         new = self.units.currentData()
+        # Mientras se cargan los ajustes no se convierte nada: los valores ya vienen en la unidad nueva.
         if not self._loading and new != getattr(self, "_units", new):
+            # POINTS da cuántos puntos tiene cada unidad; el factor pasa de la unidad vieja a la nueva.
             factor = headfoot.POINTS[self._units] / headfoot.POINTS[new]
             for spin in self.margins.values():
                 spin.setValue(round(spin.value() * factor, 2))

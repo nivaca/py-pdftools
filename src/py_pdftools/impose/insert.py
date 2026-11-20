@@ -75,9 +75,11 @@ def insert(pdf: Pdf | None, a, ctx: Context):
     else:
         if a.blank is None or a.blank < 0:
             raise ImpositionError(tr("--blank must be zero or more"))
+        # Each blank counts --copies times too (at least once).
         items = [("blank", None)] * (a.blank * max(a.copies, 1))
 
     def blank_size(near: int | None):
+        # Tamaño de las páginas en blanco: --size, --size-of o el de la página vecina; en un documento vacío, A4.
         if a.size:
             return ctx.paper(a.size)
         if a.size_of:
@@ -103,6 +105,8 @@ def insert(pdf: Pdf | None, a, ctx: Context):
     if a.every:
         if a.cond_if or a.cond_unless or a.cond_until:
             raise ImpositionError(tr("conditions can't be combined with --every"))
+        # --every: se inserta en pos y luego cada K páginas originales. Con --each-time N se toman las N páginas
+        # siguientes del archivo, en ciclo salvo con --stop-when-exhausted.
         file_cursor = 0
         p = pos
         while True:
@@ -122,12 +126,16 @@ def insert(pdf: Pdf | None, a, ctx: Context):
                 chunk = items
             inserts.setdefault(p, []).extend(chunk)
             p += a.every
+            # Al llegar al final se para; con --before no se inserta detrás de la última página.
             if p > n or (p == n and not after_mode):
                 break
     else:
+        # 'and' binds tighter than 'or': (if and not check) or (unless and check).
         if a.cond_if and not check(a.cond_if, n) or a.cond_unless and check(a.cond_unless, n):
             return pdf
         if a.cond_until:
+            # --until: pages are added one at a time, counting the new length, until the condition holds or they run
+            # out.
             chunk, count = [], n
             for it in items:
                 if check(a.cond_until, count):
@@ -139,11 +147,13 @@ def insert(pdf: Pdf | None, a, ctx: Context):
 
     out = Pdf.new()
     pu.copy_docinfo(pdf, out)
+    # The output is rebuilt: at each position, first the inserted pages, then the original page.
     for idx in range(n + 1):
         for kind, j in inserts.get(idx, []):
             if kind == "file":
                 out.pages.append(src.pages[j])
             else:
+                # Los blancos toman el tamaño de la página a la que preceden o, al final, el de la última.
                 pg = out.add_blank_page(page_size=blank_size(idx if idx < n else n - 1))
                 if "/Contents" in pg.obj:
                     del pg.obj["/Contents"]

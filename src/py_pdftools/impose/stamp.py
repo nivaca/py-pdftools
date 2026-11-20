@@ -39,9 +39,11 @@ _registered: dict[str, str] = {}
 
 def resolve_font(name: str) -> str:
     """Return a reportlab font name, registering TrueType fonts as needed."""
+    # reportlab se importa aquí y no arriba, de modo que los comandos que no lo usan no lo cargan.
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
 
+    # Las 14 fuentes estándar del PDF no se incrustan; cualquier otro nombre se busca como archivo o con fc-match.
     for std in STANDARD_FONTS:
         if name.lower() == std.lower():
             return std
@@ -50,6 +52,7 @@ def resolve_font(name: str) -> str:
     path = Path(name).expanduser()
     if not path.is_file():
         found = None
+        # fc-match (fontconfig) turns a family name such as 'DejaVu Sans' into a font file; without it only paths work.
         if shutil.which("fc-match"):
             try:
                 found = subprocess.run(["fc-match", "-f", "%{file}", name], capture_output=True,
@@ -61,11 +64,13 @@ def resolve_font(name: str) -> str:
         path = Path(found)
     if path.suffix.lower() not in (".ttf", ".ttc"):
         raise ImpositionError(tr('font file {path} is not TrueType (.ttf); only TrueType fonts can be embedded', path=path))
+    # Nombre interno para reportlab, sacado del nombre del archivo, con todo lo que no sea letra o cifra cambiado por _.
     rl_name = "F_" + re.sub(r"\W", "_", path.stem)
     try:
         pdfmetrics.registerFont(TTFont(rl_name, str(path)))
     except Exception as e:
         raise ImpositionError(tr('cannot use font {path}: {error}', path=path, error=e)) from None
+    # Cached by the name the user gave, so each font is registered once per run.
     _registered[name] = rl_name
     return rl_name
 
@@ -74,6 +79,7 @@ def parse_color(spec: str, ctx: Context):
     from reportlab.lib import colors
 
     s = spec.strip().lower()
+    # 'registration' sigue la preferencia global --registration: negro, CMYK al 100 % o la separación All.
     if s in ("registration", "reg"):
         if ctx.registration == "cmyk":
             return colors.CMYKColor(1, 1, 1, 1)
@@ -87,11 +93,13 @@ def parse_color(spec: str, ctx: Context):
         c, m, y, k = (float(v) / 100 for v in s[5:].split(","))
         return colors.CMYKColor(c, m, y, k)
     if s.startswith("gray:") or s.startswith("grey:"):
+        # gray: accepts 0-1 or a percentage; the value is the amount of black, so gray:100 is black.
         v = float(s[5:])
         v = v / 100 if v > 1 else v
         return colors.Color(1 - v, 1 - v, 1 - v)
     if s.startswith("#"):
         return colors.HexColor(s)
+    # Cualquier otro nombre se busca entre los colores con nombre de reportlab (red, navy...).
     named = getattr(colors, s, None)
     if named is not None and isinstance(named, colors.Color):
         return named
@@ -110,6 +118,7 @@ def expand_fields(text: str, ctx: Context, pdf: Pdf, page_no: int, number: str |
         title = str(pdf.docinfo.get("/Title", ""))
     except Exception:
         pass
+    # Las claves van en minúscula y rep() también pasa a minúscula: [Page] y [page] son el mismo campo.
     values = {
         "#": number if number is not None else "",
         "page": str(page_no),
@@ -131,6 +140,7 @@ def expand_fields(text: str, ctx: Context, pdf: Pdf, page_no: int, number: str |
 
     def rep(m):
         key = m.group(1).strip().lower()
+        # Unknown fields stay as written, brackets included.
         return values[key] if key in values else m.group(0)
 
     return re.sub(r"\[([^\[\]]+)\]", rep, text)
@@ -154,6 +164,7 @@ class TextSpec:
 def anchor_point(box: pu.Rect, position: str, dx: float, dy: float) -> tuple[float, float, str]:
     """Anchor point and horizontal alignment ('left'/'center'/'right') for a position."""
     x0, y0, x1, y1 = box
+    # La posición es 'vertical-horizontal' (top-left); un nombre sin guion (left, right, center) va a media altura.
     v, _, h = position.partition("-") if "-" in position else ("middle", "", position)
     if position == "center":
         v, h = "middle", "center"
@@ -163,6 +174,7 @@ def anchor_point(box: pu.Rect, position: str, dx: float, dy: float) -> tuple[flo
         x, align = x1 - dx, "right"
     else:
         x, align = (x0 + x1) / 2 + dx, "center"
+    # Arriba, el ancla está dy por debajo del borde (en la línea base del texto); abajo, dy por encima.
     if v == "top":
         y = y1 - dy
     elif v == "bottom":
@@ -181,10 +193,12 @@ def draw_text(c, spec: TextSpec, box: pu.Rect):
     lines = spec.text.split("\n")
     c.saveState()
     c.translate(x, y)
+    # The rotation is about the anchor point, counterclockwise as reportlab does it.
     if spec.rotation:
         c.rotate(spec.rotation)
     c.setFont(spec.font, spec.size)
     c.setFillColor(spec.color)
+    # Interlineado de 1,2 veces el cuerpo; las líneas siguientes bajan desde el ancla.
     lead = spec.size * 1.2
     for k, line in enumerate(lines):
         w = stringWidth(line, spec.font, spec.size)
@@ -200,6 +214,8 @@ class Overlay:
         from reportlab.pdfgen import canvas as rlcanvas
 
         self.pdf = pdf
+        # All the drawings go to one reportlab document in memory, one page per target page; apply() turns each
+        # of them into a form.
         self.buf = io.BytesIO()
         self.c = rlcanvas.Canvas(self.buf, pageCompression=1)
         self.c.setCreator("py-pdftools")
@@ -209,6 +225,7 @@ class Overlay:
         """Start drawing for page ``index``; coordinates are page visual coordinates with
         the visible box's lower-left at (0, 0). Returns the canvas and the box size."""
         page = self.pdf.pages[index].obj
+        # Each overlay page has the visible size of its target (after /Rotate, without bleed).
         geom = pu.geometry(page, use_bleed=False)
         w, h = geom.size()
         self.c.setPageSize((w, h))
@@ -230,13 +247,16 @@ class Overlay:
             geom = pu.geometry(page, use_bleed=False)
             # overlay visual coordinates -> page user space
             inv = invert(geom.visual_matrix())
+            # Recorte a la caja de la página overlay: nada de lo dibujado fuera de ella aparece.
             form = imp.form(ov.pages[k].obj, box)
             canvas = pu.Canvas(self.pdf, page)
             canvas.form(form, inv, tag=tag)
             canvas.finish(prepend=under)
+        # El documento overlay debe seguir abierto hasta guardar, porque pikepdf copia los flujos al final.
         pu.keep_alive(ov)
 
 
+# TODO: es la misma función que pu.invert (pdfutil.py); bastaría con usar esa.
 def invert(m: pu.Matrix) -> pu.Matrix:
     a, b, c, d, e, f = m
     det = a * d - b * c
@@ -275,6 +295,7 @@ def _text_args(p):
 
 
 def format_number(start: str, value: int) -> str:
+    # Si --start empieza por cero (00098), se conserva el ancho con ceros a la izquierda; el signo no cuenta.
     width = len(start.lstrip("-")) if start.lstrip("-").startswith("0") and len(start.lstrip("-")) > 1 else 0
     return str(value).zfill(width) if value >= 0 else "-" + str(-value).zfill(width)
 
@@ -297,20 +318,25 @@ def stick_text(pdf: Pdf, a, ctx: Context):
     ov = Overlay(pdf)
     k = 0  # number counter
     processed = 0
+    # La hora se toma una sola vez, para que [Time] sea la misma en todas las páginas.
     now = _dt.datetime.now()
     for i in rng:
         page_no = i + 1
+        # Pages skipped by --parity still advance the counter, so the numbers follow the real page numbers.
         if a.parity == "odd" and page_no % 2 == 0 or a.parity == "even" and page_no % 2 == 1:
             k += 1
             continue
+        # --every: solo se estampa una de cada N páginas procesadas, y el número no avanza en las demás.
         stamp = processed % a.every == 0
         processed += 1
         if not stamp:
             continue
+        # With --repeat-each N, the same number is used N times in a row before it moves on.
         value = start + (k // a.repeat_each) * a.increase_by
         k += 1
         text = expand_fields(template, ctx, pdf, page_no, format_number(a.start, value), now)
         pos = a.position
+        # En las páginas pares se intercambian left y right, para numerar en las esquinas exteriores de un libro.
         if a.mirror_odd_even and page_no % 2 == 0:
             pos = pos.replace("left", "@").replace("right", "left").replace("@", "right")
         c, box = ov.page(i)
@@ -365,11 +391,14 @@ def stick_pdf(pdf: Pdf, a, ctx: Context):
         tgeom = pu.geometry(page, use_bleed=False)
         tw, th = tgeom.size()
         pos = a.position
+        # Position in the visual space of the target page, as in anchor_point(); offsets go inward from the edge named.
         vpart, _, hpart = pos.partition("-") if "-" in pos else ("middle", "", pos)
         if pos == "center":
             vpart, hpart = "middle", "center"
         x = {"left": dx, "right": tw - pw - dx}.get(hpart, (tw - pw) / 2 + dx)
         y = {"bottom": dy, "top": th - ph - dy}.get(vpart, (th - ph) / 2 + dy)
+        # Matriz: girar la página fuente y llevarla al origen, escalar, colocar en (x, y) y volver del espacio visual
+        # al de usuario de la página destino (que puede tener /Rotate).
         m = pu.chain(geom.visual_matrix(a.rotate), pu.scale(sx, sy), pu.translate(x, y),
                      invert(tgeom.visual_matrix()))
         canvas = pu.Canvas(pdf, page)
@@ -407,6 +436,7 @@ def mask(pdf: Pdf, a, ctx: Context):
         c.setFillColor(color)
         c.setStrokeColor(color)
         for x, y, w, h in rects:
+            # Con --origin top-left, y se mide hacia abajo desde el borde superior; aquí se pasa a coordenadas PDF.
             yy = box[3] - y - h if a.origin == "top-left" else y
             c.rect(x, yy, w, h, stroke=0, fill=1)
         ov.end_page()
@@ -418,6 +448,7 @@ def mask(pdf: Pdf, a, ctx: Context):
 
 
 def strip_tagged(instructions, tags: set[str]):
+    # Quita todo lo que esté entre un BMC/BDC con una de las etiquetas y su EMC, incluidos los bloques anidados.
     out = []
     depth = 0  # nesting depth inside a removed section
     for ins in instructions:
@@ -440,6 +471,8 @@ def peel_object(pdf: Pdf, obj, tags: set[str], seen: set) -> int:
     removed = 0
     res = obj.get("/Resources") if hasattr(obj, "get") else None
     if res is not None and "/XObject" in res:
+        # Las formas se recorren de forma recursiva, porque tras otra imposición el contenido marcado queda dentro
+        # de una Form XObject. seen evita visitar dos veces la misma forma (y los ciclos).
         for _, x in res.XObject.items():
             if x.is_indirect and x.objgen in seen:
                 continue
@@ -447,6 +480,7 @@ def peel_object(pdf: Pdf, obj, tags: set[str], seen: set) -> int:
                 seen.add(x.objgen)
             if x.get("/Subtype") == pikepdf.Name.Form:
                 removed += peel_object(pdf, x, tags, seen)
+    # Una forma es un flujo y se reescribe en su sitio; en una página se sustituye /Contents por un flujo nuevo.
     if isinstance(obj, pikepdf.Stream):
         ins = pikepdf.parse_content_stream(obj)
         new, changed = strip_tagged(ins, tags)
@@ -456,6 +490,7 @@ def peel_object(pdf: Pdf, obj, tags: set[str], seen: set) -> int:
     else:
         page = pikepdf.Page(obj)
         if "/Contents" in obj:
+            # pikepdf parses all the content streams of the page as one (an array of streams is joined).
             ins = pikepdf.parse_content_stream(page)
             new, changed = strip_tagged(ins, tags)
             if changed:
@@ -480,6 +515,7 @@ def peel(pdf: Pdf, a, ctx: Context):
     if tags is None:
         tags = {pu.TAG_TEXT, pu.TAG_TAPE, pu.TAG_MARKS, pu.TAG_PDF, pu.TAG_BLEED}
     total = 0
+    # seen is shared between pages: a form placed on many pages is cleaned only once.
     seen: set = set()
     for i in select(a.pages, len(pdf.pages), a.parity):
         total += peel_object(pdf, pdf.pages[i].obj, tags, seen)
@@ -510,12 +546,14 @@ def sample(pdf, a, ctx: Context):
     buf = io.BytesIO()
     c = rlcanvas.Canvas(buf, pagesize=(w, h))
     for n in range(1, a.count + 1):
+        # Fondo gris en toda la página, para ver en la imposición dónde acaba cada página.
         c.setFillGray(0.88)
         c.rect(0, 0, w, h, stroke=0, fill=1)
         c.setStrokeGray(0.25)
         c.setLineWidth(8)
         c.rect(4, 4, w - 8, h - 8, stroke=1, fill=0)
         c.setLineWidth(0.5)
+        # Guías a 20 mm (continua) y a 1 pulgada (discontinua) de cada borde, para comprobar márgenes y escalas.
         for d, label in ((20 * mm, "20 mm"), (inch, "1 in")):
             c.setDash(4, 3) if label == "1 in" else c.setDash()
             c.rect(d, d, w - 2 * d, h - 2 * d, stroke=1, fill=0)
@@ -526,6 +564,7 @@ def sample(pdf, a, ctx: Context):
         size = min(w, h) * 0.4
         c.setFont("Helvetica-Bold", size)
         c.setFillGray(0.15)
+        # The baseline is lowered by about a third of the size so that the digits look centred vertically.
         c.drawCentredString(w / 2, h / 2 - size * 0.35, str(n))
         c.setFont("Helvetica", 9)
         c.drawCentredString(w / 2, h - 20 * mm - 14, "TOP")

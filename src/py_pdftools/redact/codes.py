@@ -29,6 +29,7 @@ BUILT_IN = {
     "U.S. Privacy Act": ["(d)(5)", "(j)(1)", "(j)(2)", "(k)(1)", "(k)(2)", "(k)(3)", "(k)(4)", "(k)(5)",
                          "(k)(6)", "(k)(7)"],
 }
+# Al escribir se usa siempre coma y espacio; codes_of acepta comas con espacio o sin él.
 SEPARATOR = ", "
 
 
@@ -43,6 +44,7 @@ def path() -> Path:
 def parse(text_or_path) -> dict[str, list[str]]:
     """The sets of a codes file (raises CodesError)."""
     try:
+        # A Path is read as a file; anything else is taken as the XML text itself.
         root = ET.parse(text_or_path).getroot() if isinstance(text_or_path, Path) \
             else ET.fromstring(text_or_path)
     except (OSError, ET.ParseError) as e:
@@ -54,6 +56,7 @@ def parse(text_or_path) -> dict[str, list[str]]:
         name = " ".join((item.get("name") or "").split())
         if not name:
             continue
+        # Dos <set> con el mismo nombre se juntan en uno; los códigos repetidos se descartan.
         codes = sets.setdefault(name, [])
         for code in item.findall("code"):
             text = " ".join((code.text or "").split())
@@ -89,6 +92,7 @@ def save_user_sets(sets: dict[str, list[str]]) -> None:
     """Keep SETS as the user's (raises OSError)."""
     target = path()
     target.parent.mkdir(parents=True, exist_ok=True)
+    # Written aside and then renamed, so a failure halfway never leaves codes.xml cut short.
     tmp = target.with_name(target.name + ".tmp")
     tmp.write_text(dump(sets), encoding="utf-8")
     os.replace(tmp, target)
@@ -96,6 +100,8 @@ def save_user_sets(sets: dict[str, list[str]]) -> None:
 
 def codes_of(text: str) -> list[str]:
     """The codes in the text of a box ("(b)(6), (b)(7)(C)")."""
+    # TODO: un código con coma (parse y el editor de códigos la admiten) se parte aquí en dos;
+    # rechazar las comas al crear o importar códigos.
     return [c.strip() for c in text.split(",") if c.strip()]
 
 

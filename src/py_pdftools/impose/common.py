@@ -29,15 +29,18 @@ class Context:
     conform: str = ""  # PDF/A or PDF/X made of the outputs ('a-2b', 'x-4'...; see conform.py), '' for none
     input_path: Path | None = None
     quiet: bool = False
+    # Shared between the contexts of the steps of a sequence (see make_context in runner.py), so no warning is lost.
     warnings: list[str] = field(default_factory=list)
 
     def L(self, value) -> float:
         """Parse a length in the current units."""
+        # ValueError from units.py becomes ImpositionError, which main() prints as a plain message, without a traceback.
         try:
             return parse_length(value, self.units)
         except ValueError as e:
             raise ImpositionError(str(e)) from None
 
+    # Igual que L, para listas de longitudes separadas por espacios o comas ('0 40').
     def LL(self, value) -> list[float]:
         try:
             return parse_length_list(value, self.units)
@@ -66,10 +69,12 @@ class Command:
     help: str
     add_args: Callable[[argparse.ArgumentParser], None]
     run: Callable[[Pdf | None, argparse.Namespace, Context], Result]
+    # needs_input también puede ser la cadena 'optional' (entrada posicional opcional); build_parser lo distingue.
     needs_input: bool = True
     description: str | None = None
 
 
+# Registro global: cada módulo de comandos se añade al importarse (véase __init__.py) y build_parser lo recorre.
 COMMANDS: dict[str, Command] = {}
 
 
@@ -104,8 +109,10 @@ def add_margin_args(p: argparse.ArgumentParser, name: str = "margin", help_what:
 
 def get_margins(args, ctx: Context, name: str = "margin") -> tuple[float, float, float, float]:
     """Return (left, bottom, right, top) in points."""
+    # argparse guarda --margin-top como margin_top: de ahí el cambio de guiones por guiones bajos.
     base = getattr(args, name.replace("-", "_"))
     out = []
+    # Same order as a PDF rect (x0, y0, x1, y1), so the tuple can go straight to pu.expand().
     for side in ("left", "bottom", "right", "top"):
         v = getattr(args, f"{name.replace('-', '_')}_{side}")
         out.append(ctx.L(base if v is None else v))
@@ -157,20 +164,24 @@ def arrange_sides(pdf: Pdf, mode: str, reverse_backs: bool = False) -> Result:
     """Rearrange alternating front/back sheets for single-sided printers."""
     if mode == "duplex" and not reverse_backs:
         return pdf
+    # Las páginas alternan anverso (índices pares) y reverso (índices impares).
     n = len(pdf.pages)
     fronts = list(range(0, n, 2))
     backs = list(range(1, n, 2))
     if reverse_backs:
         backs.reverse()
     if mode == "flip-backs":
+        # Backs turned 180° suit printers that flip the sheet on its short edge.
         for i in range(1, n, 2):
             page = pdf.pages[i]
             page.obj.Rotate = (pu.page_rotation(page.obj) + 180) % 360
+        # Con --reverse-backs se sigue por la rama duplex, que intercala con los reversos ya invertidos.
         if not reverse_backs:
             return pdf
         mode = "duplex"
     if mode == "duplex":
         order = []
+        # Si hay un anverso más que reversos (número impar de páginas), se rellena con None para que zip no lo pierda.
         for f, b in zip(fronts, backs + [None] * (len(fronts) - len(backs))):
             order.append(f)
             if b is not None:
@@ -187,19 +198,24 @@ def reorder(pdf: Pdf, order: list[int | None], blank_size: tuple[float, float] |
     """New document with pages of ``pdf`` in ``order`` (None = blank page)."""
     out = Pdf.new()
     pu.copy_docinfo(pdf, out)
+    # Blank pages take the size of the first page, without bleed, or US Letter if the document is empty.
     if blank_size is None and len(pdf.pages):
         blank_size = pu.visual_size(pdf.pages[0].obj, use_bleed=False)
     for idx in order:
         if idx is None:
             pg = out.add_blank_page(page_size=blank_size or (612, 792))
+            # add_blank_page crea un /Contents vacío; se quita para que la página quede de verdad sin contenido.
             if "/Contents" in pg.obj:
                 del pg.obj["/Contents"]
         else:
+            # La página viene de otro Pdf, así que pikepdf la copia con sus recursos al documento nuevo.
             out.pages.append(pdf.pages[idx])
     return out
 
 
 def max_page_size(pdf: Pdf, ctx: Context) -> tuple[float, float]:
+    # Size of the largest page in each direction (not necessarily one real page), as imposed: trim box if bleeds are
+    # used.
     w = h = 0.0
     for page in pdf.pages:
         pw, ph = pu.geometry(page.obj, ctx.use_bleed).size()
@@ -207,6 +223,7 @@ def max_page_size(pdf: Pdf, ctx: Context) -> tuple[float, float]:
     return w, h
 
 
+# Fracciones de alineación: 0 es izquierda o abajo y 1 derecha o arriba, como las coordenadas del PDF.
 ALIGN_H = {"left": 0.0, "center": 0.5, "centre": 0.5, "right": 1.0}
 ALIGN_V = {"top": 1.0, "middle": 0.5, "center": 0.5, "centre": 0.5, "bottom": 0.0}
 ALIGN_CHOICES = ["top-left", "top", "top-right", "left", "center", "right",
@@ -218,6 +235,7 @@ def parse_align(spec: str) -> tuple[float, float]:
     s = spec.lower().replace("centre", "center")
     if s == "center":
         return 0.5, 0.5
+    # Names are joined with a hyphen ('top-left'); a part that is not given stays centred.
     parts = s.split("-")
     h, v = 0.5, 0.5
     for part in parts:

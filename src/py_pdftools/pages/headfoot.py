@@ -121,10 +121,13 @@ class HeaderFooter:
 def known_values(cls, data: dict) -> dict:
     """The values of DATA that are fields of the dataclass CLS, of the type of their defaults."""
     values = {}
+    # Instancia por defecto: el tipo de cada valor por defecto dice a qué convertir lo que trae el JSON.
     defaults = cls()
     for f in fields(cls):
         if f.name in data:
             try:
+                # A value of the wrong type (a string where a number goes) is converted;
+                # if it cannot be, the default stays.
                 values[f.name] = type(getattr(defaults, f.name))(data[f.name])
             except (TypeError, ValueError):
                 continue
@@ -139,6 +142,7 @@ def check(hf: HeaderFooter) -> HeaderFooter:
             raise LabelError(tr("the {what} margin cannot be negative", what=tr(what)))
     if not 0 <= hf.border_width <= 20:
         raise LabelError(tr("the width of the border must be from 0 to 20 points"))
+    # Los colores se normalizan a #rrggbb en minúsculas para que dos perfiles iguales se guarden igual.
     colors = {"color": stamps.hex_color(hf.color, N_("color")),
               "border_color": stamps.hex_color(hf.border_color, N_("border color"))}
     if hf.background:
@@ -175,11 +179,14 @@ class Block:
 
 
 def _pad(hf: HeaderFooter) -> float:
+    # El relleno solo existe si hay borde o fondo; sin ellos el texto llega justo hasta el margen.
     return PAD * hf.size if (hf.border or hf.background) else 0.0
 
 
 def _box_height(hf: HeaderFooter, lines: int) -> float:
+    # Ascender and descender come in thousandths of the font size; the descender is negative.
     asc, desc, _ = FONTS[hf.base_font()]
+    # Primera línea: altura de la fuente; cada línea más suma el interlineado (LINE veces el tamaño).
     return (asc - desc) / 1000 * hf.size + (lines - 1) * LINE * hf.size + 2 * _pad(hf)
 
 
@@ -188,17 +195,22 @@ def layout(hf: HeaderFooter, texts: dict[str, str], width: float, height: float)
     font = hf.base_font()
     pad = _pad(hf)
     unit = POINTS[hf.units]
+    # Márgenes convertidos a puntos, la unidad de las coordenadas de la página.
     top, bottom, left, right = hf.top * unit, hf.bottom * unit, hf.left * unit, hf.right * unit
     blocks = []
     for slot in SLOTS:
         text = texts.get(slot, "")
         if not text.strip():
             continue
+        # El texto de cada lugar admite varias líneas; el ancho de la caja es el de la línea más larga.
         lines = tuple(text.split("\n"))
         box_w = max(text_width(line, font, hf.size) for line in lines) + 2 * pad
         box_h = _box_height(hf, len(lines))
         side = slot.split("_")[1]
+        # Left and right boxes sit at their margins; center ones are centered on the page, ignoring the margins.
         x = left if side == "left" else width - right - box_w if side == "right" else (width - box_w) / 2
+        # The PDF y axis goes up: a header box ends TOP points below the upper edge, a footer starts BOTTOM above
+        # the lower one.
         y = height - top - box_h if slot.startswith("header") else bottom
         blocks.append(Block(slot, lines, x, y, box_w, box_h))
     return blocks
@@ -215,21 +227,26 @@ def draw(hf: HeaderFooter, blocks: list[Block], font_name: str) -> bytes:
         group = [b for b in blocks if b.slot.startswith(prefix)]
         if not group:
             continue
+        # Pagination artifacts are skipped by screen readers and by text extraction in tagged PDFs.
         out.append(f"/Artifact <</Type /Pagination /Subtype /{kind}>> BDC".encode())
         for b in group:
             rect = f"{stamps.number(b.x)} {stamps.number(b.y)} {stamps.number(b.width)} {stamps.number(b.height)} re"
             if hf.background:
+                # Fondo y borde van entre q y Q para no dejar cambiados el color ni el grosor de línea al texto.
                 out.append(f"q {stamps.rgb(hf.background, 'rg')} {rect} f Q".encode())
             if hf.border and hf.border_width > 0:
                 out.append(f"q {stamps.rgb(hf.border_color, 'RG')} {stamps.number(hf.border_width)} w {rect} S Q"
                            .encode())
             side = b.slot.split("_")[1]
             inner = b.width - 2 * pad
+            # La primera línea base queda un ascendente por debajo del borde superior de la caja.
             baseline = b.y + b.height - pad - asc / 1000 * hf.size
             for line in b.lines:
                 if line:
                     free = inner - text_width(line, font, hf.size)
+                    # Cada línea se alinea por separado dentro de la caja, según el lado del lugar.
                     x = b.x + pad + (0 if side == "left" else free if side == "right" else free / 2)
+                    # Cada línea es un objeto de texto propio (BT ... ET), con su fuente, su color y su posición.
                     out.append(f"BT /{font_name} {stamps.number(hf.size)} Tf {stamps.rgb(hf.color, 'rg')} "
                                f"{stamps.number(x)} {stamps.number(baseline)} Td ".encode()
                                + stamps.pdf_string(line) + b" Tj ET")
@@ -252,12 +269,15 @@ def shrink_matrix(hf: HeaderFooter, width: float, height: float) -> stamps.Matri
     that it fits between the header and the footer, centered across the page."""
     unit = POINTS[hf.units]
     header, footer = (_box_height(hf, n) if n else 0.0 for n in _lines_per_band(hf))
+    # Separación fija de medio tamaño de fuente entre el encabezado (o el pie) y el contenido reducido.
     gap = 0.5 * hf.size
     reserved_top = hf.top * unit + header + gap if header else 0.0
     reserved_bottom = hf.bottom * unit + footer + gap if footer else 0.0
+    # The content keeps its proportions: one scale for both axes, taken from the height left free.
     scale = (height - reserved_top - reserved_bottom) / height
     if scale < 0.2:
         raise LabelError(tr("the header and footer leave too little room to shrink the pages into"))
+    # Scaled content is centered horizontally and sits on top of the footer band.
     return (scale, 0, 0, scale, (width - scale * width) / 2, reserved_bottom)
 
 
@@ -273,8 +293,11 @@ def page_texts(hf: HeaderFooter, doc: Document, now: datetime, bates_offset: int
         raise LabelError(tr("no text for the header or the footer"))
     out = []
     for index, number in enumerate(chosen_pages(hf, doc.count)):
+        # Las páginas elegidas se numeran por orden, así el número Bates avanza solo en las páginas que llevan texto.
         texts = {slot: expand(text, number, doc, now, bates_number(hf, bates_offset + index), hf.date_format)
                  for slot, text in hf.texts().items()}
+        # Se comprueba después de expandir, porque una variable ($author, $bookmark) puede traer caracteres
+        # que las fuentes estándar no tienen.
         stamps.check_writable("".join(texts.values()), number)
         out.append((number, texts))
     return out
@@ -286,15 +309,22 @@ def stamp_page(pdf: Pdf, page: pikepdf.Page, hf: HeaderFooter, texts: dict[str, 
     part of ADDITION (a new one if None), replacing the headers and footers py-pdftools (or py-foliation) added
     to it before, unless KEEP."""
     if not keep:
+        # Sin KEEP, el nuevo encabezado sustituye a los anteriores de la página, pero las marcas de agua se quedan.
         stamps.remove_layers(page, lambda r: stamps.kind_of(r) == HEADER_FOOTER)
     font = font if font is not None else stamps.font_object(pdf, hf.base_font())
     addition = stamps.next_id(pdf) if addition is None else addition
     width, height, frame = stamps.shown_frame(page)
+    # frame maps the page as shown (after /Rotate, from the lower left of the crop box) to the page's own space.
     before, shrink = b"q", None
     if hf.shrink and hf.has_text():
+        # The shrink is computed in shown coordinates; conjugating it by the frame gives the same scaling in
+        # the page's own space, where the original content is drawn.
         shrink = stamps.multiply(stamps.multiply(stamps.invert(frame), shrink_matrix(hf, width, height)), frame)
         before += f" {stamps.matrix_text(shrink)} cm".encode()
+    # El prefijo PyFol evita chocar con los nombres de fuente que la página ya tenga en sus recursos.
     font_name = page.add_resource(font, Name.Font, prefix="PyFol")
+    # The original content is closed with Q first, so nothing it leaves in the graphics state (a clip,
+    # a color, a CTM) affects the header and footer.
     after = (f"Q\nq {stamps.matrix_text(frame)} cm\n".encode()
              + draw(hf, layout(hf, texts, width, height), str(font_name)[1:]) + b"\nQ")
     stamps.add_layer(pdf, page, HEADER_FOOTER, addition, hf.as_dict(), before=before, after=after, shrink=shrink,
@@ -308,6 +338,7 @@ def apply(pdf: Pdf, hf: HeaderFooter, doc: Document, now: datetime | None = None
     need, and the Bates numbers go on from BATES_OFFSET. The number of pages it went on."""
     hf = check(hf)
     pages = page_texts(hf, doc, now or datetime.now(), bates_offset)
+    # Un solo objeto de fuente y un solo número de adición, compartidos por todas las páginas.
     font = stamps.font_object(pdf, hf.base_font())
     addition = stamps.next_id(pdf)
     for number, texts in pages:
@@ -332,6 +363,7 @@ def last(pdf: Pdf) -> tuple[int, HeaderFooter] | None:
     found = stamps.last_addition(pdf, HEADER_FOOTER)
     if found is None or not found.settings:
         return None
+    # Settings saved by an older version may no longer pass check(); then there is nothing to update.
     try:
         return found.id, HeaderFooter.from_dict(found.settings)
     except LabelError:

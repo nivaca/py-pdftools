@@ -63,6 +63,7 @@ class PropertiesDialog(QDialog):
         self.setWindowTitle(ntr("Properties of the box", "Properties of the {count} boxes", len(boxes)))
         self.boxes = boxes
 
+        # El valor común a todos los recuadros, o SAME si difieren.
         def common(name):
             values = {getattr(b, name) for b in boxes}
             return values.pop() if len(values) == 1 else SAME
@@ -80,11 +81,14 @@ class PropertiesDialog(QDialog):
         self.font_size.setSuffix(" pt")
         size = common("font_size")
         self.font_size.setValue(0 if size is SAME else size)
+        # With several sizes the spin box shows 0; _size_given tells changes() whether 0 then means
+        # 'as large as fits' or 'leave each as it is'.
         self._size_given = size is not SAME
         self.align = QComboBox()
         for value, name in ALIGNS:
             self.align.addItem(tr(name), value)
         align = common("align")
+        # -1 deja el combo vacío: así changes() sabe que la alineación no se tocó.
         self.align.setCurrentIndex(-1 if align is SAME else [v for v, _ in ALIGNS].index(align))
         self.repeat_text = self._check(tr("Repeat the text all along the box"), common("repeat_text"))
         note = common("note")
@@ -121,6 +125,7 @@ class PropertiesDialog(QDialog):
     def _check(text: str, value) -> QCheckBox:
         box = QCheckBox(text)
         if value is SAME:
+            # The third state stands for 'several': changes() then leaves the boxes as they are.
             box.setTristate(True)
             box.setCheckState(box.checkState().PartiallyChecked)
         else:
@@ -132,6 +137,7 @@ class PropertiesDialog(QDialog):
         out = {}
         if self.fill.color is not SAME:
             out["color"] = self.fill.color
+        # Si el texto difería y el campo quedó vacío, no se cambia; si era común, vaciarlo lo borra.
         if self._text_given or self.text.text():
             out["text"] = " ".join(self.text.text().split())
         if self.text_color.color is not SAME:
@@ -144,6 +150,7 @@ class PropertiesDialog(QDialog):
             box = getattr(self, name)
             if box.checkState() != box.checkState().PartiallyChecked:
                 out[name] = box.isChecked()
+        # La misma regla para la nota, pero leída de los recuadros: una nota común se puede borrar.
         if self.note.text() or len({b.note for b in self.boxes}) == 1:
             out["note"] = self.note.text().strip()
         return out

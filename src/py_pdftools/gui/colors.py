@@ -8,8 +8,10 @@ from PySide6.QtGui import QColor, QIcon, QPainter, QPixmap
 from ..annotate import settings
 from ..core.interface import tr
 
+# Estado del módulo: la ventana lo cambia con set_palette al leer o cambiar los ajustes.
 _palette: list[tuple[str, str | None]] = [(c, None) for c, _, _ in settings.PALETTE]
 _NAMES = {c: name for c, name, _ in settings.PALETTE}
+# _MEANINGS is not read anywhere at present: meaning() goes to settings.PALETTE itself.
 _MEANINGS = {i: meaning for i, (_, _, meaning) in enumerate(settings.PALETTE)}
 
 
@@ -21,8 +23,10 @@ def set_palette(palette) -> None:
 
 def meaning(index: int) -> str:
     color, text = _palette[index]
+    # None es 'el de fábrica'; '' es que el usuario lo dejó vacío a propósito.
     if text is None:  # (the usual one, if the colour is the usual one)
         usual = settings.PALETTE[index]
+        # If the user changed the colour, the usual meaning (of the old colour) no longer applies.
         return tr(usual[2]) if color == usual[0] and usual[2] else ""
     return text
 
@@ -33,6 +37,7 @@ def swatches() -> list[tuple[str, str]]:
 
 
 def label(color: str, means: str = "") -> str:
+    # Un color fuera de la paleta se nombra por su código, p. ej. #3a7bd5.
     name = tr(_NAMES[color]) if color in _NAMES else color
     return f"{name} — {means}" if means else name
 
@@ -40,6 +45,7 @@ def label(color: str, means: str = "") -> str:
 def color_meaning(color: str) -> str:
     """What COLOR means to the user ('' if it isn't in the palette, or means nothing)."""
     for i, (c, _) in enumerate(_palette):
+        # Comparación en minúsculas: los colores leídos de un PDF pueden venir como #FFEB3B.
         if c == (color or "").lower():
             return meaning(i)
     return ""
@@ -55,11 +61,13 @@ def color_name(color: str) -> str:
 def swatch(color: str, size: int = 16) -> QIcon:
     """A square of COLOR; for no colour (''), an empty square crossed out."""
     pixmap = QPixmap(size, size)
+    # Sin color, el cuadro es transparente y lleva una raya roja en diagonal, como un 'prohibido'.
     pixmap.fill(QColor(color) if color else QColor(0, 0, 0, 0))
     p = QPainter(pixmap)
     if not color:
         p.setPen(QColor(208, 48, 48))
         p.drawLine(1, size - 2, size - 2, 1)
+    # A grey border, so that white and very light colours can be seen on a light menu.
     p.setPen(QColor(128, 128, 128))
     p.drawRect(0, 0, size - 1, size - 1)
     p.end()

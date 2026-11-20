@@ -11,6 +11,7 @@ import re
 from fractions import Fraction
 from ..core.interface import tr
 
+# Conversion factors to points: 1 in = 72 pt = 25.4 mm.
 UNITS = {
     "pt": 1.0,
     "mm": 72 / 25.4,
@@ -42,17 +43,20 @@ PAPER_SIZES: dict[str, tuple[float, float]] = {
     "max": (14400, 14400),  # 200 x 200 inches, the largest page size PDF viewers accept
 }
 
+# Un número con signo opcional, que puede ser una fracción (3/8), y una unidad opcional; Fraction lo valida después.
 _LEN_RE = re.compile(r"^\s*([-+]?[0-9./]+)\s*([a-z\"]*)\s*$", re.I)
 
 
 def parse_length(value: str | float | int, unit: str | None = None) -> float:
     """Parse a length into points."""
+    # Numbers that arrive already parsed (from code, not from the command line) are taken in the given or default unit.
     if isinstance(value, (int, float)):
         return float(value) * UNITS[unit or DEFAULT_UNIT]
     m = _LEN_RE.match(str(value))
     if not m:
         raise ValueError(tr('invalid length: {value!r}', value=value))
     num, suffix = m.groups()
+    # Sin sufijo vale la unidad pedida (la de --units) y, en su defecto, DEFAULT_UNIT.
     suffix = suffix.lower() or (unit or DEFAULT_UNIT)
     if suffix not in UNITS:
         raise ValueError(tr('unknown unit {suffix!r} in {value!r} (use pt, mm, cm or in)', suffix=suffix, value=value))
@@ -84,6 +88,8 @@ def parse_paper(spec: str, unit: str | None = None) -> tuple[float, float]:
     s = spec.strip().lower()
     if s in PAPER_SIZES:
         return PAPER_SIZES[s]
+    # WxH: la unidad puede ir en cualquiera de los dos números; si solo la lleva uno (21x29.7cm), vale para ambos.
+    # El separador puede ser x, × o *.
     m = re.match(r"^([-+0-9./]+)\s*([a-z\"]*)\s*[x×*]\s*([-+0-9./]+)\s*([a-z\"]*)$", s)
     if m:
         w, wu, h, hu = m.groups()

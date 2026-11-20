@@ -35,6 +35,7 @@ from ..core import config
 from .annots import ALIGNS, ANNOTATING, DASHABLE, ENDED, ENDS, FILLED, FONTS, ICONS, STAMPS, STROKED, TEXTUAL
 from ..core.interface import N_
 
+# Only lowercase hex digits: values are lowercased before they are checked (see valid and _value).
 COLOR = re.compile(r"#[0-9a-f]{6}")
 SHOW = {"": N_("Nothing"), "text": N_("A field for its text"), "comment": N_("The field of its comment"),
         "properties": N_("Its properties")}  # (what opens after an annotation is made)
@@ -59,6 +60,7 @@ class Style:
     show: str = ""  # what opens after an annotation is made: see SHOW
 
 
+# Los estilos de fábrica de cada tipo; lo que el usuario cambie se guarda como KIND_FIELD en config.toml.
 STYLES = {
     "highlight": Style("#ffeb3b"), "underline": Style("#1e88e5"), "strikeout": Style("#e53935"),
     "squiggly": Style("#43a047"), "caret": Style("#1e88e5", show="text"),
@@ -70,12 +72,14 @@ STYLES = {
     "line": Style("#e53935"), "arrow": Style("#e53935", end="OpenArrow"), "polyline": Style("#e53935"),
     "ink": Style("#1e88e5", width=2.0), "marker": Style("#ffeb3b", width=12.0, opacity=0.4), "stamp": Style("#c62828", stamp="Approved"), "attachment": Style("#1e88e5"),
 }
+# The style of the kinds outside ANNOTATING (a redaction box, for one).
 OTHER_STYLE = Style("#000000")
 STYLE_FIELDS = tuple(f.name for f in dataclasses.fields(Style))
 
 
 def relevant(kind: str, field: str) -> bool:
     """Whether FIELD of a Style means something for annotations of KIND."""
+    # color, opacity, sticky y show valen para todos los tipos; los demás dependen de lo que dibuja cada uno.
     if field in ("color", "opacity", "sticky", "show"):
         return True
     if field == "fill":
@@ -131,6 +135,7 @@ CATEGORIES = (N_("Main arguments"), N_("Definitions"), N_("Historical references
 @dataclasses.dataclass(frozen=True)
 class Settings:
     author: str = ""  # written in new annotations
+    # Tuples of pairs rather than dicts, so that the frozen dataclass is also hashable.
     styles: tuple[tuple[str, Style], ...] = tuple(STYLES.items())
     palette: tuple[tuple[str, str | None], ...] = tuple((c, None) for c, _, _ in PALETTE)  # (colour, meaning; None: usual)
     shortcuts: tuple[tuple[str, str], ...] = tuple(SHORTCUTS.items())
@@ -164,6 +169,7 @@ DEFAULTS = Settings()
 
 
 def valid(field: str, value) -> bool:
+    # bool es subclase de int: sin esta exclusión, True pasaría por un número válido.
     number = isinstance(value, (int, float)) and not isinstance(value, bool)
     if field in ("author", "meaning"):
         return isinstance(value, str) and "\n" not in value and len(value) <= 200
@@ -171,6 +177,7 @@ def valid(field: str, value) -> bool:
         return isinstance(value, str) and bool(COLOR.fullmatch(value.lower()))
     if field == "fill":
         return isinstance(value, str) and (value == "" or bool(COLOR.fullmatch(value.lower())))
+    # Límites razonables: con una opacidad menor que 0,1 la anotación sería casi invisible.
     if field == "opacity":
         return number and 0.1 <= value <= 1
     if field == "width":
@@ -187,6 +194,7 @@ def valid(field: str, value) -> bool:
         return value in ENDS
     if field in ("dashed", "sticky", "stamp_date"):
         return isinstance(value, bool)
+    # A stamp of the user's is 'text:' and then 1 to 75 characters, on one line.
     if field == "stamp":
         return isinstance(value, str) and (value in STAMPS or (value.startswith("text:") and "\n" not in value
                                                                 and 5 < len(value) <= 80))
@@ -212,6 +220,7 @@ def valid(field: str, value) -> bool:
 
 
 def _value(value, field: str):
+    # Colours are kept in lowercase and sizes as floats, so that a value read compares equal to the usual one.
     if isinstance(value, str) and field in ("color", "fill"):
         return value.lower()
     if field in ("opacity", "width", "font_size") and not isinstance(value, bool):
@@ -220,6 +229,7 @@ def _value(value, field: str):
 
 
 def load() -> Settings:
+    # Un archivo dañado, o una sección [parameters] que no es una tabla, da los valores de fábrica.
     try:
         params = config.read().get("parameters", {})
     except config.ConfigError:
@@ -228,6 +238,7 @@ def load() -> Settings:
         params = {}
     author = params.get("author", "")
     styles = []
+    # Cada campo del estilo se acepta solo si es válido y tiene sentido para el tipo; si no, queda el de fábrica.
     for kind in ANNOTATING:
         values = {}
         for field in STYLE_FIELDS:
@@ -236,6 +247,7 @@ def load() -> Settings:
                 values[field] = _value(value, field)
         styles.append((kind, dataclasses.replace(STYLES[kind], **values)))
     palette = []
+    # The palette goes by position: palette_1 is the first colour of PALETTE, and so on.
     for n, (usual, _, _) in enumerate(PALETTE, 1):
         color, meaning = params.get(f"palette_{n}_color"), params.get(f"palette_{n}_meaning")
         palette.append((color.lower() if valid("color", color) else usual, meaning if valid("meaning", meaning)
@@ -244,6 +256,8 @@ def load() -> Settings:
     for action, usual in SHORTCUTS.items():
         key = params.get(f"shortcut_{action}")
         shortcuts.append((action, key if valid("shortcut", key) else usual))
+    # TODO: los valores usuales ('eng', 'stroke', 'normal', 'pan') se repiten aquí, en save() y en
+    # Settings; convendría tomarlos de DEFAULTS, para que no se separen al cambiar uno.
     autosave = params.get("autosave")
     pdfconform = params.get("pdfconform", "")
     categories = params.get("categories")
@@ -263,6 +277,7 @@ def save(settings: Settings) -> None:
     for a value that isn't allowed). Usual values are left out of it."""
     if not valid("author", settings.author):
         raise ValueError(f"author = {settings.author!r}")
+    # None means 'take the key out': config.set_many drops it, so only what differs from the usual is written.
     values: dict = {"author": settings.author or None}
     for kind in ANNOTATING:
         style, usual = settings.style(kind), STYLES[kind]
@@ -270,12 +285,14 @@ def save(settings: Settings) -> None:
             value = getattr(style, field)
             if not valid(field, value):
                 raise ValueError(f"{kind}_{field} = {value!r}")
+            # Un campo sin sentido para el tipo no se escribe, aunque difiera, para no llenar el archivo de ruido.
             keep = relevant(kind, field) and value != getattr(usual, field)
             values[f"{kind}_{field}"] = value if keep else None
     for n, ((color, meaning), (usual, _, _)) in enumerate(zip(settings.palette, PALETTE, strict=True), 1):
         if not valid("color", color) or (meaning is not None and not valid("meaning", meaning)):
             raise ValueError(f"palette_{n} = {color!r}, {meaning!r}")
         values[f"palette_{n}_color"] = color if color != usual else None
+        # The meaning is written whenever the user gave one, even if it is the usual text.
         values[f"palette_{n}_meaning"] = meaning
     for action, key in settings.shortcuts:
         if action in SHORTCUTS:
@@ -293,6 +310,7 @@ def save(settings: Settings) -> None:
         if not valid(name, getattr(settings, name)):
             raise ValueError(f"{name} = {getattr(settings, name)!r}")
         values[name] = getattr(settings, name) if getattr(settings, name) != usual else None
+    # ';' separa las categorías en el archivo: ninguna puede contenerlo.
     if settings.categories is not None and any(";" in c or "\n" in c for c in settings.categories):
         raise ValueError(f"categories = {settings.categories!r}")
     values["categories"] = "; ".join(settings.categories) if settings.categories is not None else None

@@ -84,6 +84,7 @@ class Watermark:
 def check(wm: Watermark) -> Watermark:
     """WM if its settings are right (raises LabelError if not), with its color written as #rrggbb."""
     stamps.check_common(wm)
+    # Exactamente uno de los dos: un texto o una página de otro PDF, nunca ambos ni ninguno.
     if bool(wm.text.strip()) == bool(wm.source.strip()):
         raise LabelError(tr("a watermark is a text or a page of a PDF (one of the two)"))
     if wm.source and not Path(wm.source).is_file():
@@ -98,6 +99,7 @@ def check(wm: Watermark) -> Watermark:
         raise LabelError(tr("the watermark goes left, center or right, and top, center or bottom"))
     if not (wm.on_print or wm.on_screen):
         raise LabelError(tr("a watermark shown neither when printing nor on the screen is never shown"))
+    # Una marca de agua que no se muestra en ninguna parte sería una capa inútil en el archivo.
     return replace(wm, color=stamps.hex_color(wm.color, N_("color")))
 
 
@@ -108,11 +110,14 @@ def uses_bates(wm: Watermark) -> bool:
 # =========================================================================== the source page
 
 
+# TODO: este PDF se abre sin contraseña y la caché repite la de arrange._open_source;
+# una sola caché compartida admitiría también fuentes protegidas.
 _SOURCES: dict[Path, Pdf] = {}  # (kept open: what is copied from them is read when the copy is saved)
 
 
 def _source(path: str) -> Pdf:
     key = Path(path).resolve()
+    # Key by resolved path, so the same file given by two relative paths is opened once.
     if key not in _SOURCES:
         try:
             _SOURCES[key] = pikepdf.open(key)
@@ -126,8 +131,11 @@ def _form(pdf: Pdf, wm: Watermark) -> tuple[pikepdf.Object, float, float, float,
     source = _source(wm.source)
     if wm.source_page > len(source.pages):
         raise LabelError(tr("{path} has no page {page}", path=wm.source, page=wm.source_page))
+    # pikepdf turns the page into a form XObject (its content and resources, with a /BBox from its page boxes)
+    # and copy_foreign brings it, with everything it refers to, into this PDF.
     form = pdf.copy_foreign(source.pages[wm.source_page - 1].as_form_xobject())
     x0, y0, x1, y1 = (float(v) for v in form.BBox)
+    # The box may be written with its corners in any order; keep the lower left corner and the sizes.
     return form, min(x0, x1), min(y0, y1), abs(x1 - x0), abs(y1 - y0)
 
 
@@ -139,6 +147,7 @@ def text_box(wm: Watermark, text: str, size: float) -> tuple[float, float]:
     asc, desc, _ = FONTS[wm.base_font()]
     lines = text.split("\n")
     width = max(stamps.text_width(line, wm.base_font(), size) for line in lines)
+    # Igual que la caja de un encabezado, sin el relleno: ascendente menos descendente, más el interlineado.
     return width, (asc - desc) / 1000 * size + (len(lines) - 1) * LINE * size
 
 
@@ -147,13 +156,17 @@ def placement(wm: Watermark, width: float, height: float, page_w: float, page_h:
     own size) on a page of PAGE_W x PAGE_H, as it is shown: scaled, turned and placed."""
     turn = math.radians(wm.rotation)
     cos, sin = math.cos(turn), math.sin(turn)
+    # Medidas de la caja que ocupa el rectángulo una vez girado (su caja envolvente).
     turned_w, turned_h = abs(width * cos) + abs(height * sin), abs(width * sin) + abs(height * cos)
+    # SCALE es un porcentaje del lado de la página que más limita; con 0 se dibuja a su tamaño natural.
     scale = wm.scale / 100 * min(page_w / turned_w, page_h / turned_h) if wm.scale and turned_w and turned_h else 1
     box_w, box_h = turned_w * scale, turned_h * scale
     unit = POINTS[wm.units]
     dx, dy = wm.hoffset * unit, wm.voffset * unit
+    # The offsets push inward from the side chosen: from the right edge leftward, from the top downward.
     x = {"left": dx, "center": (page_w - box_w) / 2 + dx, "right": page_w - box_w - dx}[wm.halign]
     y = {"bottom": dy, "center": (page_h - box_h) / 2 + dy, "top": page_h - box_h - dy}[wm.valign]
+    # Order matters: center at the origin, scale, rotate about the center, then move to the box's center.
     m = (1, 0, 0, 1, -width / 2, -height / 2)  # (the center of the watermark at the origin)
     m = stamps.multiply(m, (scale, 0, 0, scale, 0, 0))
     m = stamps.multiply(m, (cos, sin, -sin, cos, 0, 0))
@@ -166,6 +179,7 @@ def _draw_text(wm: Watermark, text: str, font_name: str, width: float, height: f
     out = []
     for line in text.split("\n"):
         if line:
+            # Cada línea centrada en el ancho del texto más largo.
             x = (width - stamps.text_width(line, wm.base_font(), wm.size)) / 2
             out.append(f"BT /{font_name} {stamps.number(wm.size)} Tf {stamps.rgb(wm.color, 'rg')} "
                        f"{stamps.number(x)} {stamps.number(baseline)} Td ".encode() + stamps.pdf_string(line)
@@ -208,8 +222,10 @@ def _shared(pdf: Pdf, wm: Watermark, addition: int | None = None) -> _Shared:
         shared.form = _form(pdf, wm)
     else:
         shared.font = stamps.font_object(pdf, wm.base_font())
+    # ca para los rellenos (el texto), CA para los trazos: ambos con la misma opacidad.
     shared.state = pdf.make_indirect(Dictionary(Type=Name.ExtGState, ca=wm.opacity, CA=wm.opacity))
     if not (wm.on_print and wm.on_screen):
+        # Solo hace falta un grupo de contenido opcional si la marca se oculta al imprimir o en pantalla.
         shared.group = stamps.optional_group(pdf, tr("Watermark {number}", number=shared.addition), wm.on_print,
                                              wm.on_screen)
     return shared
@@ -224,12 +240,14 @@ def stamp_page(pdf: Pdf, page: pikepdf.Page, wm: Watermark, text: str, shared: _
     shared = shared or _shared(pdf, wm)
     page_w, page_h, frame = stamps.shown_frame(page)
     resources: dict[str, list[str]] = {}
+    # Prefijos propios (PyFolGS, PyFolWM...) para no pisar los nombres de recursos que la página ya tiene.
     state = str(page.add_resource(shared.state, Name.ExtGState, prefix="PyFolGS"))
     resources["ExtGState"] = [state]
     if shared.form is not None:
         form, x0, y0, width, height = shared.form
         name = str(page.add_resource(form, Name.XObject, prefix="PyFolWM"))
         resources["XObject"] = [name]
+        # The form draws from its own box origin; move it so its lower left corner is at (0, 0), like the text.
         body = f"q 1 0 0 1 {stamps.number(-x0)} {stamps.number(-y0)} cm {name} Do Q".encode()
     else:
         width, height = text_box(wm, text, wm.size)
@@ -237,13 +255,18 @@ def stamp_page(pdf: Pdf, page: pikepdf.Page, wm: Watermark, text: str, shared: _
         resources["Font"] = [name]
         body = _draw_text(wm, text, name[1:], width, height)
     m = placement(wm, width, height, page_w, page_h)
+    # frame first, to draw in the coordinates of the page as shown; then the opacity, then the placement.
     content = (f"q {stamps.matrix_text(frame)} cm {state} gs {stamps.matrix_text(m)} cm\n".encode() + body
                + b"\nQ")
+    # Marked as an artifact, so text extraction and screen readers leave the watermark out.
     content = b"/Artifact <</Type /Pagination /Subtype /Watermark>> BDC\n" + content + b"\nEMC"
     if shared.group is not None:
+        # Optional content is marked with /OC and the group's resource name in the page's /Properties.
         group = str(page.add_resource(shared.group, Name.Properties, prefix="PyFolOC"))
         resources["Properties"] = [group]
         content = f"/OC {group} BDC\n".encode() + content + b"\nEMC"
+    # Detrás: un flujo antes de todo el contenido. Delante: el contenido original queda entre q y Q
+    # para que lo que deje cambiado no afecte a la marca de agua.
     if wm.behind:
         stamps.add_layer(pdf, page, WATERMARK, shared.addition, wm.as_dict(), behind=b"q\n" + content + b"\nQ",
                          resources=resources, bates=uses_bates(wm), group=shared.group)
@@ -258,6 +281,7 @@ def apply(pdf: Pdf, wm: Watermark, doc: Document, now: datetime | None = None, *
     to those pages before, unless KEEP). The number of pages it went on."""
     wm = check(wm)
     pages = page_texts(wm, doc, now or datetime.now(), bates_offset)
+    # Se comparten la fuente o el formulario, el estado gráfico y el grupo: un solo objeto para todas las páginas.
     shared = _shared(pdf, wm)
     for number, text in pages:
         stamp_page(pdf, pdf.pages[number - 1], wm, text, shared, keep)

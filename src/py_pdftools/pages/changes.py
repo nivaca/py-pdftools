@@ -28,8 +28,11 @@ class Change:
     bates_only: bool = False
 
     def apply(self, pdf: Pdf, doc: Document, now: datetime | None = None, bates_offset: int = 0) -> int:
+        # Sin ajustes, el cambio es una supresión: quita las capas de su tipo (o solo las que llevan números Bates).
         if self.settings is None:
             return stamps.remove(pdf, self.pages, self.kind, bates_only=self.bates_only)
+        # To update, the earlier addition is removed by its number and the new one is added on top of the rest,
+        # so the other layers of that kind have to be kept.
         if self.replaces is not None:
             stamps.remove(pdf, "", None, addition=self.replaces)
         module = headfoot if isinstance(self.settings, headfoot.HeaderFooter) else watermark
@@ -39,6 +42,7 @@ class Change:
     def bates_pages(self, count: int) -> int:
         """How many Bates numbers this change uses, in a document of COUNT pages."""
         if self.settings is None or not self.uses_bates():
+            # Una página elegida, un número Bates: de esta cuenta depende el desplazamiento de los cambios siguientes.
             return 0
         return len(stamps.chosen_pages(self.settings, count))
 

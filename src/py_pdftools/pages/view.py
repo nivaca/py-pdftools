@@ -50,6 +50,7 @@ LAYOUT_TIPS = {
     "TwoPageRight": N_("As Facing, but with the first page alone, as the cover of a book"),
     "TwoColumnRight": N_("As Facing Continuous, but with the first page alone, as the cover of a book"),
 }
+# Actual Size no es un nombre PDF: se guarda como /XYZ con factor 1, así que aquí lo representa su porcentaje.
 ACTUAL_SIZE = "100"
 PAGE_VIEWS = {ACTUAL_SIZE: "actual-size", "FitH": "fit-width", "Fit": "fit-page"}
 PAGE_VIEW_TITLES = {ACTUAL_SIZE: N_("Actual Size"), "FitH": N_("Fit to Width"), "Fit": N_("Fit to Page")}
@@ -74,10 +75,12 @@ class View:
     page: int | None = None
 
     def __post_init__(self):
+        # Una vista de página es parte de un destino, y un destino siempre nombra una página.
         if self.zoom and self.page is None:
             object.__setattr__(self, "page", 1)
 
     def __bool__(self) -> bool:
+        # A View with no parts set means "leave everything to the viewer", so it is false.
         return self != View()
 
     def options(self) -> list[str]:
@@ -86,6 +89,7 @@ class View:
         if self.layout:
             out += ["--layout", LAYOUTS[self.layout]]
         if self.zoom:
+            # Un porcentaje que no sea 100 no tiene nombre en PAGE_VIEWS y se escribe tal cual, con su signo %.
             out += ["--page-view", PAGE_VIEWS.get(self.zoom) or f"{self.zoom}%"]
         if self.page is not None:
             out += ["--open-at", str(self.page)]
@@ -98,6 +102,7 @@ def page_view_title(zoom: str) -> str:
         return ""
     if zoom in PAGE_VIEW_TITLES:
         return tr(PAGE_VIEW_TITLES[zoom])
+    # Los destinos raros que trae el archivo (FitV, FitB...) se muestran con su nombre PDF.
     return tr("Other ({zoom})", zoom=f"{zoom} %" if zoom.isdigit() else zoom)
 
 
@@ -125,6 +130,7 @@ def parse_layout(value: str) -> str:
     if v == DEFAULT:
         return ""
     for code, name in LAYOUTS.items():
+        # Accept both the command-line name and the PDF name, case-insensitively.
         if v in (name, code.lower()):
             return code
     if v in LAYOUT_ALIASES:
@@ -140,8 +146,10 @@ def parse_zoom(value: str) -> str:
         return ""
     m = re.fullmatch(r"(\d+)\s*%?", v)
     if m:
+        # 6400 % es el máximo que admiten los visores habituales; más allá el número no sirve de nada.
         if not 1 <= int(m[1]) <= 6400:
             raise LabelError(tr("the zoom must be from 1% to 6400% (not {value})", value=value))
+        # int() drops leading zeros, so '0150' and '150' are the same view.
         return str(int(m[1]))
     for code, name in PAGE_VIEWS.items():
         if v in (name, code.lower()):
@@ -170,6 +178,7 @@ def changed(v: View, n: int, layout: str | None = None, zoom: str | None = None,
 
 def without_lone_first_page(old: View, new: View, page_given: bool) -> View:
     """NEW, but without its page if it was only there for a page view that is gone."""
+    # Si la página 1 solo estaba ahí porque la vista de página la exigía, al quitar la vista se quita también la página.
     if not page_given and old.zoom and not new.zoom and new.page == 1:
         return replace(new, page=None)
     return new
@@ -179,20 +188,26 @@ def without_lone_first_page(old: View, new: View, page_given: bool) -> View:
 
 
 def _name(value) -> str:
+    # Names come back from pikepdf as '/Name'; drop the slash so they compare with the keys above.
     return str(value)[1:] if isinstance(value, Name) else ""
 
 
 def _destination(pdf: Pdf, action) -> tuple[int | None, str] | None:
     """(page, zoom) of an /OpenAction that goes to a page of this document; None if it is something else."""
+    # Una /OpenAction puede ser un destino directo (un arreglo) o una acción GoTo cuyo /D es ese destino.
+    # Los destinos con nombre (cadenas) no se resuelven y cuentan como algo desconocido.
     if isinstance(action, Dictionary) and _name(action.get("/S")) == "GoTo":
         action = action.get("/D")
     if not isinstance(action, Array) or len(action) < 2:
         return None
     target = action[0]
+    # Inside the document the page is an indirect reference to its page object; find it by object number.
     if isinstance(target, Dictionary):
+        # El diccionario de páginas se arma en cada lectura: recorre todo el documento para hallar una sola página.
         pages = {p.obj.objgen: i for i, p in enumerate(pdf.pages)}
         index = pages.get(target.objgen)
     else:
+        # Un número en lugar de una página es propio de los destinos remotos (GoToR), pero se acepta igual.
         try:
             index = int(target)
         except (TypeError, ValueError):
@@ -202,6 +217,7 @@ def _destination(pdf: Pdf, action) -> tuple[int | None, str] | None:
     kind = _name(action[1])
     if kind in DESTINATIONS:
         return index + 1, kind
+    # /XYZ left top zoom: only the zoom matters here; 0 or null means "keep the viewer's zoom".
     if kind == "XYZ":
         factor = action[4] if len(action) > 4 else None
         try:
@@ -218,6 +234,7 @@ def read_view(pdf: Pdf) -> View:
     layout = _name(pdf.Root.get("/PageLayout"))
     dest = _destination(pdf, pdf.Root.get("/OpenAction"))
     page, zoom = dest if dest else (None, "")
+    # Un /PageLayout desconocido se lee como vacío, pero write_view no lo toca mientras no se cambie.
     return View(layout if layout in LAYOUTS else "", zoom, page)
 
 
@@ -231,16 +248,20 @@ def write_view(pdf: Pdf, v: View) -> None:
             root.PageLayout = Name("/" + v.layout)
         elif "/PageLayout" in root:
             del root["/PageLayout"]
+    # The layout and the destination are written separately, so an unknown /OpenAction survives
+    # a change that only touches the layout.
     if (v.page, v.zoom) != (old.page, old.zoom):
         if v.page is None:
             if "/OpenAction" in root:
                 del root["/OpenAction"]
             return
+        # Si el documento perdió páginas, la vista abre en la última en lugar de fallar.
         page = pdf.pages[min(v.page, len(pdf.pages)) - 1].obj
         if not v.zoom:
             dest = [page, Name.XYZ, None, None, None]  # (the viewer's zoom)
         elif v.zoom.isdigit():
             dest = [page, Name.XYZ, None, None, Decimal(v.zoom) / 100]
+        # /Fit and /FitB take no coordinates; the other fits take one (left or top), null to keep it.
         elif v.zoom in ("Fit", "FitB"):
             dest = [page, Name("/" + v.zoom)]
         else:

@@ -43,6 +43,7 @@ class MetadataDialog(QDialog):
             row = QHBoxLayout()
             if key == "Trapped":
                 field = QComboBox()
+                # La entrada vacía es «sin Trapped»: el campo no se escribe.
                 field.addItem("", "")
                 for value in M.TRAPPED:
                     field.addItem(value, value)
@@ -56,6 +57,8 @@ class MetadataDialog(QDialog):
             if key in M.DATES:
                 now = QPushButton(tr("Now"))
                 now.setToolTip(tr("This moment"))
+                # Default arguments bind this field (and, below, this key) now; a plain closure would see
+                # the values of the last turn of the loop.
                 now.clicked.connect(lambda _=False, f=field: f.setText(M.now()))
                 row.addWidget(now)
             row.addWidget(remove_button(tr("Remove it"), lambda _=False, k=key: self._clear(k)))
@@ -138,6 +141,7 @@ class MetadataDialog(QDialog):
         entry = (k, v, row)
         lay.addWidget(remove_button(tr("Remove it"), lambda: self._remove_custom(entry)))
         self.custom_rows.append(entry)
+        # Antes del último elemento, el botón de añadir, que queda siempre al final.
         self.custom_layout.insertWidget(self.custom_layout.count() - 1, row)
         self.custom_note.setVisible(False)
         if not key:
@@ -156,6 +160,7 @@ class MetadataDialog(QDialog):
                 field.setCurrentIndex(i if i >= 0 else 0)
             elif key in M.DATES and value:
                 shown = M.text_date(value)
+                # The original text is remembered, so metadata() can keep it as it was if it is not edited.
                 self.shown_dates[key] = (shown, value)
                 field.setText(shown)
             else:
@@ -182,6 +187,7 @@ class MetadataDialog(QDialog):
         seen = set()
         for k, v, _ in self.custom_rows:
             key = k.text().strip()
+            # Una fila del todo vacía se ignora (metadata() tampoco la guarda).
             if not key and not v.text().strip():
                 continue
             if not M.KEY.fullmatch(key):
@@ -194,6 +200,7 @@ class MetadataDialog(QDialog):
             import xml.etree.ElementTree as ET
 
             try:
+                # Only well-formedness is checked, not whether it is valid XMP (RDF, namespaces).
                 ET.fromstring(self._xmp_body())
             except ET.ParseError as e:
                 out.append(tr("The XMP metadata is not well-formed XML: {error}", error=e))
@@ -220,6 +227,7 @@ class MetadataDialog(QDialog):
             if value:
                 info.append((key, value))
         for k, v, _ in self.custom_rows:
+            # Un campo propio sin nombre o sin valor no pasa a la copia.
             if k.text().strip() and v.text().strip():
                 info.append((k.text().strip(), " ".join(v.text().split())))
         return M.Metadata(tuple(info), self.language.text().strip(), self.xmp.toPlainText().strip())

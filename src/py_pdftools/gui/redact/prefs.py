@@ -31,6 +31,7 @@ class SettingsDialog(QDialog):
         self.outline_button = QPushButton()
         self.outline_button.clicked.connect(self._choose_outline)
         self.opacity = QSpinBox()
+        # Los mismos límites que acepta settings.valid.
         self.opacity.setRange(10, 100)
         self.opacity.setSuffix(" %")
         self.opacity.setToolTip(tr("How much of what is under a box shows through it until it is applied"))
@@ -72,6 +73,7 @@ class SettingsDialog(QDialog):
                                    | QDialogButtonBox.StandardButton.RestoreDefaults)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
+        # Restore defaults only fills in the dialog; nothing is kept until OK.
         buttons.button(QDialogButtonBox.StandardButton.RestoreDefaults).clicked.connect(lambda: self.show_settings(
             DEFAULTS))
         lay = QVBoxLayout(self)
@@ -85,6 +87,7 @@ class SettingsDialog(QDialog):
     def show_settings(self, settings: Settings):
         self.color = settings.color
         self._show_color()
+        # settings.load ya garantiza que el valor es uno de la lista, así que index() no falla.
         self.images.setCurrentIndex([v for v, _ in IMAGES].index(settings.images))
         self.drawings.setCurrentIndex([v for v, _ in DRAWINGS].index(settings.drawings))
         self.clean.setChecked(settings.clean)
@@ -121,6 +124,7 @@ class SettingsDialog(QDialog):
 
         from PySide6.QtWidgets import QFileDialog
 
+        # Start from what is typed, else from ~/bin, one of the places conform.find looks in.
         start = self.pdfconform.text().strip() or str(Path.home() / "bin")
         name, _ = QFileDialog.getOpenFileName(self, tr("Where is pdf2iso?"), start,
                                               tr("pdf2iso (pdf2iso pdf2iso.py);;All files (*)"))
@@ -136,6 +140,8 @@ class SettingsDialog(QDialog):
 
     def settings(self) -> Settings:
         """The settings shown, with those the dialog doesn't show kept as they were."""
+        # El aspecto del texto de los recuadros no está aquí (se cambia en Propiedades) y se
+        # conserva como estaba.
         return dataclasses.replace(self.original, color=self.color, clean=self.clean.isChecked(),
                                    images=self.images.currentData(), drawings=self.drawings.currentData(),
                                    mark_outline=self.outline,

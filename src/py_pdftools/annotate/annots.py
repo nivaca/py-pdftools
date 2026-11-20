@@ -121,6 +121,8 @@ CRITICAL_KEY = "PyAnnotateCritical"  # (an entry of textual criticism: its field
 REPEAT_KEY = "PyPdftoolsPages"  # (the pages a redaction box goes on, besides its own: see Annotation.repeat)
 DASHES = (3, 3)
 
+# MuPDF's types and the kinds of py-pdftools. Several kinds share a type (arrow: line; area: square;
+# cloud: polygon; marker: ink); kind_of tells them apart.
 _TYPES = {pymupdf.PDF_ANNOT_HIGHLIGHT: "highlight", pymupdf.PDF_ANNOT_UNDERLINE: "underline",
           pymupdf.PDF_ANNOT_STRIKE_OUT: "strikeout", pymupdf.PDF_ANNOT_SQUIGGLY: "squiggly",
           pymupdf.PDF_ANNOT_CARET: "caret", pymupdf.PDF_ANNOT_TEXT: "note",
@@ -266,6 +268,7 @@ def union(rects) -> Rect:
 
 
 def _r(value: float) -> float:
+    # Dos decimales de punto quedan muy por debajo de lo que se distingue en pantalla o en papel.
     return round(value, 2)
 
 
@@ -275,6 +278,7 @@ def smooth_segments(points) -> list[tuple[Point, Point, Point]]:
     between its neighbours (a Catmull–Rom spline), as PdfCraft draws ink (MIT/Apache-2.0)."""
     if not points:
         return []
+    # En los extremos falta un vecino: el primer segmento usa su propio punto, y el último, el final.
     last = points[-1]
 
     def at(i: int) -> Point:
@@ -283,6 +287,7 @@ def smooth_segments(points) -> list[tuple[Point, Point, Point]]:
     out = []
     for i in range(len(points) - 1):
         p0, p1, p2, p3 = at(max(i - 1, 0)), at(i), at(i + 1), at(i + 2)
+        # Los puntos de control de Catmull-Rom (tensión 1/6) escritos como los de una Bézier cúbica.
         out.append(((p1[0] + (p2[0] - p0[0]) / 6, p1[1] + (p2[1] - p0[1]) / 6),
                     (p2[0] - (p3[0] - p1[0]) / 6, p2[1] - (p3[1] - p1[1]) / 6), p2))
     return out
@@ -294,15 +299,18 @@ _AP_POINT = re.compile(r"^(-?[\d.]+) (-?[\d.]+) ([ml])$")
 def _curved(doc: pymupdf.Document, xref: int) -> None:
     """Make the appearance of the drawing XREF (as MuPDF writes it: each stroke a point, 'm', and
     straight lines to the others, 'l') draw each stroke as a curve through its points."""
+    # Only an appearance kept as an object of its own can be rewritten; any other is left as MuPDF drew it.
     kind, value = doc.xref_get_key(xref, "AP/N")
     if kind != "xref":
         return
     ap = int(value.split()[0])
+    # latin-1 gives back the stream's bytes exactly as they were, whatever they hold.
     lines = doc.xref_stream(ap).decode("latin-1").split("\n")
     out: list[str] = []
     stroke: list[tuple[float, float]] = []
 
     def flush():
+        # Con menos de tres puntos no hay curva que suavizar: se dejan las rectas.
         if len(stroke) >= 3:
             out.extend(f"{c1[0]:g} {c1[1]:g} {c2[0]:g} {c2[1]:g} {e[0]:g} {e[1]:g} c"
                        for c1, c2, e in smooth_segments(stroke))
@@ -312,6 +320,7 @@ def _curved(doc: pymupdf.Document, xref: int) -> None:
 
     for line in lines:
         found = _AP_POINT.match(line.strip())
+        # A point counts as part of a stroke only after its 'm': an 'l' with no stroke open is copied as it is.
         if found and (found[3] == "l" and stroke or found[3] == "m"):
             if found[3] == "m":
                 flush()
@@ -320,12 +329,14 @@ def _curved(doc: pymupdf.Document, xref: int) -> None:
             continue
         flush()
         out.append(line)
+    # El stream se reescribe solo si cambió algo, para no ensuciar el documento sin motivo.
     if any(line.endswith(" c") for line in out):
         doc.update_stream(ap, "\n".join(out).encode("latin-1"))
 
 
 def frame(kind: str, paths, width: float) -> Rect:
     """The frame of a line, an arrow, a polygon or a drawing: around its points, with room for the line."""
+    # Las flechas y las nubes dibujan fuera de sus puntos (la punta, las ondas): necesitan margen de más.
     pad = max(width, 2.0) + {"arrow": 4.0, "cloud": 6.0}.get(kind, 0.0)
     return tuple(_r(v) for v in bounds([p for path in paths for p in path], pad))
 
@@ -334,6 +345,7 @@ def fitted(a: Annotation, rect: Rect) -> Annotation:
     """A, moved and stretched so that its frame becomes RECT."""
     x0, y0, x1, y1 = a.rect
     n0, m0, n1, m1 = normalized(rect)
+    # Un marco sin anchura o sin altura (una línea horizontal, por ejemplo) no se estira en esa dirección.
     sx = (n1 - n0) / (x1 - x0) if x1 - x0 > 1e-6 else 1.0
     sy = (m1 - m0) / (y1 - y0) if y1 - y0 > 1e-6 else 1.0
 
@@ -343,6 +355,7 @@ def fitted(a: Annotation, rect: Rect) -> Annotation:
     def box(r: Rect) -> Rect:
         return point((r[0], r[1])) + point((r[2], r[3]))
 
+    # A callout's point stays where it is when its box is resized; it moves only when the whole is moved.
     paths = a.paths if a.kind == "callout" and (sx, sy) != (1.0, 1.0) else \
         tuple(tuple(point(p) for p in path) for path in a.paths)
     return dataclasses.replace(a, rect=(_r(n0), _r(m0), _r(n1), _r(m1)), quads=tuple(box(q) for q in a.quads),
@@ -381,6 +394,7 @@ def anchor(box: Rect, point: Point) -> Point:
 def rgb(color: str) -> tuple[float, float, float]:
     """'#rrggbb' as PyMuPDF's (r, g, b), each from 0 to 1."""
     c = color.lstrip("#")
+    # Seis cifras sin '#'; los colores cortos (#abc) no se aceptan aquí.
     if len(c) != 6:
         raise ValueError(color)
     return tuple(int(c[i:i + 2], 16) / 255 for i in (0, 2, 4))
@@ -389,6 +403,7 @@ def rgb(color: str) -> tuple[float, float, float]:
 def hex_color(values) -> str:
     """A colour of a PDF (grey, RGB or CMYK, from 0 to 1) as '#rrggbb'; '' for none."""
     values = [min(max(float(v), 0.0), 1.0) for v in values or []]
+    # Grey is repeated in the three channels; CMYK is turned into RGB by the plain formula, without profiles.
     if len(values) == 1:
         values = values * 3
     elif len(values) == 4:
@@ -399,6 +414,7 @@ def hex_color(values) -> str:
     return "#" + "".join(f"{round(v * 255):02x}" for v in values)
 
 
+# Solo el año es obligatorio; los demás campos son opcionales, y la zona horaria se ignora.
 PDF_DATE = re.compile(r"D?:?(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?")
 
 
@@ -412,6 +428,7 @@ def date_value(date: str) -> datetime.datetime | None:
     m = PDF_DATE.match(date.strip()) if date else None
     if not m:
         return None
+    # The parts missing take their smallest values: month and day 1, hour, minute and second 0.
     parts = [int(g) if g else d for g, d in zip(m.groups(), (0, 1, 1, 0, 0, 0))]
     try:
         return datetime.datetime(*parts)
@@ -429,6 +446,7 @@ def date_text(date: str) -> str:
 
 def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
     """The PDF at PATH, opened with PASSWORD if it needs one (raises AnnotateError)."""
+    # PyMuPDF also opens images and other formats; is_pdf, below, turns them away.
     try:
         doc = pymupdf.open(path)
     except (pymupdf.FileNotFoundError, pymupdf.FileDataError, RuntimeError) as e:
@@ -436,6 +454,7 @@ def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
     if not doc.is_pdf:
         doc.close()
         raise AnnotateError(tr("{path} is not a PDF", path=path))
+    # authenticate() devuelve 0 si la contraseña no sirve.
     if doc.needs_pass and not doc.authenticate(password):
         doc.close()
         raise PasswordError(tr("{path} is protected by a password", path=path))
@@ -445,8 +464,11 @@ def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
 def kind_of(doc: pymupdf.Document, annot: pymupdf.Annot) -> str | None:
     """The kind of ANNOT, if py-pdftools can edit it (None for the others, and for replies)."""
     kind = _TYPES.get(annot.type[0])
+    # A note that answers another is a reply, not an annotation of its own, unless it is in its group
+    # (/RT /Group).
     if kind is None or (doc.xref_get_key(annot.xref, "IRT")[0] != "null" and not _grouped(doc, annot.xref)):
         return None
+    # Varios tipos del PDF se distinguen por otras claves: extremos en flecha, /IT, /Subj o un borde de nubes.
     if kind == "line" and any(_END_NAMES.get(end, "").endswith("Arrow") for end in annot.line_ends or ()):
         return "arrow"
     if kind == "freetext" and doc.xref_get_key(annot.xref, "IT")[1] == "/FreeTextCallout":
@@ -461,6 +483,7 @@ def kind_of(doc: pymupdf.Document, annot: pymupdf.Annot) -> str | None:
 
 
 def _shown_rect(page: pymupdf.Page, rect) -> Rect:
+    # rotation_matrix lleva de la página sin girar a la página tal como se muestra.
     r = (pymupdf.Rect(rect) * page.rotation_matrix).normalize()
     return _r(r.x0), _r(r.y0), _r(r.x1), _r(r.y1)
 
@@ -480,6 +503,8 @@ def _real_point(page: pymupdf.Page, point: Point) -> pymupdf.Point:
 
 def _pdf_points(page: pymupdf.Page, points) -> str:
     """POINTS (as the page is shown) in the PDF's own space, as the numbers of a PDF array."""
+    # transformation_matrix pasa del espacio del PDF (origen abajo a la izquierda) al de MuPDF (arriba a la
+    # izquierda); su inversa hace lo contrario.
     inverse = ~page.transformation_matrix
     out = []
     for point in points:
@@ -519,6 +544,7 @@ def _labels(text: str) -> tuple[str, ...]:
 
 def _off_edge(r: pymupdf.Rect, p: pymupdf.Point) -> float:
     """How far P is from the edge of R."""
+    # Inside: the distance to the nearest side; outside: the straight distance to the rectangle.
     if r.contains(p):
         return min(p.x - r.x0, r.x1 - p.x, p.y - r.y0, r.y1 - p.y)
     dx = max(r.x0 - p.x, 0, p.x - r.x1)
@@ -526,6 +552,7 @@ def _off_edge(r: pymupdf.Rect, p: pymupdf.Point) -> float:
     return (dx * dx + dy * dy) ** 0.5
 
 
+# Partes de un /DA ('0 0 1 rg /Helv 12 Tf'): el tamaño, la fuente y el color (gris, RGB o CMYK).
 DA_SIZE = re.compile(r"([\d.]+)\s+Tf")
 DA_FONT = re.compile(r"/([A-Za-z]+)")
 DA_COLOR = re.compile(r"((?:[\d.]+\s+){1,4})(g|rg|k)\b")
@@ -547,6 +574,7 @@ def _rich_keys(doc: pymupdf.Document, xref: int, a: Annotation) -> None:
     rich text in /RC, its default look in /DS, its text, plain, in /Contents (for the programs that
     read only that), and the colour of its border in /DA."""
     r, g, b = rgb(a.border or a.color)
+    # /RC lleva el XHTML dentro del encabezado que esperan los lectores de texto enriquecido (RC_HEAD).
     doc.xref_set_key(xref, "RC", pymupdf.get_pdf_str(RC_HEAD + (a.rich or plain_html(a.contents)) + "</body>"))
     doc.xref_set_key(xref, "DS", pymupdf.get_pdf_str(_rich_style(a)))
     doc.xref_set_key(xref, "DA", pymupdf.get_pdf_str(f"{r:g} {g:g} {b:g} rg /{a.font.capitalize()} "
@@ -554,6 +582,7 @@ def _rich_keys(doc: pymupdf.Document, xref: int, a: Annotation) -> None:
     doc.xref_set_key(xref, "Contents", pymupdf.get_pdf_str(a.contents))
 
 
+# The usual head of a /RC: XHTML with the XFA attributes that the rich text of a PDF carries.
 RC_HEAD = ('<?xml version="1.0"?><body xmlns="http://www.w3.org/1999/xhtml" '
            'xmlns:xfa="http://www.xfa.org/schema/xfa-data/1.0/" xfa:contentType="text/html" xfa:spec="2.4">')
 
@@ -573,6 +602,7 @@ def _rich_text(doc: pymupdf.Document, xref: int, contents: str, color: str, size
     if found is None:
         return "", "", color, size, font
     _, ds = doc.xref_get_key(xref, "DS")
+    # El color del texto: #rrggbb, o #rgb llevado a seis cifras; negro si /DS no da ninguno.
     text_color = DS_COLOR.search(ds or "")
     text_color = (text_color[1].lower() if len(text_color[1]) == 7 else
                   "#" + "".join(c * 2 for c in text_color[1][1:]).lower()) if text_color else "#000000"
@@ -581,6 +611,7 @@ def _rich_text(doc: pymupdf.Document, xref: int, contents: str, color: str, size
     if (m := DS_FAMILY.search(ds or "")):
         font = _DA_FONTS.get(m[1].split()[0].lower(), font) if m[1].split() else font
     rich = found[1].strip()
+    # Si el XHTML no dice más que el texto plano, no se guarda como texto enriquecido.
     return ("" if rich == plain_html(contents) else rich), ("" if color == text_color else color), text_color, \
         size, font
 
@@ -602,7 +633,9 @@ def _stamp_image(annot: pymupdf.Annot, page: pymupdf.Page | None = None) -> byte
     """How the stamp ANNOT looks, as a PNG (for showing it: the window draws it), the
     right way up on PAGE as it is shown (turned or not)."""
     try:
+        # Se dibuja a 3x, para que la imagen siga nítida al ampliar la página.
         pix = annot.get_pixmap(matrix=pymupdf.Matrix(3, 3), alpha=True)
+        # En una página girada, si la imagen sale apaisada al revés que la caja mostrada, se dibuja otra vez, girada.
         if page is not None and page.rotation % 180:
             shown = annot.rect * page.rotation_matrix
             if (pix.width > pix.height) != (abs(shown.width) > abs(shown.height)):
@@ -617,9 +650,11 @@ _STANDARD: dict[str, tuple[bytes, tuple[float, float]]] = {}
 
 def standard_stamp(name: str) -> tuple[bytes, tuple[float, float]]:
     """How the standard stamp NAME looks (a PNG), and its usual size in points."""
+    # Each standard stamp is drawn once, on a blank document in memory, and kept for the rest of the run.
     if name not in _STANDARD:
         doc = pymupdf.open()
         page = doc.new_page()
+        # MuPDF knows the standard stamps by their index, in the order of STAMPS.
         annot = page.add_stamp_annot(pymupdf.Rect(0, 0, 160, 50), stamp=list(STAMPS).index(name))
         _STANDARD[name] = _stamp_image(annot), (_r(annot.rect.width), _r(annot.rect.height))
         doc.close()
@@ -633,6 +668,7 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
     colors = annot.colors or {}
     stroke, fill = hex_color(colors.get("stroke")), hex_color(colors.get("fill"))
     border = annot.border or {}
+    # A width of -1 or None means 'not given': 1 point is the PDF's default.
     width = border.get("width", -1)
     width = width if width is not None and width >= 0 else 1.0
     opacity = annot.opacity if annot.opacity is not None and 0 <= annot.opacity <= 1 else 1.0
@@ -652,6 +688,7 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
               or (f"#{_irt(doc, annot.xref)}" if _grouped(doc, annot.xref) else "")}
     vertices = annot.vertices or []
     if kind in MARKUP:
+        # The vertices of text markup: four points for each line (a quad).
         quads = [_shown_rect(page, bounds(vertices[i:i + 4])) for i in range(0, len(vertices) - 3, 4)]
         if not quads:
             quads = [_shown_rect(page, annot.rect)]
@@ -659,6 +696,7 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
     if kind in TEXTUAL:
         color, size, font = _text_style(doc, annot.xref)
         rich, border, color, size, font = _rich_text(doc, annot.xref, fields["contents"], color, size, font)
+        # /RD gives the room between /Rect and the box itself (the /Rect of a callout also holds its line).
         r = pymupdf.Rect(annot.rect)
         rd = doc.xref_get_key(annot.xref, "RD")
         delta = [float(v) for v in rd[1].strip("[]").split()] if rd[0] == "array" else []
@@ -684,6 +722,7 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
         if kind == "callout":
             le = doc.xref_get_key(annot.xref, "LE")[1].lstrip("/")
             ends = ("None", le if le in _END_CODES else "None")
+            # Un callout sin puntos no tiene a dónde apuntar: se lee como un cuadro de texto.
             if vertices:
                 paths = ((_shown_point(page, vertices[0]),),)
             else:
@@ -699,21 +738,25 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
             r = pymupdf.Rect(r.x0 + half, r.y0 + half, r.x1 - half, r.y1 - half)
         return Annotation(rect=_shown_rect(page, r), color=stroke or "#000000", fill=fill, **fields)
     if kind in ("line", "arrow", "polyline", "polygon", "cloud", "ink", "marker"):
+        # Ink keeps one path for each stroke; a line, its two ends; a polygon or a polyline, one path of all its points.
         if kind in DRAWN:
             paths = tuple(tuple(_shown_point(page, p) for p in stroke_) for stroke_ in vertices if stroke_)
         elif kind in ("line", "arrow"):
             paths = (tuple(_shown_point(page, p) for p in vertices[:2]),)
         else:
             paths = (tuple(_shown_point(page, p) for p in vertices),)
+        # Una línea con menos de dos puntos, o un dibujo sin trazos, no se puede editar: se deja fuera.
         if not paths or len(paths[0]) < (1 if kind in DRAWN else 2):
             return None
         return Annotation(rect=frame(kind, paths, width), color=stroke or "#000000", fill=fill, paths=paths,
                           ends=ends if kind in ENDED else ("None", "None"), **fields)
     if kind == "redact":
+        # A redaction mark keeps the style of its overlay text in /DA, as a text box does.
         color, size, _ = _text_style(doc, annot.xref)
         kind_, da = doc.xref_get_key(annot.xref, "DA")
         if kind_ != "string" or not DA_SIZE.search(da) or not float(DA_SIZE.search(da)[1]):
             size = 0.0  # (as large as fits)
+        # /IC es el color que deja la redacción; sin /IC, no deja ninguno.
         ic = doc.xref_get_key(annot.xref, "IC")
         fill = hex_color(ic[1].strip("[]").split()) if ic[0] == "array" else ""
         q = doc.xref_get_key(annot.xref, "Q")
@@ -724,10 +767,12 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
                           overlay_repeat=doc.xref_get_key(annot.xref, "Repeat")[1] == "true",
                           repeat=_pdf_text(doc, annot.xref, REPEAT_KEY), **fields)
     if kind == "stamp":
+        # /Name tells a standard stamp; the others (images, names of other programs) keep their look in IMAGE.
         name = doc.xref_get_key(annot.xref, "Name")[1].lstrip("/")
         return Annotation(rect=_shown_rect(page, annot.rect), color=stroke or "#000000",
                           stamp=name if name in STAMPS else "", image=_stamp_image(annot, page), **fields)
     if kind == "attachment":
+        # Un archivo adjunto dañado no impide leer la anotación: queda sin datos.
         try:
             data, found = annot.get_file(), annot.file_info or {}
         except (RuntimeError, ValueError):
@@ -756,6 +801,7 @@ def _roots(doc: pymupdf.Document, items) -> dict[int, int]:
                 and not _grouped(doc, xref):  # (a note in the group of another isn't a reply to it)
             parent[xref] = irt
     roots = {}
+    # Una respuesta a otra respuesta va con la primera del hilo; SEEN evita un ciclo en un PDF dañado.
     for xref in parent:
         root, seen = parent[xref], {xref}
         while root in parent and root not in seen:  # (a reply to a reply: to the first of the thread)
@@ -781,6 +827,7 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
     known = known or {}
     out = []
     for page in doc:
+        # A page without annotations is skipped before any object is loaded: most pages of a book have none.
         items = page.annot_xrefs()
         if not items:
             continue
@@ -791,6 +838,7 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
             if kind in (pymupdf.PDF_ANNOT_WIDGET, pymupdf.PDF_ANNOT_POPUP, pymupdf.PDF_ANNOT_LINK):
                 continue  # (_others lists links; form fields and pop-ups are never listed)
             if xref in roots:
+                # Las respuestas de una anotación conocida ya están en ella: no se vuelven a leer.
                 if roots[xref] not in known:
                     replies.setdefault(roots[xref], []).append(read_reply(doc, page.load_annot(xref)))
                 continue
@@ -800,9 +848,11 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
             a = read_annotation(doc, page, page.load_annot(xref))
             if a is not None:
                 found.append(a)
+        # Las de otros tipos (enlaces, sonidos, adjuntos ajenos...) van al final de su página.
         found += _others(doc, page)
         for a in found:
             if a.xref in replies and a.xref not in known:
+                # Replies in the order they were made; the xref decides between equal or missing dates.
                 thread = sorted(replies[a.xref], key=lambda r: (date_value(r.created) or datetime.datetime.min,
                                                                  r.xref))
                 a = dataclasses.replace(a, replies=tuple(thread))
@@ -821,6 +871,7 @@ def _editable(doc: pymupdf.Document, annot: pymupdf.Annot) -> bool:
 
 def critical_of(data) -> Critical | None:
     """The entry of textual criticism of DATA (JSON, or a dict); None if it has none."""
+    # Vale tanto el JSON guardado en el PDF como el diccionario de un archivo exportado.
     try:
         values = json.loads(data) if isinstance(data, str) else data
     except ValueError:
@@ -828,12 +879,14 @@ def critical_of(data) -> Critical | None:
     if not isinstance(values, dict) or not values.get("type"):
         return None
     names = {f.name for f in dataclasses.fields(Critical)}
+    # Unknown keys are dropped, and every value is made a string.
     return Critical(**{k: str(v) for k, v in values.items() if k in names})
 
 
 def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
     """The annotations of PAGE of other kinds (see OTHER), to be listed: what each one is, where."""
     out = []
+    # get_links() gives where each link goes (URI or page), which the annotation objects don't say directly.
     links = {link.get("xref"): link for link in page.get_links()}
     for xref, kind, name in page.annot_xrefs():
         if kind in _TYPES or kind in (pymupdf.PDF_ANNOT_POPUP, pymupdf.PDF_ANNOT_WIDGET):
@@ -842,6 +895,7 @@ def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
         try:
             if kind == pymupdf.PDF_ANNOT_LINK:
                 link = links.get(xref, {})
+                # Si PyMuPDF no da el rectángulo del enlace, se lee la /Rect del objeto.
                 rect = pymupdf.Rect(link["from"]) if link.get("from") else _pdf_rect_of(doc, page, xref)
                 text = link.get("uri") or (tr("Page {page}", page=link["page"] + 1)
                                            if isinstance(link.get("page"), int) and link["page"] >= 0 else "")
@@ -857,6 +911,7 @@ def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
             out.append(Annotation(OTHER, page.number, _shown_rect(page, annot.rect), "#808080", contents=text,
                                   author=info.get("title", "") or "", locked=True, other=other, xref=xref,
                                   created=info.get("creationDate", "") or "", modified=info.get("modDate", "") or ""))
+        # A damaged annotation of another kind is left out of the list: it is not ours to repair.
         except (RuntimeError, ValueError, KeyError, TypeError):
             continue
     return out
@@ -864,6 +919,7 @@ def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
 
 def _pdf_rect_of(doc: pymupdf.Document, page: pymupdf.Page, xref: int) -> pymupdf.Rect:
     """The /Rect of the annotation XREF, in PyMuPDF's coordinates of PAGE (unturned)."""
+    # /Rect está en el espacio del PDF; transformation_matrix lo pasa al de MuPDF.
     x0, y0, x1, y1 = (float(v) for v in doc.xref_get_key(xref, "Rect")[1].strip("[]").split())
     return pymupdf.Rect(x0, y0, x1, y1) * page.transformation_matrix
 
@@ -888,6 +944,7 @@ def _layer_of(doc: pymupdf.Document, xref: int) -> str:
     kind, value = doc.xref_get_key(xref, "OC")
     if kind != "xref":
         return ""
+    # /OC también puede apuntar a un /OCMD (una combinación de capas): solo se nombra una capa simple, /OCG.
     oc = int(value.split()[0])
     return _pdf_text(doc, oc, "Name") if doc.xref_get_key(oc, "Type")[1] == "/OCG" else ""
 
@@ -902,6 +959,7 @@ def layer_xref(doc: pymupdf.Document, name: str) -> int:
     for xref, info in (doc.get_ocgs() or {}).items():
         if info["name"] == name:
             return xref
+    # The layer is made visible; set_layers can hide it afterwards.
     return doc.add_ocg(name, on=True)
 
 
@@ -911,7 +969,9 @@ def set_layers(doc: pymupdf.Document, shown: dict[str, bool]) -> None:
     for name in shown:
         layer_xref(doc, name)
     groups = doc.get_ocgs() or {}
+    # El estado que debe tener cada capa: el que pide SHOWN, o el que ya tenía.
     state = {x: shown.get(info["name"], bool(info["on"])) for x, info in groups.items()}
+    # set_layer(-1) cambia la configuración por omisión de las capas: solo se llama si algo cambia.
     if any(bool(groups[x]["on"]) != on for x, on in state.items()):
         doc.set_layer(-1, on=[x for x, on in state.items() if on], off=[x for x, on in state.items() if not on])
 
@@ -922,6 +982,7 @@ def _grouped(doc: pymupdf.Document, xref: int) -> bool:
 
 
 def _irt(doc: pymupdf.Document, xref: int) -> int:
+    # /IRT is an indirect reference ('12 0 R'): its object number is the first word.
     kind, value = doc.xref_get_key(xref, "IRT")
     return int(value.split()[0]) if kind == "xref" else 0
 
@@ -933,6 +994,7 @@ def _unlink_groups(doc: pymupdf.Document, pages: list[int] | None = None) -> Non
     for page in (doc if pages is None else (doc[n] for n in pages)):
         for xref, _, _ in page.annot_xrefs():
             if _grouped(doc, xref) and (first := _irt(doc, xref)):
+                # Both the first and this one keep the name of the group, so that it survives while the links are out.
                 for x in (xref, first):
                     if doc.xref_get_key(x, GROUP_KEY)[0] == "null":
                         doc.xref_set_key(x, GROUP_KEY, pymupdf.get_pdf_str(f"#{first}"))
@@ -949,6 +1011,7 @@ def _link_groups(doc: pymupdf.Document) -> None:
             kind, group = doc.xref_get_key(xref, GROUP_KEY)
             if kind != "string" or not group:
                 continue
+            # The first of a group found, in page order, is its head; the others are made to point at it.
             if group not in first:
                 first[group] = xref
             elif _irt(doc, xref) != first[group]:
@@ -959,6 +1022,7 @@ def _link_groups(doc: pymupdf.Document) -> None:
 def _delete(page: pymupdf.Page, xref: int) -> None:
     """Take out the annotation XREF of PAGE, if it is still there (PyMuPDF takes out the
     replies of an annotation with it)."""
+    # Al borrar una anotación se van sus respuestas: la respuesta que se borra después puede no estar ya.
     if xref in {x for x, _, _ in page.annot_xrefs()}:
         page.delete_annot(page.load_annot(xref))
 
@@ -973,11 +1037,14 @@ def remove_editable(doc: pymupdf.Document, pages: list[int] | None = None) -> No
         if not items:
             continue
         roots = _roots(doc, items)
+        # Lo mismo que _editable, pero sin cargar las anotaciones: solo con las claves de sus objetos.
         editable = {x for x, kind, _ in items
                     if kind in _TYPES and (not _irt(doc, x) or _grouped(doc, x))}
         gone = editable | {x for x, root in roots.items() if root in editable}
+        # The pop-ups of those taken out go too: their parent would no longer be on the page.
         gone |= {x for x, kind, _ in items if kind == pymupdf.PDF_ANNOT_POPUP and _parent(doc, x) in gone}
         if gone:
+            # Se reescribe la /Annots de la página con las que quedan; 'null' si no queda ninguna.
             kept = [x for x, _, _ in items if x not in gone]
             doc.xref_set_key(doc.page_xref(n), "Annots",
                              "[" + " ".join(f"{x} 0 R" for x in kept) + "]" if kept else "null")
@@ -994,6 +1061,7 @@ def _placed(page: pymupdf.Page, make, rect: Rect, size: tuple[float, float]) -> 
     with its top left corner where RECT's is, as the page is shown."""
     x0, y0 = rect[0], rect[1]
     w, h = shown_size(page.rotation, size)
+    # El rectángulo pedido, en la página sin girar; MuPDF hace la anotación a partir de su esquina.
     where = _real_rect(page, (x0, y0, x0 + w, y0 + h))
     annot = make(where.tl)
     shift = where.tl - annot.rect.tl
@@ -1004,6 +1072,7 @@ def _placed(page: pymupdf.Page, make, rect: Rect, size: tuple[float, float]) -> 
 
 
 def _flags(annot: pymupdf.Annot, locked: bool) -> None:
+    # The print flag is always set: an annotation is printed as it is seen.
     flags = annot.flags | pymupdf.PDF_ANNOT_IS_PRINT
     flags = flags | pymupdf.PDF_ANNOT_IS_LOCKED if locked else flags & ~pymupdf.PDF_ANNOT_IS_LOCKED
     if flags != annot.flags:
@@ -1011,6 +1080,7 @@ def _flags(annot: pymupdf.Annot, locked: bool) -> None:
 
 
 def _info(annot: pymupdf.Annot, a: Annotation, when: str) -> None:
+    # A new annotation takes WHEN as its date of creation; a changed one keeps the date it had.
     info = {"content": a.contents, "title": a.author, "creationDate": a.created or when, "modDate": when}
     if a.kind in SUBJECTS:
         info["subject"] = SUBJECTS[a.kind]
@@ -1018,13 +1088,16 @@ def _info(annot: pymupdf.Annot, a: Annotation, when: str) -> None:
 
 
 def _labels_keys(doc: pymupdf.Document, xref: int, a: Annotation) -> None:
+    # 'null' borra la clave: un valor vacío no deja rastro en el PDF.
     for key, values in ((TAGS_KEY, a.tags), (CATEGORIES_KEY, a.categories)):
         doc.xref_set_key(xref, key, pymupdf.get_pdf_str(", ".join(values)) if values else "null")
     doc.xref_set_key(xref, GROUP_KEY, pymupdf.get_pdf_str(a.group) if a.group else "null")
     if a.kind in ("caret", "strikeout", "freetext"):
+        # Only a plain PDF name is written; anything else would make an /IT that isn't valid.
         doc.xref_set_key(xref, "IT", f"/{a.intent}" if re.fullmatch(r"[A-Za-z]+", a.intent) else "null")
     if a.layer != _layer_of(doc, xref):
         doc.xref_set_key(xref, "OC", f"{layer_xref(doc, a.layer)} 0 R" if a.layer else "null")
+    # The entry of textual criticism is kept as JSON, with only the fields that have a value.
     entry = json.dumps({k: v for k, v in dataclasses.asdict(a.critical).items() if v}, ensure_ascii=False) \
         if a.critical else ""
     doc.xref_set_key(xref, CRITICAL_KEY, pymupdf.get_pdf_str(entry) if entry else "null")
@@ -1046,6 +1119,7 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
     elif a.kind in TEXTUAL:
         box = _real_rect(page, a.rect)
         extra = {}
+        # Un callout: el punto al que apunta, y el punto del borde de la caja de donde sale la línea.
         if a.kind == "callout" and a.paths:
             tip = a.paths[0][0]
             extra = {"callout": [tuple(_real_point(page, tip)), tuple(_real_point(page, anchor(a.rect, tip)))],
@@ -1061,6 +1135,7 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
                                             dashes=dashes, align={"center": 1, "right": 2}.get(a.align, 0),
                                             rotate=page.rotation, **extra)
     elif a.kind in ("rect", "ellipse", "area"):
+        # An area highlight is a rectangle without border, told apart by its /Subj (see _info).
         method = page.add_circle_annot if a.kind == "ellipse" else page.add_rect_annot
         annot = method(_real_rect(page, a.rect))
         annot.set_border(width=0 if a.kind == "area" else a.width, dashes=dashes or [])
@@ -1074,6 +1149,7 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
     elif a.kind in ("polygon", "cloud", "polyline"):
         points = [tuple(_real_point(page, p)) for p in a.paths[0]]
         annot = page.add_polyline_annot(points) if a.kind == "polyline" else page.add_polygon_annot(points)
+        # clouds=-1 quita el borde de nubes; 1 lo pone, con la intensidad usual.
         annot.set_border(width=a.width, dashes=dashes or [], clouds=1 if a.kind == "cloud" else -1)
         annot.set_colors(stroke=stroke, fill=fill if a.kind != "polyline" else None)
         if a.kind == "polyline":
@@ -1095,14 +1171,17 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
         annot = _placed(page, page.add_caret_annot, a.rect, CARET_SIZE)
         annot.set_colors(stroke=stroke)
     elif a.kind == "stamp":
+        # A standard stamp goes by its index; an image stamp is drawn from its PNG.
         stamps = list(STAMPS)
         annot = page.add_stamp_annot(_real_rect(page, a.rect),
                                      stamp=stamps.index(a.stamp) if a.stamp in stamps else a.image)
     elif a.kind == "redact":
+        # cross_out=False: sin la cruz que MuPDF dibuja sobre la marca de redacción.
         annot = page.add_redact_annot(_real_rect(page, a.rect), fill=fill if fill else False, cross_out=False)
         _redact_keys(page.parent, annot.xref, a)
     else:
         raise ValueError(a.kind)
+    # Lo común a todos los tipos: la información, la opacidad, las banderas y las claves propias.
     _info(annot, a, when)
     if a.opacity < 1:
         annot.set_opacity(a.opacity)
@@ -1119,8 +1198,10 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
         pass
     elif a.kind != "stamp" or a.stamp:  # (an image stamp's look would be lost)
         annot.update()
+    # MuPDF draws each stroke with straight segments; they are made curves afterwards, in the appearance stream.
     if a.kind in DRAWN:
         _curved(page.parent, annot.xref)
+    # Las respuestas van después de la anotación, para que su /IRT pueda nombrar su xref.
     for reply in a.replies:
         add_reply(page, annot, reply, when)
     return annot
@@ -1164,14 +1245,17 @@ def same(a: Annotation, b: Annotation, tolerance: float = 1.0) -> bool:
     def flat(items) -> list[float]:
         return [v for item in items for p in item for v in (p if isinstance(p, tuple) else (p,))]
 
+    # Campos que cambian solos al escribir, o que se comparan aparte, con tolerancia.
     ignore = {"xref", "created", "modified", "image", "rect", "quads", "paths", "replies", "width"}
     fields = [f.name for f in dataclasses.fields(Annotation) if f.name not in ignore]
+    # The colour of a stamp is not compared: MuPDF draws the standard stamps in colours of their own.
     if any(getattr(a, f) != getattr(b, f) for f in fields if not (f == "color" and a.kind == "stamp")):
         return False
     if a.kind in STROKED and abs(a.width - b.width) > 0.01:
         return False
     if a.kind in MARKUP:
         return close(flat(a.quads), flat(b.quads))
+    # For the shapes made of points, the points decide: their frame follows from them.
     if a.paths and not close(flat(a.paths), flat(b.paths)):
         return False
     if a.kind == "stamp" and a.stamp:  # (MuPDF gives a standard stamp its own proportions, around its centre)
@@ -1189,15 +1273,18 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
     look = ("contents", "rich", "border", "color", "font", "font_size", "align")
     if (a.rich or a.border or old.rich or old.border) and any(getattr(a, f) != getattr(old, f) for f in look):
         return False  # (rich text whose text or look changed: written again, with its /RC and /DS)
+    # Desde aquí, la anotación se cambia clave por clave en su sitio, y quedan las claves de otros programas.
     stroke = rgb(a.color)
     fill = rgb(a.fill) if a.fill else None
     dashes = list(DASHES) if a.dashed and a.kind in DASHABLE else []
     try:
+        # Un sello solo se mueve o cambia de tamaño; su aspecto no se toca.
         if a.kind == "stamp":
             if a.rect != old.rect:
                 annot.set_rect(_real_rect(page, a.rect))
         elif a.kind in MARKUP:
             quads = [_real_rect(page, q).quad for q in (a.quads or (a.rect,))]
+            # /QuadPoints wants the corners in the order ul, ur, ll, lr, in the PDF's space.
             doc.xref_set_key(annot.xref, "QuadPoints", "[" + " ".join(
                 _pdf_points(page, [tuple(pt * page.rotation_matrix) for pt in (q.ul, q.ur, q.ll, q.lr)])
                 for q in quads) + "]")
@@ -1210,6 +1297,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
             doc.xref_set_key(annot.xref, "InkList", "[" + " ".join(
                 "[" + _pdf_points(page, path) + "]" for path in a.paths) + "]")
         elif a.kind in ("note", "caret"):
+            # A note and a caret keep MuPDF's fixed size: only their top left corner moves.
             w, h = shown_size(page.rotation, (NOTE_SIZE, NOTE_SIZE) if a.kind == "note" else CARET_SIZE)
             x0, y0 = a.rect[0], a.rect[1]
             doc.xref_set_key(annot.xref, "Rect", _pdf_rect(page, _real_rect(page, (x0, y0, x0 + w, y0 + h))))
@@ -1225,6 +1313,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
         elif a.kind in ("rect", "ellipse", "area", "polygon", "cloud", "polyline", "line", "arrow"):
             annot.set_border(width=0 if a.kind == "area" else a.width, dashes=dashes,
                              clouds=1 if a.kind == "cloud" else (0 if a.kind == "polygon" else -1))
+            # En las formas con relleno, [] lo quita; las líneas no tienen relleno que tocar (None).
             annot.set_colors(stroke=stroke, fill=(fill or []) if a.kind in FILLED else None)
         elif a.kind in DRAWN:
             annot.set_border(width=a.width)
@@ -1236,6 +1325,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
             annot.set_line_ends(*(_END_CODES.get(e, 0) for e in ends))
         if a.kind == "note" and a.icon != old.icon:
             annot.set_name(a.icon)
+        # Después de la geometría, lo común, como en add: la información, la opacidad, las banderas y las claves.
         _info(annot, a, when)
         annot.set_opacity(a.opacity)
         _flags(annot, a.locked)
@@ -1251,6 +1341,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
             _curved(doc, annot.xref)
     except (RuntimeError, ValueError):
         return False
+    # El cambio se comprueba leyendo otra vez la anotación: si no es A, apply la borra y la escribe de nuevo.
     after = read_annotation(doc, page, page.load_annot(annot.xref))
     return after is not None and same(dataclasses.replace(a, replies=()), after)
 
@@ -1260,6 +1351,7 @@ def _sync_replies(page: pymupdf.Page, parent: pymupdf.Annot, old: tuple[Reply, .
     """Make the replies of PARENT, which were OLD, be NEW: those gone taken out, those changed
     changed, those new written."""
     doc = page.parent
+    # Replies without an xref are new; those whose xref is not in NEW were deleted.
     keep = {r.xref for r in new if r.xref}
     for r in old:
         if r.xref not in keep:
@@ -1267,6 +1359,7 @@ def _sync_replies(page: pymupdf.Page, parent: pymupdf.Annot, old: tuple[Reply, .
     before = {r.xref: r for r in old}
     for r in new:
         if r.xref and r.xref in before:
+            # Una respuesta igual a la de antes no se toca, para no cambiar su fecha de modificación.
             if before[r.xref] != r:
                 annot = page.load_annot(r.xref)
                 annot.set_info(content=r.contents, title=r.author, modDate=when)
@@ -1292,13 +1385,17 @@ def apply(doc: pymupdf.Document, annotations: list[Annotation], when: str | None
     (as read() gave them, the file not changed since): they are not read again. Returns how many
     annotations were written."""
     when = when or now()
+    # Groups are unlinked first: else, deleting the first of a group would take the others with it.
     _unlink_groups(doc)
     original = {a.xref: a for a in (read(doc) if original is None else original) if a.kind != OTHER}
     annotations = [a for a in annotations if a.kind != OTHER]  # (those of other kinds are left as they are)
+    # MODEL: the annotations of the list that the document already has, by their xref.
     model = {a.xref: a for a in annotations if a.xref and a.xref in original}
     written = 0
     redo: list[Annotation] = []
     for page in doc:
+        # TODO: every original annotation is looked at once for each page (pages x annotations); grouping
+        # them by page beforehand would make long documents with many annotations faster.
         for xref in [x for x in original if original[x].page == page.number]:
             old = original[xref]
             a = model.get(xref)
@@ -1308,6 +1405,7 @@ def apply(doc: pymupdf.Document, annotations: list[Annotation], when: str | None
                 if untouched is not None:
                     untouched[xref] = old
                 continue
+            # Changed or deleted (a is None): first it is tried in place, keeping what other programs put in it.
             annot = page.load_annot(xref)
             if a is not None and change(page, annot, old, a, when):
                 _sync_replies(page, page.load_annot(xref), old.replies, a.replies, when)
@@ -1320,7 +1418,9 @@ def apply(doc: pymupdf.Document, annotations: list[Annotation], when: str | None
             _delete(page, xref)
             if a is not None:
                 redo.append(dataclasses.replace(a, replies=tuple(dataclasses.replace(r, xref=0) for r in a.replies)))
+    # Lo que no se pudo cambiar en su sitio, y lo nuevo, se escribe al final como anotaciones nuevas.
     for a in redo + [a for a in annotations if not (a.xref and a.xref in original)]:
+        # Una anotación de una página que ya no existe (tras borrar páginas) se descarta sin error.
         if not 0 <= a.page < doc.page_count:
             continue
         if a.kind == "stamp" and not a.stamp and not a.image:
@@ -1328,6 +1428,7 @@ def apply(doc: pymupdf.Document, annotations: list[Annotation], when: str | None
         add(doc[a.page], dataclasses.replace(a, replies=tuple(dataclasses.replace(r, xref=0) for r in a.replies)),
             when)
         written += 1
+    # Los grupos se enlazan otra vez al final, ya con los xref definitivos.
     _link_groups(doc)
     return written
 
@@ -1339,6 +1440,7 @@ def save_doc(doc: pymupdf.Document, target: Path) -> None:
     fd, tmp = tempfile.mkstemp(suffix=".pdf", dir=target.parent)
     os.close(fd)
     try:
+        # garbage=1 takes out the objects no longer used without renumbering the others.
         doc.save(tmp, garbage=1, deflate=True,
                  encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
         if doc.name and Path(doc.name).resolve() == target.resolve():
@@ -1362,6 +1464,7 @@ def write(source: Path, annotations: list[Annotation], target: Path, password: s
     annotations were written. ORIGINAL: see apply. SHOWN: the layers to show or hide (see set_layers)."""
     doc = open_pdf(source, password)
     try:
+        # SAME: lo que apply dejó como estaba, para no leer otra vez esas anotaciones en RESULT.
         same: dict[int, Annotation] = {}
         written = apply(doc, annotations, kept=kept, untouched=same, original=original)
         if shown:
@@ -1374,6 +1477,7 @@ def write(source: Path, annotations: list[Annotation], target: Path, password: s
         # (not for a document with a password: PyMuPDF's incremental save of those has been seen to
         # leave this process unable to read them back now and then; they are written whole)
         if same_file and not doc.needs_pass and doc.can_save_incrementally():
+            # Nothing changed: the file is not touched at all, not even its modification time.
             if written or doc.is_dirty:
                 doc.save(str(source), incremental=True, encryption=pymupdf.PDF_ENCRYPT_KEEP)
         else:
@@ -1392,6 +1496,7 @@ def words(page: pymupdf.Page) -> list[tuple[Rect, int, int]]:
     """The words of PAGE in reading order: (their rectangle as the page is
     shown, block number, line number)."""
     out = []
+    # Las cajas se pasan a la página tal como se muestra, como todo lo que dibuja la ventana.
     for x0, y0, x1, y1, _text, block, line, _n in page.get_text("words", sort=False):
         r = (pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix).normalize()
         out.append(((r.x0, r.y0, r.x1, r.y1), block, line))
@@ -1418,6 +1523,7 @@ def text_rects(found: list[tuple[Rect, int, int]], first: int, last: int) -> lis
     if first > last:
         first, last = last, first
     lines: dict[tuple[int, int], list[float]] = {}
+    # One rectangle for each (block, line): the union of its words in the range.
     for (x0, y0, x1, y1), block, line in found[first:last + 1]:
         r = lines.setdefault((block, line), [x0, y0, x1, y1])
         r[0], r[1], r[2], r[3] = min(r[0], x0), min(r[1], y0), max(r[2], x1), max(r[3], y1)
@@ -1438,6 +1544,7 @@ def text_in(found: list[tuple[Rect, str]], rects) -> str:
     """The words of FOUND (see page_text) whose middle is in one of RECTS, in reading order."""
     out = []
     for (x0, y0, x1, y1), text in found:
+        # Una palabra cuenta si su centro cae dentro, con un punto de tolerancia: así no entran las vecinas.
         cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
         if any(r[0] - 1 <= cx <= r[2] + 1 and r[1] - 1 <= cy <= r[3] + 1 for r in rects):
             out.append(text)

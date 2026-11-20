@@ -80,6 +80,7 @@ def read_data(path: Path, sep: str, encoding: str) -> tuple[list[str], list[dict
     except (OSError, UnicodeDecodeError) as e:
         raise ImpositionError(tr('cannot read data source {path}: {error}', path=path, error=e)) from None
     if sep == "auto":
+        # Sniffer only looks at the header line, and only accepts comma, semicolon or tab.
         try:
             dialect = csv.Sniffer().sniff(text.splitlines()[0] if text else ",", delimiters=",;\t")
             delim = dialect.delimiter
@@ -92,6 +93,7 @@ def read_data(path: Path, sep: str, encoding: str) -> tuple[list[str], list[dict
         raise ImpositionError(tr("data source is empty"))
     header = [h.strip() for h in rows[0]]
     records = []
+    # Se saltan las filas vacías; a las filas cortas se les completan las columnas con cadenas vacías.
     for r in rows[1:]:
         if not any(c.strip() for c in r):
             continue
@@ -102,6 +104,7 @@ def read_data(path: Path, sep: str, encoding: str) -> tuple[list[str], list[dict
 def fill(template: str, record: dict[str, str], header: list[str]) -> str:
     def rep(m):
         key = m.group(1)
+        # Primero el nombre exacto de la columna; si no está, se busca sin distinguir mayúsculas.
         if key in record:
             return record[key]
         for h in header:
@@ -113,6 +116,7 @@ def fill(template: str, record: dict[str, str], header: list[str]) -> str:
 
 
 def block_rect(box: pu.Rect, position: str, x: float, y: float, w: float, h: float) -> pu.Rect:
+    # The box starts at (0, 0) (overlay coordinates), so its upper corner gives the page size.
     W, H = box[2], box[3]
     v, _, hz = position.partition("-") if "-" in position else ("middle", "", position)
     if position == "center":
@@ -133,6 +137,7 @@ def draw_block(c, blk: dict, record, header, ctx: Context, warnings: list[str], 
     overflow = blk.get("overflow", "scale")
     warn_below = float(blk.get("warn_below", 50))
     lines: list[dict] = []
+    # same_line: se une a la línea anterior con un espacio. close_gap: si queda vacía, se omite sin dejar hueco.
     for ln in blk.get("lines", []):
         text = fill(ln.get("text", ""), record, header)
         if ln.get("same_line") and lines:
@@ -150,6 +155,7 @@ def draw_block(c, blk: dict, record, header, ctx: Context, warnings: list[str], 
     c.translate(x0, y0)
     if blk.get("rotation"):
         c.rotate(int(blk["rotation"]))
+    # El bloque recorta lo que salga de su rectángulo (lo que hace falta con overflow 'cut').
     p = c.beginPath()
     p.rect(0, 0, w, h)
     c.clipPath(p, stroke=0, fill=0)
@@ -158,6 +164,7 @@ def draw_block(c, blk: dict, record, header, ctx: Context, warnings: list[str], 
         fs = ln["size"]
         text = ln["text"]
         tw = stringWidth(text, ln["font"], fs)
+        # Overflow: 'fail' stops, 'scale' shrinks the type to fit the width, 'cut' drops characters at the end.
         if tw > w:
             if ln["overflow"] == "fail":
                 raise ImpositionError(tr('record {rec_no}: line too long for the block: {text!r}', rec_no=rec_no, text=text))
@@ -173,6 +180,8 @@ def draw_block(c, blk: dict, record, header, ctx: Context, warnings: list[str], 
                 while text and stringWidth(text, ln["font"], fs) > w:
                     text = text[:-1]
                 tw = stringWidth(text, ln["font"], fs)
+        # La primera línea baja solo su cuerpo desde el borde superior; las siguientes, 1,2 veces el cuerpo nominal
+        # (no el reducido).
         top -= ln["size"] * 1.2 if ln is not lines[0] else ln["size"]
         x = {"left": 0, "center": (w - tw) / 2, "centre": (w - tw) / 2, "right": w - tw}.get(ln["justify"], 0)
         c.setFont(ln["font"], fs)
@@ -198,6 +207,7 @@ def merge_data(pdf: Pdf, a, ctx: Context):
         raise ImpositionError(tr("fields file defines no [[text]], [[picture]] or [[block]]"))
     base = Path(a.fields).parent
     n = len(pdf.pages)
+    # --master: the whole document is copied once per record; record r uses pages r*n to r*n + n - 1.
     if a.master:
         per = n
         out = Pdf.new()
@@ -210,6 +220,7 @@ def merge_data(pdf: Pdf, a, ctx: Context):
         per = a.pages_per_record
         if per < 1:
             raise ImpositionError(tr("--pages-per-record must be at least 1"))
+        # Sin --master, cada registro ocupa un grupo de 'per' páginas seguidas del documento.
         groups = -(-n // per)
         if a.strict and (n % per or groups != len(records)):
             raise ImpositionError(tr('{count} records but {number} pages in groups of {per}', count=len(records), number=n, per=per))
@@ -225,9 +236,12 @@ def merge_data(pdf: Pdf, a, ctx: Context):
             idx = r_no * per + k
             if idx >= len(doc.pages):
                 break
+            # Un campo sin 'page' va en todas las páginas del registro; con 'page', solo en esa (contada desde 1 en el
+            # registro).
             want = lambda f: f.get("page") is None or int(f["page"]) == k + 1  # noqa: E731
             t_here = [t for t in texts if want(t)]
             b_here = [b for b in blocks if want(b)]
+            # Las imágenes se ponen al final, cuando el texto ya está aplicado.
             pictures += [(idx, p, rec) for p in pics if want(p)]
             if not (t_here or b_here):
                 continue
@@ -244,6 +258,7 @@ def merge_data(pdf: Pdf, a, ctx: Context):
                                   ctx.L(b["width"]), ctx.L(b["height"]))
                 draw_block(c, dict(b, _rect=rect), rec, header, ctx, warnings, r_no + 1)
             ov.end_page()
+    # Texts and blocks are applied together, tagged as text, so 'peel --what text' removes them.
     ov.apply(pu.TAG_TEXT)
     # pictures
     imp = pu.Importer(doc)
@@ -252,6 +267,7 @@ def merge_data(pdf: Pdf, a, ctx: Context):
         fpath = Path(p["file"])
         if not fpath.is_absolute():
             fpath = base / fpath
+        # Cada PDF de imágenes se abre una sola vez.
         src = files.get(str(fpath)) or files.setdefault(str(fpath), pu.open_source(fpath))
         val = fill("{" + p["column"] + "}", rec, header).strip()
         if not val:
@@ -275,6 +291,8 @@ def merge_data(pdf: Pdf, a, ctx: Context):
         tw, th = tg.size()
         r = block_rect((0, 0, tw, th), p.get("position", "top-left"), ctx.L(p.get("x", 0)), ctx.L(p.get("y", 0)),
                        w * s, h * s)
+        # Same matrix as in stick-pdf: the source in visual space, scaled, placed, and taken back to the target
+        # page's own space.
         m = pu.chain(geom.visual_matrix(int(p.get("rotate", 0))), pu.scale(s), pu.translate(r[0], r[1]),
                      invert(tg.visual_matrix()))
         canvas = pu.Canvas(doc, page)

@@ -35,6 +35,7 @@ from .forms import CommandForm, file_filter, subparsers
 from .preview import PdfPane
 
 
+# El árbol de comandos del modo avanzado, por categorías; un comando que no figure aquí va a "Otros".
 CATEGORIES = [
     (N_("Impose"), ["impose", "booklet", "nup", "step-repeat", "join", "manual"]),
     (N_("Arrange pages"), ["shuffle", "evenodd", "reverse", "duplicate", "delete", "move", "insert", "split"]),
@@ -55,10 +56,13 @@ TITLES = {
     "replay": N_("Replay (imposition by example)"), "watch": N_("Hot folder"),
 }
 
+# Estos comandos no dejan un PDF que previsualizar: info muestra un texto; run y watch escriben archivos en otra parte.
 NO_PREVIEW = {"info", "run", "watch"}
 NOT_IN_WINDOW = {"interface"}  # (the window has Settings ▸ Language of the interface)
 def wrote_paths(output: str) -> list[Path]:
     """The files a command says it wrote ("Wrote PATH (N pages)"), in the language in use."""
+    # La salida de los comandos está traducida, así que los patrones se arman con las mismas plantillas
+    # traducidas: cada {path} y {count} se vuelve un grupo de la expresión regular.
     patterns = []
     for template in (tr("Wrote {path} ({count} page)"), tr("Wrote {path} ({count} pages)"), tr("Wrote {path}")):
         rx = re.escape(template).replace(re.escape("{path}"), "(?P<path>.+?)")
@@ -74,6 +78,7 @@ def wrote_paths(output: str) -> list[Path]:
 
 
 def warning_prefix() -> str:
+    # Only the text before {msg}: the stderr lines that start with it are counted as warnings.
     return tr("warning: {msg}").split("{msg}")[0]
 
 
@@ -81,12 +86,15 @@ def warning_prefix() -> str:
 
 def python_command() -> list[str]:
     """How to start the command line of imposition in a child process."""
+    # Se usa el mismo intérprete que corre la ventana, así el proceso hijo ve el mismo entorno y los mismos paquetes.
     return [sys.executable, "-m", "py_pdftools", "impose"]
 
 
 # =========================================================================== process runner
 
 
+# Los comandos corren en otro proceso (QProcess) y no en un hilo: un comando largo o que falle no bloquea
+# ni tumba la ventana, y Detener puede matarlo sin dejar estado a medias.
 class Runner(QObject):
     """Runs one CLI command at a time in a child process."""
 
@@ -106,6 +114,8 @@ class Runner(QObject):
     def stop(self):
         if self.busy():
             p = self.proc
+            # The finished signal is disconnected first, so that a job killed on purpose does not report
+            # itself as failed.
             p.finished.disconnect()
             p.kill()
             p.waitForFinished(2000)
@@ -116,6 +126,8 @@ class Runner(QObject):
         self.purpose = purpose
         self._out, self._err = [], []
         p = QProcess(self)
+        # Without unbuffered output, Python would hold the child's stdout until it ends, and the log would only
+        # fill at the end of each command.
         env = QProcessEnvironment.systemEnvironment()
         env.insert("PYTHONUNBUFFERED", "1")
         p.setProcessEnvironment(env)
@@ -130,6 +142,7 @@ class Runner(QObject):
         p.start()
 
     def _read_out(self):
+        # La salida llega en trozos según se produce; se guarda entera para job_finished y se muestra ya en el registro.
         text = bytes(self.proc.readAllStandardOutput()).decode(errors="replace")
         self._out.append(text)
         self.output.emit(text.rstrip("\n"), False)
@@ -140,6 +153,7 @@ class Runner(QObject):
         self.output.emit(text.rstrip("\n"), True)
 
     def _finished(self, code, _status):
+        # proc se borra antes de emitir: quien reciba la señal puede lanzar otro comando enseguida.
         self.proc = None
         self.finished.emit(self.purpose, code, "".join(self._out), "".join(self._err))
 
@@ -154,6 +168,7 @@ class SequencePanel(QWidget):
         super().__init__(window)
         self.w = window
         self.list = QListWidget()
+        # Los pasos se reordenan arrastrándolos en la lista; cada uno es una línea de comando en sintaxis de shell.
         self.list.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.list.itemDoubleClicked.connect(lambda _: self.edit_selected())
         self.list.setFont(QFont("monospace"))
@@ -192,6 +207,8 @@ class SequencePanel(QWidget):
         lay.addLayout(right)
 
     def steps(self) -> list[list[str]]:
+        # Cada paso se guarda como una línea con comillas de shell; shlex la vuelve a convertir
+        # en la lista de argumentos.
         return [shlex.split(self.list.item(i).text()) for i in range(self.list.count())]
 
     def set_steps(self, steps: list[list[str]]):
@@ -215,6 +232,7 @@ class SequencePanel(QWidget):
         item = self.list.currentItem()
         if item:
             tokens = shlex.split(item.text())
+            # Un paso de un comando desconocido (de otra versión, o editado a mano) no se carga en el formulario.
             if tokens and tokens[0] in COMMANDS:
                 self.w.select_command(tokens[0])
                 self.w.form(tokens[0]).set_tokens(tokens)
@@ -228,9 +246,12 @@ class SequencePanel(QWidget):
         if not self.w.source:
             self.w.status(tr("Open a PDF first"), error=True)
             return
+        # Imported here, as in the rest of the workspace: pikepdf and the engine are loaded only when needed.
         import pikepdf
 
         from ...impose.pdfutil import get_history
+        # Imposition by example: the engine records each command it runs in the PDF it writes, and get_history reads
+        # them back.
         with pikepdf.open(self.w.source) as pdf:
             hist = get_history(pdf)
         if not hist:
@@ -242,6 +263,8 @@ class SequencePanel(QWidget):
 
     def write_toml(self, path: Path, name: str):
         from ...impose.sequence import write_sequence
+        # write_sequence escribe la primera línea (el nombre); las preferencias de la barra se insertan justo después,
+        # y solo las que difieren de lo predeterminado, salvo las unidades.
         text = write_sequence(self.steps(), name)
         prefs = self.w.prefs()
         extra = [f'units = "{prefs["units"]}"']
@@ -267,6 +290,7 @@ class SequencePanel(QWidget):
             QMessageBox.warning(self, tr("Load sequence"), str(e))
             return
         self.set_steps(steps)
+        # A sequence file may carry its own preferences (units, registration...), and they replace those of the toolbar.
         self.w.apply_prefs(prefs)
         self.w.status(tr('Loaded {count} step(s) from {name}', count=len(steps), name=Path(path).name))
 
@@ -288,6 +312,8 @@ class SequencePanel(QWidget):
         if not self.list.count():
             self.w.status(tr("The sequence is empty"), error=True)
             return None
+        # Para correr la secuencia hace falta un archivo; se escribe uno temporal en la carpeta del espacio de trabajo,
+        # con un número nuevo cada vez.
         p = self.w.tmp / f"sequence-{self.w.next_id()}.toml"
         self.write_toml(p, "sequence")
         return p
@@ -298,6 +324,8 @@ class SequencePanel(QWidget):
             return
         seq = self._temp_sequence()
         if seq:
+            # La clave identifica el resultado: Aplicar y Guardar la comparan para saber si la vista de la derecha
+            # corresponde todavía al documento y a la secuencia.
             self.w._pending_key = ("sequence", str(self.w.source))
             self.w.run_tokens(["run", "--sequence", str(seq), str(self.w.source)], purpose="preview",
                               with_input=False, label="sequence")
@@ -313,6 +341,7 @@ class SequencePanel(QWidget):
         out = QFileDialog.getExistingDirectory(self, tr("Output folder"), str(Path(files[0]).parent))
         if not out:
             return
+        # On several files the results go to the chosen folder; nothing is previewed, and the log reports each file.
         self.w.run_tokens(["run", "--sequence", str(seq), "--out-dir", out, "--suffix", "imposed", *files],
                           purpose="batch", with_input=False, add_output=False)
 
@@ -325,10 +354,14 @@ class Workspace(QMainWindow):
         """HOST: the window of py-pdftools, whose document this imposes."""
         super().__init__(host)
         self.host = host
+        # The workspace is a QMainWindow so that it can have its own toolbars and docks, but this flag makes it
+        # an ordinary widget inside the host window.
         self.setWindowFlags(Qt.WindowType.Widget)
         # (the options of the commands and the sequence start at their defaults, as in py-imposition)
         self.carry_options = False
+        # Sus ajustes (estado de las barras, modo, comandos) se guardan aparte de los de la ventana principal.
         self.settings = QSettings("py-pdftools", "py-pdftools-impose")
+        # Las vistas previas y las secuencias temporales van a una carpeta propia, que close_down borra.
         self._tmpdir = tempfile.TemporaryDirectory(prefix="py-pdftools-impose-")
         self.tmp = Path(self._tmpdir.name)
         self._id = 0
@@ -336,8 +369,12 @@ class Workspace(QMainWindow):
         self.source: Path | None = None
         self.undo_stack: list[Path] = []
         self.result_files: list[Path] = []
+        # result_key dice de qué comando, opciones y documento salió el resultado mostrado; _pending_key es la del
+        # trabajo en curso, que pasa a result_key cuando termina.
         self.result_key = None
         self._pending_key = None
+        # Tras un trabajo puede quedar pendiente aplicar o guardar su resultado: Aplicar y Guardar lanzan el comando
+        # si el resultado no está al día, y estas banderas dicen qué hacer al terminar.
         self._apply_after = False
         self._save_after = False
         self._save_standard = ""  # (the kind of PDF the save waiting for a result will write; see conform.py)
@@ -351,6 +388,7 @@ class Workspace(QMainWindow):
         self.runner = Runner(self)
         self.runner.output.connect(self.log)
         self.runner.finished.connect(self.job_finished)
+        # La vista previa automática espera 700 ms sin cambios en las opciones, para no lanzar un proceso por tecla.
         self.timer = QTimer(self)
         self.timer.setSingleShot(True)
         self.timer.setInterval(700)
@@ -387,6 +425,8 @@ class Workspace(QMainWindow):
         tb.addAction(self.a_save)
         self.a_undo = QAction(tr("Undo apply"), self, triggered=self.undo)
         tb.addAction(self.a_undo)
+        # Units, registration, bleeds and PDF/X apply to every command and are passed as global options
+        # (see pref_tokens); the basic mode hides them.
         self._advanced_only = [tb.addSeparator()]
         self._advanced_only.append(tb.addWidget(QLabel(tr(" Units "))))
         self.units = QComboBox()
@@ -406,6 +446,7 @@ class Workspace(QMainWindow):
         self.pdfx.setToolTip(tr("Keep a TrimBox when bleeds are removed (to make a PDF/X-4 file, use File ▸ "
                                 "Save as ▸ PDF/X-4)"))
         self._advanced_only.append(tb.addWidget(self.pdfx))
+        # Cambiar una de estas opciones cambia la línea de comando, así que también programa una vista previa.
         for w in (self.units, self.registration, self.bleed):
             w.currentIndexChanged.connect(lambda _: self.schedule())
         self.pdfx.toggled.connect(lambda _: self.schedule())
@@ -417,11 +458,14 @@ class Workspace(QMainWindow):
         listed = set()
         for cat, names in CATEGORIES:
             top = QTreeWidgetItem([tr(cat)])
+            # Las categorías solo sirven de encabezado: se pueden expandir pero no elegir.
             top.setFlags(Qt.ItemFlag.ItemIsEnabled)
             f = top.font(0)
             f.setBold(True)
             top.setFont(0, f)
             for n in names:
+                # Only the commands that the engine has registered are listed; a name in CATEGORIES without one
+                # is skipped.
                 if n in COMMANDS:
                     it = QTreeWidgetItem([tr(TITLES.get(n, n))])
                     it.setData(0, Qt.ItemDataRole.UserRole, n)
@@ -429,6 +473,7 @@ class Workspace(QMainWindow):
                     top.addChild(it)
                     listed.add(n)
             self.tree.addTopLevelItem(top)
+        # "interface" fija el idioma, que aquí es el de la ventana (menú Ajustes); por eso no se muestra.
         others = sorted(set(COMMANDS) - listed - NOT_IN_WINDOW)
         if others:
             top = QTreeWidgetItem([tr("Other")])
@@ -449,6 +494,7 @@ class Workspace(QMainWindow):
         # (the theme's own text colour: readable in light and dark themes)
         self.cmd_line.setStyleSheet("font-family: monospace;")
         self.stack = QStackedWidget()
+        # The stack holds the basic panel and, as they are first used, one form for each command (see form()).
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
@@ -456,8 +502,10 @@ class Workspace(QMainWindow):
         self.basic = BasicPanel(self)
         self.stack.addWidget(self.basic)
         self.basic.changed.connect(self._form_changed)
+        # El modo se fija aquí en "avanzado" solo como punto de partida: _restore pone luego el que estaba guardado.
         self.mode = "advanced"
         self._adv_command = "booklet"
+        # _docks_shown remembers which docks were visible in advanced mode, since the basic mode hides them all.
         self._docks_shown = [True, True]
 
         self.b_preview = QPushButton(tr("Preview"))
@@ -503,6 +551,8 @@ class Workspace(QMainWindow):
         ml.addLayout(actions)
 
         # previews
+        # Two panes: the document as it is now, and the result of the last command (with a list of outputs
+        # when it made several files).
         self.src_pane = PdfPane(tr("Document"))
         self.res_pane = PdfPane(tr("Result"))
         self.res_pane.output_selected.connect(self._show_output)
@@ -533,12 +583,14 @@ class Workspace(QMainWindow):
         d2.setObjectName("log")
         d2.setWidget(self.logbox)
         self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, d2)
+        # Secuencia y registro comparten lugar, como pestañas; primero se muestra la secuencia.
         self.tabifyDockWidget(d1, d2)
         d1.raise_()
         self.docks = (d1, d2)
 
     def _build_menus(self):
         """The menu Impose of the window (see ImposeMixin), in place of py-imposition's menus."""
+        # The menu belongs to the host window (it is its parent), which adds it to its menu bar while this mode is on.
         m = QMenu(tr("&Impose"), self.host)
         self.menu = m
         m.setToolTipsVisible(True)
@@ -551,6 +603,7 @@ class Workspace(QMainWindow):
         self.m_output = m.addMenu(tr("Save as"))
         self.m_output.setToolTipsVisible(True)
         self.output_actions = {}
+        # Una entrada "Guardar como" por cada estándar que pdf2iso sabe hacer, más el PDF simple.
         for value, name in [("", N_("PDF"))] + conform.STANDARDS:
             act = QAction(tr(name) + "…", self)
             act.triggered.connect(lambda _=False, v=value: self.save(v))
@@ -575,12 +628,16 @@ class Workspace(QMainWindow):
     # ----------------------------------------------------------------- settings
 
     def _restore(self):
+        # El estado guardado incluye barras y paneles; la primera vez no hay, y se da al panel de secuencia
+        # una altura razonable cuando la ventana ya tiene tamaño.
         state = self.settings.value("state")
         if isinstance(state, QByteArray):
             self.restoreState(state)
         else:
             QTimer.singleShot(0, lambda: self.resizeDocks([self.docks[0]], [190], Qt.Orientation.Vertical))
         self.auto.setChecked(self.settings.value("auto_preview", "true") != "false")
+        # carry_options is False here: py-pdftools always starts the commands at their defaults, so this branch
+        # is kept only for py-imposition's behaviour.
         if self.carry_options:
             self.apply_prefs({k: self.settings.value(f"prefs/{k}") for k in ("units", "registration", "bleed")
                               if self.settings.value(f"prefs/{k}")})
@@ -599,6 +656,7 @@ class Workspace(QMainWindow):
             self._docks_shown = [True, True]
         last = self.settings.value("command", "booklet") if self.carry_options else "booklet"
         self.select_command(last if last in COMMANDS else "booklet")
+        # set_mode va después de select_command, porque el modo básico recuerda el comando avanzado elegido.
         self.set_mode(self.settings.value("mode", "basic"))
         self.show_document(self.a_show_document.isChecked(), save=False)
 
@@ -611,9 +669,12 @@ class Workspace(QMainWindow):
     def save_settings(self):
         self.settings.setValue("state", self.saveState())
         for k, v in self.prefs().items():
+            # QSettings guarda los booleanos como texto en algunos formatos; se escriben como "true"/"false"
+            # para leerlos siempre igual.
             self.settings.setValue(f"prefs/{k}", "true" if v is True else "false" if v is False else v)
         self.settings.setValue("auto_preview", "true" if self.auto.isChecked() else "false")
         self.settings.setValue("mode", self.mode)
+        # In basic mode the docks are hidden by the mode itself; what is saved is the visibility the user had chosen.
         docks = self._docks_shown if self.mode == "basic" else [d.isVisible() for d in self.docks]
         self.settings.setValue("advanced/docks", json.dumps(docks))
         self.settings.setValue("command", self._adv_command if self.mode == "basic" else self.current)
@@ -639,6 +700,8 @@ class Workspace(QMainWindow):
 
     def pref_tokens(self) -> list[str]:
         p = self.prefs()
+        # The language of the interface goes to every command, so that its messages (and the "Wrote" lines that
+        # wrote_paths reads) come in the same language as the window.
         out = ["--interface", interface.code(), "--units", p["units"]]
         if p["registration"] != "black":
             out += ["--registration", p["registration"]]
@@ -657,6 +720,7 @@ class Workspace(QMainWindow):
         mode = "advanced" if mode == "advanced" else "basic"
         (self.a_basic if mode == "basic" else self.a_advanced).setChecked(True)
         basic = mode == "basic"
+        # Al pasar al modo básico se recuerda el comando y los paneles del modo avanzado, para volver a ellos.
         if basic and self.mode != "basic":
             self._adv_command = self.current or self._adv_command
             if self.isVisible():  # (at start-up, the saved visibility is used)
@@ -670,6 +734,7 @@ class Workspace(QMainWindow):
         for d, shown in zip(self.docks, self._docks_shown):
             d.setVisible(False if basic else shown)
         if basic:
+            # El formulario básico tiene sus propias unidades; empieza con las de la barra.
             self.basic.units.setCurrentText(self.units.currentText())
             self.current = "impose"
             self.stack.setCurrentWidget(self.basic)
@@ -709,8 +774,11 @@ class Workspace(QMainWindow):
         self.status(tr("Profile {name}", name=name))
 
     def form(self, name: str) -> CommandForm:
+        # El panel básico tiene la misma interfaz que un CommandForm (tokens, set_tokens, missing_required...),
+        # así que el resto del código lo trata como el formulario de "impose".
         if name == "impose" and self.mode == "basic":
             return self.basic  # (it answers like a command form)
+        # Los formularios se crean la primera vez que se eligen: son muchos comandos, cada uno con muchas opciones.
         if name not in self.forms:
             f = CommandForm(name, self.parsers[name])
             saved = self.settings.value(f"forms/{name}") if self.carry_options else None
@@ -726,6 +794,7 @@ class Workspace(QMainWindow):
 
     def select_command(self, name: str):
         it = self._find_item(name)
+        # If the item is already current, setCurrentItem would not emit a signal, so the command is activated directly.
         if it is not None and self.tree.currentItem() is not it:
             self.tree.setCurrentItem(it)
         else:
@@ -753,6 +822,7 @@ class Workspace(QMainWindow):
         self.stack.setCurrentWidget(f)
         self.cmd_title.setText(tr(TITLES.get(name, name)))
         previewable = name not in NO_PREVIEW
+        # info, run y watch no previsualizan, así que el botón principal dice lo que hacen de verdad.
         self.b_preview.setText(tr({"info": N_("Show info"), "run": N_("Run"),
                                    "watch": N_("Start watching")}.get(name, N_("Preview"))))
         self.b_apply.setEnabled(previewable)
@@ -776,6 +846,8 @@ class Workspace(QMainWindow):
         tokens = self.form(self.current).tokens()
         cmd = COMMANDS[self.current]
         shown = list(tokens)
+        # The input file is added to the command line shown, but not to the form's tokens: the steps of a sequence
+        # must not name a file.
         if cmd.needs_input is True or (cmd.needs_input == "optional" and self.source):
             shown.append(self.source.name if self.source else "INPUT.pdf")
         self.cmd_line.setText("py-pdftools impose " + shlex.join(shown))
@@ -787,11 +859,14 @@ class Workspace(QMainWindow):
             self.timer.start()
 
     def auto_preview(self):
+        # La vista previa automática se calla si falta algo (opciones obligatorias, documento); no tiene sentido
+        # mostrar un error por cada cambio.
         f = self.form(self.current)
         if f.missing_required():
             return
         if COMMANDS[self.current].needs_input is True and not self.source:
             return
+        # replay con --export escribe un archivo de secuencia, no un PDF: solo debe correr cuando se pide.
         if self.current == "replay" and f.by_option.get("--export") and f.by_option["--export"].has_value():
             return
         self.preview(quiet=True)
@@ -806,6 +881,7 @@ class Workspace(QMainWindow):
                    label: str | None = None, quiet: bool = False):
         name = tokens[0]
         cmd = COMMANDS[name]
+        # Las preferencias globales se ponen justo después del nombre del comando, antes de sus propias opciones.
         args = list(tokens[:1]) + self.pref_tokens() + list(tokens[1:])
         if with_input:
             if cmd.needs_input is True:
@@ -820,23 +896,32 @@ class Workspace(QMainWindow):
                     self.status(tr("Open a PDF first"), error=True)
                     return
                 args.append(str(self.source))
+        # La salida va a un archivo temporal nuevo cada vez; un comando que escribe varios archivos les añade
+        # un sufijo (result-3-a.pdf...), que job_finished busca después.
         self._out_base = None
+        # "and" binds tighter than "or": a sequence run on the document also gets an output file, although "run"
+        # is excluded in the first part.
         if add_output and name not in ("info", "watch", "run") or (name == "run" and label == "sequence"):
             self._out_base = self.tmp / f"result-{self.next_id()}.pdf"
             args += ["-o", str(self._out_base)]
         self._job_label = label or name
+        # La clave del trabajo se fija ahora, porque las opciones pueden cambiar mientras corre.
         self._job_key = self._pending_key
         self.b_stop.setEnabled(True)
         if not quiet:
             self.status(tr('Running {job_label}…', job_label=self._job_label))
         else:
+            # Las vistas previas automáticas solo se anuncian en la barra de estado, sin pasar al registro.
             self.host.statusBar().showMessage(tr('Previewing {job_label}…', job_label=self._job_label))
         self.runner.start(args, purpose)
 
     def key(self):
+        # The key of a result: the command's options, the global options and the document. A result is up to date
+        # while all three are the same.
         return (tuple(self.form(self.current).tokens()), tuple(self.pref_tokens()), str(self.source))
 
     def preview(self, quiet: bool = False):
+        # Con watch, el mismo botón inicia y detiene la carpeta vigilada.
         if self.current == "watch" and self.runner.busy() and self.runner.purpose == "watch":
             self.stop()
             return
@@ -854,6 +939,7 @@ class Workspace(QMainWindow):
     def apply(self):
         if self.current in NO_PREVIEW:
             return
+        # Un resultado hecho por el panel de secuencia también cuenta como al día para el mismo documento.
         fresh = self.result_key in (self.key(), ("sequence", str(self.source)))
         if self.result_files and fresh and not self.runner.busy():
             self._apply_result()
@@ -861,6 +947,7 @@ class Workspace(QMainWindow):
         tokens = self.current_tokens(check=True)
         if not tokens:
             return
+        # Si el resultado no está al día, se lanza el comando y se aplica al terminar (ver job_finished).
         self._pending_key = self.key()
         self._apply_after = True
         self._save_after = False
@@ -879,6 +966,7 @@ class Workspace(QMainWindow):
         if purpose == "watch":
             self.b_preview.setText(tr("Start watching"))
         if code != 0:
+            # El mensaje de error útil suele ser la última línea de stderr; las anteriores son el rastro.
             lines = [ln for ln in err.strip().splitlines() if ln.strip()]
             msg = lines[-1] if lines else f"failed (exit code {code})"
             self.status(f"{self._job_label}: {msg}", error=True)
@@ -893,6 +981,8 @@ class Workspace(QMainWindow):
             self.status(tr('Processed: {number} file(s) written', number=n))
             return
         files = []
+        # Se busca primero el archivo pedido con -o; si no existe, el comando escribió varios con sufijos;
+        # y si tampoco, se leen las líneas "Wrote ..." de su salida.
         if self._out_base is not None:
             if self._out_base.exists():
                 files = [self._out_base]
@@ -908,11 +998,13 @@ class Workspace(QMainWindow):
         names = [self._suffix(f) or "result" for f in files]
         self.res_pane.set_outputs(names)
         self.res_pane.load(files[0])
+        # Los avisos van al registro; aquí solo se cuentan.
         warn = [ln for ln in err.splitlines() if ln.startswith(warning_prefix())]
         self.status(ntr("{label}: done — {count} warning, see Log", "{label}: done — {count} warnings, see Log",
                         len(warn), label=self._job_label) if warn else tr("{label}: done", label=self._job_label),
                     error=False)
         self._update_modified()
+        # Aplicar o guardar, si esperaban este resultado.
         if self._apply_after:
             self._apply_after = False
             self._apply_result()
@@ -925,6 +1017,8 @@ class Workspace(QMainWindow):
             return f.stem[len(self._out_base.stem) + 1:]
         return ""
 
+    # TODO: this _show_output(index) is shadowed by the _show_output() defined further down (the Save as menu),
+    # so choosing another output of the result pane does not switch the file shown; one of them needs a new name.
     def _show_output(self, index: int):
         if 0 <= index < len(self.result_files):
             self.res_pane.load(self.result_files[index])
@@ -934,6 +1028,8 @@ class Workspace(QMainWindow):
             QMessageBox.information(self, tr("Apply"),
                                     tr("This command produced several documents. Use “Save…” to save them."))
             return
+        # adopt_file makes the result a step of the window's history; the window then gives the workspace the new
+        # document (set_source), so self.source is already that document here.
         if self.host.adopt_file(self.result_files[0], tr('Applied {current}. The result is now the current '
                                                          'document.', current=self.current)):
             # (the window gave the workspace its new document: the right pane shows it, until the options
@@ -954,6 +1050,8 @@ class Workspace(QMainWindow):
         self.result_key = None
         self.res_pane.set_outputs([])
         self.res_pane.clear("")
+        # TODO: undo_stack and _applied_unsaved come from py-imposition and are never changed here (the window keeps
+        # the history now): the note is always empty and is_modified only looks at the options.
         steps = len(self.undo_stack)
         note = ntr("{count} command applied", "{count} commands applied", steps) if steps else ""
         self.src_pane.load(path, note)
@@ -972,6 +1070,7 @@ class Workspace(QMainWindow):
         p = Path(path)
         if p.suffix.lower() != ".pdf":
             p = p.with_suffix(".pdf")
+        # La carpeta elegida pasa a ser la última de la ventana, la que usan después los demás diálogos de archivo.
         self.host.settings.setValue("last_dir", str(p.parent))
         return p
 
@@ -985,6 +1084,7 @@ class Workspace(QMainWindow):
         p = self._save_target(tr("Save the document as it is"), f"{stem}-imposed.pdf")
         if not p:
             return False
+        # Copiar el documento sobre sí mismo no tiene sentido (shutil lo rechazaría con SameFileError); se avisa antes.
         if p.resolve() == self.source.resolve():
             self.status(tr("That is the file currently open"), error=True)
             return False
@@ -1026,6 +1126,7 @@ class Workspace(QMainWindow):
         if not self.result_files:
             return self.save_document(standard)
         stem = self.original.stem if self.original else "document"
+        # Un resultado ya aplicado se ofrece como "-imposed"; uno sin aplicar lleva el nombre del comando.
         applied = self.result_key is not None and self.result_key[0] == "document"
         title = tr("Save") if not standard else tr("Save as {standard}", standard=conform.label(standard))
         p = self._save_target(title, f"{stem}-imposed.pdf" if applied else f"{stem}-{self.current}.pdf")
@@ -1035,6 +1136,7 @@ class Workspace(QMainWindow):
             self.status(tr("That is the file currently open"), error=True)
             return False
         written = []
+        # Varios archivos de resultado se guardan con el nombre elegido más el sufijo de cada uno.
         for f in self.result_files:
             suffix = self._suffix(f)
             target = p.with_name(f"{p.stem}-{suffix}.pdf") if suffix and len(self.result_files) > 1 else p
@@ -1061,6 +1163,7 @@ class Workspace(QMainWindow):
         checks = []
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
+            # Conversion runs in this process, one file at a time; processEvents lets the status bar show progress.
             for path in paths:
                 self.host.statusBar().showMessage(tr("Making {standard} with {command}…", standard=label,
                                                 command=conform.COMMAND))
@@ -1072,6 +1175,7 @@ class Workspace(QMainWindow):
                                                 "{standard}:\n\n{error}", standard=label, error=e))
             return ""
         QApplication.restoreOverrideCursor()
+        # Las comprobaciones repetidas (iguales para todos los archivos) se muestran una sola vez, en orden.
         check = "; ".join(dict.fromkeys(c for c in checks if c))
         return " — " + label + (f" ({check})" if check else "")
 
@@ -1091,6 +1195,7 @@ class Workspace(QMainWindow):
         since the document was opened or saved?"""
         if not self.source:
             return False
+        # A result that is just the document applied is not unsaved work: the window's own history and Save cover it.
         made = bool(self.result_files) and not (self.result_key and self.result_key[0] == "document")
         return self._applied_unsaved or (self._options_changed and made)
 
@@ -1111,6 +1216,7 @@ class Workspace(QMainWindow):
             return True
         answer = self.ask_unsaved()
         if answer == QMessageBox.StandardButton.Save:
+            # Save in the question saves what the right pane shows (or the document), as the Save button would.
             return self._write_result()
         return answer == QMessageBox.StandardButton.Discard
 
@@ -1119,6 +1225,7 @@ class Workspace(QMainWindow):
     # ----------------------------------------------------------------- messages
 
     def status(self, text: str, error: bool = False):
+        # Los errores también van al registro, para que el modo avanzado guarde constancia de ellos.
         self.host.status(text, error=error)
         if error:
             self.log(text, True)

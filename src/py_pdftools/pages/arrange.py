@@ -62,6 +62,7 @@ def parse_page_list(spec: str, n: int) -> list[int]:
         word = part.lower()
         if not part:
             continue
+        # 'even' y 'odd' no eligen páginas por sí solos: filtran las elegidas por las demás partes de la lista.
         if word in ("even", "odd"):
             parity = word
         elif word == "all":
@@ -71,6 +72,7 @@ def parse_page_list(spec: str, n: int) -> list[int]:
             first, last = parse_pages(part, n)
             pages.update(range(first, (last or first) + 1))
             some = True
+    # A list with only 'even' or 'odd' filters the whole document.
     if not some:
         pages = set(range(1, n + 1))
     if parity:
@@ -88,6 +90,7 @@ def parse_order(spec: str, n: int) -> list[int]:
         if not part:
             continue
         a, sep, b = part.partition("-")
+        # A descending span such as 10-1 is parsed the right way up by parse_pages and then reversed here.
         if sep and a.strip().isdigit() and b.strip().isdigit() and int(a) > int(b):
             first, last = parse_pages(f"{b}-{a}", n)
             out.extend(range(last, first - 1, -1))
@@ -104,6 +107,7 @@ def parse_where(spec: str, n: int) -> int:
     word = spec.strip().lower()
     if word in ("start", "begin", "first"):
         return 1
+    # 'last+1' en minúsculas porque word ya pasó por lower(); 'LAST' a secas cae en parse_pages.
     if word in ("end", "last+1"):
         return n + 1
     first, _ = parse_pages(spec, n)
@@ -124,6 +128,7 @@ class Operation:
         return list(range(1, n + 1))
 
     def apply(self, pdf: Pdf) -> None:
+        # Por defecto una operación reconstruye la secuencia de páginas con los elementos que devuelve items().
         rebuild(pdf, self.items(len(pdf.pages)))
 
     def moves_pages(self) -> bool:
@@ -135,6 +140,7 @@ class Operation:
 
 
 def _check_pages(pages, n: int) -> tuple[int, ...]:
+    # Duplicados fuera y ordenadas: Move y Delete tratan las páginas como un conjunto.
     pages = tuple(sorted(set(pages)))
     if not pages or pages[0] < 1 or pages[-1] > n:
         raise LabelError(tr("the pages must be from 1 to {count}", count=n))
@@ -165,7 +171,9 @@ class Move(Operation):
 
     def items(self, n: int) -> list[Item]:
         chosen = _check_pages(self.pages, n)
+        # Las páginas elegidas salen de la secuencia y se insertan, en su orden, delante de BEFORE.
         rest = [p for p in range(1, n + 1) if p not in chosen]
+        # BEFORE is a position in the original numbering; count how many of the remaining pages come before it.
         at = sum(1 for p in rest if p < self.before)
         return rest[:at] + list(chosen) + rest[at:]
 
@@ -180,6 +188,7 @@ class Delete(Operation):
     def items(self, n: int) -> list[Item]:
         chosen = set(_check_pages(self.pages, n))
         kept = [p for p in range(1, n + 1) if p not in chosen]
+        # Un PDF sin páginas no es válido, así que borrarlas todas es un error.
         if not kept:
             raise LabelError(tr("a document needs one page at least: not every page can be deleted"))
         return kept
@@ -197,6 +206,7 @@ class Duplicate(Operation):
 
     def items(self, n: int) -> list[Item]:
         chosen = list(_check_pages(self.pages, n))
+        # Sin BEFORE, las copias van justo después de la última página elegida.
         before = self.before or chosen[-1] + 1
         out = list(range(1, n + 1))
         at = before - 1
@@ -215,6 +225,7 @@ class Reverse(Operation):
     def items(self, n: int) -> list[Item]:
         chosen = list(_check_pages(self.pages, n)) if self.pages else list(range(1, n + 1))
         out = list(range(1, n + 1))
+        # Swap the chosen pages among their own places; unchosen pages between them stay put.
         for place, page in zip(chosen, reversed(chosen)):
             out[place - 1] = page
         return out
@@ -233,6 +244,7 @@ class Insert(Operation):
     password: str = ""
 
     def items(self, n: int) -> list[Item]:
+        # Abrir el PDF de origen solo para contar sus páginas; queda en caché para cuando se inserten.
         count = source_count(self.source, self.password)
         pages = self.source_pages or tuple(range(1, count + 1))
         if min(pages) < 1 or max(pages) > count:
@@ -260,6 +272,7 @@ class InsertBlank(Operation):
             raise LabelError(tr("the pages must be from 1 to {count}", count=n + 1))
         if not 1 <= self.count <= 10000:
             raise LabelError(tr("from 1 to 10000 blank pages (not {count})", count=self.count))
+        # Una página en blanco al principio toma el tamaño de la primera página; si no, el de la anterior.
         like = self.before - 1 if self.before > 1 else 1
         out: list[Item] = list(range(1, n + 1))
         at = self.before - 1
@@ -282,6 +295,7 @@ class Rotate(Operation):
             raise LabelError(tr("pages turn by 90, 180 or 270 degrees (not {angle})", angle=self.angle))
         for p in _check_pages(self.pages, len(pdf.pages)):
             page = pdf.pages[p - 1]
+            # /Rotate se suma al giro que ya tuviera la página; un valor ausente o nulo cuenta como 0.
             page.obj.Rotate = (int(page.obj.get("/Rotate", 0) or 0) + angle) % 360
 
     def moves_pages(self) -> bool:
@@ -301,6 +315,7 @@ class Replace(Operation):
     source_first: int = 1
     password: str = ""
 
+    # Replace keeps the page objects of PDF (so links and bookmarks to them stay) and only swaps their content.
     def apply(self, pdf: Pdf) -> None:
         pages = _check_pages(self.pages, len(pdf.pages))
         source = _open_source(self.source, self.password)
@@ -309,6 +324,8 @@ class Replace(Operation):
             raise LabelError(tr("{path} has no page {page}", path=self.source, page=last))
         from .stamps import KEY, LEGACY  # (what was added to a page goes with its content)
         for k, p in enumerate(pages):
+            # Appending the source page lets pikepdf copy it, with all its resources, into PDF; then its entries are
+            # moved to the target page and the temporary copy is removed.
             pdf.pages.append(source.pages[self.source_first - 1 + k])  # (copied properly into PDF...)
             new = pdf.pages[-1].obj
             target = pdf.pages[p - 1].obj
@@ -316,8 +333,10 @@ class Replace(Operation):
                         "/Rotate", "/UserUnit", "/Group"):
                 if key in new:
                     target[key] = new[key]
+                # /Resources se conserva aunque la página nueva no traiga: puede venir heredado del árbol de páginas.
                 elif key in target and key != "/Resources":
                     del target[key]
+            # Las capas de la página vieja se descartan: sus flujos ya no están en el nuevo /Contents.
             for key in (KEY, LEGACY):
                 if key in target:
                     del target[key]
@@ -363,6 +382,8 @@ def source_labels(path: str, password: str = "") -> list[str]:
 def _copy_page(pdf: Pdf, obj: pikepdf.Object) -> pikepdf.Object:
     """A copy of the page OBJ of PDF, with copies of its annotations."""
     from .stamps import KEY
+    # The copy drops /Parent (pikepdf sets it on insertion) and gets its own annotations, since an annotation
+    # belongs to one page only (its /P).
     copy = pdf.make_indirect(Dictionary({k: v for k, v in obj.items() if k not in ("/Parent", "/Annots", KEY)}))
     annots = {}
     if "/Annots" in obj:
@@ -376,6 +397,7 @@ def _copy_page(pdf: Pdf, obj: pikepdf.Object) -> pikepdf.Object:
             else:
                 new.append(annot)
         copy.Annots = new
+    # Los registros de las capas guardan las anotaciones que movieron; en la copia deben apuntar a las copias.
     if KEY in obj:  # (the records of what was added, with the copies of the annotations it moved)
         records = Array()
         for record in obj[KEY]:
@@ -390,6 +412,7 @@ def _copy_page(pdf: Pdf, obj: pikepdf.Object) -> pikepdf.Object:
 def _inherited(obj: pikepdf.Object, key: str):
     """The value of KEY in the page OBJ, or in the nearest of its parents that has it (None if none)."""
     seen = set()
+    # Guard against a cycle in a damaged page tree.
     while isinstance(obj, Dictionary) and obj.objgen not in seen:
         if key in obj:
             return obj[key]
@@ -402,11 +425,13 @@ def _blank_page(pdf: Pdf, like: pikepdf.Object) -> pikepdf.Object:
     """A blank page with the boxes and the rotation of the page LIKE (so it is shown just as big)."""
     page = Dictionary(Type=Name.Page, Resources=Dictionary(),
                       Contents=pdf.make_indirect(pikepdf.Stream(pdf, b"")))
+    # Pages may inherit these from the page tree; copy the effective value, not just what LIKE itself has.
     for key in ("/MediaBox", "/CropBox", "/Rotate"):  # (those a page may inherit)
         value = _inherited(like, key)
         if value is not None:
             page[key] = value
     if "/MediaBox" not in page:
+        # Carta (8.5 x 11 pulgadas) si no se encuentra ningún /MediaBox.
         page.MediaBox = Array([0, 0, 612, 792])
     for key in ("/BleedBox", "/TrimBox", "/ArtBox", "/UserUnit"):
         if key in like:
@@ -421,10 +446,12 @@ def rebuild(pdf: Pdf, items: list[Item]) -> None:
     used: set[int] = set()
     new: list[pikepdf.Object | Inserted] = []
     for item in items:
+        # Inserted pages stay as placeholders here; they are copied in only at the point of insertion below.
         if isinstance(item, Inserted):
             new.append(item)
         elif isinstance(item, Blank):
             new.append(_blank_page(pdf, old[item.like - 1]))
+        # Una página que aparece por segunda vez se copia: un mismo objeto no puede estar dos veces en el árbol.
         elif item in used:
             new.append(_copy_page(pdf, old[item - 1]))
         else:
@@ -449,9 +476,12 @@ def rebuild(pdf: Pdf, items: list[Item]) -> None:
         else:
             pdf.pages.insert(start + k, Page(item))
     # the destinations that went to pages deleted: to the next page left (or the last before it)
+    # Las páginas borradas: sus destinos pasan a la siguiente que sobrevive o, si no hay, a la última.
     gone = {}
     survivors = [p for p in range(1, len(old) + 1) if p in kept_positions]
     for p in range(1, len(old) + 1):
+        # TODO: 'after' recorre todas las sobrevivientes para cada página borrada (cuadrático); con bisect sobre
+        # survivors bastaría en libros largos.
         if p not in kept_positions and survivors:
             after = [s for s in survivors if s > p]
             gone[old[p - 1].objgen] = old[(after[0] if after else survivors[-1]) - 1]
@@ -473,8 +503,10 @@ def retarget(pdf: Pdf, gone: dict) -> None:
     """Make the destinations (bookmarks, links, named destinations, the opening action) that go to
     the pages GONE ({objgen: page object}) go to the pages given instead."""
     root = pdf.Root
+    # /OpenAction may be a bare destination or a GoTo action; each helper ignores the form it does not handle.
     _retarget_dest(root.get("/OpenAction"), gone)
     _retarget_action(root.get("/OpenAction"), gone)
+    # Named destinations, old style (/Dests in the catalog) and new style (a name tree under /Names).
     for value in (root.get("/Dests") or Dictionary()).values():
         _retarget_dest(value.get("/D") if isinstance(value, Dictionary) else value, gone)
     if "/Names" in root and "/Dests" in root.Names:
@@ -485,6 +517,7 @@ def retarget(pdf: Pdf, gone: dict) -> None:
             if isinstance(annot, Dictionary):
                 _retarget_dest(annot.get("/Dest"), gone)
                 _retarget_action(annot.get("/A"), gone)
+    # Outline walked iteratively, with a seen set, so a deep or cyclic outline cannot exhaust the stack.
     stack = []
     outlines = root.get("/Outlines")
     if isinstance(outlines, Dictionary) and "/First" in outlines:
@@ -509,6 +542,7 @@ def items_of(operations, n: int) -> tuple[list[list[Item]], int]:
     """The items of each of OPERATIONS in turn, from a document of N pages, and the pages at the end."""
     out = []
     for op in operations:
+        # Operaciones que no mueven páginas (girar, reemplazar) dejan la secuencia igual.
         items = op.items(n) if op.moves_pages() else list(range(1, n + 1))
         out.append(items)
         n = len(items)
@@ -523,6 +557,7 @@ def labels_after(op: Operation, old: list[str], n: int) -> list[str] | None:
     out = []
     sources: dict[str, list[str]] = {}
     for item in op.items(n):
+        # Las páginas en blanco no tienen etiqueta; las insertadas traen la que tenían en su PDF.
         if isinstance(item, Blank):
             out.append("")
         elif isinstance(item, Inserted):
@@ -539,6 +574,7 @@ def position_after(op: Operation, page: int | None, n: int) -> int | None:
     if page is None or not op.moves_pages():
         return page
     items = op.items(n)
+    # Un duplicado no cuenta: la página queda en el primer lugar que ocupa.
     return next((i + 1 for i, item in enumerate(items) if item == page), None)
 
 
@@ -551,7 +587,9 @@ def split_parts(n: int, every: int = 0, at: list[int] | None = None) -> list[tup
     if every:
         if every < 1:
             raise LabelError(tr("a part needs one page at least"))
+        # Partes de EVERY páginas; la última puede quedar más corta.
         return [(f, min(f + every - 1, n)) for f in range(1, n + 1, every)]
+    # Page 1 always starts a part; pages outside the document are ignored.
     starts = sorted({1, *(p for p in (at or []) if 1 <= p <= n)})
     return [(s, (starts[i + 1] - 1) if i + 1 < len(starts) else n) for i, s in enumerate(starts)]
 

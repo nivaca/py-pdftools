@@ -36,6 +36,8 @@ class ColorButton(QPushButton):
 
     def set_color(self, color: str):
         self.color = color or "#000000"
+        # La muestra de color se dibuja como icono del botón, en lugar de usar una hoja de estilo,
+        # para que el botón conserve el aspecto del tema.
         swatch = QPixmap(28, 14)
         swatch.fill(QColor(self.color))
         self.setIcon(QIcon(swatch))
@@ -48,6 +50,7 @@ class ColorButton(QPushButton):
             self.set_color(chosen.name())
             self.colorChanged()
 
+    # A plain method instead of a Signal, so that a dialog can simply assign its slot to it.
     def colorChanged(self):  # (replaced by the dialog)
         pass
 
@@ -59,6 +62,8 @@ class TextTarget(QLineEdit):
         super().__init__()
         self.dialog, self.slot = dialog, name
 
+    # Los botones de insertar variables quitan el foco del campo; por eso cada campo se registra al recibirlo
+    # y el diálogo recuerda cuál fue el último.
     def focusInEvent(self, event):
         self.dialog.target = self
         super().focusInEvent(event)
@@ -76,10 +81,15 @@ class StampDialog(QDialog):
                  existing: bool = False):
         super().__init__(parent)
         self.setWindowTitle(self.title())
+        # The document is opened once, with pikepdf, for the whole life of the dialog: the preview copies its pages
+        # from it, and done() closes it.
         self.pdf = pikepdf.open(source, password=password)
+        # stamps.document_of reúne lo que las variables necesitan: el número de páginas, sus etiquetas, el autor...
         self.doc = stamps.document_of(self.pdf, source, labels)
+        # The time is taken once, so that $date stays the same from one preview to the next.
         self.now = datetime.now()
         self._loading = False
+        # The preview is redrawn 150 ms after the last change, not on every key pressed.
         self.timer = QTimer(self, singleShot=True, interval=150)
         self.timer.timeout.connect(self.update_preview)
         self.target: TextTarget | None = None
@@ -112,11 +122,13 @@ class StampDialog(QDialog):
             self.parity.addItem(tr(title), code)
         for w in (self.all_pages, self.some_pages):
             w.toggled.connect(self.changed)
+        # Escribir en el campo de páginas elige "Páginas:" por sí solo, salvo mientras se cargan los ajustes.
         self.pages.textChanged.connect(lambda *_: (self.some_pages.setChecked(True) if self.pages.text() and
                                                    not self._loading else None, self.changed()))
         self.parity.currentIndexChanged.connect(self.changed)
         self.keep = QCheckBox(self.keep_text())
         self.keep.setToolTip(tr("Else they are replaced, on the pages this one goes on"))
+        # La casilla de conservar solo tiene sentido si el documento ya tiene capas de este tipo.
         self.keep.setVisible(existing)
         self.keep.toggled.connect(self.changed)
         grid = QGridLayout()
@@ -161,6 +173,7 @@ class StampDialog(QDialog):
         self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview.setStyleSheet("background: palette(dark);")
         self.preview_page = QSpinBox()
+        # The spin box allows at least 1, even for a document without pages, because Qt does not accept an empty range.
         self.preview_page.setRange(1, max(self.doc.count, 1))
         self.preview_page.setValue(min(max(page, 1), self.doc.count))
         self.preview_page.setPrefix(tr("Page") + " ")
@@ -191,6 +204,7 @@ class StampDialog(QDialog):
         lay.addLayout(self.top)
         lay.addLayout(body)
         lay.addWidget(self.buttons)
+        # El perfil se elige sin señales; luego se conecta y se cargan los ajustes, para no cargarlos dos veces.
         self._fill_profiles(settings.name)
         self.profile.currentIndexChanged.connect(self._profile_chosen)
         self.load(settings)
@@ -222,6 +236,7 @@ class StampDialog(QDialog):
     # ----------------------------------------------------------------- the settings
 
     def load(self, settings):
+        # _loading suspends changed() (and so the preview) while every field is set; one preview is drawn at the end.
         self._loading = True
         self.load_own(settings)
         self.pages.setText(settings.pages)
@@ -231,6 +246,7 @@ class StampDialog(QDialog):
         self.bates_start.setValue(settings.bates_start)
         self.bates_digits.setValue(settings.bates_digits)
         self.bates_suffix.setText(settings.bates_suffix)
+        # Un formato de fecha desconocido (de un perfil de otra versión) cae en el primero de la lista.
         self.date_format.setCurrentIndex(max(self.date_format.findData(settings.date_format), 0))
         self.show_on_menu.setChecked(settings.show_on_menu)
         self._loading = False
@@ -240,6 +256,7 @@ class StampDialog(QDialog):
         """The settings shown (not checked: see check)."""
         return self.settings_class(
             **self.own_values(),
+            # "All pages" se guarda como cadena vacía, aunque el campo de páginas conserve un texto.
             pages=self.pages.text().strip() if self.some_pages.isChecked() else "", parity=self.parity.currentData(),
             bates_prefix=self.bates_prefix.text(), bates_start=self.bates_start.value(),
             bates_digits=self.bates_digits.value(), bates_suffix=self.bates_suffix.text(),
@@ -249,6 +266,8 @@ class StampDialog(QDialog):
     def check(self):
         """(the settings, what goes on each page, '') if they are right; else (None, [], what is wrong)."""
         try:
+            # module.check valida los ajustes; page_texts resuelve las páginas elegidas y el texto de cada una,
+            # con las variables ya sustituidas.
             settings = self.module.check(self.value())
             pages = self.module.page_texts(settings, self.doc, self.now)
             if not pages:
@@ -275,10 +294,15 @@ class StampDialog(QDialog):
         self.problem.setText(problem)
         self.buttons.button(QDialogButtonBox.StandardButton.Ok).setEnabled(settings is not None)
         number = self.preview_page.value()
+        # PAGES is a list of (page, text); the page shown may not be one of them, and then it is drawn
+        # without the layer.
         found = dict(pages).get(number) if settings is not None else None
         if settings is not None:
             self.note.setText("" if found is not None else self.preview_note())
+        # Se copia solo la página elegida a un PDF nuevo y se estampa allí, así el documento abierto no se toca.
         one = pikepdf.new()
+        # TODO: each preview copies the page and saves a whole PDF to memory, which is slow on pages with large
+        # images; caching the page without the layer would leave only the stamp to redraw.
         try:
             one.pages.append(self.pdf.pages[number - 1])
             if found is not None:
@@ -296,8 +320,10 @@ class StampDialog(QDialog):
             r = doc[0].rect
             if r.is_empty:
                 return
+            # Escala para que la página entera quepa en PREVIEW, sin deformarla.
             scale = min(PREVIEW.width() / r.width, PREVIEW.height() / r.height)
             pix = doc[0].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
+            # copy() is needed: the QImage only points to the pixmap's buffer, which is freed when the document closes.
             image = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
         self.preview.setPixmap(QPixmap.fromImage(image))
 
@@ -307,6 +333,7 @@ class StampDialog(QDialog):
         self.profiles = self.module.read_profiles()
         self.profile.blockSignals(True)
         self.profile.clear()
+        # La primera entrada, sin nombre, significa ajustes que todavía no son un perfil.
         self.profile.addItem(tr("(new profile)"), "")
         for name in self.profiles:
             self.profile.addItem(name, name)
@@ -317,6 +344,7 @@ class StampDialog(QDialog):
     def _profile_chosen(self, *_):
         name = self.profile.currentData()
         self.delete.setEnabled(bool(name))
+        # Choosing "(new profile)" keeps the settings shown, so that they can be saved under a new name.
         if name in self.profiles:
             self.load(self.profiles[name])
 
@@ -326,6 +354,7 @@ class StampDialog(QDialog):
         return name.strip() if ok and name.strip() else None
 
     def save_profile(self) -> bool:
+        # Un perfil con errores no se guarda: se muestra el mismo mensaje que debajo de la vista previa.
         settings, _, problem = self.check()
         if settings is None:
             QMessageBox.warning(self, self.title(), problem)
@@ -334,6 +363,7 @@ class StampDialog(QDialog):
         if name is None:
             return False
         try:
+            # Se guarda con el nombre nuevo en los propios ajustes, que es lo que el menú muestra después.
             self.module.save_profile(dataclasses.replace(settings, name=name))
         except (OSError, LabelError) as e:
             QMessageBox.warning(self, self.title(), tr("Could not keep the setting: {error}", error=e))
@@ -354,6 +384,7 @@ class StampDialog(QDialog):
         return True
 
     def done(self, result: int):
+        # The source PDF stays open while the dialog runs; it is closed here, whether the dialog is accepted or not.
         self.pdf.close()
         super().done(result)
 
@@ -364,5 +395,7 @@ def ask(dialog_class, parent, settings, source: Path, password: str, labels: lis
     dlg = dialog_class(parent, settings, source, password, labels, page, existing)
     if dlg.exec() != QDialog.DialogCode.Accepted:
         return None
+    # TODO: Apply is enabled by the last preview, which runs 150 ms after a change; a change made just before
+    # clicking it can make check() fail here and return (None, keep). Check again in accept() instead.
     settings, _, _ = dlg.check()
     return settings, dlg.keep.isChecked()

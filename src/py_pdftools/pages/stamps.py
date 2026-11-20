@@ -81,6 +81,7 @@ DATE_FORMATS = {
     "dd.mm.yyyy": "28.11.2007",
     "yyyy-mm-dd": "2007-11-28",
 }
+# Los nombres más largos primero, para que $pagelabel no se lea como $page seguido de 'label'.
 _VARIABLE = re.compile(r"\$\$|\$(" + "|".join(sorted(VARIABLES, key=len, reverse=True)) + ")")
 
 
@@ -93,6 +94,7 @@ def color(value: str, what: str) -> tuple[float, float, float]:
     if not m:
         raise LabelError(tr("the {what} must be a color as #RRGGBB (not {value!r})", what=tr(what), value=value))
     h = m[1]
+    # Canales de 0 a 1, como los esperan los operadores rg y RG.
     return tuple(int(h[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
 
@@ -105,6 +107,7 @@ def base_font(family: str, bold: bool, italic: bool) -> str:
     name = FAMILIES[family]
     style = {(False, False): "", (True, False): "Bold", (False, True): "Oblique", (True, True): "BoldOblique"}
     suffix = style[bold, italic]
+    # Times names its styles Roman and Italic where Helvetica and Courier say Oblique.
     if name == "Times":
         suffix = {"": "Roman", "Oblique": "Italic", "BoldOblique": "BoldItalic"}.get(suffix, suffix)
     return f"{name}-{suffix}" if suffix else name
@@ -123,6 +126,7 @@ def check_common(settings) -> None:
     if settings.date_format not in DATE_FORMATS:
         raise LabelError(tr("unknown date format {value!r} (one of: {names})", value=settings.date_format,
                             names=", ".join(DATE_FORMATS)))
+    # El número Bates puede empezar en 0; más de 20 dígitos no tiene uso práctico.
     if settings.bates_start < 0 or not 1 <= settings.bates_digits <= 20:
         raise LabelError(tr("the Bates number starts at 0 or more, with 1 to 20 digits"))
 
@@ -132,6 +136,7 @@ def check_common(settings) -> None:
 
 def chosen_pages(settings, n: int) -> list[int]:
     """The pages (1-based) of a document of N pages that SETTINGS (with .pages and .parity) go on."""
+    # Las páginas que pasan del documento hacen fallar parse_pages; no se recortan en silencio.
     if settings.pages.strip():
         pages: set[int] = set()
         for part in settings.pages.split(","):
@@ -191,12 +196,14 @@ def bookmarks_of(pdf: Pdf) -> tuple[str, ...]:
 
     n = len(pdf.pages)
     starts: list[tuple[int, int, str]] = []  # (page, order, title)
+    # Destinos con nombre, del catálogo (estilo PDF 1.1) y del árbol de nombres: los marcadores pueden usarlos.
     names = {}
     try:
         if "/Dests" in pdf.Root:
             names.update({str(k): v for k, v in pdf.Root.Dests.items()})
         if "/Names" in pdf.Root and "/Dests" in pdf.Root.Names:
             names.update({str(k): v for k, v in pikepdf.NameTree(pdf.Root.Names.Dests).items()})
+    # A damaged name tree should not stop the header from being drawn; bookmarks then just go unresolved.
     except (pikepdf.PdfError, TypeError, ValueError, KeyError):
         pass
     try:
@@ -209,7 +216,9 @@ def bookmarks_of(pdf: Pdf) -> tuple[str, ...]:
                     target = item.destination
                     if target is None and item.action is not None and item.action.get("/S") == Name.GoTo:
                         target = item.action.get("/D")
+                    # A named destination may be stored as a dictionary whose /D holds the explicit destination.
                     if isinstance(target, (pikepdf.String, Name)) or isinstance(target, str):
+                        # Algunos archivos guardan el nombre con barra (como Name) y otros sin ella; se prueban ambos.
                         target = names.get(str(target).lstrip("/"), names.get(str(target)))
                     if isinstance(target, Dictionary):
                         target = target.get("/D")
@@ -220,8 +229,10 @@ def bookmarks_of(pdf: Pdf) -> tuple[str, ...]:
                     walk(item.children)
 
             walk(outline.root)
+    # Con un esquema dañado, ninguna página tiene marcador; $bookmark queda vacío en todas.
     except (pikepdf.PdfError, pikepdf.OutlineStructureError, TypeError, ValueError, KeyError):
         return ("",) * n
+    # Ordenar por (página, orden) hace que, si dos marcadores van a la misma página, gane el último del esquema.
     starts.sort()
     out, k, current = [], 0, ""
     for page in range(1, n + 1):
@@ -239,6 +250,7 @@ def document_of(pdf: Pdf, path: Path | None = None, labels: list[str] | None = N
         labels = page_labels(read_labels(pdf), n)
     author = ""
     try:
+        # pdf.docinfo crea un diccionario /Info si no existe; se mira antes el tráiler para no añadirlo sin querer.
         author = str(pdf.docinfo.get("/Author", "")) if pdf.trailer.get("/Info") is not None else ""
     except (pikepdf.PdfError, ValueError):
         pass
@@ -254,6 +266,7 @@ def format_date(now: datetime, date_format: str = "medium") -> str:
         month = tr(LONG_MONTHS[now.month - 1]).removesuffix(" (month)")
         return tr("{long_month} {day}, {year}", long_month=month, day=now.day, year=now.year)
     out = date_format
+    # Longest codes first, so 'yyyy' is not taken as two 'yy'; the lookarounds keep 'd' out of words.
     for code, value in (("yyyy", f"{now.year:04d}"), ("mm", f"{now.month:02d}"), ("dd", f"{now.day:02d}"),
                         ("yy", f"{now.year % 100:02d}"), ("m", str(now.month)), ("d", str(now.day))):
         out = re.sub(rf"(?<![a-z]){code}(?![a-z])", value, out)
@@ -266,6 +279,7 @@ def expand(text: str, page: int, doc: Document, now: datetime, bates: str = "",
     hour12 = now.hour % 12 or 12
     values = {
         "page": str(page),
+        # Las etiquetas pueden faltar (un documento cambiado después de leerlas); entonces vale el número de página.
         "pagelabel": doc.labels[page - 1] if page <= len(doc.labels) else str(page),
         "bookmark": doc.bookmarks[page - 1] if page <= len(doc.bookmarks) else "",
         "totalpages": str(doc.count),
@@ -287,11 +301,13 @@ def expand(text: str, page: int, doc: Document, now: datetime, bates: str = "",
     values["shortdate"] = tr("{month}/{day}/{year}", month=values["month"], day=f"{now.day:02d}",
                              year=values["shortyear"])
     values["time"] = tr("{hour}:{minute} {ampm}", hour=hour12, minute=values["minute"], ampm=values["ampm"])
+    # $$ escribe un $ literal; cualquier otro $ que no sea una variable se deja tal cual.
     return _VARIABLE.sub(lambda m: "$" if m[0] == "$$" else values[m[1]], text)
 
 
 def bates_number(settings, index: int) -> str:
     """The Bates number of the INDEXth page (from 0) SETTINGS go on."""
+    # Zero-padded to at least DIGITS digits; a larger number simply gets longer.
     return f"{settings.bates_prefix}{settings.bates_start + index:0{settings.bates_digits}d}{settings.bates_suffix}"
 
 
@@ -301,6 +317,7 @@ def uses_bates(*texts: str) -> bool:
 
 def unwritable(text: str) -> str:
     """The characters of TEXT the standard fonts cannot write ('' if none)."""
+    # Las cuatro familias estándar cubren los mismos caracteres de cp1252; basta mirar Helvetica.
     widths = FONTS["Helvetica"][2]
     return "".join(sorted({c for c in text if c not in widths and c not in "\n\t"}))
 
@@ -313,6 +330,7 @@ def check_writable(text: str, page: int) -> None:
 
 def text_width(text: str, font: str, size: float) -> float:
     widths = FONTS[font][2]
+    # Un carácter sin ancho cuenta 0; check_writable ya debió rechazarlo antes de dibujar.
     return sum(widths.get(c, 0) for c in text) * size / 1000
 
 
@@ -327,6 +345,7 @@ def multiply(m: Matrix, n: Matrix) -> Matrix:
     """The matrix of doing M, then N (as PDF writes them: [a b c d e f])."""
     a, b, c, d, e, f = m
     A, B, C, D, E, F = n
+    # Row-vector convention, as in PDF: a point is [x y 1] times the matrix, so M then N is M x N.
     return (a * A + b * C, a * B + b * D, c * A + d * C, c * B + d * D, e * A + f * C + E, e * B + f * D + F)
 
 
@@ -345,11 +364,13 @@ def transform(m: Matrix, x: float, y: float) -> tuple[float, float]:
 def shown_frame(page: pikepdf.Page) -> tuple[float, float, Matrix]:
     """(width, height, matrix) of PAGE as it is shown: its crop box, turned by /Rotate. The
     matrix takes points of the page as shown (from its lower left corner) to its own space."""
+    # cropbox is what a viewer shows; pikepdf falls back to the media box when there is no /CropBox.
     x0, y0, x1, y1 = (float(v) for v in page.cropbox)
     x0, x1 = min(x0, x1), max(x0, x1)
     y0, y1 = min(y0, y1), max(y0, y1)
     w, h = x1 - x0, y1 - y0
     rotate = int(page.obj.get("/Rotate", 0) or 0) % 360
+    # Each matrix turns the shown page back by /Rotate (clockwise) and moves its origin to a corner of the box.
     if rotate == 90:
         return h, w, (0, 1, -1, 0, x1, y0)
     if rotate == 180:
@@ -360,6 +381,7 @@ def shown_frame(page: pikepdf.Page) -> tuple[float, float, Matrix]:
 
 
 def number(x: float) -> str:
+    # Cuatro decimales bastan (una diezmilésima de punto) y quitan ceros sobrantes al flujo.
     s = f"{x:.4f}".rstrip("0").rstrip(".")
     return "0" if s in ("-0", "") else s
 
@@ -369,7 +391,9 @@ def matrix_text(m: Matrix) -> str:
 
 
 def pdf_string(text: str) -> bytes:
+    # cp1252 is what WinAnsiEncoding writes; unwritable characters were rejected before getting here.
     data = text.encode("cp1252")
+    # Paréntesis y barra invertida se escapan dentro de una cadena literal de PDF.
     return b"(" + data.replace(b"\\", b"\\\\").replace(b"(", b"\\(").replace(b")", b"\\)") + b")"
 
 
@@ -379,6 +403,7 @@ def rgb(value: str, operator: str) -> str:
 
 
 def font_object(pdf: Pdf, font: str) -> pikepdf.Object:
+    # The 14 standard fonts need no embedding: a Type1 font with just its BaseFont name is enough.
     return pdf.make_indirect(Dictionary(Type=Name.Font, Subtype=Name.Type1, BaseFont=Name("/" + font),
                                         Encoding=Name.WinAnsiEncoding))
 
@@ -399,6 +424,7 @@ def records(page: pikepdf.Page) -> list[Dictionary]:
     out = []
     legacy = page.obj.get(LEGACY)
     if isinstance(legacy, Dictionary):
+        # El registro de 0.7 se lee como el de una capa de encabezado de la adición 0, sin tocar el archivo.
         legacy.Kind, legacy.Id = Name("/" + HEADER_FOOTER), 0
         out.append(legacy)
     stored = page.obj.get(KEY)
@@ -426,6 +452,7 @@ def id_of(record: Dictionary) -> int:
 
 def settings_of(record: Dictionary) -> dict:
     try:
+        # Settings are stored as a UTF-8 JSON byte string; a missing or broken one reads as no settings.
         data = json.loads(bytes(record.get("/Settings", pikepdf.String(""))).decode("utf-8") or "{}")
     except (ValueError, UnicodeDecodeError):
         return {}
@@ -446,19 +473,23 @@ def add_layer(pdf: Pdf, page: pikepdf.Page, kind: str, addition: int, settings: 
     by that matrix (in the space of the page). RESOURCES: {category: [names]} it added to the page."""
     record = Dictionary(Kind=Name("/" + kind), Id=addition, Bates=bool(bates),
                         Settings=pikepdf.String(json.dumps(settings, ensure_ascii=False).encode("utf-8")))
+    # Cada flujo es un objeto indirecto, para reconocerlo después por su número al quitar la capa.
     streams = {k: pdf.make_indirect(pikepdf.Stream(pdf, v)) for k, v in
                (("behind", behind), ("before", before), ("after", after)) if v}
     contents = _contents(page)
+    # Orden final: detrás, antes, contenido original, después; las capas anteriores quedan dentro de este par.
     page.obj.Contents = Array([*(streams[k] for k in ("behind", "before") if k in streams), *contents,
                                *([streams["after"]] if "after" in streams else [])])
     record.Streams = Array(list(streams.values()))
     if shrink is not None:
         moved, rects = Array(), Array()
+        # Annotations do not follow the content's cm; their /Rect is moved by hand and the old one kept for undoing.
         for annot in page.obj.get("/Annots", Array()):
             if isinstance(annot, Dictionary) and "/Rect" in annot:
                 rects.append(Array(list(annot.Rect)))
                 annot.Rect = moved_rect(annot.Rect, shrink)
                 moved.append(annot)
+        # El registro guarda las anotaciones movidas, sus rectángulos de antes y la matriz que se les aplicó.
         record.Annots, record.Rects, record.Matrix = moved, rects, Array([float(v) for v in shrink])
     if group is not None:
         record.Group = group
@@ -468,6 +499,7 @@ def add_layer(pdf: Pdf, page: pikepdf.Page, kind: str, addition: int, settings: 
     _keep_records(page, records(page) + [record])
 
 
+# The box of the four transformed corners: after a rotation the result is still an upright rectangle.
 def moved_rect(rect, m: Matrix) -> Array:
     x0, y0, x1, y1 = (float(v) for v in rect)
     corners = [transform(m, x, y) for x in (x0, x1) for y in (y0, y1)]
@@ -483,14 +515,20 @@ def remove_layers(page: pikepdf.Page, which) -> int:
     if not gone:
         return 0
     added = {s.objgen for i in gone for s in layers[i].get("/Streams", Array())}
+    # Los flujos de las capas se reconocen por su número de objeto; el resto del contenido queda igual.
     contents = [s for s in _contents(page) if s.objgen not in added]
+    # Con un solo flujo se escribe el flujo directamente, no un arreglo de uno.
     page.obj.Contents = contents[0] if len(contents) == 1 else Array(contents)
     # the annotations each layer moved, back where the layers that are left would put them
     for i, layer in enumerate(layers):
         if i not in gone:
             continue
+        # Rehacer la posición de cada anotación sin esta capa: partir del rectángulo que tenía antes de ella y aplicar
+        # las matrices de las capas posteriores que siguen en la página.
         for annot, rect in zip(layer.get("/Annots", Array()), layer.get("/Rects", Array())):
             current = Array(list(rect))
+            # A later layer that also moved this annotation must remember the new 'before' rectangle, so that
+            # removing it afterwards still puts the annotation back in the right place.
             for j in range(i + 1, len(layers)):
                 later = layers[j]
                 ids = [a.objgen for a in later.get("/Annots", Array())]
@@ -506,10 +544,12 @@ def remove_layers(page: pikepdf.Page, which) -> int:
     resources = page.obj.get("/Resources")
     for layer in (layers[i] for i in gone):
         names = layer.get("/Resources", Dictionary())
+        # Registros de 0.7: la fuente iba en /Font y no en /Resources.
         legacy_font = layer.get("/Font")
         if legacy_font is not None:
             names = Dictionary(Font=Array([legacy_font]))
         for category, items in (names.items() if isinstance(names, Dictionary) else []):
+            # Solo se borran de /Resources los nombres que añadió la capa, no los del contenido original.
             if resources is not None and category in resources:
                 for name in items:
                     if name in resources[category]:
@@ -537,6 +577,7 @@ def additions(pdf: Pdf) -> list[Addition]:
     found: dict[int, dict] = {}
     for number_, page in enumerate(pdf.pages, 1):
         for r in records(page):
+            # The id is shared by every page of one addition, so grouping by it gives the pages of each addition.
             a = found.setdefault(id_of(r), {"kind": kind_of(r), "settings": settings_of(r), "pages": [],
                                             "bates": bool(r.get("/Bates", False))})
             a["pages"].append(number_)
@@ -577,6 +618,7 @@ def pages_with(pdf: Pdf, kind: str | None = HEADER_FOOTER, *, bates_only: bool =
 def optional_group(pdf: Pdf, name: str, print_: bool, view: bool) -> pikepdf.Object:
     """A new optional content group, shown or hidden when printing (PRINT_) and on the screen
     (VIEW), as the viewer's automatic states say."""
+    # PyFoliation marca los grupos propios, para borrar después solo esos y nunca los del autor del PDF.
     group = pdf.make_indirect(Dictionary(
         Type=Name.OCG, Name=pikepdf.String(name),
         Usage=Dictionary(Print=Dictionary(PrintState=Name.ON if print_ else Name.OFF),
@@ -591,7 +633,9 @@ def optional_group(pdf: Pdf, name: str, print_: bool, view: bool) -> pikepdf.Obj
         d = props.D = Dictionary()
     d.Order = Array([*d.get("/Order", Array()), group])
     if not view:
+        # A group hidden on screen also starts OFF, for viewers that ignore /AS.
         d.OFF = Array([*d.get("/OFF", Array()), group])
+    # /Usage says the state for print and view, but only viewers that apply /AS (automatic states) follow it.
     auto = [a for a in d.get("/AS", Array())]
     for event, category in (("/Print", "/Print"), ("/View", "/View")):
         auto.append(Dictionary(Event=Name(event), Category=Array([Name(category)]), OCGs=Array([group])))
@@ -609,6 +653,7 @@ def _drop_unused_groups(pdf: Pdf) -> None:
         for r in records(page):
             if "/Group" in r:
                 used.add(r.Group.objgen)
+    # Solo se consideran los grupos marcados como propios; los del documento original no se tocan.
     ours = [g for g in props.get("/OCGs", Array()) if isinstance(g, Dictionary) and g.get("/PyFoliation", False)]
     unused = {g.objgen for g in ours if g.objgen not in used}
     if not unused:
@@ -617,6 +662,7 @@ def _drop_unused_groups(pdf: Pdf) -> None:
     def keep(items):
         out = []
         for item in items:
+            # Optional content membership dictionaries and /AS entries list groups in /OCGs; drop ours, keep the rest.
             if isinstance(item, Dictionary) and "/OCGs" in item:
                 groups = [g for g in item.OCGs if g.objgen not in unused]
                 if groups:
@@ -631,5 +677,6 @@ def _drop_unused_groups(pdf: Pdf) -> None:
     for key in ("/Order", "/OFF", "/ON", "/AS"):
         if key in d:
             d[key] = keep(d[key])
+    # Sin grupos, /OCProperties ya no sirve de nada y se quita del catálogo.
     if not len(props.OCGs):
         del pdf.Root["/OCProperties"]

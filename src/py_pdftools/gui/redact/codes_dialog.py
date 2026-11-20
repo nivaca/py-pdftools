@@ -20,6 +20,7 @@ class CodesDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle(tr("Redaction codes"))
+        # Solo se editan los conjuntos propios; los de serie se muestran con ellos (véase all_sets).
         self.sets = codes.user_sets()
         self.set_list = QListWidget()
         self.set_list.currentRowChanged.connect(self._show_codes)
@@ -71,6 +72,7 @@ class CodesDialog(QDialog):
     # ----------------------------------------------------------------- showing
 
     def all_sets(self) -> dict[str, list[str]]:
+        # An imported set with a built-in name replaces it here, as in codes.all_sets.
         return {**codes.BUILT_IN, **self.sets}
 
     def current_set(self) -> str | None:
@@ -81,6 +83,7 @@ class CodesDialog(QDialog):
         return name is not None and name in self.sets
 
     def _fill_sets(self, select: str | None = None):
+        # Sin señales mientras se rehace la lista: _show_codes se llama una sola vez, al final.
         self.set_list.blockSignals(True)
         self.set_list.clear()
         for name in self.all_sets():
@@ -141,6 +144,7 @@ class CodesDialog(QDialog):
         old = self.current_set()
         name = self._new_set_name(tr("Rename set"), old)
         if name:
+            # Rebuilt rather than renamed in place, to keep the set where it was in the list.
             self.sets = {(name if k == old else k): v for k, v in self.sets.items()}
             self._fill_sets(name)
 
@@ -181,6 +185,8 @@ class CodesDialog(QDialog):
         except codes.CodesError as e:
             QMessageBox.warning(self, tr("Import set"), tr("{path} cannot be read: {error}", path=file, error=e))
             return
+        # TODO: un conjunto importado con el nombre de uno propio lo reemplaza sin preguntar;
+        # pedir confirmación o proponer otro nombre.
         self.sets.update(found)
         self._fill_sets(next(iter(found), None))
 
@@ -197,6 +203,7 @@ class CodesDialog(QDialog):
 
     def accept(self):
         try:
+            # Nothing is written until OK: Cancel drops every change made in the dialog.
             codes.save_user_sets(self.sets)
         except OSError as e:
             QMessageBox.warning(self, tr("Redaction codes"), str(e))

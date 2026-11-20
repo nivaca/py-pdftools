@@ -57,9 +57,11 @@ class PagesState:
 def write_page_labels(doc, ranges: list[Range]) -> None:
     """Give DOC (a pymupdf.Document) these page labels, as labels.write_labels writes them with pikepdf
     (but its entries direct objects): so that the document is written with its annotations at once."""
+    # pymupdf se importa aquí y no arriba: solo hace falta al escribir etiquetas, y así el módulo carga más rápido.
     import pymupdf
 
     items = []
+    # labels.entries numera las páginas desde 1; el árbol /Nums del PDF las cuenta desde 0, de ahí el "page - 1".
     for page, style, prefix, start in labels.entries(ranges, doc.page_count):
         entry = "/Type /PageLabel"
         if style:
@@ -69,6 +71,8 @@ def write_page_labels(doc, ranges: list[Range]) -> None:
         if start != 1:
             entry += f" /St {start}"
         items.append(f"{page - 1} << {entry} >>")
+    # With no ranges left, the key is set to null, which removes /PageLabels from the catalog
+    # instead of leaving an empty number tree behind.
     catalog = doc.pdf_catalog()
     doc.xref_set_key(catalog, "PageLabels", f"<< /Nums [ {' '.join(items)} ] >>" if items else "null")
 
@@ -85,6 +89,8 @@ class PagesMixin:
         self._building_table = False
         self.labels_rule_actions: dict[str, QAction] = {}
 
+        # Every page action works on the pages chosen in the list (or the page shown) and does nothing
+        # while no document is open.
         def act(text, icon_name, keys, triggered, tip=""):
             a = QAction(icon(icon_name), tr(text), self)
             if keys:
@@ -97,6 +103,8 @@ class PagesMixin:
                                  lambda pages: self.arrange_pages(arrange.Rotate(tuple(pages), 270)))
         self.a_rotate_right = act(N_("Rotate 90° clockwise"), "object-rotate-right", ["Ctrl+L"],
                                   lambda pages: self.arrange_pages(arrange.Rotate(tuple(pages), 90)))
+        # Las condiciones con "and" hacen que la acción no haga nada en los bordes: no se sube la página 1
+        # ni se baja la última. move_pages recibe la posición "antes de", por eso el + 2.
         self.a_earlier = act(N_("Move one page earlier"), "go-up", ["Alt+Up"],
                              lambda pages: pages[0] > 1 and self.move_pages(pages, pages[0] - 1))
         self.a_later = act(N_("Move one page later"), "go-down", ["Alt+Down"],
@@ -104,6 +112,7 @@ class PagesMixin:
         self.a_page_duplicate = act(N_("Duplicate"), "edit-copy", [],
                                     lambda pages: self.arrange_pages(arrange.Duplicate(tuple(pages))),
                                     N_("Duplicate the pages chosen"))
+        # A PDF must keep at least one page, so deleting all of them is refused here.
         self.a_page_delete = act(N_("Delete"), "edit-delete", [],
                                  lambda pages: len(pages) < self.count
                                  and self.arrange_pages(arrange.Delete(tuple(pages))), N_("Delete the pages chosen"))
@@ -133,6 +142,8 @@ class PagesMixin:
         sub.addSeparator()
         self._action(sub, tr("No labels"), self.clear_labels,
                      tip=tr("Remove all the page labels: viewers number the pages 1, 2, 3 ..."))
+        # La regla para las etiquetas cuando se mueven páginas se guarda en la configuración; las tres opciones
+        # forman un grupo exclusivo, como botones de radio.
         rule = sub.addMenu(tr("The labels, when pages move"))
         group = QActionGroup(rule)
         for value, text in (("ask", N_("Ask each time")), (arrange.FOLLOW, N_("Their labels")),
@@ -143,6 +154,7 @@ class PagesMixin:
             group.addAction(a)
             self.labels_rule_actions[value] = a
         self.set_labels_rule(str(self.settings.value("labels_when_moving", "ask")))
+        # Estos submenús se rellenan al abrirse (aboutToShow), porque dependen del documento y de sus capas actuales.
         self.m_headfoot = m.addMenu(tr("Header and footer"))
         self.m_headfoot.aboutToShow.connect(lambda: self._fill_stamp_menu(self.m_headfoot, stamps.HEADER_FOOTER))
         self.m_watermark = m.addMenu(tr("Watermark"))
@@ -161,6 +173,7 @@ class PagesMixin:
         bars = [self.toolbar_of("arrange-pages", tr("Arrange pages"), self.page_actions),
                 self.toolbar_of("layers", tr("Headers and watermarks"), [self.a_headfoot, self.a_watermark])]
 
+        # El panel lateral reúne la tabla de intervalos de etiquetas y la lista de páginas.
         dock = QDockWidget(tr("Pages and their labels"), self)
         dock.setObjectName("labels")
         dock.setWidget(self._pages_panel())
@@ -174,6 +187,8 @@ class PagesMixin:
                     actions=[*self.page_actions, self.a_headfoot, self.a_watermark], entered=self._pages_entered)
 
     def _pages_panel(self) -> QWidget:
+        # The six columns: the first five are editable widgets (see widgets.range_row); the last shows
+        # the labels the range gives, and takes up the spare width.
         self.ranges_table = table = QTableWidget(0, 6)
         table.setHorizontalHeaderLabels([tr("From page"), tr("Style"), tr("Starts at"), tr("Prefix"), tr("Suffix"),
                                          tr("Labels")])
@@ -194,10 +209,12 @@ class PagesMixin:
             b.clicked.connect(slot)
             buttons.addWidget(b)
         buttons.addStretch(1)
+        # PageList admite arrastrar páginas dentro de la lista y soltar archivos PDF desde fuera.
         self.page_list = pl = PageList()
         pl.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         pl.moved.connect(self.move_pages)
         pl.files_dropped.connect(self.files_dropped)
+        # Guarda contra el bucle: show_page vuelve a mover la fila actual, así que solo se llama si cambió de verdad.
         pl.currentRowChanged.connect(lambda row: self.show_page(row) if row >= 0 and row != self.page else None)
         pl.itemDoubleClicked.connect(lambda item: self.start_range_at(pl.row(item) + 1))
         pl.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -208,6 +225,7 @@ class PagesMixin:
         self.go_to_field.setToolTip(tr("Type a label (xii, 12v, A-3) and press Enter; Enter again goes to the "
                                        "next page with that label"))
         self.go_to_field.returnPressed.connect(lambda: self.go_to_label(self.go_to_field.text()))
+        # Read-only field with the equivalent command for the command-line tool, to copy and run on other files.
         self.cmd_line = QLineEdit()
         self.cmd_line.setReadOnly(True)
         self.cmd_line.setToolTip(tr("The command that gives these labels to a file"))
@@ -236,6 +254,8 @@ class PagesMixin:
         from its file, or its working copy, once for each)."""
         if self.file is None:
             return PagesState()
+        # La clave de la caché incluye la fecha y el tamaño del archivo: cada edición escribe una copia nueva,
+        # así que basta con eso para saber si hay que volver a leerlo.
         try:
             st = self.file.stat()
             key = (str(self.file), st.st_mtime_ns, st.st_size)
@@ -247,6 +267,7 @@ class PagesMixin:
             with pikepdf.open(self.file, password=self.password) as pdf:
                 state = PagesState(tuple(labels.read_labels(pdf)), view.read_view(pdf),
                                    tuple(stamps.additions(pdf)))
+        # Un archivo dañado no impide trabajar: se muestra el error y el modo sigue con un estado vacío.
         except (pikepdf.PdfError, LabelError, OSError) as e:
             self.status(str(e), error=True)
             state = PagesState()
@@ -284,12 +305,17 @@ class PagesMixin:
 
     def _edit(self, row: int, **changes):
         """Change one field of the range in ROW (later, out of the signal of the widget)."""
+        # The ranges are read again here, not passed in: the table may have been rebuilt since the signal was connected.
         ranges = self.ranges
         if self._building_table or not 0 <= row < len(ranges):
             return
         old = ranges[row]
         new = dataclasses.replace(old, **changes)
+        # Si cambió la página inicial del intervalo, hay que quitar también el intervalo viejo;
+        # normalize ordena después.
         rest = [r for r in ranges if r.page not in (old.page, new.page)] + [new]
+        # Diferido con singleShot: set_ranges reconstruye la tabla, y destruir el widget que emitió la señal
+        # dentro de su propio manejador hace fallar a Qt.
         QTimer.singleShot(0, lambda: self.set_ranges(rest, select=new.page))
 
     def start_range_at(self, page: int):
@@ -297,6 +323,7 @@ class PagesMixin:
         ranges = self.ranges
         if self.path is None:
             return
+        # Page 1 always starts a range, even when the document has no labels: there is nothing new to add.
         if page in {r.page for r in ranges} or (page == 1 and not ranges):
             self.fill_pages_panel(page)
             return
@@ -306,6 +333,7 @@ class PagesMixin:
         if self.path is None:
             return
         ranges = self.ranges
+        # Se busca la primera página después de la mostrada que todavía no empiece un intervalo.
         starts = {r.page for r in ranges} or {1}
         page = self.current_page()
         while page in starts and page < self.count:
@@ -318,9 +346,11 @@ class PagesMixin:
     def remove_range(self):
         ranges = self.ranges
         row = self.ranges_table.currentRow()
+        # El primer intervalo no se puede quitar: es el que empieza en la página 1.
         if not 0 < row < len(ranges):
             self.status(tr("Choose a range after the first one"), error=True)
             return
+        # labels.apply with these pages removed lets the range before cover them, as the button's tip says.
         self.set_ranges(labels.apply(ranges, [], self.count, [ranges[row].page]), select=ranges[row - 1].page)
 
     def clear_labels(self):
@@ -359,6 +389,8 @@ class PagesMixin:
                                                  "\n".join(current[p - 1] for p in pages))
         if not ok:
             return False
+        # Las líneas vacías que sobran al final (un salto de línea de más al pegar, por ejemplo) se descartan
+        # antes de comparar con el número de páginas.
         lines = text.split("\n")
         while len(lines) > len(pages) and not lines[-1].strip():
             lines.pop()
@@ -387,6 +419,7 @@ class PagesMixin:
         except (pikepdf.PdfError, LabelError, OSError) as e:
             self.status(tr("{path} cannot be read: {error}", path=source, error=e), error=True)
             return False
+        # Only the ranges that start inside this document are kept: the other PDF may have more pages.
         done = self.set_ranges([r for r in ranges if r.page <= self.count])
         if done:
             self.status(tr("Labels copied from {path}", path=source))
@@ -413,6 +446,7 @@ class PagesMixin:
     def export_labels_dialog(self) -> bool:
         if self.path is None:
             return False
+        # The default name sits in the last folder used, after the document's own name.
         default = Path(self.last_dir()) / f"{self.path.stem}-labels.txt"
         name, _ = QFileDialog.getSaveFileName(self, tr("Save the labels as a list"), str(default),
                                               tr("Text files (*.txt);;All files (*)"))
@@ -435,6 +469,7 @@ class PagesMixin:
         if not found:
             self.status(tr("No page is labelled {label}", label=label), error=True)
             return
+        # Pressing Enter again finds the next page with the same label, and wraps around to the first one found.
         after = [p for p in found if p > self.current_page()]
         self.show_page((after or found)[0] - 1)
 
@@ -449,6 +484,7 @@ class PagesMixin:
     def labels_choice(self) -> str | None:
         """What the labels do when pages move: as Pages ▸ Labels says, or as the user says now."""
         rule = self.settings.value("labels_when_moving", "ask")
+        # "ask": se pregunta, y si el usuario marca la casilla su respuesta pasa a ser la regla permanente.
         if rule in (arrange.FOLLOW, arrange.POSITION):
             return rule
         answer = ask_labels(self)
@@ -464,6 +500,8 @@ class PagesMixin:
     def set_view_part(self, field: str, value) -> bool:
         """Change one part of the view when the document is opened: its layout, zoom (page view) or page."""
         old = self.pages_state().opening
+        # view.without_lone_first_page adjusts the layout and the page together, so that a change of one
+        # does not leave the other in a state viewers misread.
         new = view.without_lone_first_page(old, dataclasses.replace(old, **{field: value}), page_given=field == "page")
         if new == old:
             return False
@@ -481,6 +519,8 @@ class PagesMixin:
             sub.setEnabled(self.path is not None)
             sub.setToolTipsVisible(True)
             group = QActionGroup(sub)
+            # La primera opción deja la decisión al visor (ninguna entrada en el catálogo). Si el documento trae
+            # un valor que no está en la lista, se añade para que el menú lo muestre marcado.
             choices = [("", tr("The viewer's choice"), "")]
             choices += [(code, tr(text), tr(tips[code])) for code, text in titles.items()]
             if current and current not in titles:
@@ -502,15 +542,19 @@ class PagesMixin:
     # ----------------------------------------------------------------- headers, footers and watermarks
 
     def pages_with(self, kind: str, bates_only: bool = False) -> set[int]:
+        # Bates numbers belong only to headers and footers; BATES_ONLY selects the additions that have them.
         return {p for a in self.pages_state().added if a.kind == kind and (a.bates or not bates_only)
                 for p in a.pages}
 
     def last_added(self, kind: str):
         """(addition, settings) of the last layer of KIND the pages have (None if none)."""
         found = stamps.last_addition(list(self.pages_state().added), kind)
+        # Las adiciones antiguas o hechas por otro programa pueden no tener ajustes guardados;
+        # esas no se pueden actualizar.
         if found is None or not found.settings:
             return None
         cls = headfoot.HeaderFooter if kind == stamps.HEADER_FOOTER else watermark.Watermark
+        # Los ajustes vienen del propio PDF: si están dañados o son de otra versión, se ignoran en vez de fallar.
         try:
             return found.id, cls.from_dict(found.settings)
         except (LabelError, TypeError, ValueError):
@@ -524,6 +568,8 @@ class PagesMixin:
             return False
         replaces = None
         last = self.last_added(kind)
+        # Con UPDATE se parte de los ajustes de la última capa y se la reemplaza; si no, esos ajustes sirven
+        # solo como valores iniciales de una capa nueva.
         if update:
             if last is None:
                 self.status(tr("There is nothing to update"), error=True)
@@ -532,6 +578,7 @@ class PagesMixin:
         else:
             settings = last[1] if last is not None else (
                 headfoot.HeaderFooter() if kind == stamps.HEADER_FOOTER else watermark.Watermark())
+        # Called from the right-click menu: the layer goes only on the pages chosen, whatever their parity.
         if pages is not None:
             settings = dataclasses.replace(settings, pages=stamps.compact_pages(pages), parity="all")
         answer = self.ask_layer(kind, settings, pages[0] if pages else self.current_page(),
@@ -547,6 +594,7 @@ class PagesMixin:
         return ask(self, settings, self.file, self.password, self.page_labels(), page, existing)
 
     def _change_layers(self, change: Change, message: str) -> bool:
+        # The labels are read before the change: a header may print them, and the change runs on another copy.
         current = self.page_labels()
         path = self.path
 
@@ -561,6 +609,7 @@ class PagesMixin:
             return False
         module = headfoot if settings.KIND == stamps.HEADER_FOOTER else watermark
         try:
+            # Se validan antes de tocar el documento, para que un error no deje un paso vacío en el historial.
             settings = module.check(settings)
             stamps.chosen_pages(settings, self.count)
         except LabelError as e:
@@ -599,6 +648,7 @@ class PagesMixin:
             a = m.addAction(tr("Remove the Bates numbers"), lambda *_: self.remove_stamps(kind, bates_only=True))
             a.setToolTip(tr("Take away only the headers and footers with Bates numbers"))
             a.setEnabled(has and bool(self.pages_with(kind, bates_only=True)))
+        # Only the profiles marked to be shown on the menu appear here; the rest are reached from the dialog.
         shown = [p for p in module.read_profiles().values() if p.show_on_menu]
         if shown:
             m.addSection(tr("Profiles"))
@@ -608,6 +658,7 @@ class PagesMixin:
 
     def batch_dialog(self):
         """Headers and footers, Bates numbers or watermarks on several files at once."""
+        # Imported here: the batch dialog is seldom used and pulls in the batch engine.
         from .pages.batch_dialog import BatchDialog
 
         BatchDialog(self, [self.path] if self.path else [], Path(self.last_dir())).exec()
@@ -622,6 +673,7 @@ class PagesMixin:
         state = self.pages_state()
         ranges = list(state.ranges)
         try:
+            # items() raises LabelError for a move that is not possible, before the user is asked about labels.
             if op.moves_pages():
                 op.items(self.count)
             if ask and op.moves_pages() and ranges:
@@ -629,6 +681,8 @@ class PagesMixin:
                 if choice is None:
                     return False
                 op = dataclasses.replace(op, labels=choice)
+            # Las etiquetas, la página de apertura y la página mostrada se recalculan antes de cambiar nada,
+            # y luego se escriben junto con la operación en un solo paso del historial.
             after = arrange.ranges_after(op, ranges, self.count)
             opening = state.opening
             if opening.page is not None:
@@ -650,12 +704,16 @@ class PagesMixin:
         if not pages:
             return False
         op = arrange.Duplicate(tuple(pages), before) if copied else arrange.Move(tuple(pages), before)
+        # Un movimiento que deja todas las páginas en su lugar no es un cambio: no se agrega al historial.
         if not copied and op.items(self.count) == list(range(1, self.count + 1)):
             return False  # (dropped where they were)
+        # The count before the move is needed to compute the new order again, after it has changed.
         n = self.count
         if not self.arrange_pages(op):
             return False
         items = op.items(n)
+        # Tras mover, se vuelven a seleccionar las páginas en sus nuevos lugares. En una copia, las originales
+        # siguen en su sitio y solo se seleccionan las copias (i + 1 != item).
         moved = set(pages)
         self.page_list.clearSelection()
         for i, item in enumerate(items):
@@ -667,6 +725,7 @@ class PagesMixin:
 
     def files_dropped(self, paths: list[Path], before: int) -> bool:
         """PDFs dropped on the list of pages: their pages inserted there."""
+        # Soltar un PDF sin documento abierto lo abre en vez de insertarlo.
         if self.path is None:
             return self.open_path(paths[0])
         choice = arrange.FOLLOW
@@ -674,6 +733,8 @@ class PagesMixin:
             choice = self.labels_choice()
             if choice is None:
                 return False
+        # The labels question is asked once for all the files dropped; each insertion then moves the
+        # insertion point past the pages of the previous file.
         done = False
         for path in paths:
             try:
@@ -692,6 +753,7 @@ class PagesMixin:
         value = ask_arrange(self, mode, self.count, pages, self.current_page(), Path(self.last_dir()))
         if value is None:
             return False
+        # Extracting and splitting do not change the document: they write new files from it.
         if mode == "extract":
             default = Path(self.last_dir()) / f"{self.path.stem}-{stamps.compact_pages(value)}.pdf"
             name, _ = QFileDialog.getSaveFileName(self, tr("Extract to a new PDF"), str(default),
@@ -705,6 +767,8 @@ class PagesMixin:
 
     def write_parts(self, parts: list[tuple[Path, list[int]]]) -> bool:
         """Save some pages, as they are now (with their annotations), as new files: [(target, pages)]."""
+        # Las anotaciones viven aparte del PDF de trabajo; se escriben primero en una copia completa
+        # y de ella se sacan las partes, para que lleven también las anotaciones.
         whole = self._new_work("-parts")
         try:
             annots.write(self.file, self.annotations, whole, self.password, shown=self.layers)
@@ -731,6 +795,7 @@ class PagesMixin:
 
     def _update_page_actions(self):
         """Which of the actions on the pages chosen can be done now."""
+        # Fuera de este modo las acciones están ocultas; no hace falta recalcularlas.
         if self.mode != KIND:
             return
         pages = self.selected_pages() if self.path is not None else []
@@ -749,6 +814,8 @@ class PagesMixin:
         if self.path is None:
             return
         item = self.page_list.itemAt(pos)
+        # Al hacer clic derecho sobre una página no seleccionada, se la toma como la elección (como en un gestor
+        # de archivos).
         if item is not None and not item.isSelected():
             self.page_list.setCurrentItem(item)
         menu = self.build_pages_menu()
@@ -773,6 +840,7 @@ class PagesMixin:
         menu.addSeparator()
         menu.addAction(tr("Start a range at page {page}", page=pages[0]), lambda: self.start_range_at(pages[0]))
         menu.addAction(tr("Copy their labels") if count > 1 else tr("Copy its label"), self.copy_labels)
+        # Las acciones sobre el orden de las páginas, las mismas del menú Páginas ▸ Ordenar, pero sobre la selección.
         menu.addSection(tr("Pages"))
         menu.addAction(tr("Move to the start"), lambda *_: self.move_pages(pages, 1)).setEnabled(pages[0] > 1)
         menu.addAction(tr("Move to the end"), lambda *_: self.move_pages(pages, self.count + 1)).setEnabled(
@@ -784,6 +852,7 @@ class PagesMixin:
         menu.addAction(tr("Duplicate"), lambda *_: self.arrange_pages(arrange.Duplicate(tuple(pages))))
         if count > 1:
             menu.addAction(tr("Reverse their order"), lambda *_: self.arrange_pages(arrange.Reverse(tuple(pages))))
+        # Delete is disabled when every page is chosen: the document must keep at least one.
         menu.addAction(tr("Delete"), lambda *_: self.arrange_pages(arrange.Delete(tuple(pages)))).setEnabled(
             count < self.count)
         menu.addAction(tr("Insert a blank page before this one") if count == 1 else
@@ -804,6 +873,7 @@ class PagesMixin:
                        lambda *_: self.stamp_dialog(stamps.WATERMARK, pages))
         a = menu.addAction(tr("Remove their header and footer") if count > 1 else tr("Remove its header and footer"),
                            lambda *_: self.remove_stamps(stamps.HEADER_FOOTER, pages))
+        # "Remove" is enabled only if some page chosen has a layer of that kind.
         a.setEnabled(bool(self.pages_with(stamps.HEADER_FOOTER) & set(pages)))
         a = menu.addAction(tr("Remove their watermark") if count > 1 else tr("Remove its watermark"),
                            lambda *_: self.remove_stamps(stamps.WATERMARK, pages))
@@ -819,12 +889,16 @@ class PagesMixin:
         if self.mode != KIND:
             return
         ranges = self.ranges
+        # _building_table silences the signals of the cell widgets while the table is rebuilt: setting their
+        # values would otherwise call _edit and change the labels again.
         self._building_table = True
         table = self.ranges_table
         table.setRowCount(0)
         spans = labels.spans(ranges, self.count) if self.count else []
         table.setRowCount(len(spans))
         for row, (r, last) in enumerate(spans):
+            # Cada celda editable conecta su señal con _edit; los valores por defecto de la lambda fijan fila,
+            # widget y campo de esta iteración.
             for col, w in range_row(r, last, self.count, first_row=row == 0).items():
                 if col in FIELDS:
                     field, value = FIELDS[col]
@@ -836,10 +910,15 @@ class PagesMixin:
         if rows:
             table.setCurrentCell(rows[0], LABELS)
         self._building_table = False
+        # La selección múltiple se conserva tras reconstruir la lista; una selección de una sola página no,
+        # porque sigue a la página mostrada.
         chosen = set(self.selected_pages()) if self.page_list.selectedItems() else set()
         pl = self.page_list
+        # Signals are blocked while the list is refilled, so that setCurrentRow does not move the page shown.
         pl.blockSignals(True)
         pl.clear()
+        # TODO: the whole list is rebuilt on every change; with documents of thousands of pages it could
+        # update only the labels that changed.
         for i, label in enumerate(labels.page_labels(ranges, self.count), 1):
             item = QListWidgetItem(f"{i:>5}   {label}")
             item.setToolTip(tr("page {page} of the file: {label}", page=i, label=label or tr("(no label)")))
@@ -861,6 +940,7 @@ class PagesMixin:
 
     def pages_page_shown(self):
         """(The page shown changed: the list follows it.)"""
+        # The list may be shorter than the document for a moment, while it is being rebuilt after a change.
         if self.mode == KIND and self.page_list.currentRow() != self.page and self.page < self.page_list.count():
             self.page_list.blockSignals(True)
             self.page_list.setCurrentRow(self.page)

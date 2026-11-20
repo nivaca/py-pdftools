@@ -97,6 +97,8 @@ MARKS = {"check": (N_("Check mark ✓"), (((0.1, 0.55), (0.4, 0.85), (0.9, 0.15)
          "dash": (N_("Dash ─"), (((0.1, 0.5), (0.9, 0.5)),))}
 SORTS = {"page": N_("By page"), "changed": N_("Last changed first"), "kind": N_("By kind"),
          "author": N_("By author"), "status": N_("By status")}
+# Portapapeles propio, del módulo: lo comparten todas las ventanas del proceso; al del sistema solo va
+# el texto (ver copy_selected).
 _CLIPBOARD: list[Annotation] = []  # (annotations copied, for all the windows)
 
 _WINDOWS: list = []  # (windows built again in another language must stay referenced)
@@ -107,14 +109,18 @@ def install_qt_translations():
     from PySide6.QtCore import QLibraryInfo, QLocale, QTranslator
 
     app = QApplication.instance()
+    # Se quitan los traductores instalados antes: esta función vuelve a llamarse en cada cambio de idioma.
     for old in getattr(app, "_py_pdftools_translators", []):
         app.removeTranslator(old)
     app._py_pdftools_translators = []
     code = interface.code()
     QLocale.setDefault(QLocale(code))
+    # El inglés no necesita catálogo: los textos de Qt ya están en inglés.
     if code == "en":
         return
     folder = QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)
+    # qtbase_XX holds the texts of the dialogs; qt_XX, an older catalogue that loads the others, is the
+    # fallback. The first one found is enough.
     for name in ("qtbase", "qt"):
         t = QTranslator(app)
         if t.load(f"{name}_{code}", folder):
@@ -129,11 +135,13 @@ ACTIONS = Path(__file__).resolve().parent.parent / "icons" / "actions"
 def icon(name: str) -> QIcon:
     """The icon NAME (a freedesktop name: document-open...) of the desktop's icon
     theme, so that it looks like the rest of the desktop; or else the program's own."""
+    # Primero el tema del escritorio; el SVG propio de icons/actions solo cuenta si el tema no trae ese icono.
     own = ACTIONS / f"{name}.svg"
     return QIcon.fromTheme(name, QIcon(str(own)) if own.is_file() else QIcon())
 
 
 def tool_name(tool: str) -> str:
+    # annots.OTHER is not a tool: it names the annotations the program only shows (links, form fields...).
     if tool == annots.OTHER:
         return tr("Other kinds (read only)")
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
@@ -157,6 +165,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.layer = ""  # the layer of the annotations made (see layers_menu)
         self.mark = "check"  # the mark of the Check mark tool (see MARKS)
         self.saved: list[Annotation] = []  # the annotations as they are in the file
+        # Las pilas guardan listas de anotaciones; un cambio del documento mismo (modos Páginas e Imponer) entra
+        # como un DocState (ver working.py). undo y redo distinguen los dos casos.
         self.undo_stack: list[list[Annotation]] = []
         self.redo_stack: list[list[Annotation]] = []
         self.selected: list[int] = []  # indices in self.annotations
@@ -170,6 +180,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self._words: dict[int, list] = {}  # page -> its words (see annots.page_text)
         self._rows: list[int] = []  # row of the list -> index of its annotation (those the filters let through)
         self._quiet_table = False  # (the list's selection is being set by the program)
+        # Un valor de una versión anterior, o editado a mano, puede no ser un número: entonces, la altura usual.
         try:
             height = int(self.settings.value("thumb_height", THUMB_SIZES[2]))
         except (TypeError, ValueError):
@@ -178,15 +189,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.thumb = QSize(round(height * 0.75), height)
         self.finder: FindDialog | None = None
         self.mode = ""
+        # El orden importa: los modos se arman con las barras y menús ya creados, y _restore necesita todas las
+        # barras (con su objectName) antes de que set_mode oculte las de los otros modos.
         self._build()
         self._build_menus()
         self._build_modes()
         self._restore()
         self.set_mode(str(self.settings.value("mode", "annotate")))
+        # Recovery copies of the annotations every few minutes (Settings); the document itself is never written.
         self.autosave_timer = QTimer(self)
         self.autosave_timer.timeout.connect(self.keep_recovery)
         self._start_autosave()
         self.refresh()
+        # Ventana construida de nuevo (cambio de idioma): hereda el documento, las anotaciones y el historial.
         if state:
             self.adopt_state(state)
 
@@ -200,7 +215,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.pages.setMovement(QListView.Movement.Static)
         self.pages.setUniformItemSizes(True)
         self.pages.setToolTip(tr("The pages; the number after ● is how many annotations a page has"))
+        # La fila -1 llega cuando se vacía la lista (se abre otro documento): no hay nada que mostrar.
         self.pages.currentRowChanged.connect(lambda row: self.show_page(row) if row >= 0 else None)
+        # Intervalo 0: una miniatura por vuelta del bucle de eventos, para que la ventana siga respondiendo.
         self.thumb_timer = QTimer(self, interval=0)
         self.thumb_timer.timeout.connect(self._draw_thumbnails)
         self.thumb_slider = QSlider(Qt.Orientation.Horizontal)
@@ -220,11 +237,16 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             self.prefs.pen_pressure, self.prefs.pen_curve, self.prefs.pen_button)
         self.canvas.continuous = self.settings.value("continuous", "true") != "false"
         self.canvas.factory = self.new_annotation
+        # Mientras una página se renderiza, el lienzo muestra en su lugar la miniatura que ya esté hecha.
         self.canvas.placeholder_for = lambda n: self._thumbs.get(n)
         self.canvas.drawn.connect(self.add_drawn)
+        # A pen stroke whose pressure changed comes as several drawings: one change of the list, so one step
+        # of the undo history.
         self.canvas.drawn_many.connect(
             lambda new: self.change(self.annotations + new,
                                     list(range(len(self.annotations), len(self.annotations) + len(new)))))
+        # Las señales del lienzo traen índices de self.annotations; la lista se cambia aquí, nunca en el lienzo,
+        # para que todo pase por change() y entre en el historial.
         self.canvas.edited.connect(self.replace)
         self.canvas.erased.connect(self.erase)
         self.canvas.nudged.connect(self.nudge)
@@ -262,6 +284,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.hint = hint
         self.hints = {"annotate": hint.text()}  # (each mode's; see set_mode)
 
+        # The model reads the current list through a lambda: self.annotations is replaced, not mutated, on each
+        # change.
         self.model = AnnotationModel(lambda: self.annotations, self.marked_text)
         self.listing = Panel(self.model)
         p = self.listing
@@ -274,6 +298,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.search_timer = QTimer(self, singleShot=True, interval=250)
         self.search_timer.timeout.connect(self._filter_changed)
         self.search.textChanged.connect(lambda _: self.search_timer.start())
+        # Los filtros desplegables se aplican al elegir, sin la espera de la búsqueda.
         for box in (self.f_kind, self.f_author, self.f_color, self.f_status, self.f_tag, self.f_category):
             box.activated.connect(lambda _: self._filter_changed())
         for key, name in SORTS.items():
@@ -346,6 +371,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                                          "their images, invisible: it can be found, copied and marked"))
         sub.addSeparator()
         self.standard_actions: dict[str, QAction] = {}
+        # Una entrada por norma (PDF/A, PDF/X); _enable las desactiva si falta la orden externa (ver conform).
         for value, name in conform.STANDARDS:
             act = self._action(sub, tr(name) + "…", lambda _=False, v=value: self.save_standard_dialog(v))
             self.standard_actions[value] = act
@@ -399,6 +425,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.a_comment = self._action(m, tr("Comment on the annotation selected"), self.comment_action,
                                       tip=tr("Write the comment of the annotation selected; with none, add a note"))
         self.a_lock = self._action(m, tr("Lock"), self.toggle_lock)
+        # Backspace as well as Delete: some keyboards (laptops, Macs) have no separate Delete key.
         self.a_delete = self._action(m, tr("Delete the selected annotations"), self.delete_selected,
                                      [QKeySequence(QKeySequence.StandardKey.Delete), QKeySequence("Backspace")])
         m.addSeparator()
@@ -407,6 +434,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.a_select_kind = self._action(m, tr("Select those of the same kind on this page"), self.select_kind)
         self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
         self.m_align = m.addMenu(tr("Align"))
+        # Un par vacío marca un separador del menú.
         for key, name in (("left", N_("Left sides")), ("hcenter", N_("Centres, across")),
                           ("right", N_("Right sides")), ("top", N_("Tops")), ("vcenter", N_("Middles, up and down")),
                           ("bottom", N_("Bottoms")), ("", ""), ("across", N_("Spread evenly across")),
@@ -418,11 +446,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         m.addSeparator()
         self.a_clear_page = self._action(m, tr("Delete the annotations of this page"), self.delete_page)
         self.a_clear_all = self._action(m, tr("Delete all the annotations"), self.delete_all)
+        # Sus textos, y qué acciones están habilitadas, se fijan cada vez que se abre (ver _edit_menu).
         m.aboutToShow.connect(self._edit_menu)
 
         m = self.menuBar().addMenu(tr("&Tools"))
         self.m_tools = m
         m.setToolTipsVisible(True)
+        # Grupo exclusivo: marcar una herramienta desmarca la anterior, en el menú y en las barras.
         group = QActionGroup(self)
         self.tool_actions: dict[str, QAction] = {}
         for tools in TOOLS:
@@ -449,6 +479,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.a_show = QAction(tr("Show the annotations"), self, checkable=True, checked=True)
         self.a_show.setShortcut(QKeySequence("Ctrl+Shift+A"))
         self.a_show.setToolTip(tr("Hide them to see the document as it is without them"))
+        # Hiding the annotations leaves the list as it is: only the pages are drawn again.
         self.a_show.toggled.connect(lambda _: self.refresh(table=False))
         m.addAction(self.a_show)
         self.a_only_listed = QAction(tr("Only those the list shows"), self, checkable=True)
@@ -456,6 +487,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                                          "let through"))
         self.a_only_listed.toggled.connect(lambda _: self.refresh(table=False))
         m.addAction(self.a_only_listed)
+        # La acción que muestra u oculta el panel la da el propio QDockWidget; así sigue también a su botón de cerrar.
         self.a_panel = self.panel.toggleViewAction()
         self.a_panel.setText(tr("The panel of the annotations"))
         self.a_panel.setShortcut(QKeySequence("F4"))
@@ -528,6 +560,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
             tools = [tool for tool, _, _ in group_ if tool != "hand"]
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
+            # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
             for tool in tools:
                 button = bar.widgetForAction(self.tool_actions[tool])
                 button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
@@ -549,12 +582,16 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def toolbars(self) -> list[QToolBar]:
         """The toolbars of the window (not those of the workspace of Impose, inside it)."""
+        # findChildren searches the whole tree: the workspace of Impose has toolbars of its own, left out here by
+        # their parent.
         return [bar for bar in self.findChildren(QToolBar) if bar.parent() is self]
 
     def createPopupMenu(self) -> QMenu:
         """The menu of the toolbars and panels (a right click on them): only those of the mode on, and of all."""
         menu = QMenu(self)
         mode = self.modes.get(self.mode) if hasattr(self, "modes") else None
+        # Fuera del menú, las barras y paneles de los otros modos: mostrarlos aquí dejaría a la vista herramientas
+        # desactivadas.
         others = {id(b) for m in getattr(self, "modes", {}).values() if m is not mode for b in m.bars + m.docks}
         for bar in self.toolbars():
             if id(bar) not in others and bar is not getattr(self, "modes_bar", None):
@@ -567,6 +604,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def apply_shortcuts(self):
         """The keys of the settings, given to the actions."""
+        # Only these actions have keys the user can change in Settings; the others keep Qt's standard shortcuts.
         actions = dict(self.tool_actions)
         actions.update({"comment": self.a_comment, "next": self.a_next_annot, "previous": self.a_prev_annot,
                         "copy": self.a_copy, "paste": self.a_paste, "duplicate": self.a_duplicate,
@@ -580,8 +618,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _build_modes(self):
         """The modes (see modes/), and the bar that chooses one (Ctrl+1, Ctrl+2 ...)."""
         self.modes: dict[str, Mode] = {
+            # Anotar es dueño de todo salvo las cajas de censura, que pertenecen al modo Censurar.
             "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=list(self.tool_bars), docks=[self.panel],
                              menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
+                             # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
                              actions=[act for tool, act in self.tool_actions.items()
                                       if tool not in ("select", "hand")]),
         }
@@ -596,6 +636,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         group = QActionGroup(self)
         self.mode_actions: dict[str, QAction] = {}
+        # Ctrl+1 a Ctrl+4 siguen el orden del diccionario: anotar, censurar, páginas, imponer.
         for n, key in enumerate(self.modes, 1):
             act = QAction(tr(TITLES[key]), self, checkable=True)
             act.setToolTip(tr(TIPS[key]))
@@ -604,6 +645,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             group.addAction(act)
             bar.addAction(act)
             self.mode_actions[key] = act
+        # La barra de los modos va primero en la fila de arriba, antes de la de Archivo.
         self.insertToolBar(self.common_bars[0], bar)
 
     def unmarked(self) -> list[Annotation]:
@@ -638,17 +680,21 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if key == self.mode:
             return
         old = self.modes.get(self.mode)
+        # El texto que se esté escribiendo en el lienzo, o un polígono a medias, se cierra antes de salir del modo.
         if old is not None:
             self.canvas.commit_text()
             self.canvas.cancel_polygon()
+            # Remember which docks and toolbars were visible, to show the same ones when the mode is entered again.
             self._docks_shown[old.key] = {id(d) for d in old.docks if d.isVisible()}
             self._bars_shown[old.key] = {id(b) for b in old.bars if b.isVisible()}
             old.left()
         self.mode = key
         mode = self.modes[key]
+        # Las barras comunes solo se tocan si cambia lo que el modo excluye (Imponer no usa buscar, navegar ni zoom).
         if old is None or old.without != mode.without:
             for bar in self.common_bars:
                 bar.setVisible(bar.objectName() not in mode.without)
+        # None la primera vez que se entra en un modo: se muestran todas sus barras.
         shown_bars = self._bars_shown.get(key)
         for other in self.modes.values():
             on = other is mode
@@ -667,8 +713,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.mode_actions[key].setChecked(True)
         self.hint.setText(self.hints.get(key, ""))
         self._mode_enable()
+        # El lienzo solo deja seleccionar o mover las anotaciones del modo; las demás se ven, pero no se tocan.
         self.canvas.touchable = mode.owns
+        # A selection kept across modes must not include annotations the new mode doesn't own.
         self.selected = [i for i in self.selected if mode.owns(self.annotations[i])]
+        # Se vuelve a Seleccionar: la herramienta anterior podía ser de otro modo, cuyas acciones quedan desactivadas.
         self.set_tool("select")
         mode.entered()
         self.settings.setValue("mode", key)
@@ -689,6 +738,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.show_thumbnails(self.a_thumbs.isChecked())
         mark = self.settings.value("mark", "check")
         self.mark = mark if mark in MARKS else "check"
+        # restoreState goes last: it needs every toolbar and dock of every mode to exist, with its object name.
         bars = self.settings.value("toolbars")
         if isinstance(bars, QByteArray):
             self.restoreState(bars)
@@ -706,10 +756,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if not self.maybe_discard():
             event.ignore()
             return
+        # El usuario ya aceptó cerrar (guardó o descartó): la copia de recuperación sobra.
         if self.path is not None:
             recovery.discard(self.path)
         if self.finder is not None:
             self.finder.close()
+        # Removes the temporary folder of the working copies; unsaved changes of the document itself go with it.
         self.drop_work()
         self.workspace.close_down()
         self.save_settings()
@@ -719,6 +771,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         """What a new window needs to carry on with the same document."""
         self.canvas.commit_text()
         self.keep_comment()
+        # TODO: el estado no lleva la copia de trabajo (self.work): la ventana nueva abre el archivo original, se
+        # pierden los cambios del modo Páginas sin guardar, y los DocState del historial apuntan a la carpeta
+        # temporal de la ventana vieja.
         return {"path": self.path, "password": self.password, "annotations": self.annotations,
                 "saved": self.saved, "undo": self.undo_stack, "redo": self.redo_stack, "page": self.page,
                 "tool": self.canvas.mode}
@@ -728,6 +783,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if state["path"] is None or self._load(state["path"], state["password"]) is None:
             self.refresh()
             return
+        # The annotations of the old window replace those just read: they include the changes not yet saved.
         self.annotations, self.saved = list(state["annotations"]), list(state["saved"])
         self.undo_stack, self.redo_stack = list(state["undo"]), list(state["redo"])
         self.refresh()
@@ -760,6 +816,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         _WINDOWS.append(new)
         self.annotations = self.saved = []  # (nothing to ask about: the new window has it)
         self.path = None  # (nor a recovery copy to remove: it is the new window's)
+        # hide() and deleteLater(), not close(): closeEvent would ask about unsaved changes and remove the
+        # working copies.
         self.hide()
         self.deleteLater()
         if self in _WINDOWS:
@@ -783,6 +841,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if self.path is not None:
             recovery.discard(self.path)
         password = ""
+        # Se pide la contraseña hasta que el archivo abra o el usuario cancele; open_pdf solo prueba, y se cierra
+        # enseguida.
         while True:
             try:
                 annots.open_pdf(path, password).close()
@@ -795,6 +855,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             except AnnotateError as e:
                 self.status(str(e), error=True)
                 return False
+        # From here on the old document is gone: its working copies are removed (the history is cleared below).
         self.drop_work()
         found = self._load(path, password)
         if found is None:
@@ -812,10 +873,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.show_page(0)
         self.status(tr("Opened {path}", path=path) + " (" + ntr("{count} page", "{count} pages", self.count) + ", "
                     + ntr("{count} annotation", "{count} annotations", len(found)) + ")")
+        # Una copia de recuperación igual a lo que tiene el archivo no se ofrece: se guardó después.
         kept = recovery.find(path)
         if kept is not None and kept[1] != found:
             when, annotations = kept
             if self.ask_recover(when.replace("T", " ")[:16]):
+                # The recovered annotations come in as one change, so Undo goes back to those of the file; those on
+                # pages the document no longer has are dropped.
                 self.change([a for a in annotations if 0 <= a.page < self.count], [])
                 self.status(tr("The annotations not saved before were brought back"))
             else:
@@ -841,18 +905,22 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         they are known already (just written): they are not read again."""
         try:
             doc = annots.open_pdf(path, password)
+            # Las anotaciones editables se quitan del documento en memoria: la ventana las dibuja por su cuenta, encima.
             found = annots.read(doc) if known is None else list(known)
             annots.remove_editable(doc)
         except (AnnotateError, RuntimeError, ValueError) as e:
             self.status(str(e), error=True)
             return None
+        # The old document is closed only once the new one has opened: on an error, the window keeps showing it.
         self._close_doc()
         self.doc, self.path, self.password, self.count = doc, path, password, doc.page_count
         self.file_annotations = list(found)  # (as the file has them: see working.py)
         self.page = min(page, self.count - 1)
+        # Las cachés (miniaturas, texto marcado, palabras) eran de las páginas del archivo anterior.
         self._thumbs, self._thumb_shown, self._marked, self._words = {}, {}, {}, {}
         self.redact_texts, self.redact_meta = {}, None
         self._by_page = [[] for _ in range(self.count)]
+        # Bare only if there are annotations to take out: else the renderers can use the file as it is.
         self.canvas.source = self._source(path, password, bool(found))
         self.canvas.set_document(doc, self.page)
         self._fill_pages()
@@ -866,6 +934,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             st = path.stat()
         except OSError:
             return None
+        # El tercer elemento (fecha y tamaño) es la marca con que working.py sabe si otro programa cambió el archivo.
         return str(path.resolve()), password, (st.st_mtime_ns, st.st_size), bare
 
     def _close_doc(self):
@@ -884,6 +953,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if not name:
             return None
         target = Path(name)
+        # El diálogo puede devolver un nombre sin extensión: se le añade, sin duplicarla.
         return target if target.suffix.lower() == f".{ext}" else target.with_suffix(f".{ext}")
 
     def save(self) -> bool:
@@ -902,6 +972,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         document itself), and go on with TARGET. What was done can still be undone."""
         self.canvas.commit_text()
         self.keep_comment()
+        # source es la copia de trabajo, si la hay: lo guardado incluye los cambios del documento mismo.
         source, page = self.file, self.page
         replacing = target.resolve() == self.path.resolve()
         # (what the file has is what was read when it was shown, unless it changed since: then it is read again)
@@ -914,6 +985,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             written = annots.write(source, self.annotations, target, self.password, kept=kept, result=result,
                                    original=known, shown=self.layers)
         except AnnotateError as e:
+            # The document was closed above: show it again from SOURCE before reporting the error.
             if replacing:
                 self._load_work(source, page)
                 self.refresh()
@@ -921,6 +993,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             return False
         recovery.discard(self.path)
         working = self.work is not None
+        # Las anotaciones escritas vienen en result: el archivo recién guardado no se vuelve a leer.
         found = self._load(target, self.password, page, known=result)
         if found is None:
             return False
@@ -931,6 +1004,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             kept = set()  # (another file: its xrefs are its own)
         # (the history keeps the xrefs of the annotations still there; the others are new to it)
         replies = {r.xref for a in found if a.xref in kept for r in a.replies}
+        # TODO: with no working copy, the redo stack may still hold a DocState (after undoing back to the file's
+        # own state): _remapped can't iterate it, and saving (Save as) then fails with a TypeError.
         self.undo_stack = [self._remapped(s, kept, replies) for s in self.undo_stack]
         self.redo_stack = [self._remapped(s, kept, replies) for s in self.redo_stack]
         self.annotations, self.saved = list(found), list(found)
@@ -947,6 +1022,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     @staticmethod
     def _remapped(snapshot: list[Annotation], kept: set[int], replies: set[int]) -> list[Annotation]:
         """SNAPSHOT (of the history) with the xrefs no longer in the file taken out (those annotations are new)."""
+        # xref 0 marca una anotación nueva: el próximo guardado la escribe como objeto nuevo en lugar de actualizar
+        # uno que ya no está.
         out = []
         for a in snapshot:
             if a.xref in kept:
@@ -961,6 +1038,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _start_autosave(self):
         minutes = self.prefs.autosave
+        # 0 minutos en los ajustes desactiva las copias de recuperación.
         if minutes:
             self.autosave_timer.start(minutes * 60_000)
         else:
@@ -982,6 +1060,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         for bar in self.toolbars():
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon if on
                                    else Qt.ToolButtonStyle.ToolButtonIconOnly)
+        # Sin señales: setChecked volvería a llamar a show_labels.
         self.a_labels.blockSignals(True)
         self.a_labels.setChecked(on)
         self.a_labels.blockSignals(False)
@@ -993,6 +1072,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             for act in bar.actions():
                 if act.isSeparator():
                     continue
+                # En los textos de las acciones, & marca la tecla de acceso y && es un & literal;
+                # aquí se quiere el texto limpio.
                 text = act.text().replace("&&", "\0").replace("&", "").replace("\0", "&")
                 keys = act.shortcut().toString(QKeySequence.SequenceFormat.NativeText)
                 tip = f"<b>{text}</b>" + (f" &nbsp;<span style='color:gray'>{keys}</span>" if keys else "")
@@ -1020,6 +1101,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                     act = stamps.addAction(tr(name), lambda k=key: self.set_stamp(k))
                     act.setCheckable(True)
                     act.setChecked(style.stamp == key)
+                # Un sello propio se guarda como 'text:' seguido de su texto; los estándar, por su clave en STAMPS.
                 custom = style.stamp[5:] if style.stamp.startswith("text:") else ""
                 act = menu.addAction(tr("A stamp of my own ({text})…", text=custom) if custom
                                      else tr("A stamp of my own…"), self.ask_stamp)
@@ -1034,6 +1116,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 act = menu.addAction(tr(name), lambda k=key: self.set_mark(k))
                 act.setCheckable(True)
                 act.setChecked(self.mark == key)
+        # Opening the menu of a tool also chooses it, so that what is picked there applies at once.
         self.set_tool(tool)
         self.show_menu(menu, where)
 
@@ -1055,6 +1138,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         current = self.prefs.style("stamp").stamp
         text, ok = QInputDialog.getText(self, tr("A stamp of my own"), tr("What the stamp says:"),
                                         QLineEdit.EchoMode.Normal, current[5:] if current.startswith("text:") else "")
+        # Espacios normalizados y a lo sumo 60 caracteres: un texto largo no cabría en el sello.
         text = " ".join(text.split())[:60]
         if ok and text:
             self.set_stamp("text:" + text)
@@ -1064,6 +1148,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if tool not in ANNOTATING:
             return
         style = self.prefs.style(tool)
+        # The dialog needs an annotation to show: a sample one, new, on the first page.
         dialog = PropertiesDialog([self.new_annotation(tool, 0, (0, 0, 10, 10))], self, tool=style)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.set_prefs(self.prefs.with_style(tool, dialog.style()))
@@ -1072,6 +1157,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def recent_files(self) -> list[Path]:
         try:
+            # La lista se guarda como JSON en QSettings; si está dañada, se empieza de cero.
             names = json.loads(self.settings.value("recent", "[]"))
         except (TypeError, ValueError):
             names = []
@@ -1093,6 +1179,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         m.clear()
         paths = self.recent_files()
         for i, path in enumerate(paths, 1):
+            # Teclas de acceso &1 a &9, y 1&0 para la décima.
             key = f"&{i}" if i < 10 else "1&0"
             act = m.addAction(f"{key} " + path.name.replace("&", "&&"), lambda p=path: self.open_path(p))
             act.setToolTip(str(path))
@@ -1116,15 +1203,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                            if a.kind != annots.OTHER or a.xref in others]
             if annotations == self.annotations:
                 return
+        # El historial guarda la lista anterior tal cual: las listas se reemplazan, nunca se modifican, así que
+        # cada instantánea sigue valiendo.
         self.undo_stack.append(self.annotations)
         self.redo_stack.clear()
         self.annotations = annotations
+        # Indices past the end may come from callers that counted on the list before the filter above.
         self.selected = [i for i in (selected or []) if i < len(annotations)]
         self.refresh()
 
     def new_annotation(self, kind: str, page: int, rect: Rect, paths: tuple = (), quads: tuple = ()) -> Annotation:
         """An annotation with the style of new ones of its KIND (Settings, or Properties); a
         stamp, of its usual size where RECT has none."""
+        # Las cajas de censura las hace el modo Censurar (ver redacting.py).
         if kind == "redact":
             return self.new_box(page, rect)
         if kind == "typewriter":  # (a text box with no border nor fill, written at once)
@@ -1154,8 +1245,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         style = self.prefs.style("ink")
         x0, y0 = rect[0], rect[1]
         s = self.SIGNATURE_WIDTH
+        # The signature is kept in a unit square: it is scaled to SIGNATURE_WIDTH and placed at the click.
         paths = tuple(tuple((round(x0 + u * s, 2), round(y0 + v * s, 2)) for u, v in stroke)
                       for stroke in signature.load(self.settings))
+        # Un ancho mínimo, para que la firma no salga demasiado fina con el estilo de la herramienta a mano alzada.
         width = max(style.width, 1.2)
         return Annotation("ink", page, annots.frame("ink", paths, width) if paths else rect, style.color, width=width,
                           paths=paths, author=self.prefs.author, contents=tr("Signature"), layer=self.layer)
@@ -1199,6 +1292,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         from PySide6.QtCore import QUrl
         from PySide6.QtGui import QDesktopServices
 
+        # TODO: estas carpetas de mkdtemp no se borran nunca; podrían borrarse al cerrar la ventana (el programa
+        # externo puede seguir leyendo el archivo mientras tanto).
         folder = Path(tempfile.mkdtemp(prefix="py-pdftools-"))
         path = self.save_attachment(a, folder / Path(a.filename or "file").name)
         if path is not None:
@@ -1210,6 +1305,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         style = self.prefs.style("ink")
         x0, y0, x1, y1 = rect
         _, strokes = MARKS.get(self.mark, MARKS["check"])
+        # Un punto es una elipse rellena, de la mitad del tamaño del recuadro y centrada en él.
         if strokes is None:
             r = (x0 + (x1 - x0) * 0.25, y0 + (y1 - y0) * 0.25, x1 - (x1 - x0) * 0.25, y1 - (y1 - y0) * 0.25)
             return Annotation("ellipse", page, r, style.color, fill=style.color, width=0, author=self.prefs.author,
@@ -1240,6 +1336,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             h, w = h * (x1 - x0) / w, x1 - x0
         else:  # (clicked: centred there)
             x0, y0 = x0 - w / 2, y0 - h / 2
+        # El sello no puede salirse de la página: se empuja hacia dentro.
         if self.doc is not None and 0 <= a.page < self.count:
             r = self.doc[a.page].rect
             x0, y0 = max(min(x0, r.width - w), 0), max(min(y0, r.height - h), 0)
@@ -1252,16 +1349,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _after_making(self, kind: str):
         """What the tool does once it has made an annotation: open something, and go back to Select."""
         style = self.prefs.style(kind)
+        # style.show: "properties" opens the dialog; "comment" (or "text", for kinds with no text of their own)
+        # goes to the comment box.
         if style.show == "properties":
             self.properties_dialog()
         elif style.show == "comment" or (style.show == "text" and kind not in TEXTUAL + ("note", "caret")):
             self.comment.setFocus()
+        # Una herramienta fija (sticky) sigue elegida; si no, se vuelve a Seleccionar tras cada anotación.
         if not style.sticky and self.canvas.mode == kind:
             self.set_tool("select")
 
     def add_drawn(self, annotation: Annotation):
         """An annotation drawn on a page; a text box, a callout, a note or a caret has its text written
         first, on the page (if its tool says so: see text_done); an attached file, its file chosen."""
+        # With no signature kept yet, the tool makes an empty drawing: the signature is drawn first, then placed.
         if annotation.kind == "ink" and annotation.contents == tr("Signature") and not annotation.paths:
             if not self.draw_signature():  # (none yet: drawn first)
                 return
@@ -1277,6 +1378,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 return
             annotation = dataclasses.replace(annotation, data=data, filename=path.name, icon="Paperclip",
                                              contents=annotation.contents or path.name)
+        # Con show == "text", el texto se escribe sobre la página y la anotación entra después, en text_done.
         if annotation.kind in TEXTUAL + ("note", "caret") and self.prefs.style(annotation.kind).show == "text":
             self.canvas.edit_text(annotation, -1)
             return
@@ -1285,8 +1387,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def text_done(self, index: int, annotation: Annotation):
         """The text of ANNOTATION, written on the page: a new one (INDEX -1), or the one at INDEX."""
         if index < 0:
+            # _replacing is the strikeout of a replacement in progress (see replace_text): used once, then cleared.
             struck, self._replacing = getattr(self, "_replacing", None), None
             if struck is not None and annotation.group == struck.group:  # (a replacement: the mark and its strikeout)
+                # La marca y su tachado entran juntos, en un solo paso del historial; sin texto, no entra ninguno.
                 if annotation.contents.strip():
                     n = len(self.annotations)
                     self.change(self.annotations + [annotation, struck], [n, n + 1])
@@ -1304,6 +1408,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if self.canvas.mode == "redact":  # (boxes over them)
             self.add_redact_text(page, rects)
             return
+        # No kind given: the tool's own, or a highlight when the tool chosen is not a markup tool.
         kind = kind or (self.canvas.mode if self.canvas.mode in MARKUP + ("replace",) else "highlight")
         if kind == "replace":
             self.replace_text(page, rects)
@@ -1318,6 +1423,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         group = uuid.uuid4().hex[:12]
         struck = dataclasses.replace(self.new_annotation("strikeout", page, annots.union(rects), quads=tuple(rects)),
                                      intent="StrikeOutTextEdit", group=group)
+        # La marca de inserción va al final de la última línea tachada, centrada en su borde inferior.
         x, bottom = rects[-1][2], rects[-1][3]
         w, h = annots.CARET_SIZE
         caret = dataclasses.replace(self.new_annotation("caret", page, (x - w / 2, bottom - h / 2, x + w / 2,
@@ -1342,6 +1448,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             else:
                 self.properties_dialog()
             return
+        # With a markup tool, a double click marks the word under the pointer (with 2 points of slack around it).
         if self.canvas.mode not in MARKUP or self.doc is None:
             return
         found = annots.words(self.doc[page])
@@ -1352,6 +1459,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 self.add_markup(page, annots.text_rects(found, i, i))
 
     def set_tool(self, tool: str):
+        # Cambiar de herramienta cierra el texto que se esté escribiendo en el lienzo.
         self.canvas.commit_text()
         self.canvas.set_mode(tool)
         self.tool_actions[tool].setChecked(True)
@@ -1366,6 +1474,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             annotation = dataclasses.replace(annotation, page=self.annotations[index].page)
         annotations = list(self.annotations)
         annotations[index] = annotation
+        # If the annotation was part of the selection, the whole selection is kept; else it alone is selected.
         self.change(annotations, self.selected if index in self.selected else [index])
 
     def erase(self, changes: dict):
@@ -1379,6 +1488,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.change(annotations, [])
 
     def _movable(self) -> list[int]:
+        # Las marcas sobre texto no se mueven: van atadas a las letras que marcan.
         return [i for i in self.selected if self.annotations[i].kind not in MARKUP and not self.annotations[i].locked]
 
     def nudge(self, dx: float, dy: float):
@@ -1391,6 +1501,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             a = annotations[i]
             page = self.doc[a.page].rect
             x0, y0, x1, y1 = a.rect
+            # El desplazamiento se acota para que cada anotación quede dentro de su página.
             mx = max(-x0, min(dx, page.width - x1))
             my = max(-y0, min(dy, page.height - y1))
             annotations[i] = annots.moved(a, mx, my)
@@ -1405,6 +1516,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         rects = {i: self.annotations[i].rect for i in chosen}
         annotations = list(self.annotations)
         if how in ("across", "down"):
+            # Repartir: los extremos quedan donde están y el espacio libre se divide por igual entre los huecos.
             axis = 0 if how == "across" else 1
             order = sorted(chosen, key=lambda i: rects[i][axis])
             first, last = rects[order[0]], rects[order[-1]]
@@ -1417,6 +1529,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 annotations[i] = annots.moved(annotations[i], shift if axis == 0 else 0, shift if axis == 1 else 0)
                 at += r[axis + 2] - r[axis] + gap
         else:
+            # The reference is the first annotation selected, if it can be moved.
             ref = rects[self.selected[0]] if self.selected[0] in rects else rects[chosen[0]]
             for i in chosen:
                 x0, y0, x1, y1 = rects[i]
@@ -1436,6 +1549,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _change_selected(self, **changes):
         annotations = list(self.annotations)
         for i in self.selected:
+            # El relleno solo se aplica a los tipos que lo admiten (FILLED); en los demás queda como estaba.
             fields = {k: v for k, v in changes.items() if k != "fill" or annotations[i].kind in FILLED}
             annotations[i] = dataclasses.replace(annotations[i], **fields)
         self.change(annotations, self.selected)
@@ -1475,7 +1589,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if not self.selected:
             return
         self.keep_comment()
+        # Annotations of other kinds are not copied: the program can show them, not make them.
         _CLIPBOARD[:] = [self.annotations[i] for i in sorted(self.selected) if self.annotations[i].kind != annots.OTHER]
+        # Al portapapeles del sistema va el texto marcado o el comentario, para pegarlo en otro programa.
         texts = [self.marked_text(a) or a.contents for a in _CLIPBOARD]
         QApplication.clipboard().setText("\n".join(t for t in texts if t))
         self.status(ntr("{count} annotation copied", "{count} annotations copied", len(_CLIPBOARD)))
@@ -1488,11 +1604,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         page = self.doc[self.page].rect
         new, renamed = [], {}
         for a in _CLIPBOARD:
+            # On the same page, copies go 10 points apart so as not to hide the originals; marks on text stay put.
             shift = (10.0 if a.page == self.page else 0.0) if offset is None else offset
             if a.kind in MARKUP:
                 shift = 0.0
             # (copies of a group make a group of their own)
             group = renamed.setdefault(a.group, uuid.uuid4().hex[:12]) if a.group else ""
+            # Una copia es una anotación nueva: sin xref, fechas, respuestas ni bloqueo.
             b = dataclasses.replace(a, page=self.page, xref=0, created="", modified="", locked=False,
                                     replies=(), group=group)
             x0, y0, x1, y1 = b.rect
@@ -1529,6 +1647,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         for i in self.selected:
             annotations[i] = dialog.apply(annotations[i])
         self.change(annotations, self.selected)
+        # 'Use as default' makes sense only when the annotations edited are all of one kind.
         if dialog.as_default.isChecked() and len({a.kind for a in chosen}) == 1:
             self.use_style(annotations[self.selected[0]])
 
@@ -1577,8 +1696,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def keep_comment(self):
         """The comment typed in the panel, given to the annotation selected."""
         i = self._one()
+        # El cuadro del comentario está desactivado si no hay exactamente una seleccionada: nada que guardar.
         if i is None or not self.comment.isEnabled():
             return
+        # Only the newlines at the ends are trimmed; spaces the user typed are kept.
         text = self.comment.toPlainText().strip("\n")
         if text != self.annotations[i].contents:
             self.replace(i, dataclasses.replace(self.annotations[i], contents=text))
@@ -1588,6 +1709,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         i = self._one()
         if i is None:
             return
+        # Etiquetas separadas por comas, con los espacios internos normalizados; las vacías se descartan.
         tags = tuple(t for t in (" ".join(x.split()) for x in self.listing.tags.text().split(",")) if t)
         if tags != self.annotations[i].tags:
             self.replace(i, dataclasses.replace(self.annotations[i], tags=tags))
@@ -1612,6 +1734,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         """Give the annotation selected the review status STATE (a reply that says it)."""
         if not state:
             return
+        # A review status is a reply that carries it, as PDF review states are written.
         self.add_reply(tr("Status: {status}", status=tr(STATES[state])), state=state)
 
     def edit_reply(self, row: int):
@@ -1645,6 +1768,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         colors.set_palette(prefs.palette)
         self.canvas.pen_pressure, self.canvas.pen_curve, self.canvas.pen_button = (
             prefs.pen_pressure, prefs.pen_curve, prefs.pen_button)
+        # La ruta de pdf2iso puede haber cambiado en los ajustes: se comprueba de nuevo.
         self._have_conform = conform.available(prefs.pdfconform)
         self.apply_shortcuts()
         self._enable()
@@ -1659,6 +1783,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def set_continuous(self, on: bool):
         self.settings.setValue("continuous", "true" if on else "false")
+        # The page in view is kept across the switch: set_continuous lays the pages out anew.
         page = self.page
         self.canvas.set_continuous(on)
         self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
@@ -1669,6 +1794,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.thumb = QSize(round(height * 0.75), height)
         self.settings.setValue("thumb_height", height)
         self._size_thumbnails()
+        # Las miniaturas hechas tienen el tamaño anterior: se descartan y se dibujan otra vez.
         self._thumbs, self._thumb_shown = {}, {}
         if self.doc is not None:
             self._fill_pages()
@@ -1694,6 +1820,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             values.append(value)
         sub.addSeparator()
         other = sub.addAction(tr("Other colour…"), self.choose_color)
+        # A colour that is not among the swatches is shown on the Other colour entry.
         if current and current not in values:
             other.setText(tr("Other colour ({color})…", color=current))
             other.setIcon(swatch(current))
@@ -1703,6 +1830,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         """The categories (ticked those all CHOSEN are in), each put in or taken out of them."""
         sub = menu.addMenu(tr("Categories"))
         names = self.prefs.category_list()
+        # También las categorías que tienen las anotaciones y no están en los ajustes (traídas de otro archivo).
         for a in chosen:
             names += [c for c in a.categories if c not in names]
         for name in names:
@@ -1712,6 +1840,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def toggle_category(self, name: str):
         """Put the selected annotations in category NAME, or take them out if they all are in it."""
+        # If all of them have it already, it is taken out of all; else it is put in those that lack it.
         have = all(name in self.annotations[i].categories for i in self.selected)
         annotations = list(self.annotations)
         for i in self.selected:
@@ -1738,6 +1867,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             colors_ = {a.color for a in chosen}
             self._colors_menu(menu, tr("Colour"), colors_.pop() if len(colors_) == 1 else None,
                               lambda v: self._change_selected(color=v))
+            # Cambiar el tipo solo tiene sentido entre marcas sobre texto: comparten la forma (quads).
             if all(a.kind in MARKUP for a in chosen):
                 change = menu.addMenu(tr("Change to"))
                 for kind in MARKUP:
@@ -1766,6 +1896,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 act.setChecked(all(a.critical and a.critical.type == key for a in chosen))
             critical.addSeparator()
             critical.addAction(tr("None"), lambda: self._critical_for_selected(""))
+            # Agrupar si no son ya todas un mismo grupo; si lo son, Desagrupar.
             if len(chosen) > 1 or any(a.group for a in chosen):
                 menu.addAction(self.a_group if not all(a.group == chosen[0].group != "" for a in chosen)
                                else self.a_ungroup)
@@ -1784,8 +1915,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                                                           len(chosen)), self.delete_selected)
             act.setEnabled(not all_locked)
         else:
+            # Clic derecho en un hueco de la página: añadir una nota ahí, pegar o buscar la palabra señalada.
             if point is not None and self.doc is not None and 0 <= page < self.count:
                 size = self.doc[page].rect
+                # The note is kept inside the page, near its right and bottom edges.
                 x = min(point.x(), size.width - annots.NOTE_SIZE)
                 y = min(point.y(), size.height - annots.NOTE_SIZE)
                 rect = (round(x, 2), round(y, 2), round(x + annots.NOTE_SIZE, 2), round(y + annots.NOTE_SIZE, 2))
@@ -1800,6 +1933,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 menu.addSeparator()
             for tool in ("select", "highlight", "note", "freetext", "rect", "ink", "eraser"):
                 menu.addAction(self.tool_actions[tool])
+            # TODO: aquí se usa self.page (la página a la vista) y no PAGE, la del clic; en la vista continua pueden
+            # no coincidir (select_page y a_clear_page también trabajan sobre self.page).
             here = [i for i, a in enumerate(self.annotations) if a.page == self.page]
             if here:
                 menu.addSeparator()
@@ -1819,6 +1954,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.change(annotations, self.selected)
 
     def show_menu(self, menu: QMenu, where):
+        # A method of its own so that the tests can replace it: exec() would block them.
         menu.exec(where)
 
     def _edit_menu(self):
@@ -1833,6 +1969,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.a_lock.setText(tr("Unlock") if self.selected and all(self.annotations[i].locked for i in self.selected)
                             else tr("Lock"))
         self.m_align.setEnabled(len(self._movable()) > 1)
+        # Group needs at least two annotations that are not all in one group already.
         self.a_group.setEnabled(n > 1 and len({self.annotations[i].group or i for i in self.selected}) > 1)
         self.a_ungroup.setEnabled(any(self.annotations[i].group for i in self.selected))
         self.a_undo.setText(tr("Undo") if not self.undo_stack else tr("Undo ({count})", count=len(self.undo_stack)))
@@ -1842,14 +1979,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.keep_comment()
         if self.undo_stack and isinstance(self.undo_stack[-1], DocState):  # (a change of the document itself)
             state = self.undo_stack.pop()
+            # Antes de volver atrás, el estado actual (archivo, anotaciones y página) se guarda para poder rehacer.
             self.redo_stack.append(self._state())
             self.restore(state)
         elif self.undo_stack:
+            # A plain change of the annotations: the lists are swapped between the two stacks.
             self.redo_stack.append(self.annotations)
             self.annotations = self.undo_stack.pop()
             self.selected = []
             self.refresh()
 
+    # TODO: unlike undo, redo doesn't commit the text being written on the canvas, nor keep the comment typed
+    # in the panel, before it changes the state: they may be lost.
     def redo(self):
         if self.redo_stack and isinstance(self.redo_stack[-1], DocState):
             state = self.redo_stack.pop()
@@ -1868,12 +2009,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             return
         if self.finder is None:
             self.finder = FindDialog(self)
+            # El diálogo se crea una vez y se reutiliza: show_match hace destellar un resultado en el lienzo, y mark
+            # marca los elegidos.
             self.finder.show_match.connect(lambda m: self.canvas.flash(m.page, annots.union(m.rects)))
             self.finder.mark.connect(self.mark_matches)
         self.finder.start(text)
 
     def mark_matches(self, matches: list, kind: str):
         """A mark of KIND over each place of MATCHES (not twice over the same place)."""
+        # Places already marked with this kind are skipped, so that running the same search twice adds nothing.
         have = {(a.page, a.quads) for a in self.annotations if a.kind == kind}
         new = []
         for m in matches:
@@ -1890,7 +2034,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def pick(self, indices: list[int], add: bool):
         self.keep_comment()
+        # Solo se pueden elegir las anotaciones del modo activo.
         indices = [i for i in indices if self.owns(self.annotations[i])]
+        # With ADD, each index is toggled in or out of the selection.
         if add:
             chosen = list(self.selected)
             for i in indices:
@@ -1900,9 +2046,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                     chosen.append(i)
         else:
             chosen = list(indices)
+        # Un miembro de un grupo arrastra a los demás; al quitarlo de la selección, sale el grupo entero.
         chosen = self._with_groups(chosen, indices if add else None)
         if chosen != self.selected:
             self.selected = chosen
+            # Only the selection changed: the list and the page labels need not be built again.
             self.refresh(pages=False, table=False)
             self._select_rows()
 
@@ -1923,6 +2071,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             m.addAction(tr("(no layers yet)")).setEnabled(False)
         m.addSeparator()
         made = m.addMenu(tr("Make new annotations in"))
+        # El nombre vacío es «sin capa».
         for name in ["", *names]:
             act = made.addAction(name or tr("No layer"), lambda _=False, n=name: setattr(self, "layer", n))
             act.setCheckable(True)
@@ -1936,6 +2085,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def show_layer(self, name: str, on: bool):
         self.layers[name] = on
+        # Las anotaciones ocultas no pueden seguir seleccionadas.
         if not on:
             self.selected = [i for i in self.selected if self.annotations[i].layer != name]
         self.refresh()
@@ -1943,6 +2093,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def move_to_layer(self, name: str):
         chosen = set(self.selected)
+        # Una capa nueva entra visible; si se mueve a una capa oculta, lo movido sale de la selección.
         if name:
             self.layers.setdefault(name, True)
         self.change([dataclasses.replace(a, layer=name) if i in chosen else a for i, a in enumerate(self.annotations)],
@@ -1969,6 +2120,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         def entry(a: Annotation):
             if not kind:
                 return None
+            # Changing the type keeps the rest of the entry (lemma, reading, witness...).
             return dataclasses.replace(a.critical, type=kind) if a.critical else annots.Critical(kind)
 
         chosen = set(self.selected)
@@ -1977,6 +2129,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _with_groups(self, chosen: list[int], toggled: list[int] | None = None) -> list[int]:
         """CHOSEN, with the others of their groups (those of TOGGLED that were taken out, without theirs)."""
+        # Grupos de las anotaciones quitadas de la selección: sus compañeras también salen.
         dropped = {self.annotations[i].group for i in toggled or [] if i not in chosen and i < len(self.annotations)}
         groups = {self.annotations[i].group for i in chosen if i < len(self.annotations)} - {""} - dropped
         out = [i for i in chosen if i < len(self.annotations) and self.annotations[i].group not in dropped - {""}]
@@ -2007,8 +2160,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.pick([i for i, a in enumerate(self.annotations) if a.page == self.page and a.kind in kinds], False)
 
     def _table_selected(self):
+        # La selección la está poniendo el programa (ver _select_rows): no hay que reaccionar.
         if self._quiet_table:
             return
+        # The rows of the list map to indices of self.annotations through _rows (sorted and filtered).
         rows = sorted({i.row() for i in self.table.selectionModel().selectedRows()})
         chosen = [self._rows[r] for r in rows if r < len(self._rows)]
         if chosen == self.selected:
@@ -2016,6 +2171,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.keep_comment()
         self.selected = chosen
         self.refresh(pages=False, table=False)
+        # Una sola elegida en la lista: el lienzo va a ella y la hace destellar.
         if len(chosen) == 1:
             a = self.annotations[chosen[0]]
             self.canvas.flash(a.page, a.rect)
@@ -2026,9 +2182,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             return
         current = self._rows.index(self.selected[0]) if self.selected and self.selected[0] in self._rows else None
         if current is None:  # (from the page in view)
+            # Without a selection, start from the page in view: forward, the first at or after it; back, the one
+            # before.
             after = [r for r, i in enumerate(self._rows) if self.annotations[i].page >= self.page]
             row = (after[0] if after else 0) if step > 0 else (max(after[0] - 1, 0) if after else len(self._rows) - 1)
         else:
+            # Pasada la última, se vuelve a la primera (y al revés).
             row = (current + step) % len(self._rows)
         i = self._rows[row]
         self.keep_comment()
@@ -2040,24 +2199,31 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _filter_changed(self):
         self._fill_table()
         self._enable()
+        # With 'Only those the list shows', the pages depend on the filters too.
         if self.a_only_listed.isChecked():
             self.refresh(table=False)
 
     def _passes(self, a: Annotation) -> bool:
         """Whether A is let through by the search and filters of the list (and its layer is shown)."""
+        # Las de otros modos y las de capas ocultas nunca aparecen en la lista.
         if not self.owns(a) or a.layer and not self.layers.get(a.layer, True):
             return False
         kind, author, color = self.f_kind.currentData(), self.f_author.currentData(), self.f_color.currentData()
         status, tag, category = self.f_status.currentData(), self.f_tag.currentData(), self.f_category.currentData()
         if kind and a.kind != kind or author is not None and a.author != author or color and a.color != color:
             return False
+        # Status filter: '-' means no status yet; any other value, that status.
         if status == "-" and a.status() or status and status != "-" and a.status() != status:
             return False
         if tag and tag not in a.tags or category and category not in a.categories:
             return False
+        # TODO: el texto de cada anotación se arma y se normaliza otra vez en cada búsqueda y cada refresco; con
+        # miles de anotaciones convendría guardarlo por anotación.
         words = search.fold(self.search.text().lower())[0].split()  # (accents not minded)
         if words:
             c = a.critical
+            # Se busca en todo lo que el usuario ve de una anotación: comentario, autor, texto marcado, etiquetas,
+            # aparato crítico, categorías y respuestas.
             text = " ".join((a.contents, a.author, a.name(), a.layer, self.marked_text(a), " ".join(a.tags),
                              " ".join((c.name(), c.lemma, c.reading, c.witness, c.location, c.source, c.rationale))
                              if c else "",
@@ -2080,9 +2246,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 (self.f_tag, tr("All tags"), sorted({t for a in self.annotations for t in a.tags}, key=str.lower)),
                 (self.f_category, tr("All categories"), sorted({c for a in self.annotations for c in a.categories},
                                                                key=str.lower))):
+            # The choice in each box is kept across the refill if it still exists; signals are blocked meanwhile.
             current = box.currentData()
             box.blockSignals(True)
             box.clear()
+            # El filtro de autor usa None para «todos», porque "" es un autor válido (anotaciones sin autor).
             box.addItem(everything, None if box is self.f_author else "")
             for value in values:
                 if box is self.f_kind:
@@ -2108,8 +2276,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             self._fill_table()
         if pages:
             self._label_pages()
+        # With the annotations hidden (View menu), the canvas doesn't let them be edited.
         self.canvas.editable = self.a_show.isChecked()
         self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        # Los paneles de Páginas y Censurar se rellenan cuando cambia la lista; con table=False, el de Censurar
+        # solo actualiza la selección.
         if self.mode == "pages" and table:
             self.fill_pages_panel()
         if self.mode == "redact":
@@ -2127,6 +2298,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if not self.a_show.isChecked():
             return []
         if self.a_only_listed.isChecked():
+            # _rows holds the annotations the list shows, in its order: sorted again for drawing.
             return sorted(self._rows)
         return [i for i, a in enumerate(self.annotations) if self.layers.get(a.layer, True)]
 
@@ -2134,6 +2306,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         """Bring PAGE into view."""
         if self.doc is None:
             return
+        # Se acota al rango: quien llama pasa page ± 1, o números guardados sin comprobar.
         page = max(0, min(page, self.count - 1))
         self.canvas.go_to(page)
         self._page_shown(page)
@@ -2141,17 +2314,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _page_shown(self, page: int):
         """PAGE is the one in view now (turned to, or scrolled to)."""
         self.page = page
+        # Signals blocked: the spin box and the list of thumbnails would call show_page again.
         self.page_spin.blockSignals(True)
         self.page_spin.setValue(page + 1)
         self.page_spin.blockSignals(False)
         found = self.page_labels() if self.doc is not None else []
         label = found[page] if page < len(found) else ""
+        # La etiqueta de la página (ii, A-3...) se muestra solo si no es el número mismo.
         self.page_label.setText(f"({label})" if label and label != str(page + 1) else "")
         self.pages.blockSignals(True)
         self.pages.setCurrentRow(page)
         self.pages.blockSignals(False)
         self._show_panel()
         self._enable()
+        # _page_shown may run while the window is being built, before the modes (and the mode Pages) exist.
         if hasattr(self, "modes"):
             self.pages_page_shown()
 
@@ -2161,6 +2337,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _fill_pages(self):
         self.pages.clear()
+        # Iconos transparentes del tamaño final, para que la lista no cambie de alto cuando lleguen las miniaturas.
         blank = QPixmap(self.thumb)
         blank.fill(QColor(0, 0, 0, 0))
         for n in range(self.count):
@@ -2187,6 +2364,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if self.doc is None or self.thumbs_box.isHidden():  # (hidden: drawn when they are shown again)
             self.thumb_timer.stop()
             return
+        # Se empieza por la primera miniatura a la vista y luego se da la vuelta hasta las de arriba.
         top = self.pages.indexAt(QPoint(10, 10)).row()
         start = max(top, 0)
         n = next((m for m in [*range(start, self.count), *range(start)] if m not in self._thumbs), None)
@@ -2196,6 +2374,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         page = self.doc[n]
         scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
         remote = renderer()
+        # Si hay procesos de render, la miniatura se pide a uno de ellos; si no, se hace aquí, en el hilo de la
+        # interfaz.
         if self.canvas.source is not None and remote.available():
             # (in another process: the timer waits until it is drawn, then goes on with the next)
             self.thumb_timer.stop()
@@ -2209,6 +2389,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _thumb_arrived(self, source, n: int, scale: float, image: QImage | None):
         if self.doc is None or source != self.canvas.source:
             return  # (of a document no longer open)
+        # Si el otro proceso no pudo, la miniatura se hace aquí.
         self._thumbs[n] = image if image is not None else page_image(self.doc[n], scale)
         self._thumb(n)
         self.thumb_timer.start()
@@ -2219,6 +2400,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if image is None or n >= self.pages.count():
             return
         shown = tuple(self._by_page[n]) if n < len(self._by_page) else ()
+        # The annotations shown on it are those of last time: no need to paint it again.
         if self._thumb_shown.get(n) == shown:
             return
         self._thumb_shown[n] = shown
@@ -2226,10 +2408,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         pixmap.fill(QColor(0, 0, 0, 0))
         p = QPainter(pixmap)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
+        # La imagen va centrada a lo ancho y apoyada en el borde inferior del icono.
         x, y = (self.thumb.width() - image.width()) // 2, self.thumb.height() - image.height()
         p.drawImage(x, y, image)
         p.save()
         p.translate(x, y)
+        # The annotations are in PDF points: scaled to the size of the picture.
         scale = image.width() / self.doc[n].rect.width
         p.scale(scale, scale)
         for a in shown:
@@ -2245,6 +2429,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             return
         self._by_page = [[] for _ in range(self.count)]
         shown = set(self.shown())
+        # Solo las anotaciones visibles y del modo cuentan para el número junto a la miniatura.
         for i, a in enumerate(self.annotations):
             if 0 <= a.page < self.count and i in shown and self.owns(a):
                 self._by_page[a.page].append(a)
@@ -2257,6 +2442,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                     else str(n + 1)
             else:
                 text = f"{n + 1}  ● {count}" if count else str(n + 1)
+            # setText solo si cambia: cada llamada vuelve a pintar el elemento.
             if item.text() != text:
                 item.setText(text)
             self._thumb(n)
@@ -2274,6 +2460,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _fill_table(self):
         sort = self.sort.currentData()
+        # Las claves de orden; casi todas desempatan por la página.
         keys = {
             "page": lambda i: (self.annotations[i].page, self.annotations[i].rect[1], self.annotations[i].rect[0]),
             "changed": lambda i: (self._age(self.annotations[i]), self.annotations[i].page),
@@ -2284,6 +2471,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         }
         order = sorted((i for i, a in enumerate(self.annotations) if self._passes(a)), key=keys.get(sort, keys["page"]))
         self._rows = order
+        # Resetting the model clears its selection, which must not reach _table_selected.
         self._quiet_table = True
         self.model.set_rows(order)
         self._quiet_table = False
@@ -2296,6 +2484,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _age(a: Annotation) -> float:
         """For sorting the last changed first (those never saved, before all)."""
         when = annots.date_value(a.modified or a.created)
+        # Las nunca guardadas (sin fecha) van primero: -inf.
         return -when.timestamp() if when else float("-inf")
 
     def _select_rows(self):
@@ -2306,6 +2495,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         selection = QItemSelection()
         start = None
         rows = []
+        # Un None al final cierra la última racha de filas seleccionadas.
         for row, i in enumerate(self._rows + [None]):
             if i is not None and i in chosen:
                 rows.append(row)
@@ -2317,6 +2507,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self._quiet_table = True
         self.table.selectionModel().select(selection, QItemSelectionModel.SelectionFlag.ClearAndSelect)
         self._quiet_table = False
+        # Con una sola fila elegida, la lista se desplaza hasta ella.
         if len(rows) == 1:
             self.table.scrollTo(model.index(rows[0], 0))
 
@@ -2335,6 +2526,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 p.title.setText("<b>" + ntr("{count} annotation selected", "{count} annotations selected",
                                             len(chosen)) + "</b>")
             colors_ = {a.color for a in chosen}
+        # No selection: the panel shows the colour of the tool, and the colour button sets it for new annotations.
         elif self.canvas.mode in ANNOTATING:
             p.title.setText("<b>" + tr("New annotations: {kind}", kind=tool_name(self.canvas.mode).lower()) + "</b>")
             colors_ = {self.prefs.style(self.canvas.mode).color}
@@ -2346,6 +2538,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.color_button.setText(color_name(color) if color else (tr("(several)") if chosen else "—"))
         self.color_button.setEnabled(self.doc is not None and (bool(chosen) or self.canvas.mode in ANNOTATING))
         one = chosen[0] if len(chosen) == 1 else None
+        # Señales bloqueadas: rellenar el comentario no debe contar como un cambio del usuario.
         self.comment.blockSignals(True)
         self.comment.setEnabled(one is not None)
         text = one.contents if one is not None else ""
@@ -2357,8 +2550,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         p.comment_label.setText(tr("Text:") if one is not None and one.kind in TEXTUAL + ("note", "caret")
                                 else tr("Comment:"))
         tags = ", ".join(one.tags) if one is not None else ""
+        # The tags field is not overwritten while the user is typing in it.
         if p.tags.text() != tags and not p.tags.hasFocus():
             p.tags.setText(tags)
+        # Las respuestas se rehacen siempre; son pocas por anotación.
         p.replies.clear()
         if one is not None:
             for r in one.replies:
@@ -2371,6 +2566,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                 p.replies.addItem(f"{head}: {r.contents}" if r.contents else head)
         p.replies_label.setText(tr("Replies:") if one is None or not one.status()
                                 else tr("Replies (status: {status}):", status=tr(STATES[one.status()])))
+        # The status box works as a menu of actions: it always goes back to 'Set the status…'.
         p.status.blockSignals(True)
         p.status.clear()
         p.status.addItem(tr("Set the status…"), "")
@@ -2387,6 +2583,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                   self.a_zoom_out, self.page_spin, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
                   self.a_import_xfdf, self.a_print, self.a_find, self.a_compare, *self.tool_actions.values()):
             w.setEnabled(has)
+        # ocr.available() se calcula una sola vez (functools.cache): si se instala Tesseract con la ventana
+        # abierta, no se nota hasta reiniciar.
         from ..annotate import ocr
 
         self.a_ocr.setEnabled(has and ocr.available())
@@ -2398,6 +2596,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         for w in (self.a_export_md, self.a_export_csv, self.a_export_apparatus, self.a_export_json, self.a_export_xfdf, self.a_summary,
                   self.a_next_annot, self.a_prev_annot):
             w.setEnabled(has and bool(self._rows))
+        # Save is enabled only with something to save; Save as, with any document.
         self.a_save.setEnabled(has and self.is_modified())
         self.a_clear_all.setEnabled(bool(self.annotations))
         self.a_paste.setEnabled(has and bool(_CLIPBOARD))
@@ -2408,15 +2607,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         for w in (self.a_delete, self.b_delete, self.a_props, self.b_props, self.a_copy, self.a_duplicate,
                   self.a_lock):
             w.setEnabled(bool(self.selected))
+        # Al final, las acciones de los modos inactivos vuelven a desactivarse: el bucle de arriba las habilitó.
         if hasattr(self, "modes"):
             self._mode_enable()
 
     # ----------------------------------------------------------------- unsaved changes
 
     def is_modified(self) -> bool:
+        # A working copy means changes to the document itself (Pages, Impose) not yet saved.
         return self.annotations != self.saved or self.layers != self.saved_layers or self.work is not None
 
     def _update_title(self):
+        # [*] es el marcador de Qt: muestra un asterisco cuando setWindowModified(True).
         name = f"{self.path.name}[*] — py-pdftools" if self.path else "py-pdftools"
         self.setWindowTitle(name)
         self.setWindowModified(self.is_modified())
@@ -2435,9 +2637,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if not self.is_modified():
             return True
         answer = self.ask_unsaved()
+        # If saving fails, the caller stops: the window stays open, or the other document is not opened.
         if answer == QMessageBox.StandardButton.Save:
             return self.save()
         if answer == QMessageBox.StandardButton.Discard:
+            # Descartar también borra la copia de recuperación: no se ofrecerá la próxima vez.
             if self.path is not None:
                 recovery.discard(self.path)
             return True
@@ -2450,6 +2654,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             event.acceptProposedAction()
 
     def dropEvent(self, event):
+        # Solo se abre el primer PDF soltado: la ventana muestra un documento.
         for u in event.mimeData().urls():
             if u.toLocalFile().lower().endswith(".pdf"):
                 self.open_path(Path(u.toLocalFile()))
@@ -2462,6 +2667,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         QMessageBox.warning(self, title, text)
 
     def status(self, text: str, error: bool = False):
+        # Los errores quedan en la barra de estado hasta el próximo mensaje; los demás, 8 segundos.
         self.statusBar().setStyleSheet("color: #c0392b;" if error else "")
         self.statusBar().showMessage(text, 0 if error else 8000)
 

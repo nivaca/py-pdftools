@@ -32,6 +32,8 @@ def _hidden_text_spans(page: pymupdf.Page) -> int:
     """How many pieces of text of PAGE are not drawn (text render mode 3)."""
     n = 0
     for trace in page.get_texttrace():
+        # El tipo 3 es el modo de render 3 (texto que no se pinta), el de las capas de OCR; la opacidad 0
+        # atrapa el texto pintado pero transparente.
         if trace.get("type") == 3 or trace.get("opacity", 1) == 0:
             n += 1
     return n
@@ -40,6 +42,7 @@ def _hidden_text_spans(page: pymupdf.Page) -> int:
 def inspect(doc: pymupdf.Document) -> dict[str, int]:
     """{kind: how many} of what DOC holds (0: none; -1: some, not counted)."""
     found = {k: 0 for k, _, _ in KINDS}
+    # 'format' and 'encryption' are not written by anyone: PyMuPDF derives them from the file.
     meta = {k: v for k, v in (doc.metadata or {}).items() if v and k not in ("format", "encryption")}
     found["metadata"] = len(meta) + (1 if doc.get_xml_metadata().strip() else 0)
     found["attachments"] = doc.embfile_count()
@@ -47,6 +50,8 @@ def inspect(doc: pymupdf.Document) -> dict[str, int]:
     found["page_labels"] = len(doc.get_page_labels())
     for page in doc:
         for annot in page.annots() or []:
+            # Un adjunto de página es una anotación, pero se cuenta con los adjuntos; los enlaces, las marcas
+            # /Redact y los campos de formulario no son comentarios.
             if annot.type[0] == pymupdf.PDF_ANNOT_FILE_ATTACHMENT:
                 found["attachments"] += 1
             elif annot.type[0] not in (pymupdf.PDF_ANNOT_LINK, pymupdf.PDF_ANNOT_REDACT, pymupdf.PDF_ANNOT_WIDGET):
@@ -54,9 +59,12 @@ def inspect(doc: pymupdf.Document) -> dict[str, int]:
         found["forms"] += len(list(page.widgets() or []))
         found["links"] += len(page.get_links())
         found["hidden_text"] += _hidden_text_spans(page)
+        # Búsqueda aproximada: /Thumb en el texto del diccionario de la página. Las páginas sin
+        # contenido se saltan.
         if page.get_contents() and "/Thumb" in doc.xref_object(page.xref):
             found["thumbnails"] += 1
     try:
+        # Document-level JavaScript or an OpenAction counts as one more item under 'links'.
         if doc.xref_get_key(doc.pdf_catalog(), "Names/JavaScript")[0] != "null" \
                 or doc.xref_get_key(doc.pdf_catalog(), "OpenAction")[0] != "null":
             found["links"] += 1
@@ -71,6 +79,7 @@ def remove(doc: pymupdf.Document, kinds: set[str]) -> None:
     'unused' objects go when DOC is saved with garbage collection, as
     write_redacted always does."""
     if "forms" in kinds:  # (flattened first: its looks stay on the page)
+        # annots=False: only the fields are baked into the page; comments are handled just below.
         doc.bake(annots=False, widgets=True)
     if "comments" in kinds:
         for page in doc:
@@ -78,6 +87,8 @@ def remove(doc: pymupdf.Document, kinds: set[str]) -> None:
                 if annot.type[0] not in (pymupdf.PDF_ANNOT_LINK, pymupdf.PDF_ANNOT_REDACT,
                                          pymupdf.PDF_ANNOT_FILE_ATTACHMENT):
                     page.delete_annot(annot)
+    # redactions=False: las marcas /Redact quedan para redact(), que las quita antes de aplicar los
+    # recuadros; clean_pages=False deja intacto el contenido de las páginas.
     doc.scrub(attached_files="attachments" in kinds, clean_pages=False, embedded_files="attachments" in kinds,
               hidden_text="hidden_text" in kinds, javascript="links" in kinds, metadata="metadata" in kinds,
               redactions=False, remove_links="links" in kinds, reset_fields=False, reset_responses=False,

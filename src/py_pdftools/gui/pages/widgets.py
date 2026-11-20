@@ -17,6 +17,7 @@ from ...pages.labels import Range
 from ...pages.numbers import folio_side, to_folio
 
 FIRST, STYLE, START, PREFIX, SUFFIX, LABELS = range(6)  # the columns of the table of ranges
+# La columna de etiquetas no se edita: solo muestra lo que da el intervalo.
 EDITABLE = (FIRST, STYLE, START, PREFIX, SUFFIX)
 
 
@@ -26,15 +27,18 @@ class StartSpin(QSpinBox):
     def __init__(self, folio: bool):
         super().__init__()
         self.folio = folio
+        # In folio style the value counts sides (1r = 1, 1v = 2, 2r = 3...), and the text shows them as leaves.
         self.setRange(1, 999999)
 
     def set_folio(self, folio: bool):
         """Count leaves and sides (or not) from now on, keeping the number shown."""
         if folio != self.folio:
             value = self.value()
+            # Al pasar a folios, el número N se vuelve el recto de la hoja N; al volver, cada hoja vuelve a su número.
             value = folio_side(value, "r") if folio else (value + 1) // 2
             self.folio = folio
             self.setValue(value)
+            # setValue does not redraw the text if the value is unchanged, but its meaning has changed: write it again.
             self.lineEdit().setText(self.textFromValue(value))
 
     def textFromValue(self, value: int) -> str:
@@ -43,12 +47,14 @@ class StartSpin(QSpinBox):
     def valueFromText(self, text: str) -> int:
         if not self.folio:
             return int(text)
+        # "12" sin lado se entiende como recto (12r). Un texto que no se puede leer deja el valor que había.
         m = re.fullmatch(r"\s*(\d+)\s*([rv]?)\s*", text)
         return folio_side(int(m[1]), m[2]) if m and int(m[1]) else self.value()
 
     def validate(self, text: str, pos: int):
         if not self.folio:
             return super().validate(text, pos)
+        # Mientras se escribe, un texto solo con cifras es intermedio: puede faltar todavía el lado (r o v).
         if re.fullmatch(r"\s*[1-9]\d*\s*[rv]?\s*", text):
             return QValidator.State.Acceptable, text, pos
         return (QValidator.State.Intermediate if re.fullmatch(r"\s*\d*\s*", text)
@@ -64,6 +70,7 @@ class NumberDialog(QDialog):
         self.count = count
         self.setWindowTitle(tr("Number these pages"))
         self.style = QComboBox()
+        # Pages already numbered have some style; "no number" (the empty code) is left out of this dialog.
         for code in labels.STYLES:
             if code:
                 self.style.addItem(tr(labels.STYLE_TITLES[code]), code)
@@ -97,13 +104,16 @@ class NumberDialog(QDialog):
         return self.style.currentData(), self.prefix.text(), self.start.value(), self.suffix.text()
 
     def _changed(self, *_):
+        # El estilo folio cambia el modo del campo de inicio antes de leer su valor.
         self.start.set_folio(self.style.currentData() == "f")
         style, prefix, start, suffix = self.values()
+        # The preview describes the labels as if the range started at page 1 and lasted COUNT pages.
         self.preview.setText(labels.describe(Range(1, style, prefix, start, suffix), self.count))
 
 
 # the field of a Range each editable column changes, and how to read it from its widget
 FIELDS = {
+    # Unbound methods, called later with the widget of each cell: FIELDS[col][1](widget).
     FIRST: ("page", QSpinBox.value),
     STYLE: ("style", QComboBox.currentData),
     START: ("start", QSpinBox.value),
@@ -114,6 +124,8 @@ FIELDS = {
 
 def edited_signal(widget: QWidget):
     """The signal a widget of the table sends when the user has changed it."""
+    # Las cajas de texto avisan solo al terminar (Enter o al perder el foco), no con cada tecla:
+    # cada aviso cambia el documento y añade un paso al historial.
     return widget.currentIndexChanged if isinstance(widget, QComboBox) else widget.editingFinished
 
 
@@ -132,6 +144,7 @@ def range_row(r: Range, last: int, count: int, first_row: bool) -> dict[int, QWi
 
     start = StartSpin(r.style == "f")
     start.setValue(r.start)
+    # Sin estilo (solo prefijo) no hay número de inicio ni sufijo: esos campos se deshabilitan.
     start.setEnabled(bool(r.style))
     start.setToolTip(tr("The leaf and side of the first page of the range (12r, 12v)") if r.style == "f"
                      else tr("The number of the first page of the range"))
@@ -148,6 +161,7 @@ def range_row(r: Range, last: int, count: int, first_row: bool) -> dict[int, QWi
     suffix.setToolTip(tr("Text put after the number of each page (PDF has no suffixes: such labels "
                          "are written one for each page)"))
 
+    # The text is shown as plain text, since a prefix may contain "<" or "&".
     shown = QLabel(f"{labels.describe(r, last)}   ({labels.pages_text(r, last)})")
     shown.setTextFormat(Qt.TextFormat.PlainText)
     shown.setContentsMargins(6, 0, 6, 0)
@@ -162,5 +176,6 @@ def fit_columns(table: QTableWidget) -> None:
     """Make the editable columns as wide as their widgets and headers (ResizeToContents ignores
     cell widgets)."""
     for col in EDITABLE:
+        # Rows are sized by their widgets' size hints, which ResizeToContents does not consult.
         widths = [table.cellWidget(row, col).sizeHint().width() for row in range(table.rowCount())]
         table.setColumnWidth(col, max(widths + [header_width(table, col)]) + 4)

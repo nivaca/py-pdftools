@@ -14,6 +14,7 @@ from .common import COMMANDS, Context, ImpositionError, Result
 from ..core import interface
 from ..core.interface import tr
 
+# Preferencias globales. 'interface' va aparte porque hay que leerla antes de construir el parser (véase __init__.py).
 GLOBAL_DEFAULTS = {"units": "cm", "registration": "black", "bleed": "use", "pdfx": False, "quiet": False}
 PREFERENCE_NAMES = set(GLOBAL_DEFAULTS) | {"interface"}
 
@@ -21,6 +22,8 @@ PREFERENCE_NAMES = set(GLOBAL_DEFAULTS) | {"interface"}
 def global_parent() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(add_help=False)
     g = p.add_argument_group(tr("preferences"))
+    # SUPPRESS leaves an option out of the namespace when it is not given, so a step can tell 'not set' from
+    # the default and inherit the value of the outer context.
     g.add_argument("--units", choices=["cm", "mm", "in", "pt"], default=argparse.SUPPRESS,
                    help=tr("unit for lengths given without a suffix (default: cm)"))
     g.add_argument("--registration", choices=["black", "cmyk", "all"], default=argparse.SUPPRESS,
@@ -54,6 +57,8 @@ def build_parser(prog: str = "py-pdftools impose") -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", metavar=tr("COMMAND"))
     for name in sorted(COMMANDS):
         cmd = COMMANDS[name]
+        # Cada subcomando repite las preferencias globales (parents), que así pueden ir antes o después del nombre del
+        # comando.
         sp = sub.add_parser(name, help=tr(cmd.help), description=translate_paragraphs(cmd.description or cmd.help),
                             parents=[parent], formatter_class=argparse.RawDescriptionHelpFormatter)
         if cmd.needs_input is True:
@@ -73,6 +78,8 @@ def translate_paragraphs(text: str) -> str:
 
 def make_context(ns: argparse.Namespace, input_path: Path | None = None, base: Context | None = None) -> Context:
     base = base or Context()
+    # Values not given on this step's command line come from the base context, so the options of a sequence
+    # apply to all its steps.
     vals = {k: getattr(ns, k, None) for k in GLOBAL_DEFAULTS}
     return Context(
         units=vals["units"] or base.units,
@@ -82,6 +89,7 @@ def make_context(ns: argparse.Namespace, input_path: Path | None = None, base: C
         conform=getattr(ns, "conform", None) or base.conform,
         input_path=input_path or base.input_path,
         quiet=bool(vals["quiet"]) or base.quiet,
+        # La misma lista, no una copia: los avisos de todos los pasos se acumulan en el contexto exterior.
         warnings=base.warnings,
     )
 
@@ -95,6 +103,7 @@ def run_command(pdf: Pdf | None, tokens: list[str], ctx: Context) -> Result:
     argv = list(tokens)
     if cmd.needs_input is True:
         argv.insert(1, "-")  # placeholder input
+    # argparse sale con SystemExit ante opciones inválidas; dentro de una secuencia eso no debe terminar el programa.
     try:
         ns = parser.parse_args(argv)
     except SystemExit:
@@ -107,6 +116,7 @@ def run_command(pdf: Pdf | None, tokens: list[str], ctx: Context) -> Result:
 
 def record(src: Pdf | None, result: Result, tokens: list[str]):
     """Store the command in each output's history ("imposition by example")."""
+    # La historia del documento de origen se hereda y se le añade este comando; así cualquier salida puede rehacerse.
     hist = pu.get_history(src) if src is not None else []
     outs = result.values() if isinstance(result, dict) else [result]
     for out in outs:
@@ -117,10 +127,13 @@ def run_steps(pdf: Pdf | None, steps: list[list[str]], ctx: Context) -> Result:
     """Run several commands; each step works on the previous step's result."""
     current: Result | None = pdf
     for i, tokens in enumerate(steps):
+        # Un resultado con varios documentos (p. ej. anversos y reversos aparte) no puede pasar a otro paso.
         if isinstance(current, dict):
             raise ImpositionError(
                 tr('step {index} ({steps}) produced several documents; it must be the last step', index=i, steps=steps[i - 1][0]))
         current = run_command(current, tokens, ctx)
+        # Each result is saved and reopened in memory, so the next step works on a self-contained document,
+        # with no objects still owned by an earlier source.
         if not isinstance(current, dict):
             current = pu.roundtrip(current)
         else:
@@ -136,12 +149,14 @@ def save_result(result: Result, output: Path, standard: str = "", checks: dict |
         raise ImpositionError(tr("{command} is not installed (or not on the PATH), and --conform needs it",
                                  command=conform.COMMAND))
     if isinstance(result, dict):
+        # Several outputs: out.pdf becomes out-fronts.pdf, out-backs.pdf and so on.
         paths = [output.with_name(f"{output.stem}-{suffix}{output.suffix or '.pdf'}") for suffix in result]
         for path, pdf in zip(paths, result.values()):
             pdf.save(path)
     else:
         result.save(output)
         paths = [output]
+    # La conversión a PDF/A o PDF/X reescribe cada archivo en su sitio, después de guardarlo como PDF normal.
     if standard:
         for path in paths:
             try:
@@ -160,11 +175,13 @@ def strip_io(argv: list[str], ns: argparse.Namespace) -> list[str]:
     out = []
     skip = False
     started = False
+    # The input path is removed only once, the first time it appears after the command name.
     inp = str(ns.input) if getattr(ns, "input", None) is not None else None
     for tok in argv:
         if skip:
             skip = False
             continue
+        # Todo lo que va antes del nombre del comando (preferencias globales) queda fuera del paso.
         if not started:
             if tok == ns.command:
                 started = True
@@ -176,6 +193,8 @@ def strip_io(argv: list[str], ns: argparse.Namespace) -> list[str]:
             continue
         if tok.startswith(("--output=", "--interface=", "--conform=")):
             continue
+        # TODO: str(Path) normaliza la ruta ('./a.pdf' da 'a.pdf'); una entrada escrita así no se reconoce
+        # y queda grabada en el paso.
         if inp is not None and tok == inp:
             inp = None
             continue

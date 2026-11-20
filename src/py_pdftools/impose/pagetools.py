@@ -23,6 +23,7 @@ def normalized(pdf: Pdf, i: int, imp: pu.Importer | None = None) -> Dictionary:
     """Make page i unrotated with its MediaBox at the origin, replacing it in place."""
     page = pdf.pages[i].obj
     new = pu.normalize_page(pdf, page, imp)
+    # normalize_page devuelve otro objeto si hubo que girar o desplazar; la página nueva sustituye a la vieja.
     if new is not page:
         pdf.pages[i] = Page(new)
         return pdf.pages[i].obj
@@ -31,11 +32,14 @@ def normalized(pdf: Pdf, i: int, imp: pu.Importer | None = None) -> Dictionary:
 
 def wrap_content(pdf: Pdf, page: Dictionary, prefix: bytes, suffix: bytes = b"Q\n"):
     """Surround the page's content with prefix/suffix operators (prefix should start with 'q')."""
+    # TODO: 'c' no se usa (ruff F841); crear el Canvas solo sirve para que la página tenga sus propios /Resources.
+    # Si ese efecto hace falta, convendría pedirlo de forma explícita.
     c = pu.Canvas(pdf, page)
     existing = page.get("/Contents")
     items = []
     if existing is not None:
         items = list(existing) if isinstance(existing, pikepdf.Array) else [existing]
+    # The prefix brings its own q; the suffix closes it after a newline, in case the last stream does not end in one.
     page.Contents = pikepdf.Array([pdf.make_stream(prefix)] + items + [pdf.make_stream(b"\n" + suffix)])
 
 
@@ -45,6 +49,7 @@ def box_margins(page: Dictionary, ref: pu.Rect) -> dict[str, tuple[float, float,
     for key in ("/TrimBox", "/BleedBox", "/ArtBox"):
         if key in page:
             b = pu.norm_rect(page[key])
+            # Positive values mean the box lies outside ref, as a bleed does.
             out[key] = (ref[0] - b[0], ref[1] - b[1], b[2] - ref[2], b[3] - ref[3])
     return out
 
@@ -70,6 +75,7 @@ def parse_edge_amounts(values: list[str] | None, ctx: Context) -> dict[str, floa
         edge, amount = v.split("=", 1)
         edge = edge.strip().lower()
         amt = ctx.L(amount)
+        # 'all=LEN' adds to the four edges; repeated edges add up (left=1cm left=2mm).
         targets = EDGES if edge == "all" else (edge,)
         for e in targets:
             if e not in out:
@@ -122,6 +128,7 @@ def trim_shift(pdf: Pdf, a, ctx: Context):
     same = ctx.paper(a.same_size) if a.same_size else None
     var = None
     if a.shift_variable:
+        # --shift-variable right=0:3mm; sin segundo valor, el desplazamiento es el mismo en todas las páginas.
         d, _, rng = a.shift_variable.partition("=")
         f, _, l = rng.partition(":")
         var = (d, ctx.L(f), ctx.L(l or f))
@@ -133,9 +140,11 @@ def trim_shift(pdf: Pdf, a, ctx: Context):
         page = normalized(pdf, i, imp)
         cb = pu.crop_box(page)
         margins = box_margins(page, cb) if a.keep_bleed else {}
+        # Nueva caja visible: en cada borde se resta lo recortado y se suma lo añadido.
         new = (cb[0] + trims["left"] - adds["left"], cb[1] + trims["bottom"] - adds["bottom"],
                cb[2] - trims["right"] + adds["right"], cb[3] - trims["top"] + adds["top"])
         if same:
+            # --same-size centra la caja pedida sobre el centro de la anterior, tanto si recorta como si amplía.
             cx, cy = (new[0] + new[2]) / 2, (new[1] + new[3]) / 2
             new = (cx - same[0] / 2, cy - same[1] / 2, cx + same[0] / 2, cy + same[1] / 2)
         if new[2] - new[0] <= 1 or new[3] - new[1] <= 1:
@@ -143,9 +152,12 @@ def trim_shift(pdf: Pdf, a, ctx: Context):
         dx, dy = fixed
         if var:
             d, f, l = var
+            # Interpolación lineal entre la primera y la última página seleccionadas (k va de 0 a len(sel) - 1).
             amt = f + (l - f) * (k / (len(sel) - 1) if len(sel) > 1 else 0)
             dx += DIRS[d.strip().lower()][0] * amt
             dy += DIRS[d.strip().lower()][1] * amt
+        # improved: the content is clipped to the old crop box and then moved, so nothing cropped before can appear;
+        # the page boxes are set to the new area.
         if a.mode == "improved":
             prefix = b"q\n"
             if dx or dy:
@@ -155,6 +167,8 @@ def trim_shift(pdf: Pdf, a, ctx: Context):
             page.MediaBox = pu.rect_array(new)
             page.CropBox = pu.rect_array(new)
         else:
+            # original: el contenido no se toca. Se mueve la ventana (CropBox) en sentido contrario y la MediaBox crece
+            # si hace falta, de modo que puede reaparecer contenido que estaba recortado.
             mb = pu.media_box(page)
             new_s = (new[0] - dx, new[1] - dy, new[2] - dx, new[3] - dy)
             page.MediaBox = pu.rect_array((min(mb[0], new_s[0]), min(mb[1], new_s[1]),
@@ -192,10 +206,13 @@ def _creep_args(p):
                      "after folding and trimming. Run before 'booklet'."))
 def creep(pdf: Pdf, a, ctx: Context):
     n = len(pdf.pages)
+    # Con --scope document todo el documento es un solo cuadernillo, redondeado al múltiplo de 4 siguiente.
     sig = (-(-n // 4) * 4) if a.scope == "document" else a.signature
     if sig % 4:
         raise ImpositionError(tr("signature size must be a multiple of 4"))
     sheets = sig // 4
+    # --thickness gives the shift per sheet directly; --total is spread over the sheets, so the sheet farthest
+    # from the unmoved one gets the full amount.
     if a.thickness:
         per = ctx.L(a.thickness)
     else:
@@ -204,11 +221,14 @@ def creep(pdf: Pdf, a, ctx: Context):
     for i in range(n):
         j = i % sig  # position in signature
         k = min(j, sig - 1 - j) // 2  # sheet, 0 = outermost
+        # d: corrimiento de esta página, proporcional a su distancia (en pliegos) del pliego que no se mueve.
         d = (k if a.shift_most == "inside" else sheets - 1 - k) * per
         if d <= 0:
             continue
         recto = (j % 2 == 0)  # odd page numbers are rectos in left binding
         spine_left = recto if a.direction == "left" else not recto
+        # 'inside' moves the content toward the spine, since inner sheets stick out at the fore-edge after folding;
+        # 'outside' moves it the other way.
         toward_spine = -1 if spine_left else 1
         sign = toward_spine if a.shift_most == "inside" else -toward_spine
         page = normalized(pdf, i, imp)
@@ -216,11 +236,13 @@ def creep(pdf: Pdf, a, ctx: Context):
         if a.method == "shift":
             m = pu.translate(sign * d, 0)
         else:
+            # scale: en lugar de mover, se estrecha el contenido d puntos, anclado en el borde del que se aleja.
             w = pu.rect_w(cb)
             f = max(w - d, 1) / w
             # anchor: the edge content moves away from
             anchor = cb[0] if sign < 0 else cb[2]
             m = pu.chain(pu.translate(-anchor, 0), pu.scale(f, 1), pu.translate(anchor, 0))
+        # El recorte a la CropBox impide que el contenido desplazado asome por el otro borde.
         wrap_content(pdf, page, b"q\n" + pu.re_op(cb) + b" W n\n" + pu.cm_op(m))
     return pdf
 
@@ -262,6 +284,7 @@ def resize(pdf: Pdf, a, ctx: Context):
         from .units import orient
         target = orient(ctx.paper(a.size), a.orientation)
     elif a.same_as:
+        # --same-as toma el tamaño visible (con /Rotate) de esa página, sin sangrado.
         target = pu.visual_size(pdf.pages[page_number(a.same_as, n) - 1].obj, use_bleed=False)
     tol = ctx.L(a.similar) if a.similar else None
     if a.verify:
@@ -270,6 +293,7 @@ def resize(pdf: Pdf, a, ctx: Context):
         bad = []
         for i in sel:
             w, h = pu.visual_size(pdf.pages[i].obj, use_bleed=False)
+            # Tolerancia de medio punto, para absorber los redondeos de la conversión de unidades.
             if abs(w - target[0]) > 0.5 or abs(h - target[1]) > 0.5:
                 bad.append(tr("page {page}: {width}x{height}pt", page=i + 1, width=f"{w:.1f}", height=f"{h:.1f}"))
         if bad:
@@ -282,9 +306,12 @@ def resize(pdf: Pdf, a, ctx: Context):
             vw, vh = pu.visual_size(page, use_bleed=False)
             if tol is not None and (abs(vw - target[0]) > tol or abs(vh - target[1]) > tol):
                 continue
+            # Rotate through /Rotate first; normalized() below then bakes the rotation into the content.
             if a.rotate_to_fit != "no" and abs(vw - vh) > 1 and (vw > vh) != (target[0] > target[1]):
                 page.Rotate = (pu.page_rotation(page) + (90 if a.rotate_to_fit == "cw" else 270)) % 360
         page = normalized(pdf, i, imp)
+        # Con --keep-bleed (solo en anamórfico) se escala la zona de corte y el sangrado se conserva alrededor, con el
+        # mismo ancho.
         use_trim = a.keep_bleed and a.method == "anamorphic" and pu.has_bleed(page)
         cb = pu.trim_box(page) if use_trim else pu.crop_box(page)
         margins = box_margins(page, cb) if use_trim else {}
@@ -301,6 +328,7 @@ def resize(pdf: Pdf, a, ctx: Context):
             else:
                 sx = sy = 1.0
             NW, NH = W, H
+            # --only enlarge/shrink: the scale is limited to 1 in one direction, and the new page size follows it.
             if a.only == "enlarge":
                 sx, sy = max(sx, 1.0), max(sy, 1.0)
                 NW, NH = max(W, w * sx), max(H, h * sy)
@@ -311,15 +339,19 @@ def resize(pdf: Pdf, a, ctx: Context):
                 NW, NH = min(W, max(w * sx, W if sx < 1 else w)), min(H, max(h * sy, H if sy < 1 else h))
                 if sx == 1.0 and sy == 1.0:
                     NW, NH = min(W, w) if a.method == "none" else w, min(H, h) if a.method == "none" else h
+        # Se centra el contenido escalado en la página nueva de NW x NH.
         ox = (NW - w * sx) / 2
         oy = (NH - h * sy) / 2
         m = pu.chain(pu.translate(-cb[0], -cb[1]), pu.scale(sx, sy), pu.translate(ox, oy))
         prefix = b"q\n" + pu.cm_op(m)
+        # Except in anamorphic mode the page may get padding, so the content is clipped to its old box
+        # and nothing that was hidden shows in it.
         if a.no_uncover or a.method != "anamorphic":
             prefix += pu.re_op(pu.crop_box(page) if not use_trim else cb) + b" W n\n"
         wrap_content(pdf, page, prefix)
         new = (0, 0, NW, NH)
         if margins:
+            # Solo cuenta el sangrado exterior; un margen negativo (caja dentro de la de corte) se toma como cero.
             l, b, r, t = (max(v, 0) for v in (margins.get("/BleedBox") or (0, 0, 0, 0)))
             full = (0, 0, NW + l + r, NH + b + t)
             # shift so the trim area starts at the bleed margin
@@ -366,12 +398,15 @@ def rotate_pages(pdf: Pdf, a, ctx: Context):
         w, h = pu.visual_size(page, use_bleed=False)
         if a.only == "tall" and not h > w or a.only == "wide" and not w > h:
             continue
+        # Right angles only change /Rotate: no content is rewritten and nothing is lost.
         if abs(ang - round(ang / 90) * 90) < 1e-9:
             page.Rotate = (pu.page_rotation(page) + int(round(ang))) % 360
             continue
         page = normalized(pdf, i, imp)
         cb = pu.crop_box(page)
         cx, cy = (cb[0] + cb[2]) / 2, (cb[1] + cb[3]) / 2
+        # Giro libre alrededor del centro de la página; pu.rotate es antihorario, y por eso el ángulo (horario) va
+        # negativo.
         m = pu.chain(pu.translate(-cx, -cy), pu.rotate(-ang), pu.translate(cx, cy))
         prefix = b"q\n" + pu.cm_op(m)
         if a.crop_first:
@@ -379,6 +414,7 @@ def rotate_pages(pdf: Pdf, a, ctx: Context):
         if a.keep_size:
             wrap_content(pdf, page, prefix)
             continue
+        # Without --keep-size the page grows to the bounding box of the rotated crop box.
         new = pu.transform_rect(m, cb)
         wrap_content(pdf, page, prefix)
         page.MediaBox = pu.rect_array(new)
@@ -403,6 +439,7 @@ def duplicate(pdf: Pdf, a, ctx: Context):
         block = [i for i in sel for _ in range(a.copies + 1)]
     else:
         block = sel * (a.copies + 1)
+    # Las copias van donde estaba la primera página seleccionada; el resto conserva su orden.
     first = sel[0] if sel else n
     order = [i for i in range(n) if i not in sel and i < first] + block + \
             [i for i in range(n) if i not in sel and i > first]
@@ -438,6 +475,7 @@ def move(pdf: Pdf, a, ctx: Context):
     target = page_number(a.before or a.after, n) - 1
     if target in sel:
         raise ImpositionError(tr("the target page is one of the pages being moved"))
+    # Los números de --before/--after se refieren a la numeración original, antes de quitar las páginas movidas.
     rest = [i for i in range(n) if i not in sel]
     pos = rest.index(target) + (1 if a.after else 0)
     from .common import reorder
@@ -463,6 +501,8 @@ def _tile_args(p):
 
 
 def _spans(total: float, sizes: list[float]) -> list[tuple[float, float]]:
+    # Tiles of the given sizes (the list repeats) until they cover the length; the excess is shared out
+    # as overlap between neighbouring tiles.
     seq, acc, k = [], 0.0, 0
     while acc < total - 1e-6:
         s = sizes[k % len(sizes)]
@@ -484,6 +524,7 @@ def _spans(total: float, sizes: list[float]) -> list[tuple[float, float]]:
 def tile(pdf: Pdf, a, ctx: Context):
     ov = ctx.L(a.overlap)
     if a.undo_booklet:
+        # Deshacer un folleto es cortar cada pliego en dos mitades y reordenarlas (véase más abajo).
         a.grid, ov = "2x1", 0.0
     if not (a.grid or a.sizes):
         raise ImpositionError(tr("give --grid, --sizes or --undo-booklet"))
@@ -501,6 +542,8 @@ def tile(pdf: Pdf, a, ctx: Context):
             if not m:
                 raise ImpositionError(tr("--grid must look like 2x1"))
             cols, rows = int(m.group(1)), int(m.group(2))
+            # Con --overlap-bleed las teselas se cortan sin solapar y el solape pasa a ser sangrado; si no, cada tesela
+            # crece para que las vecinas compartan ov puntos.
             if a.overlap_bleed and ov:
                 xs = [(w * c / cols, w * (c + 1) / cols) for c in range(cols)]
                 ys = [(h * r / rows, h * (r + 1) / rows) for r in range(rows)]
@@ -515,9 +558,13 @@ def tile(pdf: Pdf, a, ctx: Context):
         for ri, (y0, y1) in enumerate(reversed(ys)):  # top row first
             for ci, (x0, x1) in enumerate(xs):
                 trim = (cb[0] + x0, cb[1] + y0, cb[0] + x1, cb[1] + y1)
+                # Each tile is a copy of the page dictionary that shares its content and resources; only the boxes
+                # change.
+                # /Parent is left out: pikepdf sets it when the page is appended.
                 new = Dictionary({k: v for k, v in page.items() if k not in ("/Parent",)})
                 new.Type = Name.Page
                 if a.overlap_bleed and ov and a.grid:
+                    # rr cuenta las filas desde abajo; los bordes exteriores de la página no reciben sangrado.
                     rr = len(ys) - 1 - ri
                     bl = ov if ci > 0 else 0
                     br = ov if ci < len(xs) - 1 else 0
@@ -540,6 +587,8 @@ def tile(pdf: Pdf, a, ctx: Context):
     if a.undo_booklet:
         from .impose import booklet_order
         total = len(out.pages)
+        # booklet_order dice qué páginas lleva cada cara de pliego; aquí se invierte para saber en qué mitad cortada
+        # quedó cada página lógica.
         sides = booklet_order(total, a.undo_booklet, a.signature, "full", a.direction)
         mapping = {}
         for s_idx, side in enumerate(sides):

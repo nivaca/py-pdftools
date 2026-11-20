@@ -29,9 +29,11 @@ class ConfigError(Exception):
 
 
 def config_dir() -> Path:
+    # La variable de entorno manda: así los tests, o quien quiera una configuración aparte, no tocan la del usuario.
     if os.environ.get(ENV):
         return Path(os.environ[ENV])
     if sys.platform == "win32":
+        # Without APPDATA (a service, a reduced environment) the usual Roaming folder is used.
         return Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming") / "py-pdftools"
     if sys.platform == "darwin":
         return Path.home() / "Library" / "Application Support" / "py-pdftools"
@@ -51,6 +53,7 @@ def read() -> dict[str, dict]:
         return {}
     except OSError as e:
         raise ConfigError(f"{path}: {e}") from None
+    # Un archivo que existe pero no es TOML válido es un error, no una configuración vacía: decide quien llama.
     try:
         data = tomllib.loads(text)
     except tomllib.TOMLDecodeError as e:
@@ -59,6 +62,7 @@ def read() -> dict[str, dict]:
 
 
 def get(name: str):
+    # Un archivo dañado no debe impedir que el programa arranque: se usa el valor por omisión.
     try:
         value = read().get("parameters", {}).get(name)
     except ConfigError:
@@ -74,8 +78,10 @@ def set(name: str, value) -> Path:
 def set_many(values: dict) -> Path:
     """Change several settings at once, keeping the others (a value None
     removes its setting). Returns the file's path."""
+    # Importación diferida: config se carga muy pronto, y el módulo de idiomas solo hace falta al escribir.
     from .interface import tr
 
+    # If the present file is damaged, it is written again from scratch with the new values.
     try:
         data = read()
     except ConfigError:
@@ -88,15 +94,20 @@ def set_many(values: dict) -> Path:
             params[name] = value
     path = config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
+    # TODO: solo se escribe la tabla [parameters]: cualquier otra tabla del archivo se pierde, y una lista o
+    # tabla anidada saldría como cadena. Convendría un escritor de TOML completo (tomli-w, por ejemplo).
     lines = ["# " + tr("The settings of py-pdftools. Delete this file to use the usual values."), "",
              "[parameters]"]
+    # A small TOML writer of our own: only booleans, numbers and strings are kept in [parameters].
     for key, val in params.items():
+        # bool va antes que int: en Python, True también es un int.
         if isinstance(val, bool):
             lines.append(f"{key} = {'true' if val else 'false'}")
         elif isinstance(val, (int, float)):
             lines.append(f"{key} = {val}")
         else:
             lines.append(f'{key} = "' + str(val).replace("\\", "\\\\").replace('"', '\\"') + '"')
+    # Write a temporary file and rename it, so that a crash never leaves half a config.toml behind.
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
     os.replace(tmp, path)

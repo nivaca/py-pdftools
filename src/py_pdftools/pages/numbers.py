@@ -13,6 +13,7 @@ def to_roman(n: int) -> str:
     """N in uppercase roman numerals (thousands beyond 3999 as more Ms)."""
     out = []
     for value, digits in ROMAN:
+        # Los pares sustractivos (CM, XC, IV...) ya están en ROMAN, así que basta restar de mayor a menor.
         count, n = divmod(n, value)
         out.append(digits * count)
     return "".join(out)
@@ -26,22 +27,27 @@ def from_roman(s: str) -> int | None:
     n = 0
     for i, c in enumerate(s):
         v = ROMAN_VALUES[c]
+        # A smaller numeral before a larger one subtracts (IV, XC).
         n += -v if i + 1 < len(s) and ROMAN_VALUES[s[i + 1]] > v else v
+    # The round trip rejects non-canonical forms such as IIII or VX, which to_roman would never write.
     return n if n > 0 and to_roman(n) == s else None
 
 
 def to_letters(n: int) -> str:
     """N as the PDF numbers pages with letters: A ... Z, AA ... ZZ, AAA ..."""
+    # No es base 26: la letra se repite (27 es AA, 53 es AAA), como piden los estilos /a y /A de la norma PDF.
     return chr(ord("A") + (n - 1) % 26) * ((n - 1) // 26 + 1)
 
 
 def from_letters(s: str) -> int:
     """The number S (one letter, repeated: as to_letters writes it, in either case) stands for."""
+    # TODO: no comprueba que todas las letras sean iguales ('AB' da 27); conviene validarlo aquí o en quien llama.
     return (len(s) - 1) * 26 + ord(s[0].lower()) - ord("a") + 1
 
 
 def to_folio(side: int) -> str:
     """SIDE (1, 2, 3 ...) as a folio: 1r, 1v, 2r ..."""
+    # Odd sides are rectos and even sides versos; two sides make one leaf.
     return f"{(side + 1) // 2}{'r' if side % 2 else 'v'}"
 
 
@@ -69,5 +75,6 @@ def format_number(n: int, style: str) -> str:
     elif style == "f":
         return to_folio(n)
     else:
+        # Estilo vacío: la etiqueta se reduce a su prefijo.
         return ""
     return s.lower() if style.islower() else s

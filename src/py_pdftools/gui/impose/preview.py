@@ -34,6 +34,8 @@ class PdfPane(QWidget):
         self.info.setMinimumWidth(40)
         self.outputs = QComboBox()
         self.outputs.setVisible(False)
+        # Cuando un comando escribe varios archivos, este menú elige cuál se ve; el panel avisa y el espacio
+        # de trabajo carga el archivo.
         self.outputs.currentIndexChanged.connect(self.output_selected.emit)
         self.page = QSpinBox()
         self.page.setMinimum(1)
@@ -48,6 +50,7 @@ class PdfPane(QWidget):
         self.scroll.setWidgetResizable(True)
         self.scroll.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.scroll.setStyleSheet("QScrollArea { background: palette(dark); }")
+        # Al cambiar el tamaño del panel se redibuja con 50 ms de retraso, una vez y no por cada píxel.
         self._redraw = QTimer(self, singleShot=True, interval=50)
         self._redraw.timeout.connect(self._draw)
 
@@ -80,6 +83,8 @@ class PdfPane(QWidget):
     def load(self, path: Path | None, note: str = ""):
         """Show PATH. A new version of what is shown (a result made again, which is always written
         to the same folder) stays on the page being looked at; another document starts at page 1."""
+        # Todos los resultados se escriben en la carpeta temporal del espacio de trabajo: si el archivo nuevo
+        # está en la misma carpeta que el anterior, se trata como otra versión del mismo resultado.
         keep = self.path is not None and path is not None and path.parent == self.path.parent
         before = self.page.value() if keep else 1
         self._close()
@@ -89,10 +94,13 @@ class PdfPane(QWidget):
             return
         try:
             self.doc = pymupdf.open(path)
+        # pymupdf raises FileDataError for a damaged file and RuntimeError for other failures; either is shown
+        # as the note.
         except (pymupdf.FileDataError, RuntimeError) as e:
             self.clear(str(e))
             return
         n = self.doc.page_count
+        # Blocked so that setting the range and value does not draw the page before the document is ready.
         self.page.blockSignals(True)
         self.page.setMaximum(max(n, 1))
         self.page.setValue(min(before, max(n, 1)))
@@ -100,6 +108,7 @@ class PdfPane(QWidget):
         self.page.setEnabled(n > 1)
         self.page.blockSignals(False)
         r = self.doc[0].rect if n else None
+        # El tamaño se da en centímetros, a partir de la primera página (72 puntos por pulgada, 2,54 cm por pulgada).
         dims = f"{r.width / 72 * 2.54:.1f} × {r.height / 72 * 2.54:.1f} cm" if r else ""
         self.info.setText(ntr("{name} — {count} page", "{name} — {count} pages", n, name=path.name)
                           + (", " + dims if dims else "") + (" — " + note if note else ""))
@@ -120,6 +129,7 @@ class PdfPane(QWidget):
         self.picture.clear()
 
     def set_outputs(self, names: list[str]):
+        # Sin señales mientras se rellena la lista, para no pedir otra salida en medio del cambio.
         self.outputs.blockSignals(True)
         self.outputs.clear()
         self.outputs.addItems(names)
@@ -132,6 +142,8 @@ class PdfPane(QWidget):
         room = self.scroll.viewport().size()
         r = page.rect
         if self.fit == "page":
+            # A margin of a few pixels keeps the scroll bars from appearing when the page fits exactly; 0.05 is
+            # the smallest zoom, for very large sheets in a small pane.
             return max(min((room.width() - 16) / r.width, (room.height() - 16) / r.height), 0.05)
         if self.fit == "width":
             return max((room.width() - 24) / r.width, 0.05)
@@ -140,18 +152,23 @@ class PdfPane(QWidget):
     def _draw(self):
         if self.doc is None or not self.doc.page_count:
             return
+        # Se dibuja con la densidad real de la pantalla (devicePixelRatio), así la página se ve nítida
+        # en pantallas HiDPI.
         page = self.doc[min(self.page.value(), self.doc.page_count) - 1]
         scale = self._scale(page)
         ratio = self.devicePixelRatioF() or 1.0
         pix = page.get_pixmap(matrix=pymupdf.Matrix(scale * ratio, scale * ratio), alpha=False)
+        # copy() detaches the image from pymupdf's buffer, which is freed with the pixmap.
         image = QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
         picture = QPixmap.fromImage(image)
         picture.setDevicePixelRatio(ratio)
         self.picture.setPixmap(picture)
+        # El zoom real queda guardado, así acercar o alejar desde un ajuste parte de lo que se ve.
         self.zoom = scale
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
+        # Only a fitted zoom depends on the size of the pane; a fixed zoom needs no redraw.
         if self.fit:
             self._redraw.start()
 
@@ -161,6 +178,7 @@ class PdfPane(QWidget):
 
     def zoom_by(self, factor: float):
         self.fit = ""
+        # Zoom limits: from 5 % to 2000 %.
         self.zoom = max(0.05, min(self.zoom * factor, 20))
         self._draw()
 
@@ -172,6 +190,7 @@ class PdfPane(QWidget):
             super().wheelEvent(event)
 
     def keyPressEvent(self, event):
+        # Las flechas y Re Pág / Av Pág pasan de página solo cuando el panel tiene el foco.
         if event.key() in (Qt.Key.Key_PageDown, Qt.Key.Key_Right):
             self.page.setValue(min(self.page.value() + 1, self.page.maximum()))
         elif event.key() in (Qt.Key.Key_PageUp, Qt.Key.Key_Left):

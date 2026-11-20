@@ -50,6 +50,7 @@ from ..annotate.annots import (
 from ..core.interface import ntr, tr
 from .colors import color_name, swatch, swatches
 
+# Un centinela propio y no None: None o '' pueden ser valores reales de una propiedad (sin color).
 SAME = object()  # (a property that differs among the annotations: left as each has it)
 
 
@@ -70,6 +71,7 @@ class ColorButton(QPushButton):
             self.setText(tr("(several)"))
             self.setIcon(swatch("#808080"))
         else:
+            # Para el relleno o el borde, '' significa sin color; none_text dice qué pasa entonces.
             self.setText(self.none_text if not self.color and self.none_text else color_name(self.color))
             self.setIcon(swatch(self.color))
 
@@ -81,9 +83,11 @@ class ColorButton(QPushButton):
             menu.addAction(swatch(""), self.none_text or tr("No colour"), lambda: self.set_color(""))
         menu.addSeparator()
         menu.addAction(tr("Other colour…"), self._dialog)
+        # The menu opens under the button, as a drop-down list would.
         menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
 
     def _dialog(self):
+        # Con varios colores distintos (SAME) o sin color, el diálogo empieza en negro.
         start = QColor(self.color) if isinstance(self.color, str) and self.color else QColor("#000000")
         chosen = QColorDialog.getColor(start, self, tr("Colour"))
         if chosen.isValid():
@@ -99,6 +103,8 @@ def _combo(choices: dict, value) -> QComboBox:
     box = QComboBox()
     for key, name in choices.items():
         box.addItem(tr(name), key)
+    # Index -1 leaves the box empty, so the placeholder '(several)' shows and changes() can tell that
+    # the user did not choose anything.
     box.setCurrentIndex(-1 if value is SAME else max(box.findData(value), 0))
     if value is SAME:
         box.setPlaceholderText(tr("(several)"))
@@ -114,6 +120,7 @@ class PropertiesDialog(QDialog):
         super().__init__(parent)
         self.annotations = annotations
         self.tool = tool
+        # Los campos que se muestran dependen de los tipos seleccionados: basta con que uno los use.
         kinds = {a.kind for a in annotations}
         if tool is not None:
             self.setWindowTitle(tr("Properties of the tool ({kind})", kind=tr(NAMES[annotations[0].kind]).lower()))
@@ -123,6 +130,7 @@ class PropertiesDialog(QDialog):
             self.setWindowTitle(ntr("Properties of the annotation", "Properties of the {count} annotations",
                                     len(annotations)))
 
+        # Un valor común a todas (o solo a las de AMONG, los tipos que tienen esa propiedad); si difieren, SAME.
         def common(name, among=None):
             values = {getattr(a, name) for a in annotations if among is None or a.kind in among}
             return values.pop() if len(values) == 1 else SAME
@@ -140,6 +148,7 @@ class PropertiesDialog(QDialog):
             self.fill = ColorButton(common("fill", FILLED), none=True)
             form.addRow(tr("Fill:"), self.fill)
         if kinds & set(STROKED):
+            # A text box may have no border (width 0); lines and shapes need at least a quarter of a point.
             self.width = self._number(common("width", STROKED), 0 if kinds & set(TEXTUAL) else 0.25, 20, " pt")
             form.addRow(tr("Border width:") if kinds <= set(TEXTUAL) else tr("Line width:"), self.width)
         if kinds & set(DASHABLE):
@@ -147,6 +156,7 @@ class PropertiesDialog(QDialog):
             form.addRow("", self.dashed)
         if kinds & (set(ENDED) | {"arrow"}):
             ends = common("ends", ENDED + ("arrow",))
+            # Una llamada solo tiene extremo final, el que apunta: no se le ofrece el inicial.
             if not kinds & {"callout"}:
                 self.start = _combo(ENDS, SAME if ends is SAME else ends[0])
                 form.addRow(tr("Start:"), self.start)
@@ -169,7 +179,9 @@ class PropertiesDialog(QDialog):
         self.opacity.setRange(10, 100)
         self.opacity.setSuffix(" %")
         opacity = common("opacity")
+        # Opacidad entre 10 y 100 %: una anotación invisible no se podría encontrar en la página.
         self.opacity.setValue(100 if opacity is SAME else round(opacity * 100))
+        # Values differ: 9, below the real range, stands for '(several)'; changes() ignores anything under 10.
         if opacity is SAME:
             self.opacity.setSpecialValueText(tr("(several)"))
             self.opacity.setMinimum(9)
@@ -189,6 +201,7 @@ class PropertiesDialog(QDialog):
             self.contents.setPlaceholderText(tr("(several)") if contents is SAME else "")
             self.contents.setMinimumHeight(110)
             self._contents_given = contents is not SAME
+            # For notes and text boxes the contents are the text itself; for the others, a comment on them.
             form.addRow(tr("Text:") if kinds <= {"note", "freetext", "callout", "caret"} else tr("Comment:"),
                         self.contents)
             author = common("author")
@@ -201,12 +214,15 @@ class PropertiesDialog(QDialog):
             self._tags_given = tags is not SAME
             form.addRow(tr("Tags:"), self.tags)
             self.categories = QListWidget()
+            # Las categorías del documento y, después, las que ya tengan las anotaciones aunque no estén en él.
             names = list(categories or [])
             for a in annotations:
                 names += [c for c in a.categories if c not in names]
             for name in names:
                 item = QListWidgetItem(name)
                 item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserCheckable)
+                # Una categoría que solo tienen algunas de las seleccionadas queda a medias (tres estados), y así
+                # apply() la deja como está en cada una.
                 have = sum(name in a.categories for a in annotations)
                 if 0 < have < len(annotations):
                     item.setFlags(item.flags() | Qt.ItemFlag.ItemIsUserTristate)
@@ -227,6 +243,7 @@ class PropertiesDialog(QDialog):
                 info.setStyleSheet("color: palette(placeholder-text);")
                 form.addRow("", info)
             lay.addWidget(note)
+            # La entrada de crítica textual solo se ofrece con una anotación seleccionada, no con varias.
             if len(annotations) == 1:
                 lay.addWidget(self._critical_box(annotations[0].critical))
             self.as_default.setToolTip(tr("The colours, the line, the font and the opacity"))
@@ -235,6 +252,7 @@ class PropertiesDialog(QDialog):
         else:
             behaviour = QGroupBox(tr("Behaviour"))
             form = QFormLayout(behaviour)
+            # Only for a tool: what it does after making an annotation, not how it looks.
             self.sticky = QCheckBox(tr("Keep the tool chosen after making an annotation"))
             self.sticky.setToolTip(tr("Otherwise, the Select tool is chosen again"))
             self.sticky.setChecked(tool.sticky)
@@ -253,6 +271,7 @@ class PropertiesDialog(QDialog):
         self.critical = box = QGroupBox(tr("Textual criticism"))
         box.setCheckable(True)
         box.setChecked(entry is not None)
+        # An empty entry, so the fields exist even if the box is unticked; critical_entry() checks the box.
         entry = entry or Critical("variant")
         form = QFormLayout(box)
         self.c_type = _combo(CRITICAL, entry.type)
@@ -275,6 +294,7 @@ class PropertiesDialog(QDialog):
     def critical_entry(self) -> Critical | None:
         if not self.critical.isChecked():
             return None
+        # Los espacios repetidos y los saltos de línea de cada campo se reducen a uno.
         return Critical(self.c_type.currentData() or "variant", confidence=self.c_confidence.currentData() or "",
                         **{k: " ".join(f.text().split()) for k, f in self.c_fields.items()})
 
@@ -284,6 +304,7 @@ class PropertiesDialog(QDialog):
         box.setDecimals(2 if high <= 20 else 1)
         box.setSingleStep(0.5)
         box.setSuffix(suffix)
+        # Same trick as the opacity: a value 0.01 under the range reads '(several)'.
         if value is SAME:  # (a value below the range, shown as "(several)")
             box.setRange(low - 0.01, high)
             box.setSpecialValueText(tr("(several)"))
@@ -314,6 +335,7 @@ class PropertiesDialog(QDialog):
             out["border"] = self.border.color
         for name in ("width", "font_size"):
             box = getattr(self, name)
+            # Solo se cambia si no es '(several)' o si el usuario movió el valor por encima del mínimo especial.
             if box is not None and (not box.specialValueText() or box.value() > box.minimum()):
                 out[name] = round(box.value(), 2)
         for name in ("font", "align", "icon"):
@@ -332,13 +354,17 @@ class PropertiesDialog(QDialog):
             out["opacity"] = self.opacity.value() / 100
         if self.contents is not None:
             text = self.contents.toPlainText()
+            # Con textos distintos, el campo empieza vacío: solo se cambian si el usuario escribió algo.
             if self._contents_given or text:
                 out["contents"] = text.strip("\n")
+        # An author left empty is kept as empty only when all had the same author; with several, nothing
+        # changes.
         if self.author is not None and (self.author.text() or len({a.author for a in self.annotations}) == 1):
             out["author"] = " ".join(self.author.text().split())
         if self.critical is not None:
             out["critical"] = self.critical_entry()
         if self.tags is not None and (self._tags_given or self.tags.text().strip()):
+            # Etiquetas separadas por comas, sin espacios sobrantes; las vacías se descartan.
             out["tags"] = tuple(t for t in (" ".join(x.split()) for x in self.tags.text().split(",")) if t)
         return out
 
@@ -346,10 +372,13 @@ class PropertiesDialog(QDialog):
         changes = dict(self.changes())
         kind = annotation.kind
         start, end = changes.pop("start", None), changes.pop("end", None)
+        # Ends are stored as a pair: the side not chosen keeps the annotation's own value.
         if (start or end) and (kind in ENDED or kind == "arrow"):
             changes["ends"] = (start or annotation.ends[0], end or annotation.ends[1])
         if annotation.rich and changes.get("contents", annotation.contents) != annotation.contents:
             changes["rich"] = ""  # (its text written here, plain: its formatting would no longer fit it)
+        # Una selección mixta: cada propiedad se aplica solo a los tipos que la tienen (el relleno no va
+        # a un subrayado).
         for name, kinds in (("fill", FILLED), ("border", TEXTUAL), ("width", STROKED), ("font_size", TEXTUAL),
                             ("font", TEXTUAL),
                             ("align", TEXTUAL), ("dashed", DASHABLE), ("icon", ("note",))):
@@ -369,6 +398,7 @@ class PropertiesDialog(QDialog):
     def style(self) -> settings.Style:
         """The tool's style, as the dialog leaves it."""
         changes = self.changes()
+        # Only the style fields go to the tool; contents, author and the like belong to annotations.
         fields = {k: v for k, v in changes.items() if k in settings.STYLE_FIELDS}
         style = dataclasses.replace(self.tool, **fields, sticky=self.sticky.isChecked(),
                                     show=self.show_after.currentData() or "")

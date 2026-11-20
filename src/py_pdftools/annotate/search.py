@@ -37,15 +37,19 @@ def page_chars(page: pymupdf.Page) -> tuple[str, list]:
     is shown), or None for a space put between two lines. Runs of spaces are one space. A word
     hyphenated at the end of a line is one word ("jus-" "tice": "justice"), its hyphen left out."""
     text, where = [], []
+    # rawdict da cada carácter con su caja; las imágenes no hacen falta, así que se quitan de las banderas.
     raw = page.get_text("rawdict", flags=pymupdf.TEXTFLAGS_SEARCH & ~pymupdf.TEXT_PRESERVE_IMAGES)
     for b, block in enumerate(raw.get("blocks", [])):
         for n, line in enumerate(block.get("lines", [])):
+            # 'first' marca el primer carácter visible de la línea, donde se decide cómo unirla con la anterior.
             first = True
             for span in line.get("spans", []):
                 for ch in span.get("chars", []):
                     c = ch["c"]
                     if first and not c.isspace():
                         first = False
+                        # Al empezar una línea: nada si es el comienzo de la página; fuera el guion si la palabra
+                        # sigue en minúscula; si no, un espacio entre las dos líneas.
                         if not text:
                             pass
                         elif (text[-1] in HYPHENS and len(text) > 1 and text[-2].isalpha() and c.isalpha()
@@ -55,6 +59,7 @@ def page_chars(page: pymupdf.Page) -> tuple[str, list]:
                         elif text[-1] != " ":
                             text.append(" ")
                             where.append(None)
+                    # Runs of whitespace become one space, and the spaces at the start of the page are dropped.
                     if c.isspace():
                         if not text or text[-1] == " ":
                             continue
@@ -73,9 +78,11 @@ def fold(text: str, accents: bool = True, uv: bool = False) -> tuple[str, list[i
     """TEXT without its accents (and ligatures, æ: ae; ſ: s), if ACCENTS; with v as u and j as i, if
     UV; and for each character of what is made, the place in TEXT of the one it comes from."""
     out, index = [], []
+    # INDEX maps each folded character back to its original; folding can make the text longer (æ: ae).
     for i, c in enumerate(text):
         f = c
         if accents:
+            # NFKD separa la letra de sus diacríticos, que se descartan; si no queda nada, se conserva el carácter.
             f = LIGATURES.get(c) or "".join(ch for ch in unicodedata.normalize("NFKD", c)
                                             if not unicodedata.combining(ch)) or c
         if uv:
@@ -92,11 +99,14 @@ def compile_query(query: str, case: bool = False, whole_words: bool = False, reg
     def word(w: str) -> str:
         escaped = re.escape(w)
         if wildcards:
+            # re.escape has escaped * and ?, so the wildcards are replaced in their escaped form.
             escaped = escaped.replace(r"\*", r"\w*").replace(r"\?", r"\w")
         return escaped
 
+    # Las palabras de la consulta se unen con \s+: se encuentran aunque el texto las separe con un salto de línea.
     pattern = query if regex else r"\s+".join(word(w) for w in query.split())
     if whole_words:
+        # Lookarounds instead of \b, which would fail when the query begins or ends with a sign that isn't a letter.
         pattern = rf"(?<!\w)(?:{pattern})(?!\w)"
     return re.compile(pattern, 0 if case else re.IGNORECASE)
 
@@ -118,6 +128,7 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
     numbers = list(range(doc.page_count) if pages is None else pages)
     out = []
     for done, number in enumerate(numbers, 1):
+        # The cache is keyed by page number alone: whoever passes it must empty it when the document changes.
         if cache is not None and number in cache:
             text, where = cache[number]
         else:
@@ -130,6 +141,7 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
             searched, index = text, None
         for m in found_re.finditer(searched):
             start, end = m.span()
+            # Las posiciones del texto plegado se traducen a las del original; una coincidencia vacía no sirve.
             if index is not None:
                 if start == end:
                     continue
@@ -137,11 +149,13 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
             chosen = [i for i in range(start, end) if where[i] is not None and not text[i].isspace()]
             if not chosen:
                 continue
+            # Un rectángulo por línea (bloque, línea): la unión de las cajas de sus caracteres.
             lines: dict[tuple[int, int], pymupdf.Rect] = {}
             for i in chosen:
                 b, n, r = where[i]
                 lines[(b, n)] = lines[(b, n)] | r if (b, n) in lines else pymupdf.Rect(r)
             rects = tuple((round(r.x0, 2), round(r.y0, 2), round(r.x1, 2), round(r.y1, 2)) for r in lines.values())
+            # El contexto: hasta 40 caracteres a cada lado, cortados donde empieza o acaba una palabra.
             before = text[max(start - 40, 0):start].split(" ", 1)[-1] if start > 40 else text[:start]
             after = text[end:end + 40].rsplit(" ", 1)[0] if len(text) > end + 40 else text[end:]
             snippet = text[start:end].strip()  # (as written on the page, not as folded)

@@ -28,10 +28,12 @@ def swatch(color: str, size: int = 16) -> QIcon:
 
 def color_name(color: str) -> str:
     for value, name in SWATCHES:
+        # Se compara en minúsculas; un color que no está en SWATCHES se muestra como #rrggbb.
         if value == color.lower():
             return tr(name)
     return color.lower()
 
 
+# Points (1/72 inch) to whole millimetres, as text for the table of boxes.
 def mm(points: float) -> str:
     return f"{points / 72 * 25.4:.0f}"

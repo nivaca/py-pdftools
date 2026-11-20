@@ -21,6 +21,7 @@ from PySide6.QtGui import QImage
 
 from ..core import rendering
 
+# Global switch read by available(); tests set it to False to render synchronously in the window.
 ENABLED = True  # (the tests turn it off: they want the page drawn at once)
 
 # path, password, stamp (the file's time and size), and whether to render the pages without the
@@ -29,14 +30,18 @@ Source = tuple[str, str, tuple, bool]
 
 
 class Lane:
+    # El pool se crea la primera vez que hace falta: así no se lanza ningún proceso si nunca se usa.
     def __init__(self):
         self.pool: ProcessPoolExecutor | None = None
         self.busy: tuple | None = None  # the key being rendered
         self.waiting: list[tuple] = []  # (key, arguments), in order
+        # Varias peticiones de la misma imagen esperan una sola renderización y reciben todas el resultado.
         self.callbacks: dict[tuple, list[Callable]] = {}
 
 
 class Renderer(QObject):
+    # Futures finish in a thread of the executor; the signal moves the result to the GUI thread,
+    # where QImage and the callbacks are safe to use.
     _arrived = Signal(object)  # (lane, key, future): from the executor's thread to the window's
 
     def __init__(self):
@@ -53,10 +58,14 @@ class Renderer(QObject):
         """Render page NUMBER of SOURCE at SCALE, and give CALLBACK the QImage (or
         None if it couldn't be rendered there). FIRST: before those waiting."""
         ln = self.lanes.setdefault(lane, Lane())
+        # La clave no lleva la contraseña: ruta, sello del archivo, página, escala y si van sin anotaciones.
+        # Si el archivo cambia en disco, el sello cambia y la clave también.
         key = (source[0], source[2], number, scale, source[3])
         ln.callbacks.setdefault(key, []).append(callback)
+        # Already being rendered: the callback is added and will get the same image.
         if key == ln.busy:
             return
+        # Una petición que ya esperaba se saca de la cola, para volver a ponerla delante o al final.
         entry = next((e for e in ln.waiting if e[0] == key), None)
         if entry is not None:
             ln.waiting.remove(entry)
@@ -73,6 +82,7 @@ class Renderer(QObject):
         ln = self.lanes.get(lane)
         if ln is None:
             return
+        # Only waiting requests are dropped; the one being rendered finishes and is delivered anyway.
         for entry in [e for e in ln.waiting if not keep(e[0][0], e[0][2])]:
             ln.waiting.remove(entry)
             ln.callbacks.pop(entry[0], None)
@@ -83,12 +93,16 @@ class Renderer(QObject):
 
     def _next(self, lane: str) -> None:
         ln = self.lanes[lane]
+        # Una sola página a la vez por carril: la cola puede reordenarse hasta el último momento.
         if ln.busy is not None or not ln.waiting:
             return
         key, args = ln.waiting.pop(0)
         try:
             if ln.pool is None:
+                # Spawn, not fork: a forked child would inherit Qt's state and threads, which is not safe.
+                # One worker per lane, so 'view' never waits behind 'thumbs'.
                 ln.pool = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+            # Una vez enviada al proceso, la petición ya no se puede cancelar: por eso drop() solo toca la cola.
             future = ln.pool.submit(rendering.render, *args)
         except Exception:  # (no process could be started: render in the window's)
             self._fail()
@@ -103,10 +117,13 @@ class Renderer(QObject):
         image = None
         try:
             width, height, stride, data = future.result()
+            # copy(): QImage does not own the bytes received from the other process.
             image = QImage(data, width, height, stride, QImage.Format.Format_RGB888).copy()
         except Exception as e:
             from concurrent.futures.process import BrokenProcessPool
 
+            # Si el proceso murió, se deja de usar para siempre; otros errores (una página dañada) solo
+            # devuelven None a quien la pidió, que la renderiza en la ventana.
             if isinstance(e, BrokenProcessPool):
                 self._fail()
                 return
@@ -117,9 +134,12 @@ class Renderer(QObject):
     def _fail(self) -> None:
         """The processes can't render: tell all who wait (they render themselves)."""
         self.broken = True
+        # Se vacían los carriles antes de llamar a nadie: una devolución de llamada podría pedir otra
+        # página y no debe encontrar el carril viejo.
         lanes, self.lanes = self.lanes, {}
         for ln in lanes.values():
             if ln.pool is not None:
+                # wait=False: closing must not block the window on a page still being rendered.
                 ln.pool.shutdown(wait=False, cancel_futures=True)
             for callbacks in ln.callbacks.values():
                 for callback in callbacks:
@@ -145,6 +165,7 @@ _RENDERER: Renderer | None = None
 def renderer() -> Renderer:
     """The one renderer of the application, for all its windows."""
     global _RENDERER
+    # Un solo renderizador para todas las ventanas: los procesos se comparten y se cierran al salir.
     if _RENDERER is None:
         _RENDERER = Renderer()
         from PySide6.QtCore import QCoreApplication

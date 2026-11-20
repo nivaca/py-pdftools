@@ -46,6 +46,7 @@ def _manual_args(p):
 
 
 def mirror_corner(corner: str, sides: str) -> str:
+    # En el reverso la esquina se refleja: izquierda y derecha con double-h, arriba y abajo con double-v.
     if sides == "double-h":
         return corner.replace("left", "@").replace("right", "left").replace("@", "right")
     if sides == "double-v":
@@ -54,6 +55,7 @@ def mirror_corner(corner: str, sides: str) -> str:
 
 
 def mirror_rotation(rot: int, sides: str) -> int:
+    # Mirroring left-right turns a clockwise rotation into its opposite; mirroring top-bottom adds 180°.
     if sides == "double-h":
         return (-rot) % 360
     if sides == "double-v":
@@ -86,8 +88,10 @@ def manual(pdf: Pdf, a, ctx: Context):
         W, H = bg.size()
     else:
         W, H = ctx.paper(str(spec.get("sheet", "a4")), spec.get("orientation", "as-is"))
+    # Sheets per cycle defaults to the highest sheet number used by a placement.
     per_cycle_sheets = int(spec.get("sheets", max(int(p.get("sheet", 1)) for p in places)))
     double = sides != "single"
+    # Con doble cara, cada hoja del ciclo son dos pliegos: anverso (índice par) y reverso (impar).
     sheets_per_cycle = per_cycle_sheets * (2 if double else 1)
     repeat = bool(spec.get("repeat", True))
     default_marks = bool(spec.get("crop_marks", False))
@@ -112,6 +116,7 @@ def manual(pdf: Pdf, a, ctx: Context):
         if side in ("back", "both"):
             back = dict(base, sheet=sheet * 2 + 1, corner=mirror_corner(base["corner"], sides),
                         rotate=mirror_rotation(base["rotate"], sides))
+            # With side 'both' and a fixed page, the back takes the next page of the document, not the fixed one again.
             if side == "both" and base["page"] is not None:
                 back["page"] = None
             slots.append(back)
@@ -122,6 +127,8 @@ def manual(pdf: Pdf, a, ctx: Context):
     next_page = 0
     cycle = 0
     sheets: dict[int, tuple[pu.Canvas, list]] = {}
+    # Cada vuelta del bucle es un ciclo de la maqueta; termina cuando no quedan páginas o cuando un ciclo
+    # no consumió ninguna (solo había páginas fijas).
     while True:
         consumed = False
         for sl in slots:
@@ -136,6 +143,7 @@ def manual(pdf: Pdf, a, ctx: Context):
                 next_page += 1
                 consumed = True
             s_no = cycle * sheets_per_cycle + sl["sheet"]
+            # Sheets are created on demand and in order, so the background sequence follows the sheet number.
             while len(sheets) <= s_no:
                 k = len(sheets)
                 canvas = pu.new_sheet(out, W, H)
@@ -150,6 +158,8 @@ def manual(pdf: Pdf, a, ctx: Context):
             pw, ph = geom.size(sl["rotate"])
             pw, ph = pw * sl["scale"], ph * sl["scale"]
             c = sl["corner"]
+            # Los desplazamientos se miden hacia dentro, desde la esquina elegida del pliego hasta la misma esquina de
+            # la página.
             x = sl["x"] if "left" in c else W - sl["x"] - pw
             y = H - sl["y"] - ph if "top" in c else sl["y"]
             rect = pu.place_page(canvas, imp, page, geom, x, y, sl["scale"], rotate_cw=sl["rotate"])
@@ -166,6 +176,8 @@ def manual(pdf: Pdf, a, ctx: Context):
             if a.smart_marks:
                 pu.smart_crop_marks(canvas, rects, style, sheet=(0, 0, W, H))
             else:
+                # Marcas simples en las cuatro esquinas de cada página, sin mirar si tocan otras páginas (para eso está
+                # --smart-marks).
                 segs = []
                 o, ln = style.offset, style.length
                 for r in rects:

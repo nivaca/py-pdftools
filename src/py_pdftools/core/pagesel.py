@@ -17,6 +17,7 @@ import re
 
 from .interface import tr
 
+# One page number: a plain number, LAST, or LAST-n.
 _NUM = r"(?:LAST(?:-\d+)?|\d+)"
 
 
@@ -26,11 +27,13 @@ class PageError(ValueError):
 
 def page_number(token: str, n: int) -> int:
     """One page number (1-based, LAST allowed) as a 1-based int."""
+    # En mayúsculas y sin espacios, para que 'last - 2' y 'LAST-2' valgan lo mismo.
     t = token.strip().upper().replace(" ", "")
     if t.startswith("LAST"):
         rest = t[4:]
         if not rest:
             return n
+        # LAST-n puede dar 0 o un número negativo: el rango se comprueba después, en parse_pages.
         if rest.startswith("-") and rest[1:].isdigit():
             return n - int(rest[1:])
     elif t.isdigit():
@@ -40,11 +43,13 @@ def page_number(token: str, n: int) -> int:
 
 def _split_range(token: str) -> tuple[str, str] | None:
     t = token.strip().upper().replace(" ", "")
+    # '..' se mira primero: en 'LAST-3..LAST' el guion es parte del número, no del rango.
     if ".." in t:
         a, b = t.split("..", 1)
         return a, b or "LAST"
     if re.fullmatch(r"LAST-\d+", t):  # (LAST-1 on its own is a page)
         return None
+    # Con '-', el segundo número es opcional: 'a-' llega hasta la última página.
     m = re.fullmatch(rf"({_NUM})-({_NUM})?", t)
     if m:
         return m.group(1), m.group(2) or "LAST"
@@ -56,6 +61,7 @@ def parse_pages(spec: str | None, n: int, *, allow_out_of_range: bool = False,
     """The 0-based indices of the pages SPEC names, sorted, each once (unless
     KEEP_ORDER: then as written, a range b-a backwards). A page beyond the last
     raises PageError, or is left out if ALLOW_OUT_OF_RANGE."""
+    # Lowercased here for the keywords; page_number makes each token uppercase again, so 'last' is accepted.
     s = (spec or "").strip().lower()
     if s in ("", "all"):
         return list(range(n))
@@ -70,6 +76,7 @@ def parse_pages(spec: str | None, n: int, *, allow_out_of_range: bool = False,
         rng = _split_range(token)
         if rng:
             a, b = page_number(rng[0], n), page_number(rng[1], n)
+            # Un rango escrito al revés (5-2) se recorre hacia atrás; sin keep_order, ese orden se pierde al final.
             step = 1 if b >= a else -1
             nums = list(range(a, b + step, step))
         else:
@@ -88,6 +95,7 @@ def parse_pages(spec: str | None, n: int, *, allow_out_of_range: bool = False,
 def check(spec: str) -> str:
     """'' if SPEC can be read, else why not."""
     try:
+        # Solo se comprueba la sintaxis: 1000 páginas ficticias, y sin errores de rango.
         parse_pages(spec, 1000, allow_out_of_range=True)
     except PageError as e:
         return str(e)
@@ -98,6 +106,7 @@ def filter_parity(indices: list[int], parity: str | None) -> list[int]:
     """Keep only odd/even page numbers (1-based parity)."""
     if parity in (None, "all", "both"):
         return indices
+    # Paridad de los números de página (desde 1) sobre índices desde 0: una página impar tiene índice par.
     if parity == "odd":
         return [i for i in indices if i % 2 == 0]
     if parity == "even":

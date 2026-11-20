@@ -25,6 +25,7 @@ DPI = 300  # (at which the pages are read)
 def tessdata() -> str | None:
     """The folder of Tesseract's languages; None if Tesseract is not installed. (Looked for once: the
     window asks each time it shows its menus.)"""
+    # Tesseract's program must be on the PATH; PyMuPDF only finds the folder of its languages.
     if shutil.which("tesseract") is None:
         return None
     try:
@@ -42,6 +43,7 @@ def languages() -> list[str]:
     folder = tessdata()
     if folder is None:
         return []
+    # osd es el modelo de Tesseract que detecta la orientación y la escritura, no un idioma.
     return sorted(p.stem for p in Path(folder).glob("*.traineddata") if p.stem != "osd")
 
 
@@ -53,14 +55,18 @@ def scanned(page: pymupdf.Page) -> bool:
 def add_text(page: pymupdf.Page, language: str) -> int:
     """Read PAGE with Tesseract (in LANGUAGE: 'eng', or several, 'lat+eng') and write the words it
     finds, invisible, where they are on the image. Returns how many words."""
+    # full=True: se reconoce la página entera, no solo las zonas de sus imágenes.
     found = page.get_textpage_ocr(language=language, dpi=DPI, full=True)
     words = page.get_text("words", textpage=found)
+    # Las palabras vienen en la página sin girar: se pasan a la página como se muestra, y luego de vuelta.
     turn, back = page.rotation_matrix, page.derotation_matrix
     for x0, y0, x1, y1, word, *_ in words:
         shown = pymupdf.Rect(x0, y0, x1, y1) * turn  # (the word as the page is shown, upright)
+        # Un 85 % de la altura de la caja se acerca al cuerpo de la letra; la línea base queda a un 20 % del fondo.
         size = max(shown.height * 0.85, 1)
         width = pymupdf.get_text_length(word, "helv", size) or 1
         start = pymupdf.Point(shown.x0, shown.y1 - shown.height * 0.2) * back
+        # render_mode=3: texto invisible, que se puede buscar y copiar pero no se dibuja.
         page.insert_text(start, word, fontsize=size, fontname="helv", render_mode=3, rotate=page.rotation,
                          morph=(start, pymupdf.Matrix(shown.width / width, 0, 0, 1, 0, 0)))  # (as wide as on the image)
     return len(words)
@@ -73,7 +79,9 @@ def save_searchable(source: Path, annotations: list[Annotation], target: Path, p
     False. Returns how many pages were read, and how many words they had."""
     doc = annots.open_pdf(source, password)
     try:
+        # The annotations are applied first, so that the searchable copy keeps them too.
         annots.apply(doc, annotations)
+        # Solo se leen las páginas sin texto: una página que ya tiene texto no se toca.
         pages = [page.number for page in doc if scanned(page)]
         words = 0
         for done, number in enumerate(pages):

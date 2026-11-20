@@ -25,6 +25,7 @@ STANDARD = [("Title", N_("Title")), ("Author", N_("Author")), ("Subject", N_("Su
             ("CreationDate", N_("Created")), ("ModDate", N_("Modified")), ("Trapped", N_("Trapped"))]
 DATES = ("CreationDate", "ModDate")
 TRAPPED = ("True", "False", "Unknown")
+# Sin espacios, '/' ni '#': esos caracteres habría que escribirlos en el nombre PDF como #xx.
 KEY = re.compile(r"[A-Za-z][A-Za-z0-9_.-]*")  # (a key a custom field may have)
 
 
@@ -46,6 +47,7 @@ class Metadata:
 
 
 def _info_xref(doc: pymupdf.Document) -> int:
+    # El xref -1 es el trailer del archivo; su /Info apunta al diccionario de metadatos.
     kind, value = doc.xref_get_key(-1, "Info")
     if kind == "xref":
         return int(value.split()[0])
@@ -63,6 +65,8 @@ def read(doc: pymupdf.Document) -> Metadata:
             elif kind not in ("string", "text"):
                 continue  # (a dictionary or an array: not something to show as a field)
             info.append((key, value))
+    # Standard fields first, in the order of STANDARD; sort() is stable, so the others keep
+    # the order they have in the file.
     order = {k: i for i, (k, _) in enumerate(STANDARD)}
     info.sort(key=lambda kv: order.get(kv[0], len(order)))
     kind, lang = doc.xref_get_key(doc.pdf_catalog(), "Lang")
@@ -80,8 +84,10 @@ def write(doc: pymupdf.Document, meta: Metadata) -> None:
     if xref:
         for key in doc.xref_get_keys(xref):
             if key not in wanted:
+                # Poner una clave a null la borra del diccionario.
                 doc.xref_set_key(xref, key, "null")
         for key, value in wanted.items():
+            # Trapped is a PDF name (/True), not a string.
             if key == "Trapped":
                 doc.xref_set_key(xref, key, "/" + value)
             else:
@@ -94,6 +100,8 @@ def write(doc: pymupdf.Document, meta: Metadata) -> None:
         doc.del_xml_metadata()
 
 
+# Todo salvo el año es opcional, como permite la norma (D:2026 ya es una fecha). El desfase
+# lleva horas y minutos, con apóstrofos o sin ellos; uno solo con horas (-05') no encaja.
 _PDF_DATE = re.compile(r"D?:?(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?(Z|[+-]\d{2}'?\d{2}'?)?")
 _TEXT_DATE = re.compile(r"(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?\s*(Z|UTC|[+-]\d{2}:?\d{2})?")
 
@@ -105,6 +113,7 @@ def text_date(pdf: str) -> str:
     if not m:
         return pdf
     y, mo, d, h, mi, s, tz = m.groups()
+    # Missing parts default to the first month, the first day and midnight.
     text = f"{y}-{mo or '01'}-{d or '01'} {h or '00'}:{mi or '00'}:{s or '00'}"
     if tz == "Z":
         text += " +00:00"
@@ -122,6 +131,7 @@ def pdf_date(text: str) -> str | None:
         return None
     y, mo, d, h, mi, s, tz = m.groups()
     try:
+        # Solo para validar: descarta fechas imposibles como 2026-02-30 o las 25:00.
         datetime(int(y), int(mo), int(d), int(h or 0), int(mi or 0), int(s or 0))
     except ValueError:
         return None
@@ -136,6 +146,7 @@ def pdf_date(text: str) -> str | None:
 
 def now() -> str:
     """This moment, as text_date writes dates."""
+    # astimezone() sin argumento da la hora local con su desfase real, también en horario de verano.
     local = datetime.now(timezone.utc).astimezone()
     offset = local.utcoffset() or timedelta(0)
     sign = "-" if offset < timedelta(0) else "+"

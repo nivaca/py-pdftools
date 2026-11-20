@@ -14,6 +14,7 @@ from ..core.pagesel import page_number
 from .shuffle import ROT_SUFFIX, build
 from ..core.interface import N_, tr
 
+# Como en shuffle, pero también con LAST y LAST-n, que dependen del número de páginas.
 _TOK = re.compile(r"^(X|(?:LAST(?:-\d+)?|\d+)(?:\.\.(?:LAST(?:-\d+)?|\d+))?)([*<>]?)$", re.I)
 
 
@@ -35,6 +36,7 @@ def parse_piece(spec: str, n: int, ignore_missing: bool) -> list[tuple[int | Non
         pb = page_number(b, n) if b else pa
         step = 1 if pb >= pa else -1
         for p in range(pa, pb + step, step):
+            # --ignore-missing lets one list serve documents of different lengths.
             if not 1 <= p <= n:
                 if ignore_missing:
                     continue
@@ -74,6 +76,7 @@ def split(pdf: Pdf, a, ctx: Context):
     n = len(pdf.pages)
     if a.by == "odd-even":
         parts = [[(i, 0) for i in range(0, n, 2)], [(i, 0) for i in range(1, n, 2)]]
+        # Con una sola página no hay parte par; las partes vacías se quitan.
         parts = [p for p in parts if p]
     elif a.by == "list":
         if not a.list:
@@ -93,7 +96,10 @@ def split(pdf: Pdf, a, ctx: Context):
         raise ImpositionError(tr("nothing to split"))
 
     seqs: dict[int, tuple[list, dict]] = {}
+    # Each part takes its own --part-steps or --part-sequence (the later one wins), else the shared --sequence,
+    # else no steps.
     default = load_sequence(a.sequence) if a.sequence else None
+    # TODO: un N no numérico en --part-sequence o --part-steps da un ValueError sin mensaje claro.
     for spec in a.part_sequence:
         k, _, f = spec.partition("=")
         seqs[int(k)] = load_sequence(Path(f))
@@ -107,6 +113,7 @@ def split(pdf: Pdf, a, ctx: Context):
         if not part:
             ctx.warn(tr('part {number} is empty', number=k))
             continue
+        # build() deja páginas que aún dependen del documento original; roundtrip las independiza antes de procesarlas.
         doc = pu.roundtrip(build(pdf, part, ctx))
         steps, prefs = seqs.get(k) or default or ([], {})
         if steps:
@@ -118,6 +125,8 @@ def split(pdf: Pdf, a, ctx: Context):
         out = Pdf.new()
         pu.copy_docinfo(pdf, out)
         for _, doc in results:
+            # Cada parte debe seguir abierta hasta guardar el resultado, porque pikepdf copia los datos de los flujos al
+            # final.
             pu.keep_alive(doc)
             out.pages.extend(doc.pages)
         return out

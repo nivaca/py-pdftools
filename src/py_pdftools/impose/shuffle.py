@@ -12,6 +12,7 @@ from ..core.interface import N_, tr
 
 ROT_SUFFIX = {"*": 180, ">": 90, "<": 270, "": 0}
 
+# Un token es X (en blanco), un número o un rango a..b, con un sufijo opcional de giro.
 _TOKEN = re.compile(r"^(?:(X)|(\d+)(?:\.\.(\d+))?)([*<>]?)$", re.I)
 
 
@@ -39,6 +40,7 @@ def parse_rule(rule: str) -> list[tuple[int | None, int]]:
             out.append((a, rot))
         else:
             b = int(b)
+            # Ranges may run backwards (8..5), giving the pages in descending order.
             step = 1 if b >= a else -1
             out.extend((p, rot) for p in range(a, b + step, step))
     if not out:
@@ -58,6 +60,7 @@ def shuffle_order(count: int, rule: list[tuple[int | None, int]], group: int, re
     def ceil(a, b):
         return -(-a // b)
 
+    # El documento se completa hasta un múltiplo del grupo; las páginas que faltan salen en blanco (véase emit).
     total = max(ceil(count, group), 1) * group
     out: list[tuple[int | None, int]] = []
 
@@ -65,12 +68,15 @@ def shuffle_order(count: int, rule: list[tuple[int | None, int]], group: int, re
         out.append((page_no - 1 if page_no is not None and page_no <= count else None, rot))
 
     if repeat == "normal":
+        # normal: la regla se aplica a cada grupo de páginas consecutivas, desplazada k * group.
         for k in range(total // group):
             for p, rot in rule:
                 emit(None if p is None else k * group + p, rot)
     elif repeat == "saddle":
         if group % 2:
             raise ImpositionError(tr("saddle repeat needs an even group size"))
+        # saddle: the rule describes the outer sheet. Its first half counts from the front of the book and its
+        # second half from the back, so each following sheet takes the next 'half' pages at each end.
         half = group // 2
         sheets = total // group
         for s in range(sheets):
@@ -85,6 +91,8 @@ def shuffle_order(count: int, rule: list[tuple[int | None, int]], group: int, re
         unit = consecutive * (1 if repeat == "cut-single" else 2)
         if group % unit:
             raise ImpositionError(tr('group size {group} must be a multiple of {unit} for these cut stacks', group=group, unit=unit))
+        # Pilas cortadas: cada pliego se corta en bloques de 'unit' páginas, y cada bloque forma una pila que recorre
+        # S pliegos seguidos. Con --restart-after las pilas empiezan de nuevo cada B pliegos.
         chunk_sheets = restart_after or (total // group)
         sheets_total = total // group
         done = 0
@@ -107,6 +115,7 @@ def shuffle_order(count: int, rule: list[tuple[int | None, int]], group: int, re
 def build(pdf: Pdf, order: list[tuple[int | None, int]], ctx: Context) -> Pdf:
     out = Pdf.new()
     pu.copy_docinfo(pdf, out)
+    # Blank pages get the size of the first page, without bleed.
     blank = pu.visual_size(pdf.pages[0].obj, use_bleed=False) if len(pdf.pages) else (612, 792)
     for idx, rot in order:
         if idx is None:
@@ -118,6 +127,7 @@ def build(pdf: Pdf, order: list[tuple[int | None, int]], ctx: Context) -> Pdf:
             continue
         out.pages.append(pdf.pages[idx])
         new = out.pages[-1].obj
+        # La rotación se suma a la /Rotate que ya tenía la página; el contenido no se toca.
         if rot:
             new.Rotate = (pu.page_rotation(new) + rot) % 360
     return out
@@ -173,12 +183,14 @@ def evenodd(pdf: Pdf, a, ctx: Context):
         if not a.evens:
             raise ImpositionError(tr("--mode join needs --evens FILE"))
         ev = pu.open_source(a.evens)
+        # The input holds the odd pages and --evens the even ones, as two passes through a single-sided printer would.
         odds = [(pdf, i) for i in range(n)]
         evens = [(ev, i) for i in range(len(ev.pages))]
         if a.reverse_evens:
             evens.reverse()
         out = Pdf.new()
         pu.copy_docinfo(pdf, out)
+        # Se intercalan impares y pares; si una lista es más larga, sus páginas sobrantes van al final.
         for k in range(max(len(odds), len(evens))):
             for lst, is_even in ((odds, False), (evens, True)):
                 if k < len(lst):
@@ -202,6 +214,7 @@ def evenodd(pdf: Pdf, a, ctx: Context):
     elif a.mode == "odds-first":
         order = odds + evens
     else:  # split
+        # split: the odd pages are never rotated; --rotate-evens applies to the even part only.
         return {"odd": build(pdf, [(i, 0) for i in odds], ctx),
                 "even": build(pdf, [(i, rot.get(i, 0)) for i in evens], ctx)}
     return build(pdf, [(i, rot.get(i, 0)) for i in order], ctx)

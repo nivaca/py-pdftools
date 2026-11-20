@@ -22,8 +22,10 @@ from ...impose.units import PAPER_SIZES, UNITS, parse_length
 LAYOUT_NAMES = [("2up-booklet", N_("2-Up Booklet")), ("4up-booklet", N_("4-Up Booklet")),
                 ("8up-booklet", N_("8-Up Booklet")), ("cut-stacks", N_("Cut stacks")),
                 ("sequential", N_("Sequential")), ("step-repeat", N_("Step and Repeat"))]
+# Los tamaños con nombre del menú Tamaño; sus medidas vienen de PAPER_SIZES, y "custom" se añade aparte.
 MEDIA = ["letter", "legal", "tabloid", "a2", "a3", "a4", "a5", "b4", "b5"]
 NEW_PROFILE = N_("<new profile>")
+# Los folletos tienen una cuadrícula fija; los demás toman columnas y filas del formulario (ver grid()).
 BOOKLETS = {"2up-booklet", "4up-booklet", "8up-booklet"}
 GRID = {"cut-stacks", "sequential", "step-repeat"}
 
@@ -38,6 +40,7 @@ def lock_icon(closed: bool, colour: QColor) -> QIcon:
     pen = QPen(colour, 6)
     p.setPen(pen)
     shackle = QPainterPath()
+    # Coordenadas en un lienzo de 64 x 64: el arco va de left a right, y body es donde empieza el cuerpo del candado.
     left, right, top, body = 20.0, 44.0, 8.0, 30.0
     if closed:
         shackle.moveTo(left, body)
@@ -68,11 +71,14 @@ class BasicPanel(QWidget):
         super().__init__(window)
         self.w = window
         self.name = "impose"
+        # by_option se deja vacío: auto_preview lo consulta en todo formulario, y este no tiene opciones sueltas.
         self.by_option: dict = {}  # (the window asks forms for this)
         self._loading = False
         self._units = window.units.currentText()
         self.lengths: list[QDoubleSpinBox] = []
         self.locks: list[tuple[QToolButton, QDoubleSpinBox, QDoubleSpinBox]] = []
+        # _syncing evita el rebote entre dos campos con candado: al copiar A en B, el cambio de B
+        # no vuelve a copiarse en A.
         self._syncing = False
 
         outer = QVBoxLayout(self)
@@ -108,6 +114,7 @@ class BasicPanel(QWidget):
         self.b_save.clicked.connect(self.save_profile)
         self.b_save_as.clicked.connect(lambda: self.save_profile(new_name=True))
         self.b_delete.clicked.connect(self.delete_profile)
+        # activated (not currentIndexChanged) fires only when the user picks a profile, not when the list is refilled.
         self.profile.activated.connect(lambda _: self.load_profile(self.profile.currentData()))
         self.on_menu.toggled.connect(self._menu_toggled)
         outer.addWidget(box)
@@ -116,6 +123,7 @@ class BasicPanel(QWidget):
         box, form = self._group(tr("General"))
         self.units = QComboBox()
         self.units.addItems(["cm", "mm", "in", "pt"])
+        # Las unidades del formulario básico arrancan con las de la barra de herramientas del espacio de trabajo.
         self.units.setCurrentText(self._units)
         form.addRow(tr("Units"), self.units)
         outer.addWidget(box)
@@ -125,6 +133,8 @@ class BasicPanel(QWidget):
         self.binding = QComboBox()
         self.binding.addItem(tr("Saddle-Stitching"), "saddle")
         self.binding.addItem(tr("Perfect Binding"), "perfect")
+        # Los pliegos por cuadernillo solo cuentan en la encuadernación rústica: al caballete,
+        # todos van en un solo pliegue.
         self.sheets = self._spin(1, 64, 4)
         self.direction = QComboBox()
         self.direction.addItem(tr("Left"), "left")
@@ -138,6 +148,7 @@ class BasicPanel(QWidget):
 
         # Gutters
         box, form = self._group(tr("Gutters"))
+        # Los medianiles pueden ser negativos, para solapar las páginas; el corrimiento (creep) no.
         self.gutter_v = self._length(negative=True)
         self.gutter_h = self._length(negative=True)
         self.spread = self._length(negative=True)
@@ -151,6 +162,7 @@ class BasicPanel(QWidget):
         # Paper: media
         box = QGroupBox(tr("Paper"))
         pv = QVBoxLayout(box)
+        # "Autosize" lets the engine choose the sheet from the pages; "Fit" uses the size chosen below.
         self.autosize = QRadioButton(tr("Autosize Media"))
         self.fit = QRadioButton(tr("Fit to Media Size"))
         media_group = QButtonGroup(self)
@@ -161,6 +173,7 @@ class BasicPanel(QWidget):
         form = QFormLayout()
         self.media = QComboBox()
         for name in MEDIA:
+            # Nombres como "letter" se muestran con mayúscula inicial; "a4", que lleva cifras, en mayúsculas.
             self.media.addItem(name.capitalize() if name.isalpha() else name.upper(), name)
         self.media.addItem(tr("Custom"), "custom")
         self.portrait = QRadioButton(tr("Portrait"))
@@ -191,6 +204,7 @@ class BasicPanel(QWidget):
         outer.addWidget(box)
 
         # Margins
+        # Cada grupo de cuatro lados lleva dos candados: uno para arriba y abajo, otro para los lados.
         self.m_top, self.m_bottom, self.m_left, self.m_right = (self._length(negative=True) for _ in range(4))
         box = self._sides_group(tr("Margins"), self.m_top, self.m_bottom, self.m_left, self.m_right)
         box.setToolTip(tr("Negative margins let the pages run off the sheet's edges"))
@@ -202,6 +216,7 @@ class BasicPanel(QWidget):
         box.setToolTip(tr("Cut this much off the edges of every page (its white margins), so that its content "
                           "fills more of the sheet; tick Enlarge to let the pages grow"))
         outer.addWidget(box)
+        # Los candados se restauran cuando ya existen los dos grupos: la lista guardada tiene los cuatro en orden.
         self._restore_locks()
 
         # Printer marks
@@ -221,10 +236,14 @@ class BasicPanel(QWidget):
         outer.addStretch(1)
 
         self.reset(emit=False)
+        # Every input widget of the form is connected to _changed at once, by type, instead of one by one.
+        # The profile controls and the units are left out: they have their own slots.
         signals = {QComboBox: "currentIndexChanged", QSpinBox: "valueChanged", QDoubleSpinBox: "valueChanged",
                    QCheckBox: "toggled", QRadioButton: "toggled"}
         for kind, sig in signals.items():
             for wdg in self.findChildren(kind):
+                # Only widgets of exactly this type: findChildren also returns subclasses, which may not send
+                # the same signal.
                 if wdg in (self.profile, self.on_menu, self.units) or type(wdg) is not kind:
                     continue
                 getattr(wdg, sig).connect(lambda *_: self._changed())
@@ -260,19 +279,24 @@ class BasicPanel(QWidget):
         btn.setCheckable(True)
         btn.setToolTip(tip)
         btn.setIconSize(QSize(22, 22))
+        # El botón se estira en vertical para cubrir las dos filas que une.
         btn.setSizePolicy(btn.sizePolicy().horizontalPolicy(), btn.sizePolicy().Policy.Expanding)
 
         def show(on: bool):
+            # El icono se dibuja con el color de texto de la paleta, así se ve en temas claros y oscuros.
             btn.setIcon(lock_icon(on, btn.palette().buttonText().color()))
 
         def toggled(on: bool):
             show(on)
+            # Al cerrar el candado, el segundo valor toma el del primero.
             if on and not self._loading and b.value() != a.value():
                 b.setValue(a.value())  # (locking makes the second like the first)
             self._save_locks()
 
         def follow(src: QDoubleSpinBox, dst: QDoubleSpinBox):
             def copy(value: float):
+                # Mientras se cargan ajustes no se copia nada: cada valor viene ya fijado y los candados se revisan
+                # después (_check_locks).
                 if btn.isChecked() and not self._loading and not self._syncing and dst.value() != value:
                     self._syncing = True
                     try:
@@ -290,6 +314,7 @@ class BasicPanel(QWidget):
 
     def _save_locks(self):
         if not self._loading:
+            # El estado de los candados se guarda aunque _restore_locks no lo lea mientras carry_options sea False.
             self.w.settings.setValue("basic/locks", json.dumps([btn.isChecked() for btn, _, _ in self.locks]))
 
     def _restore_locks(self):
@@ -336,6 +361,7 @@ class BasicPanel(QWidget):
     # ----------------------------------------------------------------- state
 
     def reset(self, emit: bool = True):
+        # These defaults must match those of the "impose" command, since tokens() leaves out what equals them.
         """The defaults: a 2-up booklet, perfect bound four sheets per fold, on Legal landscape."""
         self._loading = True
         self.layout_type.setCurrentIndex(0)
@@ -380,17 +406,20 @@ class BasicPanel(QWidget):
         self.double.setEnabled(layout in BOOKLETS | {"cut-stacks"})
         self.spread.setEnabled(layout == "8up-booklet")
         # a gutter only matters between two columns (vertical) or two rows (horizontal)
+        # En los folletos la cuadrícula es fija, así que los medianiles dependen de ella y no de los campos.
         cols, rows = self.grid()
         self.gutter_v.setEnabled(cols > 1)
         self.gutter_h.setEnabled(rows > 1)
         self.creep.setEnabled(booklet)
         fit = self.fit.isChecked()
         custom = self.media.currentData() == "custom"
+        # Con "Autosize" no hay tamaño que elegir; con "Custom" la orientación la dan el ancho y el alto.
         self.media.setEnabled(fit)
         self.portrait.setEnabled(fit and not custom)
         self.landscape.setEnabled(fit and not custom)
         self.width.setEnabled(fit and custom)
         self.height.setEnabled(fit and custom)
+        # Ampliar solo tiene sentido con el ajuste automático de escala activado.
         self.enlarge.setEnabled(self.auto_scale.isChecked())
 
     def grid(self) -> tuple[int, int]:
@@ -405,8 +434,10 @@ class BasicPanel(QWidget):
         if name in PAPER_SIZES:
             w, h = PAPER_SIZES[name]
             if self.landscape.isChecked():
+                # Landscape: the longer side across. PAPER_SIZES is in points, and UNITS gives the points of each unit.
                 w, h = max(w, h), min(w, h)
             f = UNITS[self._units]
+            # Se guarda y se repone el valor anterior de _loading, porque esto puede correr en medio de una carga.
             self._loading, was = True, self._loading
             self.width.setValue(w / f)
             self.height.setValue(h / f)
@@ -415,26 +446,32 @@ class BasicPanel(QWidget):
 
     def _units_changed(self, unit: str):
         old, self._units = self._units, unit
+        # Al cambiar de unidad, todas las longitudes se convierten: lo que se ve en el papel no cambia.
         factor = UNITS[old] / UNITS[unit]
         self._loading, was = True, self._loading
         for s in self.lengths:
             s.setSuffix(f" {unit}")
             s.setValue(s.value() * factor)
         self._loading = was
+        # La barra de herramientas también cambia de unidad, para que las opciones globales del comando coincidan.
         self.w.units.setCurrentText(unit)
         self.changed.emit()
 
     @staticmethod
     def _num(v: float) -> str:
+        # Cuatro cifras significativas: bastan para longitudes y la línea de comandos queda corta.
         return f"{v:.4g}"
 
     @classmethod
     def _length_opt(cls, opt: str, v: float) -> list[str]:
         """OPT and its value; a negative one joined with "=" (so it isn't taken for an option)."""
+        # argparse may read "-0.5" after an option as another option, so negative values are written
+        # as --opt=-0.5.
         return [f"{opt}={cls._num(v)}"] if v < 0 else [opt, cls._num(v)]
 
     def tokens(self) -> list[str]:
         """The "impose" command line for these settings (only what differs from the defaults)."""
+        # Solo se escriben las opciones que difieren de los valores por defecto: la línea queda corta y legible.
         t = ["impose"]
         layout = self.layout_type.currentData()
         if layout != "2up-booklet":
@@ -446,6 +483,7 @@ class BasicPanel(QWidget):
                 t += ["--binding", self.binding.currentData()]
             elif self.sheets.value() != 4:
                 t += ["--sheets-per-fold", str(self.sheets.value())]
+        # Disabled fields are ignored, though they keep a value, so that a hidden option never reaches the command.
         if self.direction.isEnabled() and self.direction.currentData() != "left":
             t += ["--direction", "right"]
         if self.double.isEnabled() and not self.double.isChecked():
@@ -462,12 +500,14 @@ class BasicPanel(QWidget):
         elif self.media.currentData() == "custom":
             t += ["--media", f"{self._num(self.width.value())}x{self._num(self.height.value())}{self._units}"]
         else:
+            # Legal y apaisado son lo predeterminado: solo se nombran el papel o la orientación si cambian.
             if self.media.currentData() != "legal":
                 t += ["--media", self.media.currentData()]
             if self.portrait.isChecked():
                 t += ["--orientation", "portrait"]
         if self.auto_rotate.isChecked():
             t.append("--auto-rotate")
+        # --enlarge no hace nada sin el ajuste automático de escala; por eso solo se escribe con él.
         if not self.auto_scale.isChecked():
             t.append("--no-auto-scale")
         elif self.enlarge.isChecked():
@@ -484,6 +524,7 @@ class BasicPanel(QWidget):
                 t.append(opt)
         if not self.page_info.isChecked():
             t.append("--no-page-info")
+        # The page information prints the name of the original file, not that of the temporary copy being imposed.
         elif self.w.original is not None:
             t += ["--page-info-name", self.w.original.name]
         return t
@@ -494,6 +535,8 @@ class BasicPanel(QWidget):
     def set_tokens(self, tokens: list[str]):
         """Fill the form from an "impose" command line."""
         parser = self.w.parsers["impose"]
+        # El mismo parser de la línea de comandos lee la línea guardada; se añade un archivo ficticio porque el
+        # argumento de entrada es obligatorio. Una línea que no se puede leer deja el formulario como estaba.
         args = [t for t in tokens if t != "impose"]
         try:
             ns, _ = parser.parse_known_args(args + ["input.pdf"])
@@ -501,6 +544,7 @@ class BasicPanel(QWidget):
             return
         f = UNITS[self._units]
 
+        # Las longitudes pueden venir con su unidad ("3mm"); se pasan a la unidad del formulario.
         def length(value) -> float:
             try:
                 return parse_length(value, self._units) / f
@@ -520,12 +564,14 @@ class BasicPanel(QWidget):
         self.spread.setValue(length(ns.spread) if ns.spread is not None else 0)
         self.creep.setValue(length(ns.creep))
         media = ns.media.lower()
+        # Un papel personalizado se escribe ANCHOxALTO con unidad opcional en cada medida ("21x29.7cm", "8.5inx11in").
         m = re.fullmatch(r"\s*([0-9./]+)\s*([a-z\"]*)\s*[x×*]\s*([0-9./]+)\s*([a-z\"]*)\s*", media)
         if media == "auto":
             self.autosize.setChecked(True)
         elif m:
             self.fit.setChecked(True)
             self.media.setCurrentIndex(self.media.findData("custom"))
+            # Si solo la segunda medida lleva unidad, vale para las dos.
             u = m.group(4) or m.group(2) or self._units
             self.width.setValue(length(m.group(1) + u))
             self.height.setValue(length(m.group(3) + u))
@@ -536,6 +582,7 @@ class BasicPanel(QWidget):
         self.auto_rotate.setChecked(ns.auto_rotate)
         self.auto_scale.setChecked(not ns.no_auto_scale)
         self.enlarge.setChecked(ns.enlarge)
+        # --margin y --page-trim fijan los cuatro lados; cada --margin-top... los sustituye cuando se da.
         for base, fields in ((ns.margin, ((self.m_top, ns.margin_top), (self.m_bottom, ns.margin_bottom),
                                           (self.m_left, ns.margin_left), (self.m_right, ns.margin_right))),
                              (ns.page_trim, ((self.t_top, ns.page_trim_top), (self.t_bottom, ns.page_trim_bottom),
@@ -547,6 +594,7 @@ class BasicPanel(QWidget):
         self.reg_marks.setChecked(ns.registration_marks)
         self.page_info.setChecked(ns.page_info)
         self._loading = False
+        # Un candado cerrado cuyos dos valores ya no coinciden tras la carga se abre solo.
         self._check_locks()
         self._show_media_size()
         self.changed.emit()
@@ -555,6 +603,8 @@ class BasicPanel(QWidget):
 
     def profiles(self) -> dict[str, dict]:
         try:
+            # Los perfiles se guardan en los ajustes del espacio de trabajo como un objeto JSON:
+            # nombre -> unidades, fichas y "menu".
             data = json.loads(self.w.settings.value("profiles", "{}"))
         except (TypeError, ValueError):
             data = {}
@@ -570,6 +620,7 @@ class BasicPanel(QWidget):
         self.profile.blockSignals(True)
         self.profile.clear()
         self.profile.addItem(tr(NEW_PROFILE), None)
+        # Ordenados sin distinguir mayúsculas, después de la entrada de perfil nuevo.
         for name in sorted(self.profiles(), key=str.lower):
             self.profile.addItem(name, name)
         i = self.profile.findData(current)
@@ -581,18 +632,21 @@ class BasicPanel(QWidget):
         name = self.profile.currentData()
         self.b_delete.setEnabled(name is not None)
         self.on_menu.setEnabled(name is not None)
+        # Sin señales, para que mostrar la marca "menu" guardada no vuelva a escribirla.
         self.on_menu.blockSignals(True)
         self.on_menu.setChecked(bool(name and self.profiles().get(name, {}).get("menu")))
         self.on_menu.blockSignals(False)
 
     def save_profile(self, new_name: bool = False):
         name = self.profile.currentData()
+        # "Guardar" sobre "<perfil nuevo>" pide un nombre, como "Guardar como".
         if new_name or name is None:
             name, ok = QInputDialog.getText(self, tr("Save profile"), tr("Name of the profile:"))
             name = name.strip()
             if not ok or not name:
                 return
         data = self.profiles()
+        # Un perfil que se sobrescribe conserva si aparecía en el menú.
         menu = data.get(name, {}).get("menu", False)
         data[name] = {"units": self._units, "tokens": self.tokens(), "menu": menu}
         self._store(data)
@@ -623,6 +677,7 @@ class BasicPanel(QWidget):
         if not profile:
             return
         units = profile.get("units", self._units)
+        # Las unidades se cambian antes de leer las opciones, para que las longitudes se lean en las del perfil.
         if units in UNITS and units != self._units:
             self.units.setCurrentText(units)
         tokens = [t for t in profile.get("tokens", []) if t]
@@ -633,6 +688,7 @@ class BasicPanel(QWidget):
         self._profile_buttons()
 
 
+# Unused leftover of py-imposition: the window shows its own command line (see Workspace._form_changed).
 def shell_line(tokens: list[str]) -> str:
     return "py-imposition " + shlex.join(tokens)
 

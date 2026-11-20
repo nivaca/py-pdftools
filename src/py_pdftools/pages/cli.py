@@ -20,6 +20,7 @@ from .files import open_pdf, read_list, save_pdf
 from ..core.interface import N_, ntr, tr
 from .labels import LabelError, pages_text, set_command
 
+# Las órdenes de etiquetas; en la línea de órdenes de py-pdftools van bajo 'labels' (labels show, labels set...).
 LABEL_COMMANDS = ("show", "set", "clear", "copy")
 COMMANDS = ("show", "set", "clear", "copy", "view", "header-footer", "watermark", "pages", "completion",
             "interface")
@@ -134,6 +135,8 @@ For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST
 
 def interface_option(argv: list[str]) -> str | None:
     """The value of --interface in ARGV (needed before the parser is built)."""
+    # A small scan by hand: the language must be set before the parser is built, since its help texts
+    # are translated as they are made.
     for i, tok in enumerate(argv):
         if tok == "--interface" and i + 1 < len(argv):
             return argv[i + 1]
@@ -143,12 +146,14 @@ def interface_option(argv: list[str]) -> str | None:
 
 
 def translate_paragraphs(text: str) -> str:
+    # Cada párrafo es una cadena aparte en el catálogo de traducciones, así que se traducen uno a uno.
     return "\n\n".join(tr(par) for par in text.split("\n\n"))
 
 
 def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
     from .. import __version__
 
+    # Parent parser shared by every subcommand, so --interface is accepted before or after the command.
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("--interface", choices=sorted(interface.names()), default=argparse.SUPPRESS,
                         help=tr("the language of the interface, for this run only (to keep a choice, use the "
@@ -168,6 +173,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                         help=tr("the password to open the PDFs (their protection is kept when they are saved)"))
 
     def output_options(sp, dry_run_help: str | None = None):
+        # -o, -i y --output-dir se excluyen entre sí; el prefijo y el sufijo se comprueban después, en change().
         g = sp.add_mutually_exclusive_group()
         g.add_argument("-o", "--output", type=Path,
                        help=tr("output PDF, with one input only (default: <input>-labelled.pdf)"))
@@ -189,6 +195,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
 
     def stamp_options(sp, what: str):
         """The options headers and footers share with watermarks."""
+        # Lo que comparten encabezados y marcas de agua: páginas, Bates, fecha, y cómo añadir, actualizar o quitar.
         g = sp.add_argument_group(tr("pages"))
         g.add_argument("--pages", metavar=tr("PAGES"),
                        help=tr("the pages, as 9-200 or 1,3,9- (default: all; LAST counts from the end)"))
@@ -217,6 +224,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
         g = sp.add_argument_group(tr("profiles"))
         g.add_argument("--profile", metavar=tr("NAME"), help=tr("start from the settings of this profile"))
         g.add_argument("--save-profile", metavar=tr("NAME"), help=tr("keep these settings as a profile"))
+        # None as default (not False) tells "not given" apart from "--no-show-on-menu", so a profile's value is kept.
         g.add_argument("--show-on-menu", action=argparse.BooleanOptionalAction, default=None,
                        help=tr("with --save-profile: list the profile in the window's menu"))
         g.add_argument("--list-profiles", action="store_true", help=tr("list the profiles kept"))
@@ -238,6 +246,8 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                         epilog=translate_paragraphs(SET_EPILOG), formatter_class=argparse.RawDescriptionHelpFormatter)
     sp.add_argument("items", nargs="+", metavar=tr("FILE|RANGE"),
                     help=tr("the PDFs (files ending in .pdf), and the ranges: PAGES:STYLE[:START[:PREFIX]]"))
+    # nargs="+" with append: each --range is its own list of tokens; split_named later takes back what
+    # argparse put there by mistake.
     sp.add_argument("-r", "--range", dest="named", nargs="+", action="append", default=[],
                     metavar=tr("PAGES [KEY=VALUE]"),
                     help=tr("a range: PAGES [style=S] [start=N] [prefix=P] [suffix=X]"))
@@ -287,6 +297,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                                        "the pages themselves."),
                         epilog=translate_paragraphs(HEADER_FOOTER_EPILOG),
                         formatter_class=argparse.RawDescriptionHelpFormatter)
+    # nargs="*": with --list-profiles, --save-profile or --delete-profile no file is needed.
     sp.add_argument("inputs", nargs="*", type=Path, metavar=tr("FILE"), help=tr("source PDF"))
     g = sp.add_argument_group(tr("text"))
     for slot in headfoot.SLOTS:
@@ -297,6 +308,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
     for side in ("top", "bottom", "left", "right"):
         g.add_argument("--" + side, type=float, metavar=tr("SIZE"),
                        help=tr("the {side} margin", side=tr(headfoot.SIDES[side])))
+    # BooleanOptionalAction con None por defecto: un perfil decide salvo que se dé --shrink o --no-shrink.
     g.add_argument("--shrink", action=argparse.BooleanOptionalAction, default=None,
                    help=tr("scale the content of the pages down to leave room for the header and footer"))
     g = sp.add_argument_group(tr("appearance"))
@@ -338,6 +350,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                    help=tr("fill this percent of the page (default: 0, its own size)"))
     g.add_argument("--rotation", type=float, metavar=tr("DEGREES"),
                    help=tr("turn it, counterclockwise (default: 45)"))
+    # La opacidad se lee como texto para aceptar también porcentajes (30%); la convierte opacity().
     g.add_argument("--opacity", metavar=tr("OPACITY"), help=tr("from 0 to 1, or 0%% to 100%% (default: 0.5)"))
     g.add_argument("--behind", action=argparse.BooleanOptionalAction, default=None,
                    help=tr("behind the content of the pages (default: in front of it)"))
@@ -366,6 +379,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                         epilog=translate_paragraphs(PAGES_EPILOG), formatter_class=argparse.RawDescriptionHelpFormatter)
     sp.add_argument("inputs", nargs="+", type=Path, metavar=tr("FILE"), help=tr("source PDF"))
     g = sp.add_argument_group(tr("operations (in the order given)"))
+    # OperationAction instead of append: the operations of different options must keep their relative order.
     g.add_argument("--order", action=OperationAction, nargs=1, metavar=tr("PAGES"),
                    help=tr("the pages in this order (repeated: duplicated; left out: deleted)"))
     g.add_argument("--move", action=OperationAction, nargs=2, metavar=(tr("PAGES"), tr("WHERE")),
@@ -410,6 +424,7 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
     sp.add_argument("language", nargs="?", choices=sorted(interface.names()),
                     help=tr("the language to use from now on; without it, the languages are listed and the "
                             "one in use is marked"))
+    # prog se cambia después: add_parser ya lo fijó al crear cada subparser, sin el 'labels'.
     for name in LABEL_COMMANDS:  # (in the command line of py-pdftools, they are 'labels show' ...)
         sub.choices[name].prog = f"{prog} labels {name}"
     return parser
@@ -425,9 +440,11 @@ def report(error: LabelError) -> None:
 def show(a) -> int:
     failed = False
     for k, path in enumerate(a.inputs):
+        # Con --all o --label la salida se usa en tuberías, así que no se separan los archivos con líneas vacías.
         if k and not (a.all or a.label is not None):
             print()
         try:
+            # Everything is read inside the with block; the file is closed before anything is printed.
             with open_pdf(path, password=a.password) as pdf:
                 n = len(pdf.pages)
                 ranges = labels.read_labels(pdf)
@@ -440,6 +457,7 @@ def show(a) -> int:
         prefix = f"{path}: " if len(a.inputs) > 1 else ""
         if a.all:
             for page, label in enumerate(labels.page_labels(ranges, n), 1):
+                # Two spaces between number and label: read_list recognises this format and takes back the labels.
                 print(f"{prefix}{page:>6}  {label}")
         elif a.label is not None:
             pages = labels.find_label(ranges, n, a.label)
@@ -462,6 +480,7 @@ def print_ranges(path: Path, ranges: list[labels.Range], n: int, shown: view.Vie
         print(tr("No page labels: viewers number the pages 1, 2, 3 ..."))
     else:
         rows = [(pages_text(r, last), labels.describe(r, last), r.spec()) for r, last in labels.spans(ranges, n)]
+        # Columnas alineadas al ancho de la fila más larga de cada una.
         w1 = max(len(x[0]) for x in rows)
         w2 = max(len(x[1]) for x in rows)
         for pages, desc, spec in rows:
@@ -471,6 +490,7 @@ def print_ranges(path: Path, ranges: list[labels.Range], n: int, shown: view.Vie
     if not ranges:
         return
     print(tr("To give these labels to another file:"))
+    # FILE.pdf is a placeholder; only its name is translated, after shlex has quoted the command.
     print("  " + set_command(Path("FILE.pdf"), ranges).replace("FILE.pdf", tr("FILE.pdf")))
 
 
@@ -501,12 +521,14 @@ def split_named(groups: list[list[str]]) -> tuple[list[list[str]], list[str]]:
     201:D and book.pdf to --range)."""
     named, rest = [], []
     for group in groups:
+        # Tokens with '=' belong to --range; the others (compact ranges, file names) go back to the positionals.
         named.append([group[0]] + [t for t in group[1:] if "=" in t])
         rest += [t for t in group[1:] if "=" not in t]
     return named, rest
 
 
 def is_file(item: str) -> bool:
+    # Un argumento es un archivo si termina en .pdf, o si existe y no tiene ':' (que lo haría un intervalo).
     return item.lower().endswith(".pdf") or (":" not in item and Path(item).is_file())
 
 
@@ -520,6 +542,7 @@ def output_path(a, path: Path) -> Path:
     folder = getattr(a, "output_dir", None)
     suffix = getattr(a, "name_suffix", None)
     if suffix is None:
+        # Con --output-dir, el nombre propio basta; sin él, el sufijo evita escribir encima del original.
         suffix = "" if folder else "-labelled"
     return (folder or path.parent) / f"{getattr(a, 'name_prefix', '')}{path.stem}{suffix}.pdf"
 
@@ -533,6 +556,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
     """Give each of INPUTS what MAKE(pdf, n) returns (with WRITE(pdf, it): page labels
     by default), and save it (or, with --dry-run, only say what it would be);
     then DESCRIBE(it, n)."""
+    # Las comprobaciones de opciones van antes de abrir ningún archivo, para fallar pronto y sin dejar nada a medias.
     if a.output is not None and len(inputs) > 1:
         raise LabelError(tr("--output takes one input only; with several, each is saved as "
                             "<input>-labelled.pdf, or changed with --in-place"))
@@ -551,6 +575,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
     failed = False
     for path in inputs:
         try:
+            # With --in-place the PDF is opened so it can be saved over itself; a dry run never writes.
             with open_pdf(path, a.in_place and not a.dry_run, a.password) as pdf:
                 n = len(pdf.pages)
                 made = make(pdf, n)
@@ -559,6 +584,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
                     print(ntr("{path} would get ({count} page):", "{path} would get ({count} pages):", n,
                               path=out))
                 else:
+                    # Un nombre de salida que resulta ser el mismo archivo solo se acepta con --in-place.
                     if not a.in_place and out.resolve() == path.resolve():
                         raise LabelError(tr("the output is the input file; use --in-place to change it"))
                     write(pdf, made)
@@ -567,6 +593,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
                                 path=out)
                     if not standard:
                         print(wrote)
+            # pdf2iso writes its result over the same path; if it fails, the plain PDF stays.
             if standard and not a.dry_run:  # (once the file is closed: an input changed in place is replaced)
                 try:
                     check = conform.convert(out, out, standard, a.password)
@@ -574,6 +601,7 @@ def change(a, inputs: list[Path], make, write=labels.write_labels, describe=prin
                     raise LabelError(tr("{path} was saved as a plain PDF, but it could not be made {standard}: "
                                         "{error}", path=out, standard=conform.label(standard), error=e)) from None
                 print(wrote + " — " + conform.label(standard) + (f" ({check})" if check else ""))
+        # Un archivo que falla se informa y se sigue con los demás; el código de salida dice si alguno falló.
         except LabelError as e:
             report(e)
             failed = True
@@ -594,9 +622,11 @@ def set_labels(a) -> int:
     listed = read_list(a.from_file) if a.from_file else None
 
     def make(pdf, n):
+        # Una lista completa (--from-file) sustituye las etiquetas; los intervalos dados se aplican encima.
         if listed is not None:
             base = labels.from_list(listed, n)
         else:
+            # --remove implies --keep: removing a range only makes sense on the labels the file already has.
             base = labels.read_labels(pdf) if a.keep or a.remove else []
         requests = [labels.parse_compact(s, n) for s in compact] + [labels.parse_named(g, n) for g in named]
         return labels.apply(base, requests, n, a.remove)
@@ -611,6 +641,7 @@ def clear(a) -> int:
 def copy(a) -> int:
     with open_pdf(a.source, password=a.password) as pdf:
         source = labels.read_labels(pdf)
+    # Ranges starting after the last page of the target are dropped; the last range kept goes on to the end.
     return change(a, a.inputs, lambda pdf, n: [r for r in source if r.page <= n])
 
 
@@ -618,6 +649,7 @@ class OperationAction(argparse.Action):
     """Keeps the operations of 'pages' in the order they are given (in a.operations)."""
 
     def __call__(self, parser, namespace, values, option_string=None):
+        # With nargs="?" argparse passes a single string, not a list.
         if not isinstance(values, list):
             values = [values]
         ops = list(getattr(namespace, "operations", None) or [])
@@ -625,6 +657,8 @@ class OperationAction(argparse.Action):
         namespace.operations = ops
 
 
+# TODO: --duplicate y --replace no se prueban desde la línea de órdenes (ni sus errores de argumentos,
+# como valores de más); solo --insert-blank tiene esa prueba en tests/pages.
 def make_operation(name: str, values: list[str], n: int, labels_choice: str, password: str):
     """An arrange.Operation from an option of 'pages' (NAME, its VALUES), on a document of N pages."""
     kw = {"labels": labels_choice}
@@ -635,6 +669,7 @@ def make_operation(name: str, values: list[str], n: int, labels_choice: str, pas
     if name == "order":
         return arrange.Order(tuple(arrange.parse_order(values[0], n)), **kw)
     if name == "extract":
+        # --extract es un nuevo orden con solo las páginas elegidas: lo demás se borra.
         return arrange.Order(pages(values[0]), **kw)
     if name == "move":
         return arrange.Move(pages(values[0]), arrange.parse_where(values[1], n), **kw)
@@ -662,12 +697,14 @@ def make_operation(name: str, values: list[str], n: int, labels_choice: str, pas
         if not 2 <= len(values) <= 3:
             raise LabelError(tr("--insert takes a PDF, WHERE and, if wished, its PAGES"))
         source = values[0]
+        # Las páginas de --insert se cuentan en el PDF de origen, no en el documento que se cambia.
         count = arrange.source_count(source, password)
         chosen = tuple(arrange.parse_page_list(values[2], count)) if len(values) > 2 else ()
         return arrange.Insert(source, chosen, arrange.parse_where(values[1], n), password, **kw)
     if name == "replace":
         if not 2 <= len(values) <= 3:
             raise LabelError(tr("--replace takes PAGES, a PDF and, if wished, its FIRST page"))
+        # Un FIRST no numérico se ignora y vale 1, sin error.
         first = int(values[2]) if len(values) > 2 and values[2].isdigit() else 1
         return arrange.Replace(pages(values[0]), values[1], first, password, **kw)
     raise LabelError(name)
@@ -680,7 +717,9 @@ def arranged(pdf, a) -> tuple[list, list]:
     operations = []
     for name, values in getattr(a, "operations", None) or []:
         op = make_operation(name, values, n, a.labels, a.source_password)
+        # Each operation sees the document as the previous ones left it: its page count changes as we go.
         ranges = arrange.ranges_after(op, ranges, n)
+        # Rotate y Replace no cambian la cantidad de páginas.
         n = len(op.items(n)) if op.moves_pages() else n
         operations.append(op)
     return operations, ranges
@@ -708,6 +747,7 @@ def pages_command(a) -> int:
         operations, ranges, _ = made
         for op in operations:
             op.apply(pdf)
+        # Las etiquetas se escriben al final, ya calculadas para la secuencia de páginas resultante.
         labels.write_labels(pdf, ranges)
 
     if not (a.split_every or a.split_at):
@@ -729,11 +769,15 @@ def split_command(a, make, write) -> int:
                 at = arrange.parse_page_list(a.split_at, n) if a.split_at else None
                 parts = arrange.split_parts(n, a.split_every or 0, at)
                 ranges = made[1]
+                # The arranged document is saved once in memory and reopened for every part.
                 data = io.BytesIO()
+                # TODO: aquí se guarda sin encryption=True, así que las partes pierden la protección del original
+                # (files.write_parts sí la conserva), y --conform no se aplica a ellas.
                 pdf.save(data)
             folder = a.output_dir or path.parent
             suffix = a.name_suffix or ""
             for k, (first, last) in enumerate(parts, 1):
+                # Las partes se numeran desde 1: libro-1.pdf, libro-2.pdf...
                 target = folder / f"{a.name_prefix}{path.stem}{suffix}-{k}.pdf"
                 if a.dry_run:
                     print(tr("{path} would get pages {first}-{last}", path=target, first=first, last=last))
@@ -741,6 +785,7 @@ def split_command(a, make, write) -> int:
                 folder.mkdir(parents=True, exist_ok=True)
                 with pikepdf.open(io.BytesIO(data.getvalue()), password=a.password) as part:
                     op = arrange.Order(tuple(range(first, last + 1)))
+                    # Las etiquetas siguen a sus páginas en cada parte, como si las demás se hubieran borrado.
                     part_ranges = arrange.ranges_after(op, ranges, n)
                     op.apply(part)
                     labels.write_labels(part, part_ranges)
@@ -755,6 +800,7 @@ def split_command(a, make, write) -> int:
 
 def view_command(a) -> int:
     given = {"layout": a.layout, "zoom": a.zoom, "page": a.open_at}
+    # Sin ninguna opción de vista, la orden solo muestra la vista de cada archivo.
     if all(v is None for v in given.values()):
         if a.output is not None or a.in_place or a.dry_run:
             raise LabelError(tr("nothing to change: give --layout, --page-view or --open-at"))
@@ -771,6 +817,7 @@ def view_command(a) -> int:
                 print()
             print_view(shown, f"{path}:")
         return 1 if failed else 0
+    # Parts not given stay None, and view.changed keeps them as the file has them.
     return change(a, a.inputs, lambda pdf, n: view.changed(view.read_view(pdf), n, **given),
                   write=view.write_view, describe=lambda v, n: print_view(v, tr("When it is opened:")))
 
@@ -788,6 +835,7 @@ def opacity(value: str) -> float:
     """0.3 or 30%: an opacity from 0 to 1."""
     text = value.strip()
     try:
+        # '30%' se divide entre 100; el intervalo de 0 a 1 lo comprueba después watermark.check.
         return float(text[:-1]) / 100 if text.endswith("%") else float(text)
     except ValueError:
         raise LabelError(tr("the opacity must be from 0 to 1, or 0% to 100% (not {value!r})", value=value)) from None
@@ -798,12 +846,15 @@ def stamp_changes(a, kind: str) -> dict:
     changes = {}
     if kind == stamps.HEADER_FOOTER:
         for slot in headfoot.SLOTS:
+            # En la línea de órdenes un salto de línea se escribe \
+            # ; aquí pasa a ser un salto real.
             if getattr(a, slot) is not None:
                 changes[slot] = getattr(a, slot).replace("\\n", "\n")
         keys = HEADER_FOOTER_KEYS
     else:
         if a.text is not None:
             changes["text"] = a.text.replace("\\n", "\n")
+            # --text sin --file vacía la fuente, para que un perfil con PDF no deje la marca con las dos cosas.
             if a.source is None:
                 changes["source"] = ""
         if a.source is not None and a.text is None:
@@ -811,10 +862,12 @@ def stamp_changes(a, kind: str) -> dict:
         if a.opacity is not None:
             changes["opacity"] = opacity(a.opacity)
         keys = WATERMARK_KEYS
+    # Only the options actually given are kept, so a profile's values stay where the user said nothing.
     for key in keys:
         if getattr(a, key, None) is not None:
             changes[key] = getattr(a, key)
     if kind == stamps.HEADER_FOOTER and a.background is not None:
+        # 'none' quita el fondo, incluso el que traiga un perfil.
         changes["background"] = "" if a.background.strip().lower() in ("", "none") else a.background
     if a.save_profile:
         changes["name"] = a.save_profile
@@ -824,6 +877,7 @@ def stamp_changes(a, kind: str) -> dict:
 def stamp_settings(a, kind: str, module, base=None):
     """The settings the options give, laid over BASE, or those of --profile, or the defaults."""
     cls = headfoot.HeaderFooter if kind == stamps.HEADER_FOOTER else watermark.Watermark
+    # With --update, BASE is the settings of the last addition; else a profile or the defaults.
     if base is None:
         base = cls()
         if a.profile:
@@ -855,6 +909,7 @@ def describe_stamp(made, n: int) -> None:
                  for number, text in watermark.page_texts(change.settings, doc, datetime.now(), offset)]
     if change.replaces is not None:
         print("  " + tr("(replacing the last one added)"))
+    # The dry run shows only the first and the last page, which is enough to see how the variables expand.
     for number, texts in (pages[0], pages[-1]) if len(pages) > 1 else pages[:1]:
         print("  " + tr("page {page}", page=number) + ":")
         for what, text in texts:
@@ -883,6 +938,7 @@ def stamp_command(a, kind: str) -> int:
         print(tr("Profile {name!r} forgotten", name=a.delete_profile))
         return 0
     removing = a.remove or getattr(a, "remove_bates", False)
+    # Las tres acciones son incompatibles; sum() cuenta cuántas se pidieron.
     if sum([removing, a.update, a.add]) > 1:
         raise LabelError(tr("--add, --update and --remove go one at a time"))
     settings = None if (removing or a.update) else stamp_settings(a, kind, module)
@@ -898,9 +954,11 @@ def stamp_command(a, kind: str) -> int:
             return 0
     if not a.inputs:
         raise LabelError(tr("no PDF given (the files must end in .pdf)"))
+    # Un diccionario, y no variables sueltas, para que make() pueda cambiarlo desde dentro (cierre).
     bates = {"offset": 0, "last": None}  # (Bates numbers go on from one file to the next)
 
     def make(pdf, n):
+        # pdf.filename is the path the file was opened from; $filename and $filepath come from it.
         doc = stamps.document_of(pdf, Path(pdf.filename))
         if removing:
             change = Change(None, kind=kind, pages=a.pages or "", bates_only=getattr(a, "remove_bates", False))
@@ -915,7 +973,10 @@ def stamp_command(a, kind: str) -> int:
             change = Change(settings, keep=a.add)
         offset = bates["offset"]
         if change.settings is not None:
+            # Expand the texts once beforehand, so a character the fonts cannot write stops the file
+            # before it is changed.
             module.page_texts(change.settings, doc, datetime.now(), offset)  # (they can be written, first)
+            # Solo avanzan los números Bates si el texto los usa; un --remove no consume ninguno.
             used = change.bates_pages(n)
             if used:
                 bates["offset"] += used
@@ -925,6 +986,7 @@ def stamp_command(a, kind: str) -> int:
     result = change(a, a.inputs, make, write=lambda pdf, made: made[0].apply(pdf, made[1], bates_offset=made[2]),
                     describe=describe_stamp)
     if bates["last"] is not None:
+        # The next number is printed so a later batch can start with --bates-start where this one ended.
         print(tr("Next Bates number: {number}", number=stamps.bates_number(bates["last"], bates["offset"])))
     return result
 
@@ -970,6 +1032,7 @@ def main(argv: list[str] | None = None) -> int:
     interface.use_configured(interface_option(argv))
     interface.translate_argparse()
     # "py-pdftools file.pdf ..." -> show
+    # Una palabra suelta que acaba en .pdf como primera palabra equivale a 'show'; se salta el valor de --interface.
     words = [t for i, t in enumerate(argv) if not t.startswith("-") and (i == 0 or argv[i - 1] != "--interface")]
     first = words[0] if words else None
     if first and first not in COMMANDS and first.lower().endswith(".pdf"):
@@ -977,6 +1040,8 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     a, extra = parser.parse_known_args(argv)
     # (argparse takes the positionals of a command in one go: those after an option are left over)
+    # Arguments left over that are not options are files (or ranges) given after an option; they are added back
+    # to the positionals of the command.
     if extra and a.command in ("set", "show", "clear", "copy", "view", "header-footer", "watermark", "pages") \
             and not any(t.startswith("-") and t != "-" for t in extra):
         if a.command == "set":

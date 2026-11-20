@@ -38,16 +38,19 @@ def load_sequence(path: Path) -> tuple[list[list[str]], dict]:
         raise ImpositionError(tr("sequence {path} has no 'steps' list", path=path))
     out = []
     for s in steps:
+        # Cada paso puede ser una cadena (se parte como en el shell) o una lista de argumentos.
         tokens = shlex.split(s) if isinstance(s, str) else [str(t) for t in s]
         if not tokens:
             continue
         out.append(tokens)
+    # Only these preferences may be set in a sequence file; 'conform' and 'quiet' come from the command line.
     prefs = {k: data[k] for k in ("units", "registration", "bleed", "pdfx") if k in data}
     prefs["name"] = data.get("name") or Path(path).stem
     return out, prefs
 
 
 def prefs_context(prefs: dict, ctx: Context, input_path: Path | None = None) -> Context:
+    # Same role as make_context in runner.py, but the values come from the TOML file instead of the command line.
     return Context(
         units=prefs.get("units", ctx.units),
         registration=prefs.get("registration", ctx.registration),
@@ -69,6 +72,7 @@ def write_sequence(steps: list[list[str]], name: str) -> str:
 
 
 def _toml_str(s: str) -> str:
+    # Cadena básica de TOML: basta con escapar la barra invertida y las comillas dobles.
     return '"' + s.replace("\\", "\\\\").replace('"', '\\"') + '"'
 
 
@@ -76,6 +80,7 @@ def process_file(path: Path, steps, prefs, ctx: Context, output: Path) -> list[P
     from .runner import run_steps, save_result
 
     pdf = Pdf.open(path)
+    # The input path goes into the context, so fields such as [File:Name] refer to each file.
     sctx = prefs_context(prefs, ctx, path)
     result = run_steps(pdf, steps, sctx)
     return save_result(result, output, ctx.conform)
@@ -99,6 +104,7 @@ def run(pdf, a, ctx: Context):
     for inp in a.inputs:
         if not inp.is_file():
             raise ImpositionError(tr('{inp} not found', inp=inp))
+        # Default output name: <input>-<sequence name>.pdf, next to the input or in --out-dir.
         out = a.output or (a.out_dir or inp.parent) / f"{inp.stem}-{suffix}.pdf"
         if a.out_dir:
             a.out_dir.mkdir(parents=True, exist_ok=True)
@@ -130,6 +136,7 @@ def replay(pdf, a, ctx: Context):
     if not a.input.is_file():
         raise ImpositionError(tr('{input} not found', input=a.input))
     out = a.output or a.input.with_name(f"{a.input.stem}-replay.pdf")
+    # No preferences from a file here: the recorded steps already carry their own options.
     for p in process_file(a.input, steps, {}, ctx, out):
         print(tr("Wrote {path}", path=p))
     return None
@@ -158,6 +165,8 @@ def watch(pdf, a, ctx: Context):
     errors = a.errors or folder / "errors"
     for d in (out, done, errors):
         d.mkdir(parents=True, exist_ok=True)
+    # Tamaño visto en la pasada anterior: un archivo solo se procesa cuando no cambió entre dos pasadas
+    # (es decir, cuando terminó de copiarse).
     sizes: dict[Path, int] = {}
     print(tr('Watching {folder} (sequence: {prefs}); Ctrl+C to stop', folder=folder, prefs=prefs['name']), file=sys.stderr)
     try:
@@ -171,7 +180,12 @@ def watch(pdf, a, ctx: Context):
                     continue
                 sizes.pop(f, None)
                 try:
+                    # The output keeps the input's name inside the out folder; a later file with the same name
+                    # overwrites it.
                     paths = process_file(f, steps, prefs, ctx, out / f.name)
+                    # TODO: rename() falla si done/ o errors/ están en otro sistema de archivos; entonces el except
+                    # vuelve a fallar
+                    # y la carpeta deja de vigilarse. shutil.move lo evitaría.
                     f.rename(done / f.name)
                     for p in paths:
                         print(f"{time.strftime('%H:%M:%S')} {f.name} -> {p}", file=sys.stderr)

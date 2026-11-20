@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 
 PROG = "py-pdftools"
+# Options followed by a path: the shell completes file names after them.
 FILE_OPTIONS = ("-o", "--output", "-f", "--from-file", "--output-dir")
 QUIET_OPTIONS = ("--password", "--remove", "-l", "--label")  # (that take a value no list can give)
 
@@ -30,6 +31,7 @@ def commands(parser: argparse.ArgumentParser) -> dict[str, argparse.ArgumentPars
 
 def tree(parser: argparse.ArgumentParser, path: tuple[str, ...] = ()) -> dict[tuple[str, ...], argparse.ArgumentParser]:
     """{path: parser} of PARSER and every command under it (the path of PARSER is ())."""
+    # Recorrido recursivo: la raíz tiene la ruta (), 'labels' tiene ('labels',), y así sucesivamente.
     out = {path: parser}
     for name, sub in commands(parser).items():
         out.update(tree(sub, path + (name,)))
@@ -54,6 +56,7 @@ def _choices(parser: argparse.ArgumentParser) -> list[str]:
 
 
 def _help(action: argparse.Action) -> str:
+    # Solo la primera parte de la ayuda, corta y sin comillas simples, que romperían las cadenas de bash y fish.
     text = (action.help or "").split(";")[0].split(" (")[0]
     return text.replace("'", "").replace("\n", " ")[:70]
 
@@ -67,9 +70,12 @@ def _help_of(parser: argparse.ArgumentParser, name: str) -> str:
 def bash(parser: argparse.ArgumentParser) -> str:
     cases = []
     for path, sub in tree(parser).items():
+        # The words offered after a command: its subcommands, or else the choices of its first positional.
         words = " ".join(commands(sub)) or " ".join(_choices(sub))
+        # files=0 si la orden solo acepta palabras fijas; 1 si después espera nombres de archivos PDF.
         files = "0" if commands(sub) or (_choices(sub) and not _positionals(sub)[1:]) else "1"
         cases.append(f'        "{" ".join(path)}") opts="{_option_words(sub)}"; words="{words}"; files={files} ;;')
+    # En la plantilla, las llaves dobles son llaves del script de bash, no campos del f-string.
     return f"""# bash completion for {PROG} (made by '{PROG} completion bash')
 _py_pdftools() {{
     local cur prev path opts words files i w
@@ -111,7 +117,9 @@ complete -o filenames -F _py_pdftools {PROG}
 
 
 def fish(parser: argparse.ArgumentParser) -> str:
+    # fish has no nested commands: each completion is conditioned on the path of commands typed so far.
     nodes = tree(parser)
+    # Las rutas van en una lista de fish, para que __py_pdftools_at sepa qué palabras son órdenes.
     paths = " ".join(f"'{' '.join(path)}'" for path in nodes if path)
     lines = [f"# fish completion for {PROG} (made by '{PROG} completion fish')",
              f"complete -c {PROG} -f",
@@ -147,7 +155,9 @@ def _fish_option(strings: list[str], action: argparse.Action, cond: str) -> str:
     parts = [f"complete -c {PROG} -n {cond}"]
     for s in strings:
         parts.append(f"-l {s[2:]}" if s.startswith("--") else f"-s {s[1:]}")
+    # nargs == 0 is a flag (store_true and the like), which takes no value.
     takes = action.nargs != 0
+    # -x: exclusive, no file names offered; -r -F: a value is required, completed as a file.
     if action.choices:
         parts.append(f"-x -a '{' '.join(map(str, action.choices))}'")
     elif takes and any(s in FILE_OPTIONS for s in strings):
@@ -159,6 +169,7 @@ def _fish_option(strings: list[str], action: argparse.Action, cond: str) -> str:
 
 
 def zsh(parser: argparse.ArgumentParser) -> str:
+    # zsh reuses the bash script through bashcompinit, so there is only one script to keep.
     return (f"#compdef {PROG}\n# zsh completion for {PROG} (made by '{PROG} completion zsh'): the bash one\n"
             "autoload -U +X bashcompinit && bashcompinit\n" + bash(parser))
 

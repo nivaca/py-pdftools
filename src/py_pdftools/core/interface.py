@@ -44,6 +44,7 @@ class InterfaceError(Exception):
 
 def files() -> dict[str, Path]:
     """{code: path} of the languages of the interface besides English."""
+    # Sin la carpeta locale (un paquete recortado, por ejemplo) el programa funciona solo en inglés.
     if not FOLDER.is_dir():
         return {}
     return {p.stem: p for p in sorted(FOLDER.glob("*.xml"))}
@@ -53,6 +54,7 @@ def names() -> dict[str, str]:
     """{code: name} of the languages of the interface, each in itself (English, Español...)."""
     out = {REFERENCE: "English"}
     for code, path in files().items():
+        # A broken file is skipped here; use() tells the error when that language is chosen.
         try:
             root = ET.parse(path).getroot()
         except (OSError, ET.ParseError):
@@ -62,6 +64,7 @@ def names() -> dict[str, str]:
 
 
 def key_of(english: str) -> str:
+    # Colapsa espacios y saltos de línea: un texto partido en varias líneas del XML coincide con el del código.
     return " ".join(english.split())
 
 
@@ -80,8 +83,10 @@ def read(path: Path) -> dict[str, str]:
             raise InterfaceError(f"{path}: each <text> needs an <en> and a <tr>")
         key = key_of(english.text or "")
         value = translation.text or ""
+        # Las partes {nombre} deben ser las mismas en los dos textos; si no, format() fallaría al mostrarlo.
         if sorted(PART.findall(key)) != sorted(PART.findall(value)):
             raise InterfaceError(f'{path}: the parts of "{key}" are not those of its translation')
+        # A text given twice is an error rather than a silent override, so that the file stays easy to review.
         if key in texts:
             raise InterfaceError(f'{path}: "{key}" is there twice')
         texts[key] = value
@@ -94,6 +99,7 @@ def use(code: str | None) -> bool:
     global _code, _texts, _error
     path = files().get(code or "")
     texts: dict[str, str] = {}
+    # Pedir el inglés, o nada, no es un error; solo lo es un código sin archivo.
     _error = "" if path is not None or not code or code == REFERENCE \
         else f'there is no interface file for "{code}"'
     if path is not None:
@@ -117,6 +123,7 @@ def use_configured(override: str | None = None) -> str:
     from . import config
 
     code = override
+    # --interface tiene prioridad; sin él, manda el archivo de configuración.
     if code is None:
         try:
             code = config.read().get("parameters", {}).get("interface")
@@ -136,6 +143,7 @@ def code() -> str:
 def tr(english: str, /, **parts) -> str:
     """ENGLISH, a text of the interface, in the language in use, with its
     PARTS ({path} ...) filled in."""
+    # Sin traducción cargada no se busca nada: es el caso más frecuente, el inglés.
     text = _texts.get(key_of(english)) if _texts else None
     if text is None:
         text = english
@@ -144,6 +152,7 @@ def tr(english: str, /, **parts) -> str:
         if stripped:
             start = english.index(stripped[0])
             text = english[:start] + text.strip() + english[start + len(stripped):]
+    # format() solo si hay partes: un texto sin ellas puede llevar llaves literales.
     return text.format(**parts) if parts else text
 
 
@@ -162,5 +171,6 @@ def translate_argparse() -> None:
     """Make argparse write its own texts (usage:, options...) in the language in use."""
     import argparse
 
+    # argparse calls the module-level _ and ngettext for its own messages (usage:, error:...): they are replaced.
     argparse._ = tr
     argparse.ngettext = lambda one, many, n: tr(one if n == 1 else many)

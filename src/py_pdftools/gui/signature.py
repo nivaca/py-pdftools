@@ -13,10 +13,12 @@ from ..annotate.annots import smooth_segments
 from ..core.interface import tr
 
 Strokes = list[list[tuple[float, float]]]
+# Se guarda normalizada: así no depende del tamaño que tenía el panel de dibujo al firmar.
 KEY = "signature"  # (in the window's QSettings: the strokes, as JSON, in a box of width 1)
 
 
 def load(settings: QSettings) -> Strokes:
+    # A damaged or hand-edited value gives no signature rather than an error.
     try:
         strokes = json.loads(settings.value(KEY, "") or "[]")
         return [[(float(x), float(y)) for x, y in stroke] for stroke in strokes if stroke]
@@ -34,6 +36,8 @@ def normalized(strokes: Strokes) -> Strokes:
     if not points:
         return []
     x0, y0 = min(p[0] for p in points), min(p[1] for p in points)
+    # Se divide por la mayor de las dos medidas, no solo por el ancho: una firma más alta que ancha
+    # también cabe en 1. El 1e-6 evita dividir por cero con un solo punto.
     width = max(max(p[0] for p in points) - x0, max(p[1] for p in points) - y0, 1e-6)
     return [[(round((x - x0) / width, 5), round((y - y0) / width, 5)) for x, y in stroke] for stroke in strokes]
 
@@ -45,10 +49,12 @@ class Pad(QWidget):
         super().__init__(parent)
         self.strokes: Strokes = []
         self.setMinimumSize(480, 180)
+        # WA_StaticContents: on resize only the new area is repainted.
         self.setAttribute(Qt.WidgetAttribute.WA_StaticContents)
         self.setCursor(Qt.CursorShape.CrossCursor)
 
     def mousePressEvent(self, event):
+        # Cada pulsación empieza un trazo nuevo; con cualquier botón, no solo el izquierdo.
         p = event.position()
         self.strokes.append([(p.x(), p.y())])
         self.update()
@@ -57,6 +63,7 @@ class Pad(QWidget):
         if self.strokes and event.buttons() & Qt.MouseButton.LeftButton:
             p = event.position()
             last = self.strokes[-1][-1]
+            # Distancia Manhattan de 1,5 px como mínimo: menos puntos, y la curva sale más suave.
             if abs(p.x() - last[0]) + abs(p.y() - last[1]) >= 1.5:
                 self.strokes[-1].append((p.x(), p.y()))
                 self.update()
@@ -66,6 +73,7 @@ class Pad(QWidget):
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.fillRect(self.rect(), Qt.GlobalColor.white)
         p.setPen(QPen(Qt.GlobalColor.lightGray, 1, Qt.PenStyle.DashLine))
+        # A dashed baseline at three quarters of the height, as on a form, to sign above it.
         base = self.height() * 0.75
         p.drawLine(QPointF(20, base), QPointF(self.width() - 20, base))
         pen = QPen(Qt.GlobalColor.darkBlue, 2.5)
@@ -73,10 +81,13 @@ class Pad(QWidget):
         pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
         p.setPen(pen)
         for stroke in self.strokes:
+            # A stroke of one or two points is drawn as a dot here, since smooth_segments needs three;
+            # on the page (paint.py) a stroke of two points is a line.
             if len(stroke) < 3:
                 p.drawPoint(QPointF(*stroke[0]))
                 continue
             path = QPainterPath(QPointF(*stroke[0]))
+            # Las mismas curvas que usará la anotación en el PDF (annots.smooth_segments): se ve como quedará.
             for c1, c2, end in smooth_segments(stroke):
                 path.cubicTo(QPointF(*c1), QPointF(*c2), QPointF(*end))
             p.drawPath(path)
@@ -106,4 +117,5 @@ class SignatureDialog(QDialog):
         lay.addWidget(buttons)
 
     def strokes(self) -> Strokes:
+        # Los trazos vacíos no deberían existir, pero se filtran por si acaso antes de guardar.
         return [s for s in self.pad.strokes if s]

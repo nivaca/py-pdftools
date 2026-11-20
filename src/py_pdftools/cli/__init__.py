@@ -34,17 +34,20 @@ PROG = "py-pdftools"
 
 
 def _subparsers(parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+    # argparse no ofrece una manera pública de llegar a sus subparsers: se usa _actions.
     return next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
 
 
 def _graft(dst: argparse._SubParsersAction, src: argparse._SubParsersAction, names) -> None:
     """Put the commands NAMES of SRC under DST, as they are."""
     for name in names:
+        # Two private structures must agree: the map of names (for parsing) and the choices (for the help).
         dst._name_parser_map[name] = src.choices[name]
         dst._choices_actions.append(next(c for c in src._choices_actions if c.dest == name))
 
 
 def build_parser() -> argparse.ArgumentParser:
+    # Importaciones diferidas: los analizadores de imposición y de páginas solo hacen falta aquí.
     from .. import __version__
     from ..impose.runner import build_parser as impose_parser
     from ..pages.cli import build_parser as pages_parser
@@ -52,6 +55,7 @@ def build_parser() -> argparse.ArgumentParser:
     pages = _subparsers(pages_parser(PROG))
     impose = impose_parser(f"{PROG} impose")
     isub = _subparsers(impose)  # (its 'interface' is the one here)
+    # La orden 'interface' de la imposición se retira para que no aparezca dos veces.
     isub._name_parser_map.pop("interface", None)
     isub._choices_actions[:] = [c for c in isub._choices_actions if c.dest != "interface"]
 
@@ -72,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
                                            "for its pages (i, ii, iii ... 1, 2, 3 ... A-1, A-2 ...)."))
     _graft(_subparsers_of(labels, tr("COMMAND")), pages, LABELS)
     _graft(sub, pages, TOP)
+    # 'impose' entra como un analizador entero, con sus órdenes; la pseudoacción solo sirve para la ayuda.
     sub._name_parser_map["impose"] = impose
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "impose", (), tr("impose pages for printing: booklets, n-up, step and repeat, bleeds, stamps, "
@@ -94,13 +99,16 @@ def main(argv: list[str] | None = None) -> int:
     from ..pages import cli as pages_cli
 
     argv = list(sys.argv[1:] if argv is None else argv)
+    # The language is set before any parser is built, so that its help and argparse's own messages are translated.
     interface.use_configured(pages_cli.interface_option(argv))
     interface.translate_argparse()
     words = _words(argv)
     first = words[0] if words else None
+    # Cada grupo de órdenes conserva su propio main, como en los programas de donde viene.
     if first and first[1] == "impose":
         from ..impose import main as impose_main
 
+        # Se quita la palabra 'impose' y el resto se pasa tal cual al programa de imposición.
         return impose_main(argv[:first[0]] + argv[first[0] + 1:])
     if first and first[1] == "labels":
         second = words[1][1] if len(words) > 1 else None
@@ -110,6 +118,7 @@ def main(argv: list[str] | None = None) -> int:
         return pages_cli.main(argv)
     parser = build_parser()
     a = parser.parse_args(argv)  # (the help, the version, or a command that does not exist)
+    # 'labels' sin orden muestra la ayuda de ese grupo, no la general.
     if a.group == "labels":
         _subparsers(parser).choices["labels"].print_help()
     else:

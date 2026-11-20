@@ -60,6 +60,7 @@ class FindDialog(QDialog):
         self.language = QComboBox()
         for value, name in patterns.LANGUAGES:
             self.language.addItem(tr(name), value)
+        # La forma elegida se guarda en la configuración en cuanto cambia (_language_changed).
         self.language.setCurrentIndex([v for v, _ in patterns.LANGUAGES].index(window.redact_prefs.pattern_language))
         self.language.setToolTip(tr("The forms of the patterns: of phone numbers, dates, identity numbers"))
         self.language.currentIndexChanged.connect(self._language_changed)
@@ -72,6 +73,7 @@ class FindDialog(QDialog):
             box.setPrefix(text)
             box.setEnabled(False)
             self.partial.toggled.connect(box.setEnabled)
+        # Four at the end: the usual way of leaving a card or account number recognisable.
         self.keep_end.setValue(4)
         self.case = QCheckBox(tr("Match case"))
         self.whole = QCheckBox(tr("Whole words"))
@@ -92,6 +94,7 @@ class FindDialog(QDialog):
 
         self.results = QListWidget()
         self.results.currentItemChanged.connect(self._chosen)
+        # Each item keeps the index of its Match in self.matches (UserRole), not the Match itself.
         self.results.itemDoubleClicked.connect(
             lambda item: self.mark.emit([self.matches[item.data(Qt.ItemDataRole.UserRole)]]))
         self.summary = QLabel("")
@@ -131,6 +134,8 @@ class FindDialog(QDialog):
         self.terms.setMaximumHeight(110)
         self.pattern_list.setMaximumHeight(140)
         self.mode.currentIndexChanged.connect(self.pages_of_modes.setCurrentIndex)
+        # QStackedWidget toma la altura de su página más alta; se limita según el modo para que no
+        # quede un hueco sobre la lista de resultados.
         self.mode.currentIndexChanged.connect(lambda i: self.pages_of_modes.setMaximumHeight(
             [self.query.sizeHint().height() * 2 + 8, 150, 180][i]))
         self.pages_of_modes.setMaximumHeight(self.query.sizeHint().height() * 2 + 8)
@@ -207,6 +212,8 @@ class FindDialog(QDialog):
     def _progress(self, done: int, total: int) -> bool:
         """Show how far a search has gone, let the window answer, and say whether to go on."""
         self.summary.setText(tr("Looking on page {done} of {total}…", done=done, total=total))
+        # La búsqueda corre en el hilo de la ventana: processEvents deja pulsar Detener y redibujar.
+        # Por eso search() comprueba self.searching, por si se vuelve a entrar.
         QApplication.processEvents()
         return not self.stop_asked
 
@@ -231,6 +238,8 @@ class FindDialog(QDialog):
         self.b_all.setEnabled(False)
         self.b_ticked.setEnabled(False)
         try:
+            # Whole words is ignored for patterns, which carry their own boundaries. Page texts are
+            # cached in the window (redact_texts) and shared with the right-click search.
             self.matches = find_all(doc, queries, self.page_list(), self.case.isChecked(),
                                     self.whole.isChecked() and self.mode.currentData() != "patterns", *keep,
                                     progress=self._progress, texts=self.window.redact_texts)
@@ -238,6 +247,7 @@ class FindDialog(QDialog):
             self.summary.setText(tr("That regular expression can't be read: {error}", error=e))
             self._enable()
             return
+        # El ValueError viene de page_list: una lista de páginas mal escrita.
         except ValueError as e:
             self.summary.setText(str(e))
             self._enable()
@@ -275,12 +285,14 @@ class FindDialog(QDialog):
         if not name:
             return
         try:
+            # utf-8-sig also reads files that start with a byte order mark, as some Windows editors write them.
             with open(name, encoding="utf-8-sig") as f:
                 lines = [line.strip() for line in f if line.strip()]
         except (OSError, UnicodeDecodeError) as e:
             self.summary.setText(str(e))
             return
         old = [line for line in self.terms.toPlainText().splitlines() if line.strip()]
+        # Se añaden a lo que ya había, sin repetir líneas.
         self.terms.setPlainText("\n".join(old + [x for x in lines if x not in old]))
         self.summary.setText(ntr("{count} word or phrase read", "{count} words or phrases read", len(lines)))
 

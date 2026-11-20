@@ -46,6 +46,7 @@ class Box:
         """The pages (0-based) it covers, in a document of COUNT pages."""
         if not self.repeat.strip():
             return [self.page] if self.page < count else []
+        # Las páginas que no existen se dejan fuera sin error: «1-200» sirve en un documento de 50.
         return parse_pages(self.repeat, count, allow_out_of_range=True)
 
     def on(self, page: int, count: int) -> bool:
@@ -84,13 +85,17 @@ def overlay(box: Box, area: pymupdf.Rect) -> tuple[str, float]:
     text = " ".join(box.text.split())
     if not text or area.width < 2 or area.height < 2:
         return "", 0
+    # Without a size of its own, the text is 3/4 of the box height (at most 12 pt), then shrunk
+    # to fit the width, never below 3 pt.
     size = box.font_size or min(MAX_FONT, area.height * 0.75)
     width = pymupdf.get_text_length(text, fontname=FONT, fontsize=size)
+    # Un punto de margen a cada lado.
     room = area.width - 2
     if not box.font_size and width > room:
         size = max(size * room / width, 3)
     if box.repeat_text:
         unit = text + " "
+        # Tantas copias como caben enteras en el ancho; al menos una, aunque no quepa.
         n = max(int(room // pymupdf.get_text_length(unit, fontname=FONT, fontsize=size)), 1)
         text = (unit * n).strip()
     return text, round(size, 2)
@@ -116,9 +121,11 @@ def page_rect(page: pymupdf.Page, rect: Rect) -> pymupdf.Rect | None:
     shown = pymupdf.Rect(normalized(rect)) & page.rect
     if shown.is_empty:
         return None
+    # Boxes are kept as the page is shown; PyMuPDF wants the coordinates of the unrotated page.
     return (shown * page.derotation_matrix).normalize()
 
 
+# De los valores de settings.py a las constantes de PyMuPDF.
 IMAGES = {"pixels": pymupdf.PDF_REDACT_IMAGE_PIXELS, "whole": pymupdf.PDF_REDACT_IMAGE_REMOVE,
           "none": pymupdf.PDF_REDACT_IMAGE_NONE}
 DRAWINGS = {"covered": pymupdf.PDF_REDACT_LINE_ART_REMOVE_IF_COVERED,
@@ -138,6 +145,8 @@ def redact_page(page: pymupdf.Page, boxes: list[Box], images: str = "pixels", dr
             continue
         areas.append(area)
         text, size = overlay(box, area)
+        # fill=False: sin color, lo de debajo se borra y no se pinta nada. Si no hay texto, el tamaño
+        # 11 es un relleno sin efecto.
         page.add_redact_annot(area, text=text or None, fontname=FONT, fontsize=size or 11, align=ALIGN[box.align],
                               fill=rgb(box.color) if box.color else False,
                               text_color=rgb(box.text_color), cross_out=False)
@@ -150,6 +159,7 @@ def redact_page(page: pymupdf.Page, boxes: list[Box], images: str = "pixels", dr
     for widget in list(page.widgets() or []):
         if any(widget.rect.intersects(a) for a in areas):
             page.delete_widget(widget)
+    # Text under a box is always removed; only images and drawings depend on the settings.
     page.apply_redactions(images=IMAGES[images], graphics=DRAWINGS[drawings],
                           text=pymupdf.PDF_REDACT_TEXT_REMOVE)
     return len(areas)
@@ -157,6 +167,8 @@ def redact_page(page: pymupdf.Page, boxes: list[Box], images: str = "pixels", dr
 
 def box_of(a) -> Box:
     """The box of A, a redaction box of the window (an annotations.Annotation of kind 'redact')."""
+    # Ojo con los nombres: en la anotación, 'fill' es el relleno, 'color' el del texto y 'overlay'
+    # el texto; aquí van por posición, en el orden de los campos de Box.
     return Box(a.page, a.rect, a.fill, a.repeat, a.overlay, a.color, a.font_size, a.align, a.overlay_repeat,
                a.contents, a.locked)
 
@@ -177,9 +189,14 @@ def redact(doc: pymupdf.Document, boxes: list[Box], clean: bool = False, images:
     document. Returns how many boxes were applied, counting each page a box is repeated on."""
     drop_marks(doc)
     done = 0
+    # Page by page, in order; a repeated box is applied once on each page it covers.
     for number, here in sorted(boxes_by_page(boxes, doc.page_count).items()):
         done += redact_page(doc[number], here, images, drawings)
     if clean:
+        # scrub() sin argumentos lo quita todo (metadatos, JavaScript, adjuntos, texto oculto...);
+        # set_metadata({}) vacía además el diccionario Info.
+        # TODO: CLEAN usa scrub() con todo activado, mientras sanitize elige por clases (hidden.remove);
+        # unificarlos para que las dos opciones quiten lo mismo.
         doc.scrub()
         doc.set_metadata({})
     return done
@@ -194,6 +211,7 @@ def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
     if not doc.is_pdf:
         doc.close()
         raise RedactError(tr("{path} is not a PDF", path=path))
+    # needs_pass is false for a file with only an owner password: such files open without asking.
     if doc.needs_pass and not doc.authenticate(password):
         doc.close()
         raise PasswordError(tr("{path} is protected by a password", path=path))
@@ -211,6 +229,8 @@ def write_redacted(source: Path, boxes: list[Box], target: Path, password: str =
     boxes were applied (see redact)."""
     doc = open_pdf(source, password)
     if part is None:
+        # En la carpeta de TARGET, para que os.replace sea un simple cambio de nombre y no una copia
+        # entre sistemas de archivos.
         fd, tmp = tempfile.mkstemp(suffix=".pdf", dir=target.parent)
         os.close(fd)
     else:
@@ -231,6 +251,7 @@ def write_redacted(source: Path, boxes: list[Box], target: Path, password: str =
         if not doc.is_closed:  # (it may fail after closing: the renaming, on Windows)
             doc.close()
         Path(tmp).unlink(missing_ok=True)
+        # Other exceptions (KeyboardInterrupt, a bug) go up as they are; the temporary file is gone anyway.
         if isinstance(e, (OSError, RuntimeError)):
             raise RedactError(tr("{path} cannot be written: {error}", path=target, error=e)) from None
         raise
@@ -241,6 +262,7 @@ def preview_page(doc: pymupdf.Document, number: int, boxes: list[Box], images: s
                  drawings: str = "covered") -> pymupdf.Document:
     """A new one-page document: page NUMBER of DOC with BOXES (those on it) redacted."""
     one = pymupdf.open()
+    # Se trabaja sobre una copia de la página: el documento abierto no se toca.
     one.insert_pdf(doc, from_page=number, to_page=number)
     drop_marks(one)
     here = boxes_on(boxes, number, doc.page_count)
@@ -257,6 +279,7 @@ def _turner(page: pymupdf.Page):
     plain numbers (as _shown, but quick enough for every character of a book)."""
     m = page.rotation_matrix
     a, b, c, d, e, f = m.a, m.b, m.c, m.d, m.e, m.f
+    # An unrotated page (the usual case): only the corners need ordering.
     if (a, b, c, d, e, f) == (1, 0, 0, 1, 0, 0):
         return lambda r: (min(r[0], r[2]), min(r[1], r[3]), max(r[0], r[2]), max(r[1], r[3]))
 
@@ -281,6 +304,8 @@ def words(page: pymupdf.Page) -> list[Word]:
     is shown: the one reading of a page's words, for selecting text and for
     telling what is under a box (see under)."""
     turn = _turner(page)
+    # sort=False: el orden del flujo de contenido, que suele ser el de lectura y evita reordenar
+    # por posición.
     return [Word(turn((x0, y0, x1, y1)), block, line, w)
             for x0, y0, x1, y1, w, block, line, _n in page.get_text("words", sort=False)]
 
@@ -290,6 +315,7 @@ def nearest_word(found: list[Word], x: float, y: float) -> int | None:
     if not found:
         return None
 
+    # Squared distance to the word's rectangle (0 inside it): the root is not needed to compare.
     def distance(i):
         x0, y0, x1, y1 = found[i][0]
         dx = max(x0 - x, 0, x - x1)
@@ -304,6 +330,7 @@ def text_rects(found: list[Word], first: int, last: int, pad: float = 1.0) -> li
     FOUND: one for each line, a little larger than the words (PAD points)."""
     if first > last:
         first, last = last, first
+    # Un rectángulo por línea (bloque, línea): las palabras de una misma línea se unen.
     lines: dict[tuple[int, int], list[float]] = {}
     for (x0, y0, x1, y1), block, line, _text in found[first:last + 1]:
         r = lines.setdefault((block, line), [x0, y0, x1, y1])
@@ -326,9 +353,11 @@ def page_chars(page: pymupdf.Page) -> tuple[str, list]:
     between two lines. Runs of spaces are one space."""
     text, where = [], []
     turn = _turner(page)
+    # rawdict gives each character with its bbox; images are left out, since only text is searched.
     raw = page.get_text("rawdict", flags=pymupdf.TEXTFLAGS_SEARCH & ~pymupdf.TEXT_PRESERVE_IMAGES)
     for b, block in enumerate(raw.get("blocks", [])):
         for n, line in enumerate(block.get("lines", [])):
+            # Entre dos líneas va un espacio sin lugar en la página (None), para hallar frases partidas.
             if text and text[-1] != " ":
                 text.append(" ")
                 where.append(None)
@@ -347,8 +376,11 @@ def page_chars(page: pymupdf.Page) -> tuple[str, list]:
 def _compile(query: str, case: bool, whole_words: bool, regex: bool):
     import re
 
+    # Sin REGEX, las palabras se escapan y se unen con \s+: así una frase se halla aunque tenga
+    # otros espacios o un salto de línea en medio.
     pattern = query if regex else r"\s+".join(re.escape(w) for w in query.split())
     if whole_words:
+        # Lookarounds instead of \b, which fails when the query starts or ends with a non-word character.
         pattern = rf"(?<!\w)(?:{pattern})(?!\w)"
     return re.compile(pattern, 0 if case else re.IGNORECASE)
 
@@ -360,6 +392,8 @@ def _matches_on(number: int, text: str, where: list, found_re, keep_start: int, 
         start, end = m.span()
         if end <= start:
             continue
+        # Solo los caracteres que están en la página: KEEP_START y KEEP_END se cuentan sobre estos,
+        # no sobre los espacios añadidos.
         real = [i for i in range(start, end) if where[i] is not None and not text[i].isspace()]
         chosen = real[keep_start:len(real) - keep_end if keep_end else None]
         if not chosen:
@@ -374,8 +408,10 @@ def _matches_on(number: int, text: str, where: list, found_re, keep_start: int, 
                 lines[(b, n)] = r
             elif r[2] > r[0] and r[3] > r[1]:
                 lines[(b, n)] = (min(old[0], r[0]), min(old[1], r[1]), max(old[2], r[2]), max(old[3], r[3]))
+        # Half a point to spare on each side.
         rects = tuple((round(x0 - 0.5, 2), round(y0 - 0.5, 2), round(x1 + 0.5, 2), round(y1 + 0.5, 2))
                       for x0, y0, x1, y1 in lines.values())
+        # Unos 40 caracteres de contexto a cada lado, cortados en un límite de palabra.
         before = text[max(start - 40, 0):start].split(" ", 1)[-1] if start > 40 else text[:start]
         after = text[end:end + 40].rsplit(" ", 1)[0] if len(text) > end + 40 else text[end:]
         snippet = m.group(0).strip()
@@ -406,6 +442,7 @@ def find_all(doc: pymupdf.Document, queries: list[tuple[str, bool]], pages: list
     the search stops there, with what it found so far. TEXTS, if given, keeps
     the text of each page read (by its number), for the next search in the
     same document: the caller empties it when the document changes."""
+    # All queries are compiled before any page is read, so a bad regular expression fails at once.
     compiled = [_compile(q, case, whole_words, regex) for q, regex in queries if q.strip()]
     if not compiled:
         return []
@@ -421,9 +458,11 @@ def find_all(doc: pymupdf.Document, queries: list[tuple[str, bool]], pages: list
         found = []
         for found_re in compiled:
             for m in _matches_on(number, text, where, found_re, keep_start, keep_end):
+                # Two queries may find the same place (a word and a pattern): it is kept once.
                 if (m.page, m.rects) not in seen:
                     seen.add((m.page, m.rects))
                     found.append(m)
+        # En cada página, de arriba abajo y de izquierda a derecha, según el primer rectángulo.
         out += sorted(found, key=lambda m: (m.rects[0][1], m.rects[0][0]))
         if progress is not None and progress(done, len(numbers)) is False:
             break
@@ -439,6 +478,8 @@ def under(found: list[Word], rect: Rect) -> list[str]:
     for (x0, y0, x1, y1), _block, _line, w in found:
         if x1 <= ax0 or x0 >= ax1 or y1 <= ay0 or y0 >= ay1:
             continue
+        # Cuenta si al menos la mitad del área de la palabra queda bajo el recuadro; una palabra de
+        # área nula (sin ancho o sin alto) no cuenta.
         whole = (x1 - x0) * (y1 - y0)
         if x1 > x0 and y1 > y0 and (min(x1, ax1) - max(x0, ax0)) * (min(y1, ay1) - max(y0, ay0)) >= 0.5 * whole:
             out.append(w)
@@ -469,8 +510,11 @@ def check_redacted(source: Path, target: Path, boxes: list[Box], password: str =
                 area = page_rect(page, box.rect)
                 if area is None:
                     continue
+                # Back to coordinates as shown, cut to the page: the form in which words() gives the words.
                 shown = tuple((area * page.rotation_matrix).normalize())
                 hidden = set(under(old, shown))
+                # TODO: a hidden word that is also in the box's own text (a name repeated in the overlay)
+                # is never reported; compare positions as well, not only words.
                 written = set(overlay(box, area)[0].split())
                 left = [w for w in under(new, shown) if w in hidden and w not in written]
                 if left:
@@ -483,6 +527,7 @@ def check_redacted(source: Path, target: Path, boxes: list[Box], password: str =
 
 def image_at(page: pymupdf.Page, x: float, y: float) -> Rect | None:
     """The rectangle (as the page is shown) of the image at (X, Y), if there is one."""
+    # In drawing order: where images overlap, the one found is the bottom one.
     for info in page.get_image_info():
         r = _shown(page, info["bbox"])
         if r.contains(pymupdf.Point(x, y)):
@@ -501,6 +546,7 @@ def sanitize(source: Path, target: Path, password: str = "", kinds: set[str] | N
     os.close(fd)
     try:
         hidden.remove(doc, kinds)
+        # Sin «unused», garbage=1 y sin clean: el resto del archivo cambia lo menos posible.
         doc.save(tmp, garbage=4 if "unused" in kinds else 1, deflate=True, clean="unused" in kinds,
                  encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
         doc.close()
@@ -524,6 +570,7 @@ al con de del el en es la las lo los o para por que se sin su sus un una uno y
 def _plain_words(text: str) -> list[str]:
     import re
 
+    # Words of three letters or more, case folded, without the common ones: those that may tell something.
     return [w for w in re.findall(r"\w+", text.casefold()) if len(w) >= 3 and w not in COMMON_WORDS]
 
 
@@ -573,6 +620,7 @@ def bookmark_leaks(source: Path, target: Path, boxes: list[Box], password: str =
         telling = any(w not in elsewhere for w in hidden) or (all_words and len(hidden) * 2 > len(all_words))
         if hidden and telling:
             out.append((i, title, tr("it has words that were under the boxes: {words}", words=", ".join(hidden))))
+        # get_toc gives 1-based pages, and -1 (or 0) for a bookmark whose target is gone.
         elif not 1 <= page <= pages:
             out.append((i, title, tr("it points to no page of the document")))
     return out
@@ -588,6 +636,8 @@ def remove_bookmarks(path: Path, which: set[int] | None = None, password: str = 
         if which is None:
             doc.set_toc([])
         else:
+            # cut_level: el nivel del último marcador quitado; los que lo siguen con nivel mayor son sus
+            # hijos y se van con él.
             toc, keep, cut_level = doc.get_toc(simple=False), [], None
             for i, item in enumerate(toc):
                 level = item[0]

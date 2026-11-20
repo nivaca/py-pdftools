@@ -38,6 +38,8 @@ def bleed(pdf: Pdf, a, ctx: Context):
     sel = select(a.pages, len(pdf.pages), a.parity)
     imp = pu.Importer(pdf)
     for i in sel:
+        # normalized() deja la página sin /Rotate y con la MediaBox en el origen, así las cajas se suman y restan sin
+        # girarlas.
         page = normalized(pdf, i, imp)
         cb = pu.crop_box(page)
         mb = pu.media_box(page)
@@ -45,6 +47,7 @@ def bleed(pdf: Pdf, a, ctx: Context):
             for key in ("/TrimBox", "/BleedBox"):
                 if key in page:
                     del page[key]
+            # PDF/X requires a TrimBox, so with --pdfx one is kept, equal to the crop box.
             if ctx.pdfx:
                 page.TrimBox = pu.rect_array(cb)
             continue
@@ -58,12 +61,17 @@ def bleed(pdf: Pdf, a, ctx: Context):
             else:
                 l = r = t = b = ctx.L(a.amount)
                 if a.mode == "except-fold":
+                    # El índice 0 es la página 1 (impar). Con encuadernación a la izquierda, los rectos (impares) tienen
+                    # el lomo a la izquierda.
                     odd = (i % 2 == 0)
                     fold_left = odd if a.direction == "left" else not odd
                     if fold_left:
                         l = 0
                     else:
                         r = 0
+            # --outside: the trim stays at the visible edge and the bleed reaches beyond it, into content that was
+            # cropped away.
+            # Without --generate it cannot go past the media box, where there is no content.
             if a.outside:
                 trim = cb
                 want = pu.expand(cb, l, b, r, t)
@@ -71,17 +79,20 @@ def bleed(pdf: Pdf, a, ctx: Context):
                 if bl != want:
                     ctx.warn(tr('page {index}: bleed limited to the media box (use --generate to create it)', index=i + 1))
             else:
+                # Sangrado hacia dentro: la página visible pasa a ser la caja de sangrado y la de corte se encoge.
                 trim = (cb[0] + l, cb[1] + b, cb[2] - r, cb[3] - t)
                 bl = cb
                 if trim[2] <= trim[0] or trim[3] <= trim[1]:
                     raise ImpositionError(tr('page {index}: bleed larger than the page', index=i + 1))
         if a.generate != "none":
             generate(pdf, imp, page, trim, bl, a.generate)
+            # El contenido generado puede salir de la MediaBox; se agranda para que no quede cortado.
             if bl[0] < mb[0] or bl[1] < mb[1] or bl[2] > mb[2] or bl[3] > mb[3]:
                 page.MediaBox = pu.rect_array((min(mb[0], bl[0]), min(mb[1], bl[1]),
                                                max(mb[2], bl[2]), max(mb[3], bl[3])))
         page.TrimBox = pu.rect_array(trim)
         page.BleedBox = pu.rect_array(bl)
+        # Show the bleed when asked, and always when generated content lies outside the old visible page.
         if a.show or (a.generate != "none" and a.outside):
             page.CropBox = pu.rect_array(bl)
     return pdf
@@ -89,15 +100,21 @@ def bleed(pdf: Pdf, a, ctx: Context):
 
 def generate(pdf: Pdf, imp: pu.Importer, page, trim: pu.Rect, bl: pu.Rect, how: str):
     """Draw content into the bleed area, behind the page."""
+    # La página recortada a la TrimBox se convierte en forma y se dibuja otra vez, detrás del contenido, en la zona de
+    # sangrado.
     form = imp.form(page, trim)
     canvas = pu.Canvas(pdf, page)
     x0, y0, x1, y1 = trim
     if how == "scale":
+        # scale: the trim area is stretched (each axis on its own) to cover the whole bleed box, and clipped to it.
         sx = pu.rect_w(bl) / pu.rect_w(trim)
         sy = pu.rect_h(bl) / pu.rect_h(trim)
         m = pu.chain(pu.translate(-x0, -y0), pu.scale(sx, sy), pu.translate(bl[0], bl[1]))
         canvas.form(form, m, clip=bl, tag=pu.TAG_BLEED)
     else:
+        # Espejo: cada una de las ocho zonas alrededor de la TrimBox recibe la página reflejada sobre el borde más
+        # cercano
+        # (x' = 2*x0 - x, y' = 2*y0 - y); las esquinas se reflejan en los dos ejes.
         mx = {"l": (-1, 0, 0, 1, 2 * x0, 0), "r": (-1, 0, 0, 1, 2 * x1, 0), "c": pu.IDENTITY}
         my = {"b": (1, 0, 0, -1, 0, 2 * y0), "t": (1, 0, 0, -1, 0, 2 * y1), "c": pu.IDENTITY}
         xr = {"l": (bl[0], x0), "c": (x0, x1), "r": (x1, bl[2])}
@@ -107,8 +124,10 @@ def generate(pdf: Pdf, imp: pu.Importer, page, trim: pu.Rect, bl: pu.Rect, how: 
                 if hx == "c" and vy == "c":
                     continue
                 rx, ry = xr[hx], yr[vy]
+                # Se omiten las franjas de ancho nulo (bordes sin sangrado).
                 if rx[1] - rx[0] <= 0 or ry[1] - ry[0] <= 0:
                     continue
                 m = pu.mul(mx[hx], my[vy])
                 canvas.form(form, m, clip=(rx[0], ry[0], rx[1], ry[1]), tag=pu.TAG_BLEED)
+    # prepend: lo generado se pinta antes que la página, de modo que queda debajo del contenido original.
     canvas.finish(prepend=True)

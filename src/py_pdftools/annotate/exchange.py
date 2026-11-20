@@ -45,7 +45,9 @@ VERSION = 1
 
 def to_data(a: Annotation) -> dict:
     data = dataclasses.asdict(a)
+    # The xref belongs to one file: it is dropped, so that importing elsewhere makes new annotations.
     data.pop("xref")
+    # Los bytes no caben en JSON: la imagen y los datos adjuntos van en base64.
     data["image"] = base64.b64encode(a.image).decode("ascii") if a.image else ""
     data["data"] = base64.b64encode(a.data).decode("ascii") if a.data else ""
     data["replies"] = [{k: v for k, v in dataclasses.asdict(r).items() if k != "xref"} for r in a.replies]
@@ -61,12 +63,15 @@ def _reply(data: dict, keep_xref: bool) -> Reply:
 
 def from_data(data: dict, keep_xref: bool = False) -> Annotation | None:
     """The annotation of DATA (None if it isn't one). Its xref is kept only if KEEP_XREF."""
+    # Unknown kinds (of a later version, or OTHER) are skipped rather than failing the whole import.
     if not isinstance(data, dict) or data.get("kind") not in KINDS:
         return None
     fields = {f.name: f for f in dataclasses.fields(Annotation)}
     values = {}
     try:
+        # Cada campo se convierte a su tipo; un valor mal formado descarta la anotación entera (véase el except).
         for name, value in data.items():
+            # Los campos desconocidos se ignoran: un archivo de una versión posterior todavía se puede leer.
             if name not in fields or (name == "xref" and not keep_xref):
                 continue
             if name in ("image", "data"):
@@ -103,6 +108,7 @@ def from_data(data: dict, keep_xref: bool = False) -> Annotation | None:
 
 def same_place(a: Annotation, b: Annotation) -> bool:
     """Whether A and B are the same annotation, made twice (or brought from two copies)."""
+    # The same kind, page and text, and a rectangle within one point on every side.
     return (a.kind, a.page, a.contents) == (b.kind, b.page, b.contents) and \
         all(abs(x - y) < 1.0 for x, y in zip(a.rect, b.rect))
 
@@ -110,6 +116,8 @@ def same_place(a: Annotation, b: Annotation) -> bool:
 def merged(have: list[Annotation], new: list[Annotation]) -> list[Annotation]:
     """Those of NEW that aren't in HAVE already."""
     out = []
+    # TODO: cuadrático, y have + out hace una lista nueva en cada vuelta; con miles de anotaciones convendría
+    # un índice por (kind, page, contents).
     for a in new:
         if not any(same_place(a, b) for b in have + out):
             out.append(a)
@@ -124,6 +132,7 @@ _LABELS: dict[tuple[int, int, int], list[str]] = {}  # (id of the document, page
 def doc_labels(doc: pymupdf.Document) -> list[str]:
     """The page labels of DOC, page by page ('' for none), as py-foliation's engine reads them (pages/labels.py).
     (PyMuPDF's own reading, before 2.0, takes the /Type /PageLabel of a range for its prefix: "ageLabeli".)"""
+    # The key changes when pages or objects are added, which is when the labels may have changed.
     key = (id(doc), doc.page_count, doc.xref_length())
     if key not in _LABELS:
         import io
@@ -132,6 +141,7 @@ def doc_labels(doc: pymupdf.Document) -> list[str]:
 
         from ..pages import labels
 
+        # pikepdf lee una copia en memoria del documento tal como está ahora, con lo que no se ha guardado.
         try:
             with pikepdf.open(io.BytesIO(doc.tobytes())) as pdf:
                 found = labels.page_labels(labels.read_labels(pdf), doc.page_count)
@@ -159,6 +169,7 @@ def marked_text(doc: pymupdf.Document, a: Annotation) -> str:
         return ""
     key = (id(doc), a.page)
     if key not in _WORDS:
+        # La caché se vacía al pasar a otro documento, o pasadas 2000 páginas, para que no crezca sin límite.
         if len(_WORDS) > 2000 or any(k[0] != id(doc) for k in _WORDS):
             _WORDS.clear()
         _WORDS[key] = annots.page_text(doc[a.page])
@@ -180,6 +191,7 @@ def _document_info(doc: pymupdf.Document, path: Path) -> dict:
 # --------------------------------------------------------------------- export
 
 def _write_text(target: Path, text: str) -> None:
+    # Atomic write, as elsewhere; newline='' leaves the CSV writer's \r\n line ends as they are.
     fd, tmp = tempfile.mkstemp(suffix=target.suffix, dir=target.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8", newline="") as f:
@@ -197,6 +209,7 @@ def export_json(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
         data["page_label"] = page_label(doc, a.page)
         data["marked_text"] = marked_text(doc, a)
         items.append(data)
+    # indent=1: legible para una persona sin inflar mucho el archivo.
     _write_text(target, json.dumps({"format": FORMAT, "version": VERSION, "document": _document_info(doc, path),
                                     "annotations": items}, ensure_ascii=False, indent=1) + "\n")
 
@@ -207,6 +220,7 @@ def import_json(source: Path) -> list[Annotation]:
         data = json.loads(source.read_text(encoding="utf-8"))
     except (OSError, ValueError) as e:
         raise AnnotateError(tr("{path} cannot be read: {error}", path=source, error=e)) from None
+    # The files of py-annotate are accepted too: the format is the same.
     if not isinstance(data, dict) or data.get("format") not in FORMATS or not isinstance(data.get("annotations"), list):
         raise AnnotateError(tr("{path} is not a file of annotations of py-pdftools", path=source))
     return [a for a in (from_data(d) for d in data["annotations"]) if a is not None]
@@ -216,6 +230,7 @@ def import_pdf(source: Path, password: str = "") -> list[Annotation]:
     """The annotations of another PDF (another copy of the document, annotated by someone else)."""
     doc = annots.open_pdf(source, password)
     try:
+        # xref=0: these come from another file, so they are new here.
         return [dataclasses.replace(a, xref=0) for a in annots.read(doc) if a.kind != annots.OTHER]
     finally:
         doc.close()
@@ -231,6 +246,7 @@ def export_csv(doc: pymupdf.Document, annotations: list[Annotation], target: Pat
     out = io.StringIO()
     w = csv.writer(out)
     w.writerow(CSV_COLUMNS)
+    # Orden de lectura aproximado: página, luego de arriba abajo y de izquierda a derecha.
     for a in sorted(annotations, key=lambda a: (a.page, a.rect[1], a.rect[0])):
         w.writerow([a.page + 1, page_label(doc, a.page), a.name(), a.color, meaning(a.color), a.author,
                     annots.date_text(a.created), annots.date_text(a.modified), marked_text(doc, a), a.contents]
@@ -246,6 +262,7 @@ def report(doc: pymupdf.Document, path: Path, annotations: list[Annotation],
     colour and author, then each of them, page by page, with the text it
     marks and its comment."""
     info = _document_info(doc, path)
+    # Primero los recuentos por tipo, color y autor; después cada anotación, agrupada por página.
     lines = ["# " + tr("Annotations of {name}", name=info["title"] or path.name), ""]
     pages = len({a.page for a in annotations})
     lines += [ntr("{count} annotation", "{count} annotations", len(annotations)) + ", "
@@ -262,6 +279,7 @@ def report(doc: pymupdf.Document, path: Path, annotations: list[Annotation],
     for a in sorted(annotations, key=lambda a: (a.page, a.rect[1], a.rect[0])):
         if a.page != page:
             page = a.page
+            # La etiqueta de la página se muestra solo cuando difiere de su número.
             label = page_label(doc, page)
             heading = tr("Page {page}", page=page + 1) + (f" ({label})" if label != str(page + 1) else "")
             lines += [f"## {heading}", ""]
@@ -287,9 +305,11 @@ def apparatus_entry(doc: pymupdf.Document, a: Annotation, with_page: bool = Fals
     """The entry of textual criticism of A, as a line of an apparatus: 'lemma ] reading W
     (Variant reading; probable). Source. Rationale.'"""
     c = a.critical
+    # Sin lema escrito, se usa el texto que marca la anotación.
     lemma = c.lemma or marked_text(doc, a)
     head = (f"*{lemma}* ]" if lemma else "]") + (f" {c.reading}" if c.reading else "") \
         + (f" {c.witness}" if c.witness else "") + (f" ({c.location})" if c.location else "")
+    # A confidence not given ('') is left out of the entry.
     kind = c.name() + (f"; {tr(annots.CONFIDENCE[c.confidence]).lower()}" if c.confidence in annots.CONFIDENCE
                        and c.confidence else "")
     text = f"{head} — {kind}." + "".join(f" {part.rstrip('.')}." for part in (c.source, c.rationale) if part)
@@ -329,6 +349,7 @@ def save_flattened(source: Path, annotations: list[Annotation], target: Path, pa
     doc = annots.open_pdf(source, password)
     try:
         annots.apply(doc, annotations)
+        # bake() hace de las anotaciones parte del contenido de la página; los campos de formulario se quedan.
         doc.bake(annots=True, widgets=False)
         annots.save_doc(doc, target)
     except (OSError, RuntimeError, ValueError) as e:
@@ -351,6 +372,7 @@ def save_partly_flattened(source: Path, annotations: list[Annotation], target: P
                          if (kind := annots.kind_of(doc, a)) is not None and kind not in kinds]:
                 page.delete_annot(page.load_annot(xref))
         doc.bake(annots=True, widgets=False)
+        # Those not flattened come back as new annotations (xref=0): their objects were deleted above.
         annots.apply(doc, [dataclasses.replace(a, xref=0) for a in annotations if a.kind not in kinds])
         annots.save_doc(doc, target)
     except (OSError, RuntimeError, ValueError) as e:
@@ -364,10 +386,12 @@ def kinds_lost(annotations: list[Annotation], target: Path, password: str = "") 
     copy of them made by another program)."""
     doc = annots.open_pdf(target, password)
     try:
+        # A cloud may come back as a plain polygon (if the copy drops its cloudy border): both count as one.
         have = Counter("polygon" if a.kind == "cloud" else a.kind for a in annots.read(doc))
     finally:
         doc.close()
     want = Counter("polygon" if a.kind == "cloud" else a.kind for a in annotations)
+    # Subtracting Counters keeps only the positive counts: the kinds that were lost.
     return want - have
 
 
@@ -378,6 +402,7 @@ def save_without(source: Path, target: Path, password: str = "") -> int:
     try:
         count = 0
         for page in doc:
+            # Los pop-ups pertenecen a otra anotación y se van con ella; no se cuentan aparte.
             for xref in [a.xref for a in page.annots() or [] if a.type[0] != pymupdf.PDF_ANNOT_POPUP]:
                 page.delete_annot(page.load_annot(xref))
                 count += 1
@@ -404,6 +429,7 @@ def _xy(values) -> str:
 
 
 def _pdf_box(page: pymupdf.Page, rect) -> list[float]:
+    # XFDF uses the PDF's own space (origin at the bottom left), so the box is put in order again.
     a, b = annots.to_pdf(page, (rect[0], rect[1])), annots.to_pdf(page, (rect[2], rect[3]))
     return [min(a[0], b[0]), min(a[1], b[1]), max(a[0], b[0]), max(a[1], b[1])]
 
@@ -416,15 +442,19 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
     root = ET.Element("xfdf", {"xmlns": XFDF_NS, "xml:space": "preserve"})
     ET.SubElement(root, "f", {"href": path.name})
     items = ET.SubElement(root, "annots")
+    # No se exportan las anotaciones de otros tipos ni los archivos adjuntos.
     for n, a in enumerate((a for a in annotations if a.kind not in (annots.OTHER, "attachment")), 1):
         if not 0 <= a.page < doc.page_count:
             continue
         page = doc[a.page]
+        # Un nombre único por anotación, para que sus respuestas lo citen en inreplyto.
         name = f"py-pdftools-{n}"
         attrs = {"page": str(a.page), "name": name, "title": a.author, "color": a.color.upper(),
                  "opacity": f"{a.opacity:g}", "date": a.modified or annots.now(),
                  "creationdate": a.created or annots.now(), "flags": "print" + (",locked" if a.locked else "")}
         box = _pdf_box(page, a.rect)
+        # Text markup: XFDF wants four corners for each line, in the order of /QuadPoints (top left, top right,
+        # bottom left, bottom right).
         if a.kind in MARKUP:
             box = _pdf_box(page, annots.union(a.quads))
             attrs["coords"] = _xy(v for q in a.quads for corner in ((q[0], q[1]), (q[2], q[1]), (q[0], q[3]),
@@ -443,6 +473,7 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
         if a.kind in ("line", "arrow"):
             attrs["start"] = _xy(annots.to_pdf(page, a.paths[0][0]))
             attrs["end"] = _xy(annots.to_pdf(page, a.paths[0][-1]))
+            # Una flecha sin extremos propios recibe la punta abierta al final, como al escribirla en el PDF.
             ends = a.ends if a.kind == "line" or a.ends != ("None", "None") else ("None", "OpenArrow")
             attrs["head"], attrs["tail"] = ends
             attrs["width"] = f"{a.width:g}"
@@ -463,6 +494,7 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
             attrs["intent"] = "FreeTextCallout"
         if a.kind in ("freetext", "callout"):
             attrs["justification"] = {"center": "centered", "right": "right"}.get(a.align, "left")
+        # For the shapes made of points, the rectangle is worked out again from them.
         if a.kind in ("ink", "marker", "polygon", "cloud", "polyline", "line", "arrow"):
             box = _pdf_box(page, annots.frame(a.kind, a.paths, a.width))
         attrs["rect"] = _xy(box)
@@ -470,6 +502,7 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
         if a.contents:
             ET.SubElement(element, "contents").text = a.contents
         if a.kind in ("freetext", "callout"):
+            # The default appearance, as in a PDF's /DA: the colour, font and size of the text.
             family = {"tiro": "TiRo", "cour": "Cour"}.get(a.font, "Helv")
             r, g, b = annots.rgb(a.color)
             ET.SubElement(element, "defaultappearance").text = f"{r:g} {g:g} {b:g} rg /{family} {a.font_size:g} Tf"
@@ -483,6 +516,7 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
             ink = ET.SubElement(element, "inklist")
             for stroke in a.paths:
                 ET.SubElement(ink, "gesture").text = ";".join(_xy(annots.to_pdf(page, p)) for p in stroke)
+        # Las respuestas van como notas aparte, que apuntan a su anotación con inreplyto.
         for m, r in enumerate(a.replies, 1):
             reply = {"page": str(a.page), "name": f"{name}-r{m}", "inreplyto": name, "title": r.author,
                      "rect": _xy(box), "date": r.modified or r.created or annots.now(),
@@ -495,6 +529,7 @@ def export_xfdf(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
 
 
 def _floats(text: str | None) -> list[float]:
+    # XFDF separa los números con comas, y los puntos de una lista de vértices con punto y coma.
     return [float(v) for v in (text or "").replace(";", ",").split(",") if v.strip()]
 
 
@@ -515,6 +550,7 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
         root = ET.parse(source).getroot()
     except (OSError, ET.ParseError) as e:
         raise AnnotateError(tr("{path} cannot be read: {error}", path=source, error=e)) from None
+    # The tag is compared without its namespace, so that files with or without xmlns are read.
     if root.tag.split("}")[-1] != "xfdf":
         raise AnnotateError(tr("{path} is not a file of annotations of py-pdftools", path=source))
     items = next((e for e in root if e.tag.split("}")[-1] == "annots"), None)
@@ -522,6 +558,7 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
         return []
     found: dict[str, Annotation] = {}
     replies: list[tuple[str, Reply]] = []
+    # Replies are gathered first and attached at the end: one may come before its annotation in the file.
     for e in items:
         tag = e.tag.split("}")[-1]
         try:
@@ -540,6 +577,7 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
         box = _floats(e.get("rect"))
         if len(box) != 4:
             continue
+        # XFDF da el rectángulo en el espacio del PDF; se pasa a la página tal como se muestra.
         a_, b_ = annots.from_pdf(page, (box[0], box[1])), annots.from_pdf(page, (box[2], box[3]))
         rect = annots.normalized(a_ + b_)
         common = {"page": number, "rect": rect, "color": _color(e.get("color")) or "#000000",
@@ -550,11 +588,13 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
         a: Annotation | None = None
         if tag in ("highlight", "underline", "strikeout", "squiggly"):
             points = [annots.from_pdf(page, p) for p in _pairs(_floats(e.get("coords")))]
+            # Cuatro puntos por cada línea marcada; sin coords, el rectángulo entero hace de única línea.
             quads = tuple(annots.bounds(points[i:i + 4]) for i in range(0, len(points) - 3, 4)) or (rect,)
             a = Annotation(tag, rect=annots.union(quads), quads=tuple(tuple(round(v, 2) for v in q) for q in quads),
                            **{k: v for k, v in common.items() if k != "rect"})
         elif tag in ("square", "circle"):
             kind = "area" if e.get("subject") == annots.AREA_SUBJECT else ("rect" if tag == "square" else "ellipse")
+            # The XFDF rect holds the border too: the shape's own rect is inside it by half the width.
             half = width / 2 if kind != "area" else 0
             inner = (rect[0] + half, rect[1] + half, rect[2] - half, rect[3] - half)
             a = Annotation(kind, width=width, fill=_color(e.get("interior-color")),
@@ -576,11 +616,13 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
                 ends = (e.get("head", "None"), e.get("tail", "None")) if tag == "polyline" else ("None", "None")
             if not paths or not paths[0]:
                 continue
+            # Un extremo desconocido se cambia por 'None' en lugar de rechazar la anotación.
             ends = tuple(x if x in annots.ENDS else "None" for x in ends)
             a = Annotation(kind, width=width, fill=_color(e.get("interior-color")), paths=paths, ends=ends,
                            **dict(common, rect=annots.frame(kind, paths, width)))
         elif tag == "freetext":
             da = next((c.text for c in e if c.tag.split("}")[-1] == "defaultappearance"), "") or ""
+            # Del /DA salen el tamaño, el color y la fuente; lo que falte toma el valor usual.
             size = annots.DA_SIZE.search(da)
             color = annots.DA_COLOR.search(da)
             font = annots.DA_FONT.search(da)
@@ -593,6 +635,7 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
                            paths=((annots.from_pdf(page, callout[0]),),) if kind == "callout" and callout else (),
                            ends=("None", e.get("head", "OpenArrow") if e.get("head") in annots.ENDS else "OpenArrow"),
                            **dict(common, color=(annots.hex_color(color[1].split()) if color else "") or "#000000"))
+            # A callout without a usable point is read as a plain text box.
             if kind != "callout" or not a.paths:
                 a = dataclasses.replace(a, kind="freetext", ends=("None", "None"))
         elif tag in ("text", "caret"):
@@ -600,11 +643,13 @@ def import_xfdf(doc: pymupdf.Document, source: Path) -> list[Annotation]:
                            icon=e.get("icon", "Note") if e.get("icon") in annots.ICONS else "Note", **common)
         elif tag == "stamp":
             name = e.get("icon", "")
+            # Un sello de imagen no se puede rehacer desde XFDF (no trae la imagen): solo entran los estándar.
             if name in annots.STAMPS:
                 image, _ = annots.standard_stamp(name)
                 a = Annotation("stamp", stamp=name, image=image, **common)
         if a is not None:
             found[e.get("name", str(len(found)))] = a
+    # Una respuesta cuyo padre no se importó (otra página, otro tipo) se descarta.
     for parent, reply in replies:
         if parent in found:
             found[parent] = dataclasses.replace(found[parent], replies=found[parent].replies + (reply,))
@@ -626,6 +671,7 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
     try:
         annots.apply(doc, annotations)
         doc.bake(annots=True, widgets=False)
+        # En puntos: una columna de 260 a la derecha de cada página, con márgenes de 18 y letra de 8,5.
         column, margin, size = 260.0, 18.0, 8.5
         by_page: dict[int, list[Annotation]] = {}
         for a in sorted(annotations, key=lambda a: (a.page, a.rect[1], a.rect[0])):
@@ -634,9 +680,11 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
         for number, items in by_page.items():
             src = doc[number]
             w, h = src.rect.width, src.rect.height
+            # Each page of the summary is the page itself, with the column for the list beside it.
             page = out.new_page(width=w + column + 2 * margin, height=h)
             page.show_pdf_page(pymupdf.Rect(0, 0, w, h), doc, number)
             for n, a in enumerate(items, 1):  # (a number beside each annotation)
+                # El círculo numerado va arriba a la izquierda de la anotación, sin salirse de la página.
                 x, y = a.rect[0], a.rect[1]
                 spot = pymupdf.Rect(max(x - 13, 0), max(y - 13, 0), max(x - 13, 0) + 12, max(y - 13, 0) + 12)
                 page.draw_circle((spot.tl + spot.br) / 2, 6, color=(0.75, 0.1, 0.1), fill=(1, 1, 1), width=1)
@@ -669,9 +717,12 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
                     words = f": {html.escape(r.contents)}" if r.contents else ""
                     parts.append(f"&#8212; {html.escape(r.author or tr('(no author)'))}{state}{words}")
                 entry = "<p>" + "<br>".join(parts) + "</p>"
+                # TODO: una entrada que no cabe ni en una columna vacía hace que este bucle cree páginas sin fin (salvo
+                # en páginas muy bajas); habría que cortarla o reducir su letra.
                 while True:
                     box = pymupdf.Rect(x0, y, x0 + column, h - margin)
                     spare, _ = page.insert_htmlbox(box, entry, css=CSS.replace("SIZE", f"{size:g}"), scale_low=1)
+                    # SPARE: the height left unused in the box; the next entry starts below this one, 6 points apart.
                     if spare >= 0:
                         y = box.y1 - spare + 6
                         break
@@ -681,6 +732,7 @@ def save_summary(source: Path, annotations: list[Annotation], target: Path, pass
                     y = margin + 24
                     if y + 40 > h:
                         break
+        # Sin anotaciones, el resumen sigue siendo un PDF válido, con una página que lo dice.
         if not out.page_count:
             out.new_page().insert_text((72, 72), tr("This document has no annotations."), fontsize=12)
         out.set_metadata({"title": tr("Annotations of {name}", name=source.name), "producer": "py-pdftools"})

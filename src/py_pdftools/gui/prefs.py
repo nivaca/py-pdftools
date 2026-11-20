@@ -47,6 +47,7 @@ ACTION_NAMES = {"select": N_("Select"), "hand": N_("Hand"), "eraser": N_("Eraser
 
 
 def action_name(action: str) -> str:
+    # Las acciones que no son herramientas tienen nombre aquí; las herramientas usan el de su anotación.
     return tr(ACTION_NAMES[action]) if action in ACTION_NAMES else tr(NAMES[action])
 
 
@@ -55,6 +56,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(tr("Settings"))
         self.prefs = prefs
+        # Cuatro pestañas: General, Colores, Atajos y Categorías. Nada se guarda hasta pulsar Aceptar.
         tabs = QTabWidget()
 
         general = QWidget()
@@ -64,6 +66,7 @@ class SettingsDialog(QDialog):
         self.author.setToolTip(tr("Written in each new annotation, as its author"))
         form.addRow(tr("Author:"), self.author)
         self.autosave = QSpinBox()
+        # 0 minutes shows as 'Never' (the special value text) and turns the recovery copies off.
         self.autosave.setRange(0, 120)
         self.autosave.setSuffix(" " + tr("min"))
         self.autosave.setSpecialValueText(tr("Never"))
@@ -75,6 +78,7 @@ class SettingsDialog(QDialog):
         self.pdfconform.setPlaceholderText(tr("Look for it on the PATH, in ~/bin and in ~/.local/bin"))
         self.pdfconform.setToolTip(tr("The script pdf2iso, which makes PDF/A and PDF/X (with or without the .py "
                                       "extension); empty to look for it"))
+        # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.pdfconform.textChanged.connect(self._show_pdfconform)
         choose = QPushButton(tr("Choose…"))
         choose.clicked.connect(self._choose_pdfconform)
@@ -87,6 +91,8 @@ class SettingsDialog(QDialog):
         self.pdfconform_found.setStyleSheet("color: palette(placeholder-text);")
         form.addRow("", self.pdfconform_found)
         self._show_pdfconform()
+        # Imported here, not at the top: finding the Tesseract languages runs a program, only worth it
+        # when the dialog opens.
         from ..annotate import ocr
 
         self.ocr_language = QLineEdit(prefs.ocr_language)
@@ -99,6 +105,7 @@ class SettingsDialog(QDialog):
         self.pen_pressure = QComboBox()
         for key, name in settings.PEN_PRESSURE.items():
             self.pen_pressure.addItem(tr(name), key)
+        # Un valor guardado que ya no existe (de otra versión) cae en la primera opción.
         self.pen_pressure.setCurrentIndex(max(self.pen_pressure.findData(prefs.pen_pressure), 0))
         self.pen_pressure.setToolTip(tr("For drawing with the pen of a tablet; its eraser end always erases"))
         form.addRow(tr("Pen pressure:"), self.pen_pressure)
@@ -128,6 +135,8 @@ class SettingsDialog(QDialog):
         intro.setWordWrap(True)
         form.addRow(intro)
         self.palette_rows = []
+        # Un significado None es el de fábrica: se muestra traducido solo si el color sigue siendo el
+        # de fábrica; si el usuario lo cambió, el campo queda vacío.
         for i, (color, meaning) in enumerate(prefs.palette):
             button = ColorButton(color)
             edit = QLineEdit(meaning if meaning is not None else (
@@ -142,6 +151,7 @@ class SettingsDialog(QDialog):
 
         keys = QWidget()
         lay = QVBoxLayout(keys)
+        # Una fila por acción: la columna de la izquierda no se edita; la de la derecha es un editor de teclas.
         self.keys = QTableWidget(len(settings.SHORTCUTS), 2)
         self.keys.setHorizontalHeaderLabels([tr("Action"), tr("Shortcut")])
         self.keys.verticalHeader().setVisible(False)
@@ -169,6 +179,7 @@ class SettingsDialog(QDialog):
         self.categories = QPlainTextEdit("\n".join(prefs.category_list()))
         lay.addWidget(self.categories, 1)
         usual = QPushButton(tr("The usual categories"))
+        # A fresh Settings() gives the usual categories, translated.
         usual.clicked.connect(lambda: self.categories.setPlainText(
             "\n".join(settings.Settings().category_list())))
         lay.addWidget(usual, 0, Qt.AlignmentFlag.AlignRight)
@@ -185,6 +196,7 @@ class SettingsDialog(QDialog):
     def _show_pdfconform(self, *_):
         """Which pdf2iso will be used (File > Save a copy > PDF/A, PDF/X)."""
         path = self.pdfconform.text().strip()
+        # With an empty path, conform.find looks on the PATH, in ~/bin and in ~/.local/bin.
         found = conform.find(path)
         if found is not None:
             self.pdfconform_found.setText(tr("It will be {path}", path=found))
@@ -198,12 +210,14 @@ class SettingsDialog(QDialog):
 
         from PySide6.QtWidgets import QFileDialog
 
+        # El diálogo de archivos empieza en la ruta escrita, o en ~/bin, donde suele estar el script.
         start = self.pdfconform.text().strip() or str(Path.home() / "bin")
         name, _ = QFileDialog.getOpenFileName(self, tr("Where is pdf2iso?"), start)
         if name:
             self.pdfconform.setText(name)
 
     def _usual_colours(self):
+        # zip relies on the palette rows being made from the same PALETTE, in the same order.
         for (button, edit), (color, _, meaning) in zip(self.palette_rows, settings.PALETTE):
             button.set_color(color)
             edit.setText(tr(meaning) if meaning else "")
@@ -212,9 +226,12 @@ class SettingsDialog(QDialog):
         """The categories written (None if they are the usual ones)."""
         names = []
         for line in self.categories.toPlainText().splitlines():
+            # El punto y coma separa las categorías al guardarlas en la configuración: dentro de un nombre se
+            # cambia por una coma.
             name = " ".join(line.replace(";", ",").split())
             if name and name not in names:
                 names.append(name)
+        # Si coinciden con las de fábrica se guarda None, para que sigan traduciéndose al cambiar de idioma.
         return None if names == settings.Settings().category_list() else tuple(names)
 
     def _usual_keys(self):
@@ -222,6 +239,7 @@ class SettingsDialog(QDialog):
             self.key_edits[action].setKeySequence(QKeySequence(key))
 
     def shortcuts(self) -> dict[str, str]:
+        # PortableText: the same text on every system and language, as it is saved.
         return {action: edit.keySequence().toString(QKeySequence.SequenceFormat.PortableText)
                 for action, edit in self.key_edits.items()}
 
@@ -229,6 +247,7 @@ class SettingsDialog(QDialog):
         """(key, action, action) of each key given to two actions."""
         seen: dict[str, str] = {}
         out = []
+        # Only the first clash is reported; the dialog stays open until it is solved.
         for action, key in self.shortcuts().items():
             if not key:
                 continue
@@ -248,11 +267,15 @@ class SettingsDialog(QDialog):
         super().accept()
 
     def settings(self) -> settings.Settings:
+        # Se limitan a 200 caracteres el autor y los significados: van a cada anotación y al archivo de
+        # configuración.
         author = " ".join(self.author.text().split())[:200]
         palette = []
         for i, (button, edit) in enumerate(self.palette_rows):
             color, text = button.color, " ".join(edit.text().split())[:200]
             usual_color, _, usual_meaning = settings.PALETTE[i]
+            # Un color que sigue como el de fábrica guarda None como significado, de modo que se traduzca
+            # en otro idioma.
             same = color == usual_color and text == (tr(usual_meaning) if usual_meaning else "")
             palette.append((color, None if same else text))
         prefs = dataclasses.replace(self.prefs, author=author, autosave=self.autosave.value(),
@@ -264,9 +287,12 @@ class SettingsDialog(QDialog):
                                     categories=self._categories(),
                                     palette=tuple(palette), shortcuts=tuple(self.shortcuts().items()))
         if self.reset.isChecked():
+            # Resetting the tools replaces only their styles; the rest of the settings stay as the dialog left them.
             prefs = dataclasses.replace(prefs, styles=settings.DEFAULTS.styles)
         return prefs
 
     def _ocr_language(self) -> str:
+        # Commas and spaces are accepted as separators and turned into Tesseract's +; an invalid result
+        # keeps the language set before.
         text = "+".join(self.ocr_language.text().replace(",", "+").split()).strip("+")
         return text if settings.valid("ocr_language", text) else self.prefs.ocr_language

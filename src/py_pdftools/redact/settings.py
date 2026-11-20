@@ -13,6 +13,7 @@ import re
 
 from ..core import config
 
+# Solo minúsculas: quien lo usa pasa antes el valor a minúsculas (véanse valid y load).
 COLOR = re.compile(r"#[0-9a-f]{6}")
 IMAGES = ("pixels", "whole", "none")  # what happens to images under a box
 DRAWINGS = ("covered", "touched", "none")  # and to drawings (lines, shapes)
@@ -36,6 +37,8 @@ class Settings:
 
 
 DEFAULTS = Settings()
+# Field of Settings -> its key under [parameters] in config.toml. load() and save() go only
+# through this table, so a new field needs an entry here as well.
 KEYS = {"color": "redact_color", "clean": "redact_clean", "images": "redact_images",
         "drawings": "redact_drawings", "text": "box_text",
         "text_color": "box_text_color", "font_size": "box_font_size", "align": "box_align",
@@ -52,6 +55,7 @@ def valid(name: str, value) -> bool:
     if name == "pattern_language":
         return value in ("en", "es")
     if name == "mark_opacity":
+        # Se excluye bool porque es subclase de int: True y False no son opacidades.
         return isinstance(value, int) and not isinstance(value, bool) and 10 <= value <= 100
     if name in ("text_color", "mark_outline"):
         return isinstance(value, str) and bool(COLOR.fullmatch(value.lower()))
@@ -81,12 +85,16 @@ def load() -> Settings:
     for name, key in KEYS.items():
         value = params.get(key)
         if valid(name, value):
+            # Colours are kept in lower case, so a hand-edited #FF0000 compares equal to #ff0000.
             values[name] = value.lower() if name in ("color", "text_color", "mark_outline") else value
     return dataclasses.replace(DEFAULTS, **values)
 
 
 def save(settings: Settings) -> None:
     """Keep SETTINGS in the configuration file (raises OSError)."""
+    # TODO: config.set lee y escribe el archivo entero en cada llamada (trece veces aquí); validar
+    # antes todos los valores y escribirlos de una vez con config.set_many, que además evita dejar
+    # el archivo a medio cambiar si uno no es válido.
     for name, key in KEYS.items():
         value = getattr(settings, name)
         if not valid(name, value):

@@ -50,9 +50,12 @@ def run(parent, text: str, func, *args, cancel: bool = False, thread: bool = Fal
 
         t = threading.Thread(target=work, daemon=True)
         t.start()
+        # Un hilo no se puede parar desde fuera: stop queda en None y el diálogo no ofrece Cancelar.
         done, stop = (lambda: not t.is_alive()), None
         receive = lambda: answer[0]  # noqa: E731
     else:
+        # spawn, not fork: a forked copy of a process running Qt can hang, and spawn is what
+        # Windows and macOS use anyway.
         context = multiprocessing.get_context("spawn")
         try:
             here, there = context.Pipe(duplex=False)
@@ -61,6 +64,8 @@ def run(parent, text: str, func, *args, cancel: bool = False, thread: bool = Fal
             process.start()
         except Exception:  # (no process: do it here)
             return func(*args)
+        # Se cierra aquí el extremo del hijo: si el proceso muere, recv() da EOFError en lugar de
+        # esperar para siempre.
         there.close()
         done = lambda: here.poll() or not process.is_alive()  # noqa: E731
 
@@ -72,6 +77,7 @@ def run(parent, text: str, func, *args, cancel: bool = False, thread: bool = Fal
                     pass
             return (False, RuntimeError(tr("The work stopped before it was done")))
 
+        # terminate() kills the process with no clean-up; the caller removes the half-written file.
         def stop():
             process.terminate()
             process.join()
@@ -111,12 +117,14 @@ def _wait(parent, text: str, done, receive, stop):
     shower.setSingleShot(True)
     shower.timeout.connect(dialog.show)
     shower.start(SHOW_AFTER)
+    # WaitForMoreEvents sleeps until something happens; the POLL timer makes that at most 20 ms.
     while not cancelled and not done():
         flags = QEventLoop.ProcessEventsFlag.AllEvents if dialog.isVisible() \
             else QEventLoop.ProcessEventsFlag.ExcludeUserInputEvents
         loop.processEvents(flags | QEventLoop.ProcessEventsFlag.WaitForMoreEvents)
     timer.stop()
     shower.stop()
+    # Se desconecta antes de cerrar: cerrar el diálogo también emite canceled.
     dialog.canceled.disconnect(cancel)
     dialog.close()
     dialog.deleteLater()

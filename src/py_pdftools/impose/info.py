@@ -27,6 +27,7 @@ def page_info(page, idx: int) -> dict:
     tb = pu.trim_box(page)
     bb = pu.bleed_box(page)
     rot = pu.page_rotation(page)
+    # size: lo que se ve (CropBox con /Rotate); trim_size: la caja que usa la imposición cuando hay sangrado.
     w, h = pu.geometry(page, use_bleed=False).size()
     tw, th = pu.geometry(page, use_bleed=True).size()
     return {
@@ -34,6 +35,7 @@ def page_info(page, idx: int) -> dict:
         "size": [w, h],
         "trim_size": [tw, th],
         "rotate": rot,
+        # UserUnit is only reported; the rest of the tool assumes the default unit of 1/72 inch.
         "user_unit": float(page.get("/UserUnit", 1)),
         "media_box": list(mb),
         "crop_box": list(cb),
@@ -60,12 +62,14 @@ def info(pdf: Pdf, a, ctx: Context):
 
     print(ntr('{path}: {count} page', '{path}: {count} pages', len(pages), path=ctx.input_path))
     groups: list[list[dict]] = []
+    # Consecutive pages with the same size, rotation and bleed are reported as one run, unless --all-pages is given.
     for p in pages:
         key = (round(p["size"][0], 2), round(p["size"][1], 2), p["rotate"], p["bleed_margins"] and
                tuple(round(v, 2) for v in p["bleed_margins"]))
         if groups and not a.all_pages and groups[-1][0]["_key"] == key:
             groups[-1].append(p)
         else:
+            # La clave se guarda solo en la primera página del grupo, que es con la que se compara.
             p["_key"] = key
             groups.append([p])
     for g in groups:
@@ -110,6 +114,7 @@ def choose_interface(pdf, a, ctx: Context):
             print(f"  {'*' if code == current else ' '} {code}  {name}")
         print(tr("Configuration file: {path}", path=config.config_path()))
         return None
+    # Se prueba el idioma antes de guardarlo, para no dejar en la configuración uno que no carga.
     if not interface.use(a.language):
         raise ImpositionError(tr("the language {code} cannot be used: {error}", code=a.language,
                                  error=interface.error()))

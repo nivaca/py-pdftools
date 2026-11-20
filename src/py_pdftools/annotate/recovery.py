@@ -33,6 +33,7 @@ def stamp(path: Path) -> list[int]:
 
 
 def _file(path: Path) -> Path:
+    # Un nombre fijo para cada documento: su ruta absoluta resumida con SHA-1 (basta con que sea estable).
     key = hashlib.sha1(str(path.resolve()).encode("utf-8")).hexdigest()[:20]
     return folder() / f"{key}.json"
 
@@ -41,10 +42,12 @@ def keep(path: Path, annotations: list[Annotation]) -> None:
     """Keep ANNOTATIONS, those of the document at PATH (raises OSError)."""
     target = _file(path)
     target.parent.mkdir(parents=True, exist_ok=True)
+    # The xrefs are kept too: on recovery, apply() can change the annotations in place instead of adding copies.
     data = {"path": str(path.resolve()), "stamp": stamp(path), "kept": datetime.datetime.now().isoformat(timespec="seconds"),
             "annotations": [dict(to_data(a), xref=a.xref, replies=[dict(d, xref=r.xref) for d, r in
                                                                   zip(to_data(a)["replies"], a.replies)])
                             for a in annotations]}
+    # Escritura atómica, como en config.py: un archivo temporal en la misma carpeta, y os.replace.
     fd, tmp = tempfile.mkstemp(suffix=".json", dir=target.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
@@ -61,10 +64,12 @@ def find(path: Path) -> tuple[str, list[Annotation]] | None:
     source = _file(path)
     try:
         data = json.loads(source.read_text(encoding="utf-8"))
+        # Si el PDF cambió desde la copia, sus xref podrían ser ya otros objetos: la copia no se ofrece.
         if data.get("stamp") != stamp(path):
             return None
         found = [from_data(d, keep_xref=True) for d in data.get("annotations", [])]
         return str(data.get("kept", "")), [a for a in found if a is not None]
+    # Un archivo de recuperación ilegible, o de otra versión, se trata como si no existiera.
     except (OSError, ValueError, AttributeError, TypeError):
         return None
 

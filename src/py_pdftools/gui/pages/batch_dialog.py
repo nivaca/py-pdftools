@@ -35,6 +35,7 @@ class BatchDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(tr("On several files"))
         self.folder = folder
+        # Los ajustes se eligen una sola vez, previsualizados sobre el primer archivo, y se aplican a todos.
         self.settings = None  # (a HeaderFooter or a Watermark, once chosen)
         self.keep = False
         self.written: list[Path] = []
@@ -44,10 +45,12 @@ class BatchDialog(QDialog):
         self.list.setSelectionMode(QListWidget.SelectionMode.ExtendedSelection)
         self.list.setToolTip(tr("The Bates numbers go on from one file to the next, in this order"))
         buttons = QVBoxLayout()
+        # The order of the list matters: Bates numbers run on from one file to the next in it.
         for text, slot in ((tr("Add files…"), self.add_files), (tr("Add a folder…"), self.add_folder),
                            (tr("Remove"), self.remove_chosen), (tr("Move up"), lambda: self.move(-1)),
                            (tr("Move down"), lambda: self.move(1)), (tr("Sort by name"), self.sort)):
             b = QPushButton(text)
+            # The slot is bound as a default argument: a plain closure would see only the last slot of the loop.
             b.clicked.connect(lambda *_, s=slot: s())
             buttons.addWidget(b)
         buttons.addStretch(1)
@@ -81,6 +84,7 @@ class BatchDialog(QDialog):
         self.other = QRadioButton(tr("In this folder:"))
         self.same.setChecked(True)
         self.out_folder = QLineEdit()
+        # Escribir una carpeta marca por sí solo la opción "En esta carpeta".
         self.out_folder.textChanged.connect(lambda *_: self.other.setChecked(True) if self.out_folder.text() else None)
         browse = QPushButton(tr("Choose…"))
         browse.clicked.connect(self.choose_folder)
@@ -89,6 +93,7 @@ class BatchDialog(QDialog):
         self.suffix = QLineEdit("-labelled")
         self.overwrite.toggled.connect(self._overwrite_toggled)
         self.standard = QComboBox()
+        # Sin pdf2iso, las opciones PDF/A y PDF/X se muestran pero deshabilitadas, para que se sepa que existen.
         have = conform.available()
         for value, name in [("", N_("PDF"))] + conform.STANDARDS:
             self.standard.addItem(tr(name), value)
@@ -133,6 +138,7 @@ class BatchDialog(QDialog):
         return [Path(self.list.item(i).text()) for i in range(self.list.count())]
 
     def add_paths(self, paths):
+        # Duplicates and files that are not PDFs are skipped silently.
         have = set(self.paths())
         for p in paths:
             if p and Path(p) not in have and str(p).lower().endswith(".pdf"):
@@ -147,6 +153,7 @@ class BatchDialog(QDialog):
     def add_folder(self):
         name = QFileDialog.getExistingDirectory(self, tr("Add a folder"), str(self.folder))
         if name:
+            # Dos patrones, para .pdf y .PDF; otras mezclas de mayúsculas no se encuentran.
             self.add_paths(sorted(Path(name).glob("*.pdf")) + sorted(Path(name).glob("*.PDF")))
 
     def remove_chosen(self):
@@ -163,6 +170,7 @@ class BatchDialog(QDialog):
         self.list.setCurrentRow(row + step)
 
     def sort(self):
+        # Ordena por nombre sin distinguir mayúsculas; la carpeta no cuenta.
         paths = sorted(self.paths(), key=lambda p: p.name.casefold())
         self.list.clear()
         self.add_paths(paths)
@@ -173,6 +181,7 @@ class BatchDialog(QDialog):
         adding = self.action.currentData().startswith("add-")
         self.choose.setEnabled(adding)
         kind = stamps.WATERMARK if self.action.currentData() == "add-watermark" else stamps.HEADER_FOOTER
+        # Si se pasa de encabezado a marca de agua (o al revés), los ajustes anteriores ya no sirven.
         if self.settings is not None and self.settings.KIND != kind:
             self.settings = None
         self.summary.setText("" if not adding else
@@ -182,6 +191,8 @@ class BatchDialog(QDialog):
     def ask(self, kind: str, settings, source: Path):
         """(settings, keep) from the dialog of KIND, previewing SOURCE (None if cancelled)."""
         ask = ask_header_footer if kind == stamps.HEADER_FOOTER else ask_watermark
+        # Sin contraseña ni etiquetas de página: la vista previa usa la página 1 del primer archivo,
+        # y "existing" en True ofrece la opción de conservar lo que ya tenga.
         return ask(self, settings, source, "", None, 1, True)
 
     def choose_settings(self) -> bool:
@@ -192,6 +203,7 @@ class BatchDialog(QDialog):
         start = self.settings or (headfoot.HeaderFooter() if kind == stamps.HEADER_FOOTER else watermark.Watermark())
         try:
             answer = self.ask(kind, start, paths[0])
+        # Any error opening the first file (encrypted, damaged) is shown in the report instead of escaping the dialog.
         except Exception as e:  # (the first file cannot be read: say so)
             self.report.setPlainText(str(e))
             return False
@@ -207,12 +219,14 @@ class BatchDialog(QDialog):
             self.out_folder.setText(name)
 
     def _overwrite_toggled(self, on: bool):
+        # Sobrescribir los originales hace inútiles el prefijo, el sufijo y la carpeta de destino.
         for w in (self.prefix, self.suffix, self.other, self.out_folder):
             w.setEnabled(not on)
         if on:
             self.same.setChecked(True)
 
     def _enable(self):
+        # _enable runs from add_paths during construction, before the buttons exist.
         if hasattr(self, "run_button"):
             adding = self.action.currentData().startswith("add-")
             self.run_button.setEnabled(bool(self.paths()) and (not adding or self.settings is not None))
@@ -228,14 +242,20 @@ class BatchDialog(QDialog):
     # ----------------------------------------------------------------- running
 
     def run(self) -> bool:
+        # Sin carpeta de destino, files.batch escribe cada resultado junto a su original.
         folder = Path(self.out_folder.text()) if self.other.isChecked() and self.out_folder.text().strip() else None
         change = self.change()
+        # files.batch devuelve, por cada archivo, (origen, destino o None, error), y cuántos números Bates usó en total.
         results, used = files.batch(self.paths(), change, folder=folder, prefix=self.prefix.text(),
                                     suffix=self.suffix.text(), overwrite=self.overwrite.isChecked())
         standard = self.standard.currentData()
         lines = []
         for source, target, error in results:
+            # La conversión a PDF/A o PDF/X se hace después, archivo por archivo, sobre el resultado ya escrito.
+            # If it fails the plain PDF stays, and the report says so.
             if target and standard:
+                # TODO: the conversion runs in the GUI thread, file after file, and freezes the dialog on long batches;
+                # it could run in a worker thread with a progress bar.
                 QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
                 try:
                     check = conform.convert(target, target, standard)
@@ -253,6 +273,7 @@ class BatchDialog(QDialog):
                                                                             error=error))
             if target:
                 self.written.append(target)
+        # Shown so that the user can start the next batch where this one stopped.
         if used and change.settings is not None:
             lines.append(tr("Next Bates number: {number}", number=stamps.bates_number(change.settings, used)))
         self.report.setPlainText("\n".join(lines))

@@ -13,6 +13,8 @@ def run_and_send(conn, language: str, func, args: tuple) -> None:
     with the interface in LANGUAGE, as in the window (for the error's text)."""
     from ..core import interface
 
+    # El proceso nuevo arranca con el idioma por omisión; se fija el de la ventana para que el
+    # texto de un error llegue en ese idioma.
     interface.use(language)
     try:
         answer = (True, func(*args))
@@ -20,6 +22,7 @@ def run_and_send(conn, language: str, func, args: tuple) -> None:
         answer = (False, e)
     try:
         conn.send(answer)
+    # If pickling fails (an exception holding a file or a lock, say), only its text goes back.
     except Exception:  # (an error that can't be sent as it is)
         conn.send((False, RuntimeError(str(answer[1]))))
     conn.close()

@@ -33,12 +33,16 @@ class WatermarkDialog(StampDialog):
 
     def build(self):
         # ------------------------------------------------- what
+        # Una marca de agua es un texto o una página de otro PDF; los dos botones de radio deciden cuál de los dos
+        # se aplica, aunque ambos campos conserven lo escrito.
         self.is_text = QRadioButton(tr("Text:"))
         self.is_file = QRadioButton(tr("Page of a PDF:"))
         self.text = TextTarget(self, "text")
         self.text.setPlaceholderText(tr("e.g. DRAFT, or Copy for $author"))
+        # Writing in either field chooses its option, except while a profile or the settings are being loaded.
         self.text.textChanged.connect(lambda *_: (self.is_text.setChecked(True) if not self._loading else None,
                                                   self.changed()))
+        # Solo hay un campo de texto, así que el menú Insertar siempre escribe en él.
         self.target = self.text
         insert = QToolButton()
         insert.setText(tr("Insert"))
@@ -54,6 +58,8 @@ class WatermarkDialog(StampDialog):
         browse = QPushButton(tr("Choose…"))
         browse.clicked.connect(self.choose_source)
         self.source_page = QSpinBox()
+        # El intervalo no depende del PDF elegido: una página que no existe solo aparece
+        # como error en la vista previa.
         self.source_page.setRange(1, 99999)
         self.source_page.setPrefix(tr("Page") + " ")
         self.source_page.valueChanged.connect(self.changed)
@@ -81,6 +87,7 @@ class WatermarkDialog(StampDialog):
         self.bold = QCheckBox(tr("Bold"))
         self.italic = QCheckBox(tr("Italic"))
         for w in (self.font_box, self.font_size):
+            # QComboBox and QSpinBox send different signals when they change; both go to the same slot.
             (w.currentIndexChanged if isinstance(w, QComboBox) else w.valueChanged).connect(self.changed)
         for w in (self.bold, self.italic):
             w.toggled.connect(self.changed)
@@ -97,11 +104,14 @@ class WatermarkDialog(StampDialog):
 
         # ------------------------------------------------- appearance
         self.rotation = QSpinBox()
+        # -360 a 360 grados permite girar en los dos sentidos; el valor 0 deja la marca horizontal.
         self.rotation.setRange(-360, 360)
         self.rotation.setSuffix("°")
         self.opacity = QSpinBox()
         self.opacity.setRange(0, 100)
         self.opacity.setSuffix(" %")
+        # Sin "Relativo a la página" la marca tiene el tamaño de su fuente (o de su página de origen); con él,
+        # ocupa un porcentaje de la página, y la escala se guarda como 0 para indicar que no se usa.
         self.relative = QCheckBox(tr("Relative to the page:"))
         self.scale = QSpinBox()
         self.scale.setRange(1, 1000)
@@ -110,6 +120,8 @@ class WatermarkDialog(StampDialog):
         self.behind = QComboBox()
         self.behind.addItem(tr("In front of the content"), False)
         self.behind.addItem(tr("Behind the content"), True)
+        # These two choices go to the optional content of the PDF: a viewer can show the watermark on screen and
+        # hide it on paper, or the reverse.
         self.on_print = QCheckBox(tr("Show when printing"))
         self.on_screen = QCheckBox(tr("Show on the screen"))
         for w in (self.rotation, self.opacity, self.scale):
@@ -142,6 +154,7 @@ class WatermarkDialog(StampDialog):
             self.units.addItem(tr(title), code)
         self.hoffset = QDoubleSpinBox()
         self.voffset = QDoubleSpinBox()
+        # Los desplazamientos se miden desde la alineación elegida, en las unidades de abajo, y pueden ser negativos.
         for spin in (self.hoffset, self.voffset):
             spin.setRange(-1000, 1000)
             spin.setDecimals(2)
@@ -176,6 +189,7 @@ class WatermarkDialog(StampDialog):
         return left
 
     def choose_source(self):
+        # Starts in the home folder each time: unlike the window's file dialogs, it does not use the last folder.
         name, _ = QFileDialog.getOpenFileName(self, tr("The PDF of the watermark"), str(Path.home()),
                                               tr("PDF files (*.pdf)"))
         if name:
@@ -185,6 +199,7 @@ class WatermarkDialog(StampDialog):
         self.text.setText(wm.text)
         self.source.setText(wm.source)
         self.source_page.setValue(wm.source_page)
+        # Un perfil con archivo de origen se abre en modo "Página de un PDF"; si no, en modo texto.
         (self.is_file if wm.source else self.is_text).setChecked(True)
         self.font_box.setCurrentIndex(self.font_box.findData(wm.font))
         self.font_size.setValue(wm.size)
@@ -192,8 +207,10 @@ class WatermarkDialog(StampDialog):
         self.bold.setChecked(wm.bold)
         self.italic.setChecked(wm.italic)
         self.rotation.setValue(round(wm.rotation))
+        # La opacidad se guarda como fracción (0 a 1) y se muestra como porcentaje entero.
         self.opacity.setValue(round(wm.opacity * 100))
         self.relative.setChecked(wm.scale > 0)
+        # 50 % is only the starting value shown when the scale is off.
         self.scale.setValue(round(wm.scale) or 50)
         self.scale.setEnabled(wm.scale > 0)
         self.behind.setCurrentIndex(1 if wm.behind else 0)
@@ -206,6 +223,7 @@ class WatermarkDialog(StampDialog):
         self.voffset.setValue(wm.voffset)
 
     def own_values(self) -> dict:
+        # Only the chosen kind is kept: the other field is saved empty, so that a profile never has both.
         text = self.is_text.isChecked()
         return dict(
             text=self.text.text() if text else "", source="" if text else self.source.text().strip(),

@@ -46,6 +46,7 @@ from .redact.meta_dialog import MetadataDialog
 from .redact.prefs import SettingsDialog
 from .redact.props import PropertiesDialog
 
+# El tipo de anotación de los recuadros: la marca /Redact del PDF.
 KIND = "redact"
 PAD = 1.0  # points: a box over text is this much larger than its words, on each side (as in py-redact)
 
@@ -73,6 +74,7 @@ class RedactMixin:
                           "that"))
         act.setStatusTip(act.toolTip())
         act.triggered.connect(lambda: self.set_tool(KIND))
+        # Same group as the other tools, so choosing one unchecks the rest.
         self.tool_actions["select"].actionGroup().addAction(act)
         self.tool_actions[KIND] = act
 
@@ -103,6 +105,8 @@ class RedactMixin:
         self.m_redact_output = m.addMenu(tr("Save the redacted copy as"))
         self.m_redact_output.setToolTipsVisible(True)
         self.redact_output_actions: dict[str, QAction] = {}
+        # Una entrada por norma (PDF/A, PDF/X); solo se activan si se encuentra pdf2iso
+        # (véase _show_redact_panel).
         for value, name in conform.STANDARDS:
             out = QAction(tr(name) + "…", self)
             out.triggered.connect(lambda _=False, v=value: self.save_redacted_dialog(v))
@@ -130,6 +134,7 @@ class RedactMixin:
                                                      "aren't applied)"))
         m.addSeparator()
         self._action(m, tr("Settings of redaction…"), self.redact_settings_dialog)
+        # Placed just before the Layers menu.
         self.menuBar().insertMenu(self.m_layers.menuAction(), m)
 
         bars = [self.toolbar_of("redaction", tr("Redaction"), [self.tool_actions["select"], act]),
@@ -144,6 +149,7 @@ class RedactMixin:
         self.hints[KIND] = tr("Drag over text to mark it, or elsewhere to draw a box (Ctrl+drag: always a box); "
                               "double-click a word or an image to mark it. Drag a box to move or resize it; "
                               "double-click it for its properties, right-click it for more.")
+        # El predicado dice qué anotaciones son del modo: solo los recuadros.
         return Mode(KIND, lambda a: a.kind == KIND, bars=bars, docks=[dock], menus=[m.menuAction()],
                     actions=[act, self.a_redact_result], entered=self._redact_entered, left=self._redact_left)
 
@@ -155,6 +161,7 @@ class RedactMixin:
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        # The 'Goes on' column takes the spare width: page lists can be long.
         table.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         table.itemSelectionChanged.connect(self._redact_table_selected)
         table.doubleClicked.connect(lambda _: self.redact_properties_dialog())
@@ -200,6 +207,7 @@ class RedactMixin:
 
     def _redact_left(self):
         self.a_find.setText(tr("Find and highlight…"))
+        # Al salir del modo se apaga la vista del resultado, que no tiene sentido en los demás.
         if self.a_redact_result.isChecked():
             self.a_redact_result.setChecked(False)
 
@@ -207,6 +215,7 @@ class RedactMixin:
 
     def _redaction_look(self):
         p = self.redact_prefs
+        # hasattr: the first call comes from _build_redact, before the action and the canvas exist.
         set_redaction_look(p.mark_outline, p.mark_opacity,
                            hasattr(self, "a_redact_result") and self.a_redact_result.isChecked())
         if hasattr(self, "canvas"):
@@ -221,6 +230,7 @@ class RedactMixin:
             rsettings.save(prefs)
         except (OSError, ValueError) as e:
             self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+        # Sin señales: el toggled de la acción volvería a llamar a set_redact_prefs.
         self.a_redact_clean.blockSignals(True)
         self.a_redact_clean.setChecked(prefs.clean)
         self.a_redact_clean.blockSignals(False)
@@ -237,6 +247,7 @@ class RedactMixin:
     def new_box(self, page: int, rect: Rect) -> Annotation:
         """A box with the look of new boxes (Settings of redaction, or Save as default)."""
         p = self.redact_prefs
+        # In an Annotation, 'color' is the colour of the text and 'fill' that of the box.
         return Annotation(KIND, page, rect, color=p.text_color, fill=p.color, overlay=p.text,
                           overlay_repeat=p.repeat_text, font_size=p.font_size, align=p.align,
                           author=self.prefs.author, width=0)
@@ -256,6 +267,8 @@ class RedactMixin:
             a = self.annotations[i]
             items.append((i, a))
             if a.kind == KIND and a.repeat.strip():
+                # Las copias en otras páginas llevan el mismo índice: al seleccionarlas o moverlas se cambia
+                # el recuadro original.
                 items += [(i, dataclasses.replace(a, page=p)) for p in self.box_pages(a) if p != a.page]
         return items
 
@@ -276,6 +289,7 @@ class RedactMixin:
         i = nearest_word(found, *point)
         if i is not None:
             x0, y0, x1, y1 = found[i][0]
+            # Within 2 points of the nearest word counts as on it; farther away, look for an image.
             if x0 - 2 <= point[0] <= x1 + 2 and y0 - 2 <= point[1] <= y1 + 2:
                 self.add_redact_text(page, text_rects(found, i, i))
                 return
@@ -301,6 +315,8 @@ class RedactMixin:
             return
         annotations = list(self.annotations)
         for i in chosen:
+            # Se pasa por Box para que el diálogo use los nombres de redact.py, y se traduce de vuelta a
+            # los campos de la anotación (fill, overlay, color...).
             box = dialog.apply(box_of(annotations[i]))
             annotations[i] = dataclasses.replace(
                 annotations[i], fill=box.color, overlay=box.text, color=box.text_color, font_size=box.font_size,
@@ -308,6 +324,7 @@ class RedactMixin:
                 repeat=box.repeat)
         self.change(annotations, self.selected)
         if dialog.as_default.isChecked():
+            # With several boxes, the first one gives the look of new boxes.
             first = box_of(annotations[chosen[0]])
             self.set_redact_prefs(dataclasses.replace(
                 self.redact_prefs, **{k: getattr(first, k) for k in rsettings.APPEARANCE}))
@@ -334,6 +351,7 @@ class RedactMixin:
             self.status(error, error=True)
             self._show_redact_panel()
             return
+        # Sin recuadros seleccionados no se guarda nada: los nuevos van solo en su página.
         if self.selected:
             self._change_boxes(repeat=repeat)
         else:
@@ -344,8 +362,10 @@ class RedactMixin:
         if not chosen:
             return
         current = chosen[0].repeat
+        # Con una de las opciones fijas se propone una lista que se puede editar: de su página al final.
         if current.lower() in ("", "all", "odd", "even"):
             current = f"{chosen[0].page + 1}-"
+        # Ask again until the list can be read or the user gives up, keeping what was typed.
         while True:
             text, ok = QInputDialog.getText(self, tr("Pages"),
                                             tr("Pages and ranges, separated by commas: 3, 5-9, 12- (to the end), "
@@ -384,6 +404,7 @@ class RedactMixin:
     def toggle_code(self, code: str):
         """Add CODE to the text of the boxes selected, or take it out if they all have it."""
         chosen = [i for i in self.selected if self.annotations[i].kind == KIND]
+        # Si todos lo tienen, se quita de todos; si no, se añade a los que no lo tienen.
         have = all(code in codes.codes_of(self.annotations[i].overlay) for i in chosen)
         annotations = list(self.annotations)
         for i in chosen:
@@ -400,6 +421,7 @@ class RedactMixin:
     def _redact_find(self, text: str, pages: list[int] | None) -> list[Match]:
         if self.doc is None:
             return []
+        # Whole words only: a word picked with the right button must not match inside longer ones.
         return find_text(self.doc, text, pages, whole_words=True, texts=self.redact_texts)
 
     def redact_find_dialog(self, text: str = ""):
@@ -418,6 +440,8 @@ class RedactMixin:
 
     def mark_redact_matches(self, matches: list[Match]):
         """A box over each line of each place in MATCHES (not twice over the same place)."""
+        # Se compara el rectángulo exacto: un recuadro que se movió ya no cuenta como el mismo, y se
+        # añadiría otro encima.
         have = {(a.page, a.rect) for a in self.annotations if a.kind == KIND}
         new = []
         for m in matches:
@@ -459,6 +483,7 @@ class RedactMixin:
             repeats = {a.repeat.strip().lower() for a in chosen}
             pages = menu.addMenu(tr("Pages"))
             group = QActionGroup(pages)
+            # The fixed choices only; a typed list ('*') is the 'These pages' item below.
             for value, name in REPEATS[:4]:
                 act = pages.addAction(tr(name), lambda v=value: self.set_redact_repeat(v))
                 act.setCheckable(True)
@@ -484,6 +509,8 @@ class RedactMixin:
                 menu.addAction(swatch(fill), tr("Make {color} the colour of new boxes", color=color_name(fill)),
                                lambda: self.set_redact_prefs(dataclasses.replace(self.redact_prefs, color=fill)))
             if len(chosen) == 1 and page >= 0:
+                # Se lee la página donde se hizo clic: un recuadro repetido puede tener otro texto debajo en
+                # cada página.
                 text = " ".join(under(words(self.doc[page]), chosen[0].rect)) if self.doc is not None else ""
                 if text:
                     menu.addSeparator()
@@ -512,6 +539,7 @@ class RedactMixin:
             menu.addSeparator()
             self._swatch_menu(menu, tr("Colour of new boxes"), self.redact_prefs.color,
                               lambda v: self.set_redact_prefs(dataclasses.replace(self.redact_prefs, color=v)))
+            # Repeated boxes count on every page they go on, not only the one where they were drawn.
             here = [i for i in boxes if page >= 0 and page in self.box_pages(self.annotations[i])]
             if here:
                 menu.addSeparator()
@@ -533,6 +561,7 @@ class RedactMixin:
             group.addAction(act)
         sub.addSeparator()
         other = sub.addAction(tr("Other colour…"), self.choose_redact_color)
+        # Un color fuera de la paleta se muestra en «Otro color», para que se vea cuál es.
         if current and current not in [v for v, _ in SWATCHES]:
             other.setText(tr("Other colour ({color})…", color=current))
             other.setIcon(swatch(current))
@@ -556,6 +585,7 @@ class RedactMixin:
     # ----------------------------------------------------------------- the panel
 
     def _covers(self, a: Annotation) -> str:
+        # all, odd and even get their names; a typed list is shown as it is.
         for value, name in REPEATS[1:4]:
             if a.repeat.strip().lower() == value:
                 return tr(name)
@@ -565,6 +595,8 @@ class RedactMixin:
         """The table of the boxes, as they are now."""
         if self.mode != KIND:
             return
+        # Por página, luego de arriba abajo y de izquierda a derecha. _redact_rows guarda, para cada
+        # fila, el índice de su recuadro en self.annotations.
         order = sorted(self.boxes(), key=lambda i: (self.annotations[i].page, self.annotations[i].rect[1],
                                                     self.annotations[i].rect[0]))
         self._redact_rows = order
@@ -594,6 +626,8 @@ class RedactMixin:
         last = table.columnCount() - 1
         selection = QItemSelection()
         start = None
+        # Consecutive rows go in one range, and the None at the end closes the last one: one select()
+        # for all of them is much quicker than one per row.
         for row, i in enumerate(self._redact_rows + [None]):
             if i is not None and i in chosen:
                 if start is None:
@@ -611,6 +645,7 @@ class RedactMixin:
         if chosen == self.selected:
             return
         self.selected = chosen
+        # Si ninguno de los elegidos está en la página actual, se va a la del primero.
         if chosen and not any(self.page in self.box_pages(self.annotations[i]) for i in chosen):
             self.show_page(self.annotations[chosen[0]].page)
         self.refresh(pages=False, table=False)
@@ -636,6 +671,7 @@ class RedactMixin:
         repeat = repeats.pop() if len(repeats) == 1 else None
         values = [v for v, _ in REPEATS]
         key = repeat.lower() if repeat is not None else None
+        # A fixed choice selects its row, a typed list selects '*', and mixed values leave it empty (-1).
         row = values.index(key) if key in values else (values.index("*") if repeat else -1)
         self.redact_repeat.blockSignals(True)
         self.redact_repeat.setCurrentIndex(row)
@@ -652,6 +688,7 @@ class RedactMixin:
         for act in (self.a_redact_find, self.a_redact_hidden, self.a_redact_sanitize, self.a_redact_meta,
                     self.tool_actions[KIND]):
             act.setEnabled(has)
+        # Hay copia que guardar si hay recuadros, o si se cambiaron los metadatos aunque no los haya.
         can = has and (bool(self.boxes()) or self.redact_meta is not None)
         self.a_redact_save.setEnabled(can)
         have = conform.available()
@@ -671,6 +708,7 @@ class RedactMixin:
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
         meta = dialog.metadata()
+        # None stands for 'the document's own', so an unchanged dialog is not a change.
         self.redact_meta = None if meta == original else meta
         self._show_redact_panel()
         if self.redact_meta is None:
@@ -707,10 +745,13 @@ class RedactMixin:
         if not name:
             return False
         target = Path(name)
+        # No se escribe sobre el archivo abierto: la copia se hace a partir de él.
         if target.resolve() == self.path.resolve():
             self.status(tr("Choose another name: the document stays open"), error=True)
             return False
         try:
+            # No Cancel here, unlike the redacted copy: sanitize() writes a temporary file of its own,
+            # which a killed process would leave behind.
             background.run(self, tr("Writing the sanitized copy…"), sanitize, self.file, target, self.password, kinds)
         except RedactError as e:
             self.status(str(e), error=True)
@@ -726,6 +767,8 @@ class RedactMixin:
         def others(items):
             return [a for a in items if a.kind != KIND]
 
+        # Los recuadros no cuentan: van a la copia desde la ventana. Solo importan los demás cambios,
+        # que la copia no tendría porque se hace desde el archivo.
         if others(self.annotations) == others(self.saved) and not self.is_modified_besides_annotations():
             return True
         box = QMessageBox(QMessageBox.Icon.Question, tr("Unsaved changes"),
@@ -748,12 +791,14 @@ class RedactMixin:
         """Save the redacted copy, as a plain PDF or, this once, as STANDARD ('a-2b', 'x-4'...)."""
         if self.path is None:
             return False
+        # Finish any text being typed on the canvas, so the annotations are read as they stand.
         self.canvas.commit_text()
         boxes = [box_of(self.annotations[i]) for i in self.boxes()]
         if not boxes and self.redact_meta is None:
             self.status(tr("There is nothing to save: no boxes, and the metadata is the document's own"),
                         error=True)
             return False
+        # Se comprueba antes de pedir el nombre, y no a mitad de la escritura en el otro proceso.
         bad = [b for b in boxes if b.repeat.strip() and check(b.repeat)]
         if bad:
             self.status(tr("A box has pages that can't be read: {error}", error=check(bad[0].repeat)), error=True)
@@ -779,10 +824,12 @@ class RedactMixin:
         p = self.redact_prefs
         # (in a process of its own, which can be stopped: see redact/background.py; until the copy is
         # complete, it is written as PART, next to it)
+        # A leading dot hides it on Linux and macOS: a half-written copy should not look like a file to open.
         part = target.with_name(f".{target.name}.part")
         try:
             done = background.run(self, tr("Writing the redacted copy…"), write_redacted, self.file, boxes, target,
                                   self.password, p.clean, p.images, p.drawings, self.redact_meta, part, cancel=True)
+        # Si se canceló, el proceso murió sin limpiar: PART puede seguir ahí, y se borra aquí.
         except (RedactError, Cancelled) as e:
             part.unlink(missing_ok=True)
             if isinstance(e, Cancelled):
@@ -809,6 +856,7 @@ class RedactMixin:
                 standard = ""
         self.settings.setValue("last_dir", str(target.parent))
         try:
+            # Checked after any PDF/A or PDF/X conversion, so what is verified is the final file.
             leaks = background.run(self, tr("Checking that nothing under the boxes can be read…"), check_redacted,
                                    self.file, target, boxes, self.password)
         except RedactError as e:
@@ -820,6 +868,7 @@ class RedactMixin:
             message += " — " + conform.label(standard) + (f" ({check_})" if check_ else "")
             if self.password:
                 message += " — " + tr("PDF/A and PDF/X can't be protected: the copy has no password")
+        # Se muestran como mucho diez fugas, para no llenar el mensaje.
         if leaks:
             self.warn(tr("Check the redacted copy"),
                       tr("Some text can still be read under the boxes of {name}:", name=target.name)
@@ -847,6 +896,7 @@ class RedactMixin:
             return ntr("{count} bookmark that gives away what was redacted was kept",
                        "{count} bookmarks that give away what was redacted were kept", len(leaks))
         try:
+            # remove_bookmarks rewrites TARGET: that is why this runs before any PDF/A or PDF/X conversion.
             background.run(self, tr("Removing the bookmarks…"), remove_bookmarks, target,
                            None if choice == "all" else {i for i, _, _ in leaks}, self.password)
         except RedactError as e:
@@ -864,6 +914,7 @@ class RedactMixin:
                               name=name)
                           + "\n\n" + "\n".join(f"• “{title}”: {why}" for _, title, why in leaks[:12]),
                           QMessageBox.StandardButton.NoButton, self)
+        # El mensaje nombra hasta doce marcadores, pero los botones valen para todos los encontrados.
         these = box.addButton(ntr("Remove it", "Remove them", len(leaks)), QMessageBox.ButtonRole.AcceptRole)
         everything = box.addButton(tr("Remove all the bookmarks"), QMessageBox.ButtonRole.DestructiveRole)
         box.addButton(tr("Keep them"), QMessageBox.ButtonRole.RejectRole)

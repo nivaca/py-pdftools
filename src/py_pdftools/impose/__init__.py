@@ -47,6 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     cmd = COMMANDS[ns.command]
     inp: Path | None = getattr(ns, "input", None)
     ctx = make_context(ns, input_path=inp)
+    # Los comandos que no necesitan entrada (run, watch, sample...) reciben pdf=None.
     try:
         pdf = None
         if inp is not None:
@@ -58,6 +59,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         record(pdf, result, strip_io(argv, ns))
         out = ns.output
+        # Sin -o, la salida va junto a la entrada como <entrada>-<comando>.pdf; sin entrada, <comando>.pdf en el
+        # directorio actual.
         if out is None:
             stem = inp.with_suffix("") if inp is not None else Path(ns.command)
             out = Path(f"{stem}-{ns.command}.pdf")
@@ -66,6 +69,7 @@ def main(argv: list[str] | None = None) -> int:
     except ImpositionError as e:
         print(tr('error: {error}', error=e), file=sys.stderr)
         return 1
+    # Each saved file is reopened to count its pages; if that fails, the message goes out without the count.
     for p in paths:
         try:
             n = len(Pdf.open(p).pages)
