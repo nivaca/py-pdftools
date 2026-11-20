@@ -35,6 +35,7 @@ from .canvas import PageCanvas, page_image
 from .colors import color_name, swatch, swatches
 from .files import FilesMixin
 from .redacting import RedactMixin
+from .working import DocState, WorkingMixin
 from .finder import FindDialog
 from .listing import AnnotationModel, Panel
 from .paint import paint
@@ -133,7 +134,7 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(RedactMixin, FilesMixin, QMainWindow):
+class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -672,6 +673,7 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
             recovery.discard(self.path)
         if self.finder is not None:
             self.finder.close()
+        self.drop_work()
         self.save_settings()
         super().closeEvent(event)
 
@@ -755,6 +757,7 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
             except AnnotateError as e:
                 self.status(str(e), error=True)
                 return False
+        self.drop_work()
         found = self._load(path, password)
         if found is None:
             return False
@@ -860,12 +863,12 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
         document itself), and go on with TARGET. What was done can still be undone."""
         self.canvas.commit_text()
         self.keep_comment()
-        source, page = self.path, self.page
-        replacing = target.resolve() == source.resolve()
+        source, page = self.file, self.page
+        replacing = target.resolve() == self.path.resolve()
         # (what the file has is what was read when it was opened, unless it changed since: then it is read again)
         source_stamp = self._source(source, self.password, False)
         known = self.saved if self.canvas.source is not None and source_stamp is not None \
-            and source_stamp[2] == self.canvas.source[2] else None
+            and source_stamp[2] == self.canvas.source[2] and self.work is None else None
         if replacing:  # (the file is about to change under the open document)
             self._close_doc()
         kept: set[int] = set()
@@ -875,14 +878,18 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
                                    original=known, shown=self.layers)
         except AnnotateError as e:
             if replacing:
-                self._load(source, self.password, page)
+                self._load_work(source, page)
                 self.refresh()
             self.status(str(e), error=True)
             return False
-        recovery.discard(source)
+        recovery.discard(self.path)
+        working = self.work is not None
         found = self._load(target, self.password, page, known=result)
         if found is None:
             return False
+        if working:  # (it is in the file now; and the history's steps are of files that are gone)
+            self.drop_work()
+            kept = set()
         if not replacing:
             kept = set()  # (another file: its xrefs are its own)
         # (the history keeps the xrefs of the annotations still there; the others are new to it)
@@ -924,8 +931,8 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
 
     def keep_recovery(self):
         """Keep a recovery copy of the annotations, if they have changed since the document was saved."""
-        if self.path is None or not self.is_modified():
-            return
+        if self.path is None or not self.is_modified() or self.work is not None:
+            return  # (with changes of the document itself, the annotations are those of its working copy)
         try:
             recovery.keep(self.path, self.annotations)
         except OSError as e:
@@ -1798,14 +1805,22 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
     def undo(self):
         self.canvas.commit_text()
         self.keep_comment()
-        if self.undo_stack:
+        if self.undo_stack and isinstance(self.undo_stack[-1], DocState):  # (a change of the document itself)
+            state = self.undo_stack.pop()
+            self.redo_stack.append(self._state())
+            self.restore(state)
+        elif self.undo_stack:
             self.redo_stack.append(self.annotations)
             self.annotations = self.undo_stack.pop()
             self.selected = []
             self.refresh()
 
     def redo(self):
-        if self.redo_stack:
+        if self.redo_stack and isinstance(self.redo_stack[-1], DocState):
+            state = self.redo_stack.pop()
+            self.undo_stack.append(self._state())
+            self.restore(state)
+        elif self.redo_stack:
             self.undo_stack.append(self.annotations)
             self.annotations = self.redo_stack.pop()
             self.selected = []
@@ -2354,7 +2369,7 @@ class MainWindow(RedactMixin, FilesMixin, QMainWindow):
     # ----------------------------------------------------------------- unsaved changes
 
     def is_modified(self) -> bool:
-        return self.annotations != self.saved or self.layers != self.saved_layers
+        return self.annotations != self.saved or self.layers != self.saved_layers or self.work is not None
 
     def _update_title(self):
         name = f"{self.path.name}[*] — py-pdftools" if self.path else "py-pdftools"

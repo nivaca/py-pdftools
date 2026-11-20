@@ -695,7 +695,7 @@ class RedactMixin:
         if self.path is None:
             return False
         try:  # (from the file: the document of the window has no annotations, which it draws itself)
-            doc = open_pdf(self.path, self.password)
+            doc = open_pdf(self.file, self.password)
         except RedactError as e:
             self.status(str(e), error=True)
             return False
@@ -721,7 +721,7 @@ class RedactMixin:
             self.status(tr("Choose another name: the document stays open"), error=True)
             return False
         try:
-            background.run(self, tr("Writing the sanitized copy…"), sanitize, self.path, target, self.password, kinds)
+            background.run(self, tr("Writing the sanitized copy…"), sanitize, self.file, target, self.password, kinds)
         except RedactError as e:
             self.status(str(e), error=True)
             return False
@@ -751,9 +751,8 @@ class RedactMixin:
         return answer == QMessageBox.StandardButton.Ignore
 
     def is_modified_besides_annotations(self) -> bool:
-        """Whether the document has changes that are not of its annotations (the modes Pages and
-        Impose make such changes)."""
-        return False
+        """Whether the document has changes that are not of its annotations (see working.py)."""
+        return self.work is not None
 
     def save_redacted_dialog(self, standard: str = "") -> bool:
         """Save the redacted copy, as a plain PDF or, this once, as STANDARD ('a-2b', 'x-4'...)."""
@@ -792,7 +791,7 @@ class RedactMixin:
         # complete, it is written as PART, next to it)
         part = target.with_name(f".{target.name}.part")
         try:
-            done = background.run(self, tr("Writing the redacted copy…"), write_redacted, self.path, boxes, target,
+            done = background.run(self, tr("Writing the redacted copy…"), write_redacted, self.file, boxes, target,
                                   self.password, p.clean, p.images, p.drawings, self.redact_meta, part, cancel=True)
         except (RedactError, Cancelled) as e:
             part.unlink(missing_ok=True)
@@ -821,7 +820,7 @@ class RedactMixin:
         self.settings.setValue("last_dir", str(target.parent))
         try:
             leaks = background.run(self, tr("Checking that nothing under the boxes can be read…"), check_redacted,
-                                   self.path, target, boxes, self.password)
+                                   self.file, target, boxes, self.password)
         except RedactError as e:
             self.status(str(e), error=True)
             leaks = []
@@ -846,7 +845,7 @@ class RedactMixin:
         """Look for bookmarks of TARGET that give away what was redacted, and take them out if the user
         wants. Returns what was done, for the status bar."""
         try:
-            leaks = background.run(self, tr("Checking the bookmarks of the copy…"), bookmark_leaks, self.path,
+            leaks = background.run(self, tr("Checking the bookmarks of the copy…"), bookmark_leaks, self.file,
                                    target, boxes, self.password)
         except RedactError as e:
             self.status(str(e), error=True)

@@ -39,7 +39,7 @@ class FilesMixin:
         self.canvas.commit_text()
         self.keep_comment()
         try:
-            exchange.save_flattened(self.path, self.unmarked(), target, self.password)
+            exchange.save_flattened(self.file, self.unmarked(), target, self.password)
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False
@@ -53,7 +53,7 @@ class FilesMixin:
         if target is None or self._same_file(target):
             return False
         try:
-            count = exchange.save_without(self.path, target, self.password)
+            count = exchange.save_without(self.file, target, self.password)
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False
@@ -90,9 +90,9 @@ class FilesMixin:
         QApplication.processEvents()
         try:
             if flatten:
-                exchange.save_partly_flattened(self.path, self.annotations, tmp, self.password, set(flatten))
+                exchange.save_partly_flattened(self.file, self.annotations, tmp, self.password, set(flatten))
             else:
-                annots.write(self.path, self.annotations, tmp, self.password)
+                annots.write(self.file, self.annotations, tmp, self.password)
             check = conform.convert(tmp, target, standard, self.password)
             kept = [a for a in self.annotations if a.kind not in flatten]
             lost = exchange.kinds_lost(kept, target)
@@ -161,7 +161,7 @@ class FilesMixin:
             return not progress.wasCanceled()
 
         try:
-            pages, words = ocr.save_searchable(self.path, self.unmarked(), target, self.password,
+            pages, words = ocr.save_searchable(self.file, self.unmarked(), target, self.password,
                                                self.prefs.ocr_language, step)
         except AnnotateError as e:
             self.status(str(e), error=True)
@@ -264,7 +264,7 @@ class FilesMixin:
         self.keep_comment()
         try:
             chosen = [self.annotations[i] for i in self.shown() if self.annotations[i].kind != "redact"]
-            done = print_document(self, self.path, chosen, self.password, self.page, with_them=True)
+            done = print_document(self, self.file, chosen, self.password, self.page, with_them=True)
         except (AnnotateError, RuntimeError, ValueError) as e:
             self.status(str(e), error=True)
             return False
@@ -296,17 +296,17 @@ class FilesMixin:
             return False
         try:
             if kind == "json":
-                exchange.export_json(self.doc, self.path, chosen, target)
+                exchange.export_json(self.doc, self.file, chosen, target)
             elif kind == "csv":
                 exchange.export_csv(self.doc, chosen, target, colors.color_meaning)
             elif kind == "xfdf":
-                exchange.export_xfdf(self.doc, self.path, chosen, target)
+                exchange.export_xfdf(self.doc, self.file, chosen, target)
             elif kind == "apparatus":
-                exchange.export_apparatus(self.doc, self.path, chosen, target)
+                exchange.export_apparatus(self.doc, self.file, chosen, target)
             elif kind == "pdf":
-                exchange.save_summary(self.path, chosen, target, self.password, color_name)
+                exchange.save_summary(self.file, chosen, target, self.password, color_name)
             else:
-                exchange.export_markdown(self.doc, self.path, chosen, target, color_name)
+                exchange.export_markdown(self.doc, self.file, chosen, target, color_name)
         except (OSError, AnnotateError) as e:
             self.status(tr("{path} cannot be written: {error}", path=target, error=e), error=True)
             return False
