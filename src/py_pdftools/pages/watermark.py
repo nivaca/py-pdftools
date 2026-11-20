@@ -11,7 +11,7 @@ it always).
 from __future__ import annotations
 
 import math
-from dataclasses import asdict, dataclass, replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -20,7 +20,8 @@ from pikepdf import Dictionary, Name, Pdf
 
 from . import profiles, stamps
 from .fontmetrics import FONTS
-from .headfoot import LINE, known_values
+from .headfoot import LINE
+from .stamps import known_values
 from ..core.interface import N_, tr
 from .labels import LabelError
 from .stamps import POINTS, WATERMARK, Document, chosen_pages
@@ -30,7 +31,7 @@ VALIGNS = {"top": N_("Top"), "center": N_("Center"), "bottom": N_("Bottom")}
 
 
 @dataclass(frozen=True)
-class Watermark:
+class Watermark(stamps.StampSettings):
     """What to draw (a text, or page SOURCE_PAGE of the PDF SOURCE), how, where and on which pages."""
 
     text: str = ""
@@ -56,25 +57,9 @@ class Watermark:
     units: str = "cm"
     hoffset: float = 0.0
     voffset: float = 0.0
-    # pages
-    pages: str = ""
-    parity: str = "all"
-    # Bates numbering ($bates)
-    bates_prefix: str = ""
-    bates_start: int = 1
-    bates_digits: int = 6
-    bates_suffix: str = ""
-    # as a profile
-    name: str = ""
-    show_on_menu: bool = False
+    # (the pages, Bates numbering and the profile: see stamps.StampSettings)
 
     KIND = WATERMARK
-
-    def base_font(self) -> str:
-        return stamps.base_font(self.font, self.bold, self.italic)
-
-    def as_dict(self) -> dict:
-        return asdict(self)
 
     @classmethod
     def from_dict(cls, data: dict) -> Watermark:
@@ -299,13 +284,7 @@ def pages_with(pdf: Pdf) -> list[int]:
 
 def last(pdf: Pdf) -> tuple[int, Watermark] | None:
     """(addition, settings) of the watermark added last (None if none)."""
-    found = stamps.last_addition(pdf, WATERMARK)
-    if found is None or not found.settings:
-        return None
-    try:
-        return found.id, Watermark.from_dict(found.settings)
-    except LabelError:
-        return None
+    return stamps.last_settings(pdf, WATERMARK, Watermark)
 
 
 # =========================================================================== profiles

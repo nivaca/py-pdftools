@@ -23,7 +23,7 @@ left and right margins to the text at the sides.
 
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass, fields, replace
+from dataclasses import dataclass, replace
 from datetime import datetime
 from pathlib import Path
 
@@ -36,7 +36,7 @@ from ..core.interface import N_, tr
 from .labels import LabelError
 from .stamps import (  # noqa: F401  (part of this module's API)
     DATE_FORMATS, FAMILIES, FAMILY_TITLES, HEADER_FOOTER, PARITIES, POINTS, UNIT_TITLES, VARIABLES, Document,
-    chosen_pages, compact_pages, document_of, text_width, unwritable,
+    chosen_pages, compact_pages, document_of, known_values, text_width, unwritable,
 )
 
 SIDES = {"top": N_("top"), "bottom": N_("bottom"), "left": N_("left"), "right": N_("right")}  # (the margins)
@@ -59,7 +59,7 @@ PAD = 0.3  # the room around the text inside a border or a background, in font s
 
 
 @dataclass(frozen=True)
-class HeaderFooter:
+class HeaderFooter(stamps.StampSettings):
     """What to draw, where, how and on which pages (and, as a profile, under what name)."""
 
     header_left: str = ""
@@ -86,17 +86,7 @@ class HeaderFooter:
     border_width: float = 0.5  # points
     background: str = ""  # a color, or "" for none
     date_format: str = "medium"  # how $date writes the date (see stamps.DATE_FORMATS)
-    # pages: a list of pages ("" for all; "5-200", "1,3,9-"), and of those, all, the even or the odd ones
-    pages: str = ""
-    parity: str = "all"
-    # Bates numbering ($bates): PREFIX, the number from START in DIGITS digits (at least), SUFFIX
-    bates_prefix: str = ""
-    bates_start: int = 1
-    bates_digits: int = 6
-    bates_suffix: str = ""
-    # as a profile
-    name: str = ""
-    show_on_menu: bool = False
+    # (the pages, Bates numbering and the profile: see stamps.StampSettings)
 
     KIND = HEADER_FOOTER
 
@@ -106,32 +96,10 @@ class HeaderFooter:
     def has_text(self) -> bool:
         return any(t.strip() for t in self.texts().values())
 
-    def base_font(self) -> str:
-        return stamps.base_font(self.font, self.bold, self.italic)
-
-    def as_dict(self) -> dict:
-        return asdict(self)
-
     @classmethod
     def from_dict(cls, data: dict) -> HeaderFooter:
         """A HeaderFooter from a dictionary (of a profile, or of a page), leaving out what it doesn't know."""
         return check(cls(**known_values(cls, data)))
-
-
-def known_values(cls, data: dict) -> dict:
-    """The values of DATA that are fields of the dataclass CLS, of the type of their defaults."""
-    values = {}
-    # Instancia por defecto: el tipo de cada valor por defecto dice a qué convertir lo que trae el JSON.
-    defaults = cls()
-    for f in fields(cls):
-        if f.name in data:
-            try:
-                # A value of the wrong type (a string where a number goes) is converted;
-                # if it cannot be, the default stays.
-                values[f.name] = type(getattr(defaults, f.name))(data[f.name])
-            except (TypeError, ValueError):
-                continue
-    return values
 
 
 def check(hf: HeaderFooter) -> HeaderFooter:
@@ -360,14 +328,7 @@ def pages_with(pdf: Pdf, *, bates_only: bool = False) -> list[int]:
 def last(pdf: Pdf) -> tuple[int, HeaderFooter] | None:
     """(addition, settings) of the header and footer added last (None if none, or if it was added
     by a version of py-foliation that did not keep its settings)."""
-    found = stamps.last_addition(pdf, HEADER_FOOTER)
-    if found is None or not found.settings:
-        return None
-    # Settings saved by an older version may no longer pass check(); then there is nothing to update.
-    try:
-        return found.id, HeaderFooter.from_dict(found.settings)
-    except LabelError:
-        return None
+    return stamps.last_settings(pdf, HEADER_FOOTER, HeaderFooter)
 
 
 # =========================================================================== profiles

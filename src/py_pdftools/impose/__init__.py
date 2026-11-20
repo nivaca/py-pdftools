@@ -21,19 +21,9 @@ from .. import __version__
 __all__ = ["main", "COMMANDS", "Context", "ImpositionError", "__version__"]
 
 
-def interface_option(argv: list[str]) -> str | None:
-    """The value of --interface in ARGV (needed before the parser is built)."""
-    for i, tok in enumerate(argv):
-        if tok == "--interface" and i + 1 < len(argv):
-            return argv[i + 1]
-        if tok.startswith("--interface="):
-            return tok.split("=", 1)[1]
-    return None
-
-
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    interface.use_configured(interface_option(argv))
+    interface.use_configured(interface.option(argv))
     interface.translate_argparse()
     # "py-pdftools impose file.pdf [options]" -> booklet with the default settings
     first = next((t for t in argv if not t.startswith("-")), None)

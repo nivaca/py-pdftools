@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pikepdf
 
-from ..core import conform, config, interface
+from ..core import conform, interface
 
 from . import arrange, headfoot, labels, stamps, view, watermark
 from .changes import Change
@@ -131,18 +131,6 @@ input with -1, -2 ... (in --output-dir, if given).
 
 For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST
 --rotate even 90 -i""")
-
-
-def interface_option(argv: list[str]) -> str | None:
-    """The value of --interface in ARGV (needed before the parser is built)."""
-    # A small scan by hand: the language must be set before the parser is built, since its help texts
-    # are translated as they are made.
-    for i, tok in enumerate(argv):
-        if tok == "--interface" and i + 1 < len(argv):
-            return argv[i + 1]
-        if tok.startswith("--interface="):
-            return tok.split("=", 1)[1]
-    return None
 
 
 def translate_paragraphs(text: str) -> str:
@@ -1022,28 +1010,13 @@ def completion(a) -> int:
 
 
 def choose_interface(a) -> int:
-    names = interface.names()
-    if a.language is None:
-        current = interface.code()
-        print(tr("Languages of the interface:"))
-        for code, name in names.items():
-            print(f"  {'*' if code == current else ' '} {code}  {name}")
-        print(tr("Configuration file: {path}", path=config.config_path()))
-        return 0
-    if not interface.use(a.language):
-        raise LabelError(tr("the language {code} cannot be used: {error}", code=a.language,
-                            error=interface.error()))
-    try:
-        path = config.set("interface", a.language)
-    except OSError as e:
-        raise LabelError(tr("Could not keep the setting: {error}", error=e)) from None
-    print(tr("The interface is now in {name} (kept in {path}).", name=names[a.language], path=path))
+    interface.choose(a.language, LabelError)
     return 0
 
 
 def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
-    interface.use_configured(interface_option(argv))
+    interface.use_configured(interface.option(argv))
     interface.translate_argparse()
     # "py-pdftools file.pdf ..." -> show
     # Una palabra suelta que acaba en .pdf como primera palabra equivale a 'show'; se salta el valor de --interface.

@@ -106,19 +106,6 @@ def _interface_args(p):
          description=N_("The language of the help, the messages and the window. The choice is kept in the "
                         "configuration file; --interface CODE changes it for one run only."))
 def choose_interface(pdf, a, ctx: Context):
-    names = interface.names()
-    if a.language is None:
-        current = interface.code()
-        print(tr("Languages of the interface:"))
-        for code, name in names.items():
-            print(f"  {'*' if code == current else ' '} {code}  {name}")
-        print(tr("Configuration file: {path}", path=config.config_path()))
-        return None
-    # Se prueba el idioma antes de guardarlo, para no dejar en la configuración uno que no carga.
-    if not interface.use(a.language):
-        raise ImpositionError(tr("the language {code} cannot be used: {error}", code=a.language,
-                                 error=interface.error()))
-    path = config.set("interface", a.language)
-    print(tr("The interface is now in {name} (kept in {path}).", name=names[a.language], path=path))
+    interface.choose(a.language, ImpositionError)
     return None
 

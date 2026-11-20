@@ -106,7 +106,7 @@ def main(argv: list[str] | None = None) -> int:
 
     argv = list(sys.argv[1:] if argv is None else argv)
     # The language is set before any parser is built, so that its help and argparse's own messages are translated.
-    interface.use_configured(pages_cli.interface_option(argv))
+    interface.use_configured(interface.option(argv))
     interface.translate_argparse()
     words = _words(argv)
     first = words[0] if words else None

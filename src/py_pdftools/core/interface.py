@@ -133,6 +133,41 @@ def use_configured(override: str | None = None) -> str:
     return _code
 
 
+def option(argv: list[str]) -> str | None:
+    """The value of --interface in ARGV (needed before the parser is built)."""
+    # A small scan by hand: the language must be set before the parser is built, since its help texts
+    # are translated as they are made.
+    for i, tok in enumerate(argv):
+        if tok == "--interface" and i + 1 < len(argv):
+            return argv[i + 1]
+        if tok.startswith("--interface="):
+            return tok.split("=", 1)[1]
+    return None
+
+
+def choose(language: str | None, fail: type[Exception]) -> None:
+    """The command 'interface': with no LANGUAGE, list the languages; else use LANGUAGE and keep it in the
+    configuration file (FAIL, the error of the command that asks, if it can't be done)."""
+    from . import config
+
+    found = names()
+    if language is None:
+        current = code()
+        print(tr("Languages of the interface:"))
+        for each, name in found.items():
+            print(f"  {'*' if each == current else ' '} {each}  {name}")
+        print(tr("Configuration file: {path}", path=config.config_path()))
+        return
+    # Se prueba el idioma antes de guardarlo, para no dejar en la configuración uno que no carga.
+    if not use(language):
+        raise fail(tr("the language {code} cannot be used: {error}", code=language, error=error()))
+    try:
+        path = config.set("interface", language)
+    except OSError as e:
+        raise fail(tr("Could not keep the setting: {error}", error=e)) from None
+    print(tr("The interface is now in {name} (kept in {path}).", name=found[language], path=path))
+
+
 def code() -> str:
     """The language of the interface in use."""
     return _code

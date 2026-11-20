@@ -21,7 +21,7 @@ from __future__ import annotations
 
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, fields
 from datetime import datetime
 from pathlib import Path
 
@@ -153,6 +153,47 @@ def chosen_pages(settings, n: int) -> list[int]:
     elif settings.parity == "odd":
         pages = {p for p in pages if p % 2 == 1}
     return sorted(pages)
+
+
+@dataclass(frozen=True)
+class StampSettings:
+    """What headers and footers (headfoot.HeaderFooter) and watermarks (watermark.Watermark) have alike:
+    the pages they go on, Bates numbering, and their name as a profile. (Each adds its own fields, among
+    them font, bold and italic.)"""
+
+    # pages: a list of pages ("" for all; "5-200", "1,3,9-"), and of those, all, the even or the odd ones
+    pages: str = ""
+    parity: str = "all"
+    # Bates numbering ($bates): PREFIX, the number from START in DIGITS digits (at least), SUFFIX
+    bates_prefix: str = ""
+    bates_start: int = 1
+    bates_digits: int = 6
+    bates_suffix: str = ""
+    # as a profile
+    name: str = ""
+    show_on_menu: bool = False
+
+    def base_font(self) -> str:
+        return base_font(self.font, self.bold, self.italic)
+
+    def as_dict(self) -> dict:
+        return asdict(self)
+
+
+def known_values(cls, data: dict) -> dict:
+    """The values of DATA that are fields of the dataclass CLS, of the type of their defaults."""
+    values = {}
+    # Instancia por defecto: el tipo de cada valor por defecto dice a qué convertir lo que trae el JSON.
+    defaults = cls()
+    for f in fields(cls):
+        if f.name in data:
+            try:
+                # A value of the wrong type (a string where a number goes) is converted;
+                # if it cannot be, the default stays.
+                values[f.name] = type(getattr(defaults, f.name))(data[f.name])
+            except (TypeError, ValueError):
+                continue
+    return values
 
 
 @dataclass(frozen=True)
@@ -567,6 +608,19 @@ def last_addition(pdf_or_additions, kind: str) -> Addition | None:
     """The addition of KIND made last (None if none)."""
     items = additions(pdf_or_additions) if isinstance(pdf_or_additions, Pdf) else pdf_or_additions
     return next((a for a in reversed(items) if a.kind == kind), None)
+
+
+def last_settings(pdf: Pdf, kind: str, settings_class):
+    """(addition, settings) of the addition of KIND made last, its settings as a SETTINGS_CLASS (None if
+    there is none, or if it was added by a version of py-foliation that did not keep its settings)."""
+    found = last_addition(pdf, kind)
+    if found is None or not found.settings:
+        return None
+    # Settings saved by an older version may no longer pass check(); then there is nothing to update.
+    try:
+        return found.id, settings_class.from_dict(found.settings)
+    except LabelError:
+        return None
 
 
 def remove(pdf: Pdf, pages: str = "", kind: str | None = HEADER_FOOTER, *, bates_only: bool = False,
