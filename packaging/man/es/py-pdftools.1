@@ -27,6 +27,8 @@ argumentos posicionales:
                        vigiladas
     pdf2iso            convertir PDF a PDF/A o PDF/X-4 (pdf2iso, que viene
                        incluido; necesita Ghostscript)
+    ocr                leer con tesseract el texto de páginas escaneadas y
+                       escribirlo bajo ellas (OCR)
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
 
@@ -2836,6 +2838,47 @@ opciones:
   --verapdf VERAPDF     path to the veraPDF command-line tool
   --version             mostrar el número de versión del programa y terminar
   -v, --verbose         show Ghostscript and validator output
+.fi
+.SS ocr
+.nf
+uso: py-pdftools ocr [-h] [-l IDIOMAS] [--pages PÁGINAS] [--rotate]
+                     [-o ARCHIVO | -i | --output-dir CARPETA] [--report]
+                     [--doubtful CONFIANZA] [--password PASSWORD]
+                     [--languages] [--download NOMBRE [NOMBRE ...]]
+                     [PDF ...]
+
+Lee con tesseract el texto de las páginas escaneadas de los PDF y lo escribe
+bajo sus imágenes, invisible, para que se pueda buscar, copiar y marcar. Las
+páginas que ya tienen texto se dejan como están. Cada PDF se escribe como
+NOMBRE-ocr.pdf a su lado, salvo que -o, -i o --output-dir digan otra cosa.
+
+argumentos posicionales:
+  PDF                   los PDF que se leen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -l, --lang IDIOMAS    los idiomas del texto, como los nombra tesseract,
+                        varios con +, el principal primero: lat+spa (por
+                        omisión, los de la configuración)
+  --pages PÁGINAS       las páginas que se leen: 1-5,9, LAST ... (por
+                        omisión, todas las escaneadas)
+  --rotate              girar las páginas que estén de lado o al revés antes
+                        de leerlas (necesita el modelo osd de tesseract:
+                        --download osd)
+  -o, --output ARCHIVO  el PDF que se escribe (con una sola entrada)
+  -i, --in-place        escribir cada PDF sobre sí mismo
+  --output-dir CARPETA  escribir los PDF en CARPETA, con los mismos nombres
+  --report              listar las palabras dudosas (página, confianza,
+                        palabra), para revisarlas
+  --doubtful CONFIANZA  las palabras leídas con una confianza menor que esta
+                        (de 0 a 100) son dudosas (por omisión: 60)
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+  --languages           mostrar la versión de tesseract y sus idiomas en
+                        este equipo (★: un modelo mejor), y terminar
+  --download NOMBRE [NOMBRE ...]
+                        descargar los modelos más precisos de tesseract para
+                        estos idiomas (y osd, para girar páginas) en la
+                        carpeta propia de py-pdftools, y terminar
 .fi
 .SS completion
 .nf

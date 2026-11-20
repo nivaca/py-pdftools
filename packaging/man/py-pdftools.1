@@ -23,6 +23,8 @@ positional arguments:
                        repeat, bleeds, stamps, sequences and hot folders
     pdf2iso            convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is
                        included; it needs Ghostscript)
+    ocr                read the text of scanned pages with tesseract, and
+                       write it under them (OCR)
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -2667,6 +2669,48 @@ options:
   --verapdf VERAPDF     path to the veraPDF command-line tool
   --version             show program's version number and exit
   -v, --verbose         show Ghostscript and validator output
+.fi
+.SS ocr
+.nf
+usage: py-pdftools ocr [-h] [-l LANGUAGES] [--pages PAGES] [--rotate]
+                       [-o FILE | -i | --output-dir FOLDER] [--report]
+                       [--doubtful CONFIDENCE] [--password PASSWORD]
+                       [--languages] [--download NAME [NAME ...]]
+                       [PDF ...]
+
+Read the text of the scanned pages of PDFs with tesseract, and write it
+under their pictures, invisible, so that it can be found, copied and marked.
+Pages that have text already are left as they are. Each PDF is written as
+NAME-ocr.pdf beside it, unless -o, -i or --output-dir say otherwise.
+
+positional arguments:
+  PDF                   the PDFs to read
+
+options:
+  -h, --help            show this help message and exit
+  -l, --lang LANGUAGES  the languages of the text, as tesseract names them,
+                        several with +, the main one first: lat+spa (by
+                        default, those of the settings)
+  --pages PAGES         the pages to read: 1-5,9, LAST ... (by default, all
+                        the scanned pages)
+  --rotate              turn the pages lying sideways or upside down before
+                        reading them (needs tesseract's osd model:
+                        --download osd)
+  -o, --output FILE     the PDF to write (one input only)
+  -i, --in-place        write each PDF over itself
+  --output-dir FOLDER   write the PDFs into FOLDER, with the same names
+  --report              list the doubtful words (page, confidence, word), to
+                        be checked
+  --doubtful CONFIDENCE
+                        words read with a confidence below this (0 to 100)
+                        are doubtful (default: 60)
+  --password PASSWORD   the password of the PDFs, if they have one
+  --languages           show tesseract's version and its languages here (★:
+                        a better model), and stop
+  --download NAME [NAME ...]
+                        download tesseract's most accurate models of these
+                        languages (and osd, to turn pages) into py-pdftools'
+                        own folder, and stop
 .fi
 .SS completion
 .nf

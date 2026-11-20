@@ -9289,4 +9289,104 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>no language</en>
     <tr>ningún idioma</tr>
   </text>
+  <text>
+    <en>-o names one file: with several PDFs, use --output-dir or -i</en>
+    <tr>-o nombra un solo archivo: con varios PDF, use --output-dir o -i</tr>
+  </text>
+  <text>
+    <en>Better models: {path}</en>
+    <tr>Modelos mejores: {path}</tr>
+  </text>
+  <text>
+    <en>CONFIDENCE</en>
+    <tr>CONFIANZA</tr>
+  </text>
+  <text>
+    <en>Downloaded {path}</en>
+    <tr>Descargado {path}</tr>
+  </text>
+  <text>
+    <en>LANGUAGES</en>
+    <tr>IDIOMAS</tr>
+  </text>
+  <text>
+    <en>Orientation of pages (osd): {state}</en>
+    <tr>Orientación de las páginas (osd): {state}</tr>
+  </text>
+  <text>
+    <en>Read the text of the scanned pages of PDFs with tesseract, and write it under their pictures, invisible, so that it can be found, copied and marked. Pages that have text already are left as they are. Each PDF is written as NAME-ocr.pdf beside it, unless -o, -i or --output-dir say otherwise.</en>
+    <tr>Lee con tesseract el texto de las páginas escaneadas de los PDF y lo escribe bajo sus imágenes, invisible, para que se pueda buscar, copiar y marcar. Las páginas que ya tienen texto se dejan como están. Cada PDF se escribe como NOMBRE-ocr.pdf a su lado, salvo que -o, -i o --output-dir digan otra cosa.</tr>
+  </text>
+  <text>
+    <en>download tesseract's most accurate models of these languages (and osd, to turn pages) into py-pdftools' own folder, and stop</en>
+    <tr>descargar los modelos más precisos de tesseract para estos idiomas (y osd, para girar páginas) en la carpeta propia de py-pdftools, y terminar</tr>
+  </text>
+  <text>
+    <en>list the doubtful words (page, confidence, word), to be checked</en>
+    <tr>listar las palabras dudosas (página, confianza, palabra), para revisarlas</tr>
+  </text>
+  <text>
+    <en>no PDF given</en>
+    <tr>no se dio ningún PDF</tr>
+  </text>
+  <text>
+    <en>read the text of scanned pages with tesseract, and write it under them (OCR)</en>
+    <tr>leer con tesseract el texto de páginas escaneadas y escribirlo bajo ellas (OCR)</tr>
+  </text>
+  <text>
+    <en>show tesseract's version and its languages here (★: a better model), and stop</en>
+    <tr>mostrar la versión de tesseract y sus idiomas en este equipo (★: un modelo mejor), y terminar</tr>
+  </text>
+  <text>
+    <en>the PDF to write (one input only)</en>
+    <tr>el PDF que se escribe (con una sola entrada)</tr>
+  </text>
+  <text>
+    <en>the PDFs to read</en>
+    <tr>los PDF que se leen</tr>
+  </text>
+  <text>
+    <en>the languages of the text, as tesseract names them, several with +, the main one first: lat+spa (by default, those of the settings)</en>
+    <tr>los idiomas del texto, como los nombra tesseract, varios con +, el principal primero: lat+spa (por omisión, los de la configuración)</tr>
+  </text>
+  <text>
+    <en>the pages to read: 1-5,9, LAST ... (by default, all the scanned pages)</en>
+    <tr>las páginas que se leen: 1-5,9, LAST ... (por omisión, todas las escaneadas)</tr>
+  </text>
+  <text>
+    <en>the password of the PDFs, if they have one</en>
+    <tr>la contraseña de los PDF, si la tienen</tr>
+  </text>
+  <text>
+    <en>turn the pages lying sideways or upside down before reading them (needs tesseract's osd model: --download osd)</en>
+    <tr>girar las páginas que estén de lado o al revés antes de leerlas (necesita el modelo osd de tesseract: --download osd)</tr>
+  </text>
+  <text>
+    <en>words read with a confidence below this (0 to 100) are doubtful (default: %(default)s)</en>
+    <tr>las palabras leídas con una confianza menor que esta (de 0 a 100) son dudosas (por omisión: %(default)s)</tr>
+  </text>
+  <text>
+    <en>write each PDF over itself</en>
+    <tr>escribir cada PDF sobre sí mismo</tr>
+  </text>
+  <text>
+    <en>write the PDFs into FOLDER, with the same names</en>
+    <tr>escribir los PDF en CARPETA, con los mismos nombres</tr>
+  </text>
+  <text>
+    <en>yes</en>
+    <tr>sí</tr>
+  </text>
+  <text>
+    <en>{path}: no page of those chosen is a scan without text</en>
+    <tr>{path}: ninguna de las páginas elegidas es un escaneo sin texto</tr>
+  </text>
+  <text>
+    <en>{count} doubtful word</en>
+    <tr>{count} palabra dudosa</tr>
+  </text>
+  <text>
+    <en>{count} doubtful words</en>
+    <tr>{count} palabras dudosas</tr>
+  </text>
 </interface>

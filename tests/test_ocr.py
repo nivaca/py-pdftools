@@ -239,3 +239,28 @@ def test_settings_download_better_models(window, own, monkeypatch):
     assert asked[0].split()[0] == "eng" and ("osd" in asked[0].split()) == (not had_osd)
     assert "eng ★" in dialog.ocr_found.text()
     dialog.reject()
+
+
+@needs_tesseract
+def test_command_line(tmp_path, own, capsys, monkeypatch):
+    from py_pdftools.cli import main
+
+    path = scan(tmp_path / "scan.pdf", pages=2)
+    assert main(["ocr", str(path), "-l", "eng", "--pages", "2", "--report", "--doubtful", "101"]) == 0
+    out = capsys.readouterr().out
+    written = tmp_path / "scan-ocr.pdf"
+    assert f"Wrote {written}" in out and "1 page read" in out
+    assert any(line.startswith("2\t") for line in out.splitlines())  # (the doubtful words of page 2)
+    doc = pymupdf.open(written)
+    assert doc[0].get_text().strip() == "" and "zebras" in doc[1].get_text()
+    # (in place; and a second time, nothing left to read)
+    assert main(["ocr", "-i", str(path), "-l", "eng"]) == 0
+    assert "zebras" in pymupdf.open(path)[0].get_text()
+    assert main(["ocr", "-i", str(path), "-l", "eng"]) == 0
+    assert "no page of those chosen" in capsys.readouterr().out
+    assert main(["ocr", "--languages"]) == 0 and "Tesseract" in capsys.readouterr().out
+    assert main(["ocr", str(path), "-l", "klingon"]) == 1 and "klingon" in capsys.readouterr().err
+    assert main(["ocr", str(path), str(written), "-o", str(tmp_path / "x.pdf")]) == 1
+    assert main(["ocr"]) == 1
+    monkeypatch.setattr(ocr, "download", lambda names, progress=None: [own / f"{n}.traineddata" for n in names])
+    assert main(["ocr", "--download", "lat", "osd"]) == 0 and "osd.traineddata" in capsys.readouterr().out

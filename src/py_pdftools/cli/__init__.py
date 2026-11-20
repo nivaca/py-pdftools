@@ -6,6 +6,7 @@
     py-pdftools pages                              move, delete, rotate, insert or split pages
     py-pdftools impose COMMAND                     imposition (booklet, nup, step-repeat ...)
     py-pdftools pdf2iso                            PDF/A and PDF/X (the author's pdf2iso, included)
+    py-pdftools ocr                                the text of scanned pages, read by tesseract
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -87,6 +88,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["pdf2iso"] = pdf2iso.build_parser(f"{PROG} pdf2iso")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "pdf2iso", (), tr("convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is included; it needs Ghostscript)")))
+    from . import ocr as ocr_cli
+
+    sub._name_parser_map["ocr"] = ocr_cli.build_parser(f"{PROG} ocr")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "ocr", (), tr("read the text of scanned pages with tesseract, and write it under them (OCR)")))
     _graft(sub, pages, OWN)
     return parser
 
@@ -115,6 +121,10 @@ def main(argv: list[str] | None = None) -> int:
         from ..core import pdf2iso
 
         return pdf2iso.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} pdf2iso")
+    if first and first[1] == "ocr":
+        from . import ocr as ocr_cli
+
+        return ocr_cli.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} ocr")
     if first and first[1] == "impose":
         from ..impose import main as impose_main
 
