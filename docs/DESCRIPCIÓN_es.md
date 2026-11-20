@@ -20,9 +20,13 @@ Los recuadros de censura son anotaciones de redacción del propio PDF (`/Redact`
 
 La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-footer`, `watermark`, `pages` e `impose`, este con las treinta órdenes de py-imposition, que siguen juntas porque sus secuencias y su `replay` las nombran tal como son.
 
+### La ventana al trabajar
+
+Las miniaturas admiten varias páginas a la vez (Ctrl, Mayús), en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor (arrastrar, también entre páginas; Alt para una columna; doble y triple clic) y ofrece copiarlo, marcarlo, censurarlo o buscarlo. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante (un segundo inicio le pasa sus archivos por un socket local), y una página de rendimiento: la memoria que puede usar, la transparencia de las selecciones y el suavizado del texto y de los gráficos.
+
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 108 archivos de Python, unas 32 200 líneas (una décima parte, comentarios), y 2305 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 112 archivos de Python, unas 33 400 líneas (una décima parte, comentarios), y 2479 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -64,7 +68,7 @@ El OCR usa el programa tesseract (la versión del sistema), en varios procesos a
 
 ## Validación
 
-Hay 428 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 442 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

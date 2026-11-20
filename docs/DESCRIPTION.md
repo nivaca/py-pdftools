@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in fifteen stages.
+py-imposition. Here I explain how it was made, in sixteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -339,10 +339,43 @@ tesseract, for each language, the better model if there is one. The command
 line has `py-pdftools ocr`. Tesseract is optional: without it, there is no
 OCR, and its tests are skipped.
 
+16. The window, as one works in it
+-----------------------------------
+
+The last requests were about working in the window, and for most of them I
+read again how PDFCraft does it. The thumbnails take several pages now, with
+Ctrl and Shift, without moving the view, in any mode, and their right click
+gives the menu of pages Foliate had: the pages chosen there and in Foliate's
+list are the same. The box of the page shows its label (iv, 12v), and takes a
+label, (n) for the n-th page, or a number. OCR became a mode of its own,
+between Read and Redact, since marking text needs the text first: its panel
+chooses the pages, ticks and orders the languages, and sets how sure is sure
+enough; a manager of languages lists every one tesseract can read, and
+downloads or removes its better models. A tool to select text, beside Hand
+in every mode, selects as in a text editor: by dragging, across pages too, a
+column with Alt, a word or a line with two or three clicks, and offers to
+copy, mark, redact or find what it selected.
+
+Two settings came from the help of other programs. One keeps py-pdftools
+running when its last window closes, with an icon in the tray, so that the
+next document opens at once: a second start gives its files to the program
+running through a local socket. Its test failed while the second start was
+a thread of the test itself, and passed once it was a process of its own,
+as it really is; and a socket's path in a long folder was refused, which a
+short name now avoids. The other is a page of performance: how much memory
+the window may use (the pages and thumbnails it keeps, how far ahead it
+draws, how many processes draw), whether selections are drawn with
+transparency, and whether text and graphics are smoothed, which MuPDF lets
+set apart.
+
+I also learnt to keep my hands off the files while a release is being made:
+it packages the folder as it is, and I had started on the next change during
+its tests.
+
 Testing
 -------
 
-The program has 428 tests (`uv run pytest`): those of the four programs,
+The program has 442 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -354,6 +387,6 @@ written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 108 files of Python, around 32,200
-lines (about a tenth of them comments), and 2,305 texts of the interface
+made for the test. The program has 112 files of Python, around 33,400
+lines (about a tenth of them comments), and 2,479 texts of the interface
 in Spanish.
