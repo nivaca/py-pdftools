@@ -263,7 +263,10 @@ Tests
 
 There are 428 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
-the working copies, the Spanish interface, the packaging). See
+the working copies, OCR, the Spanish interface, the packaging). Their
+windows are drawn on an X server of their own (Xvfb), if it is installed,
+else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
+watch them on the desktop) choose otherwise. See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.
 
 Licensing

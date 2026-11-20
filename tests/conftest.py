@@ -1,10 +1,44 @@
 from __future__ import annotations
 
+import atexit
 import os
+import shutil
+import subprocess
+import sys
 
 import pytest
 
-os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
+
+def _virtual_display() -> bool:
+    """Start an X server of the tests' own (Xvfb), if it is installed: the windows are then drawn by a
+    real X server, as on a desktop, without showing on the user's screen. Stopped when the tests end.
+    False if it couldn't be started."""
+    if not sys.platform.startswith("linux") or not shutil.which("Xvfb"):
+        return False
+    try:
+        # -displayfd: Xvfb picks a free display, and writes its number on that file descriptor.
+        server = subprocess.Popen(["Xvfb", "-displayfd", "1", "-screen", "0", "1920x1080x24", "-nolisten", "tcp"],
+                                  stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        number = server.stdout.readline().decode().strip()
+    except OSError:
+        return False
+    if not number.isdigit():
+        server.kill()
+        return False
+    atexit.register(server.terminate)
+    os.environ["DISPLAY"] = f":{number}"
+    os.environ.pop("WAYLAND_DISPLAY", None)  # (Qt must take the X server, not the desktop's Wayland)
+    os.environ["QT_QPA_PLATFORM"] = "xcb"
+    return True
+
+
+# Where the tests draw their windows, as PY_PDFTOOLS_TEST_DISPLAY says: 'xvfb' (the usual: an X server of their
+# own, if Xvfb is installed, else offscreen), 'offscreen' (in memory), or 'screen' (the desktop's own display,
+# to watch them). Not as QT_QPA_PLATFORM says: a desktop session sets it (to wayland), and the windows of the
+# tests would show on the user's screen.
+_DISPLAY = os.environ.get("PY_PDFTOOLS_TEST_DISPLAY", "xvfb")
+if _DISPLAY != "screen" and not (_DISPLAY == "xvfb" and _virtual_display()):
+    os.environ["QT_QPA_PLATFORM"] = "offscreen"
 
 
 @pytest.fixture(autouse=True)
