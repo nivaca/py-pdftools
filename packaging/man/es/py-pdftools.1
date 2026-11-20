@@ -1,0 +1,2834 @@
+.TH PY-PDFTOOLS 1 "" "py-pdftools 0.1.0" "py-pdftools"
+.SH NOMBRE
+py-pdftools \- editar documentos PDF: etiquetas de página, encabezados, pies, marcas de agua, páginas e imposición
+.SH SINOPSIS
+.nf
+py-pdftools [-h] [--interface {en,es}] [--version] ORDEN ...
+.fi
+.SH DESCRIPCIÓN
+.nf
+Edita documentos PDF desde la línea de órdenes: sus etiquetas de página,
+cómo se abren, los encabezados, los pies de página y las marcas de agua, el
+orden de sus páginas y su imposición para imprenta. La ventana (py-pdftools-
+gui) además los anota y los censura.
+
+argumentos posicionales:
+  ORDEN
+    labels             mostrar, poner, quitar o copiar las etiquetas de
+                       página de los PDF
+    view               mostrar o establecer cómo se abren los PDF en un
+                       visor
+    header-footer      añadir encabezados y pies de página a los PDF
+    watermark          añadir marcas de agua a los PDF
+    pages              mover, borrar, girar, insertar o dividir páginas de
+                       los PDF
+    impose             imponer páginas para imprimir: folletos, n-up, paso y
+                       repetición, sangrados, sellos, secuencias y carpetas
+                       vigiladas
+    completion         imprimir el script de completado de un shell
+    interface          mostrar o elegir el idioma de la interfaz
+
+opciones:
+  -h, --help           mostrar esta ayuda y terminar
+  --interface {en,es}  el idioma de la interfaz, solo para esta ejecución
+                       (para conservar una elección, use la orden
+                       'interface')
+  --version            mostrar el número de versión del programa y terminar
+
+Ejecute 'py-pdftools ORDEN -h' para ver la ayuda de una orden.
+.fi
+.SH ÓRDENES
+.SS labels
+.nf
+uso: py-pdftools labels [-h] ORDEN ...
+
+Cambia las etiquetas de página de un PDF: la numeración que un visor de PDF
+muestra para sus páginas (i, ii, iii ... 1, 2, 3 ... A-1, A-2 ...).
+
+argumentos posicionales:
+  ORDEN
+    show      mostrar las etiquetas de página de varios PDF
+    set       dar a varios PDF nuevas etiquetas de página
+    clear     quitar las etiquetas de página de varios PDF
+    copy      dar a varios PDF las etiquetas de página de otro
+
+opciones:
+  -h, --help  mostrar esta ayuda y terminar
+.fi
+.SS labels show
+.nf
+uso: py-pdftools labels show [-h] [--interface {en,es}] [-a | -l ETIQUETA]
+                             [--password CONTRASEÑA]
+                             ARCHIVO [ARCHIVO ...]
+
+Muestra los intervalos de etiquetas de página de varios PDF y la orden que
+se las daría a otro archivo.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -a, --all             mostrar la etiqueta de cada página
+  -l, --label ETIQUETA  mostrar las páginas con la etiqueta ETIQUETA (si no
+                        hay ninguna, las que la tienen salvo por las
+                        mayúsculas)
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+.fi
+.SS labels set
+.nf
+uso: py-pdftools labels set [-h] [--interface {en,es}]
+                            [-r PÁGINAS [CLAVE=VALOR] [PÁGINAS [CLAVE=VALOR] ...]]
+                            [-f LISTA] [-k] [--remove PÁGINA] [-o OUTPUT |
+                            -i | --output-dir CARPETA] [--name-prefix TEXTO]
+                            [--name-suffix TEXTO] [-n] [--conform NORMA]
+                            [--password CONTRASEÑA]
+                            ARCHIVO|INTERVALO [ARCHIVO|INTERVALO ...]
+
+Da a varios PDF nuevas etiquetas de página, intervalo por intervalo. Las que tenían se reemplazan, salvo que se indique --keep.
+
+argumentos posicionales:
+  ARCHIVO|INTERVALO     los PDF (archivos que terminan en .pdf) y los
+                        intervalos: PÁGINAS:ESTILO[:INICIO[:PREFIJO]]
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -r, --range PÁGINAS [CLAVE=VALOR] [PÁGINAS [CLAVE=VALOR] ...]
+                        un intervalo: PÁGINAS [style=E] [start=N] [prefix=P]
+                        [suffix=X]
+  -f, --from-file LISTA
+                        las etiquetas de todas las páginas, una en cada
+                        línea (- para la entrada estándar)
+  -k, --keep            conservar las etiquetas que tiene el PDF y cambiar
+                        solo las páginas indicadas
+  --remove PÁGINA       quitar el intervalo que empieza en PÁGINA (el
+                        anterior sigue sobre sus páginas); implica --keep
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar las etiquetas que recibirían los archivos,
+                        sin escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+
+Un intervalo se escribe PÁGINAS:ESTILO[:INICIO[:PREFIJO]]:
+
+  1:r            páginas desde la 1: i, ii, iii ...
+  9:D            páginas desde la 9: 1, 2, 3 ...
+  201-214:A      páginas 201 a 214: A ... N (luego sigue la numeración anterior)
+  215:D:1:Ap-    páginas desde la 215: Ap-1, Ap-2 ...
+  5:f:12v        folios desde la página 5: 12v, 13r, 13v ...
+  LAST:-::Tapa   la última página: Tapa
+
+o, con --range, PÁGINAS [style=E] [start=N] [prefix=P] [suffix=X]:
+
+  --range 9-200 style=arabic
+  --range 1-4 style=roman prefix=[ suffix=]
+
+PÁGINAS es una primera página (9) o un tramo (9-200, 9..200, 201-); LAST y
+LAST-N cuentan desde el final. Un intervalo sin última página sigue hasta el
+siguiente.
+
+Estilos: D o arabic (1, 2, 3), r o roman (números romanos en minúscula: i,
+ii, iii), R o ROMAN (I, II, III), a o letters (a, b, c), A o LETTERS (A, B,
+C), f o folio (1r, 1v, 2r: el recto y el verso de cada hoja; INICIO es una
+hoja y su lado, como 12v), - o none (solo el prefijo).
+
+Los folios y los sufijos no son estilos de etiquetas de página de PDF:
+py-pdftools los escribe como una etiqueta para cada página, y los reconoce
+cuando lee el archivo.
+
+--from-file toma las etiquetas de todas las páginas, una en cada línea
+(como las escribe 'show --all', con o sin los números de página; - es la
+entrada estándar), y encuentra el menor número de intervalos que las da.
+.fi
+.SS labels clear
+.nf
+uso: py-pdftools labels clear [-h] [--interface {en,es}] [-o OUTPUT | -i |
+                              --output-dir CARPETA] [--name-prefix TEXTO]
+                              [--name-suffix TEXTO] [-n] [--conform NORMA]
+                              [--password CONTRASEÑA]
+                              ARCHIVO [ARCHIVO ...]
+
+Quita las etiquetas de página de varios PDF: los visores numeran entonces
+sus páginas 1, 2, 3 ...
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar las etiquetas que recibirían los archivos,
+                        sin escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+.fi
+.SS labels copy
+.nf
+uso: py-pdftools labels copy [-h] [--interface {en,es}] [-o OUTPUT | -i |
+                             --output-dir CARPETA] [--name-prefix TEXTO]
+                             [--name-suffix TEXTO] [-n] [--conform NORMA]
+                             [--password CONTRASEÑA]
+                             ORIGEN ARCHIVO [ARCHIVO ...]
+
+Da a varios PDF las etiquetas de página de otro PDF, por ejemplo de una
+nueva exportación del mismo libro. Si tienen menos páginas, se omiten las
+etiquetas de las páginas que les faltan; si tienen más, el último intervalo
+sigue.
+
+argumentos posicionales:
+  ORIGEN                el PDF cuyas etiquetas se copian
+  ARCHIVO               los PDF que las reciben
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar las etiquetas que recibirían los archivos,
+                        sin escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+.fi
+.SS view
+.nf
+uso: py-pdftools view [-h] [--interface {en,es}] [--layout DISPOSICIÓN]
+                      [--page-view VISTA] [--open-at PÁGINA] [-o OUTPUT |
+                      -i | --output-dir CARPETA] [--name-prefix TEXTO]
+                      [--name-suffix TEXTO] [-n] [--conform NORMA]
+                      [--password CONTRASEÑA]
+                      ARCHIVO [ARCHIVO ...]
+
+Muestra o establece la vista de los PDF al abrirse: la disposición de página, la vista de página y la página en que se abren. Un PDF tiene una sola vista para todo el documento. Sin opciones, se muestra la vista; las opciones que no se dan se conservan; 'default' deja esa parte al visor.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  --layout DISPOSICIÓN  la disposición de página (véase abajo)
+  --page-view, --zoom VISTA
+                        la vista de página (véase abajo), o un porcentaje,
+                        como 150%
+  --open-at PÁGINA      la página en que se abre (las páginas del archivo,
+                        desde 1; LAST cuenta desde el final)
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar la vista que recibirían los archivos, sin
+                        escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+
+Disposiciones de página: single (una página cada vez), single-continuous (todas
+las páginas en una columna), facing (dos páginas cada vez, las impares a la
+izquierda), facing-continuous (todas las páginas en dos columnas), cover (como
+facing, pero con la primera página sola, como la portada de un libro),
+cover-continuous.
+
+Vistas de página: actual-size (el tamaño que tendría impresa), fit-width
+(ajustar al ancho), fit-page (ajustar a la página), o un porcentaje (150%).
+
+Por ejemplo: py-pdftools view libro.pdf --layout cover --page-view fit-page
+--open-at 9 -i
+.fi
+.SS header-footer
+.nf
+uso: py-pdftools header-footer [-h] [--interface {en,es}]
+                               [--header-left TEXTO] [--header-center TEXTO]
+                               [--header-right TEXTO] [--footer-left TEXTO]
+                               [--footer-center TEXTO]
+                               [--footer-right TEXTO] [--units {in,cm,pt}]
+                               [--top TAMAÑO] [--bottom TAMAÑO]
+                               [--left TAMAÑO] [--right TAMAÑO]
+                               [--shrink | --no-shrink]
+                               [--font {helvetica,times,courier}]
+                               [--size PUNTOS] [--color #RRGGBB]
+                               [--bold | --no-bold] [--italic | --no-italic]
+                               [--border | --no-border]
+                               [--border-color #RRGGBB]
+                               [--border-width PUNTOS]
+                               [--background #RRGGBB] [--pages PÁGINAS]
+                               [--even | --odd | --all-pages]
+                               [--bates-prefix TEXTO] [--bates-start N]
+                               [--bates-digits N] [--bates-suffix TEXTO]
+                               [--date-format FORMATO] [--add] [--update]
+                               [--remove] [--profile NOMBRE]
+                               [--save-profile NOMBRE]
+                               [--show-on-menu | --no-show-on-menu]
+                               [--list-profiles] [--delete-profile NOMBRE]
+                               [--remove-bates] [-o OUTPUT | -i |
+                               --output-dir CARPETA] [--name-prefix TEXTO]
+                               [--name-suffix TEXTO] [-n] [--conform NORMA]
+                               [--password CONTRASEÑA]
+                               [ARCHIVO ...]
+
+Escribe texto arriba y abajo en las páginas de los PDF: un encabezado y un pie de página, cada uno con un lugar a la izquierda, en el centro y a la derecha, con variables como la etiqueta de la página o la fecha. A diferencia de las etiquetas, cambian las páginas mismas.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  --remove-bates        quitar solo los encabezados y pies con números Bates
+                        (en --pages, o en todas)
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar el encabezado y el pie de la primera y la
+                        última página, sin escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+
+texto:
+  --header-left TEXTO   el texto del lugar «encabezado, izquierda»
+  --header-center TEXTO
+                        el texto del lugar «encabezado, centro»
+  --header-right TEXTO  el texto del lugar «encabezado, derecha»
+  --footer-left TEXTO   el texto del lugar «pie, izquierda»
+  --footer-center TEXTO
+                        el texto del lugar «pie, centro»
+  --footer-right TEXTO  el texto del lugar «pie, derecha»
+
+márgenes:
+  --units {in,cm,pt}    las unidades de los márgenes (por defecto: cm)
+  --top TAMAÑO          el margen superior
+  --bottom TAMAÑO       el margen inferior
+  --left TAMAÑO         el margen izquierdo
+  --right TAMAÑO        el margen derecho
+  --shrink, --no-shrink
+                        reducir el contenido de las páginas para dejar sitio
+                        al encabezado y al pie
+
+apariencia:
+  --font {helvetica,times,courier}
+                        la fuente (por defecto: helvetica)
+  --size PUNTOS         el tamaño de la fuente (por defecto: 10)
+  --color #RRGGBB       el color del texto
+  --bold, --no-bold     texto en negrita
+  --italic, --no-italic
+                        texto en cursiva
+  --border, --no-border
+                        un borde alrededor de cada texto
+  --border-color #RRGGBB
+                        el color del borde
+  --border-width PUNTOS
+                        el ancho del borde
+  --background #RRGGBB  un color de fondo detrás de cada texto ('none': sin
+                        fondo)
+
+páginas:
+  --pages PÁGINAS       las páginas, como 9-200 o 1,3,9- (por defecto:
+                        todas; LAST cuenta desde el final)
+  --even                solo las páginas pares
+  --odd                 solo las páginas impares
+  --all-pages           páginas pares e impares (con un perfil que tiene
+                        solo unas)
+
+Numeración Bates ($bates):
+  --bates-prefix TEXTO  texto antes del número
+  --bates-start N       el primer número (por defecto: 1)
+  --bates-digits N      los dígitos del número, como mínimo (por defecto: 6)
+  --bates-suffix TEXTO  texto después del número
+  --date-format FORMATO
+                        cómo escribe $date la fecha: medium, long, m/d/yy,
+                        m/d/yyyy, mm/dd/yyyy, d/m/yy, d/m/yyyy, dd/mm/yyyy,
+                        dd.mm.yyyy, yyyy-mm-dd (por defecto: medium, como 28
+                        nov 2007)
+
+añadir, actualizar y quitar:
+  --add                 conservar lo que py-pdftools añadió antes a las
+                        páginas (encabezados y pies); si no, se reemplaza
+  --update              reemplazar lo último añadido (encabezados y pies),
+                        con su configuración y las opciones dadas
+  --remove              quitar lo que añadió py-pdftools (encabezados y
+                        pies) (en --pages, o en todas)
+
+perfiles:
+  --profile NOMBRE      partir de la configuración de este perfil
+  --save-profile NOMBRE
+                        guardar esta configuración como un perfil
+  --show-on-menu, --no-show-on-menu
+                        con --save-profile: mostrar el perfil en el menú de
+                        la ventana
+  --list-profiles       listar los perfiles guardados
+  --delete-profile NOMBRE
+                        borrar un perfil
+
+El texto de cada lugar puede llevar variables, escritas con $ (ponga el texto
+entre comillas simples, o el shell las toma como suyas): $page, $pagelabel,
+$bookmark, $totalpages, $author, $filename, $filepath, $date, $shortdate,
+$time, $day, $month, $year, $shortyear, $hour, $longhour, $minute, $second,
+$ampm y $bates; $$ escribe un $. Un salto de línea en el texto (\en en
+--*-left y las demás) empieza otra línea.
+
+Las fuentes son las estándar de PDF, que todo visor tiene: escriben la
+escritura latina, con sus acentos y signos, pero no la griega ni la cirílica.
+
+Los márgenes son las distancias de los bordes de la página al encabezado, al
+pie y al texto de los lados. --shrink reduce el contenido de las páginas para
+que el encabezado y el pie no lo tapen.
+
+Un encabezado y pie añadidos a una página reemplazan los que py-pdftools
+había añadido antes, salvo que --add los conserve; --update reemplaza el
+último añadido, con su configuración y las opciones dadas; --remove los quita
+(--remove-bates solo los que tienen números Bates), dejando las páginas como
+estaban. Con varios archivos, los números Bates siguen de un archivo al
+siguiente, en el orden dado. Los perfiles guardan una configuración para
+volver a usarla (--save-profile NOMBRE, y luego --profile NOMBRE); las opciones
+que se den se ponen sobre las del perfil.
+
+Por ejemplo: py-pdftools header-footer libro.pdf --footer-center 'Página
+$pagelabel de $totalpages' --header-right '$date' --pages 9- -i
+.fi
+.SS watermark
+.nf
+uso: py-pdftools watermark [-h] [--interface {en,es}] [--text TEXTO]
+                           [--file PDF] [--file-page N]
+                           [--font {helvetica,times,courier}]
+                           [--size PUNTOS] [--color #RRGGBB]
+                           [--bold | --no-bold] [--italic | --no-italic]
+                           [--scale PORCENTAJE] [--rotation GRADOS]
+                           [--opacity OPACIDAD] [--behind | --no-behind]
+                           [--print | --no-print] [--screen | --no-screen]
+                           [--horizontal {left,center,right}]
+                           [--vertical {top,center,bottom}]
+                           [--units {in,cm,pt}] [--hoffset TAMAÑO]
+                           [--voffset TAMAÑO] [--pages PÁGINAS] [--even |
+                           --odd | --all-pages] [--bates-prefix TEXTO]
+                           [--bates-start N] [--bates-digits N]
+                           [--bates-suffix TEXTO] [--date-format FORMATO]
+                           [--add] [--update] [--remove] [--profile NOMBRE]
+                           [--save-profile NOMBRE]
+                           [--show-on-menu | --no-show-on-menu]
+                           [--list-profiles] [--delete-profile NOMBRE]
+                           [-o OUTPUT | -i | --output-dir CARPETA]
+                           [--name-prefix TEXTO] [--name-suffix TEXTO] [-n]
+                           [--conform NORMA] [--password CONTRASEÑA]
+                           [ARCHIVO ...]
+
+Pone una marca de agua en las páginas de los PDF: un texto, como Borrador o Copia, o una página de otro PDF, delante o detrás de su contenido, girada, a escala y con algo de transparencia. Como los encabezados y pies, cambia las páginas mismas.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar la marca de agua de la primera y la última
+                        página, sin escribir nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+
+qué:
+  --text TEXTO          el texto de la marca de agua (\en empieza otra línea)
+  --file PDF            un PDF una de cuyas páginas es la marca de agua
+  --file-page N         la página de --file (por defecto: 1)
+
+apariencia:
+  --font {helvetica,times,courier}
+                        la fuente (por defecto: helvetica)
+  --size PUNTOS         el tamaño de la fuente (por defecto: 60)
+  --color #RRGGBB       el color del texto (por defecto: #808080)
+  --bold, --no-bold     texto en negrita
+  --italic, --no-italic
+                        texto en cursiva
+  --scale PORCENTAJE    ocupar este porcentaje de la página (por defecto: 0,
+                        su propio tamaño)
+  --rotation GRADOS     girarla, en sentido contrario a las agujas del reloj
+                        (por defecto: 45)
+  --opacity OPACIDAD    de 0 a 1, o de 0% a 100% (por defecto: 0.5)
+  --behind, --no-behind
+                        detrás del contenido de las páginas (por defecto:
+                        delante)
+  --print, --no-print   se muestra al imprimir (por defecto: sí)
+  --screen, --no-screen
+                        se muestra en pantalla (por defecto: sí)
+
+posición:
+  --horizontal {left,center,right}
+                        left, center o right: izquierda, centro o derecha
+                        (por defecto: center)
+  --vertical {top,center,bottom}
+                        top, center o bottom: arriba, centro o abajo (por
+                        defecto: center)
+  --units {in,cm,pt}    las unidades de los desplazamientos (por defecto:
+                        cm)
+  --hoffset TAMAÑO      desplazarla en horizontal, desde el lado elegido (o
+                        a la derecha del centro)
+  --voffset TAMAÑO      desplazarla en vertical, desde el borde elegido (o
+                        hacia arriba desde el centro)
+
+páginas:
+  --pages PÁGINAS       las páginas, como 9-200 o 1,3,9- (por defecto:
+                        todas; LAST cuenta desde el final)
+  --even                solo las páginas pares
+  --odd                 solo las páginas impares
+  --all-pages           páginas pares e impares (con un perfil que tiene
+                        solo unas)
+
+Numeración Bates ($bates):
+  --bates-prefix TEXTO  texto antes del número
+  --bates-start N       el primer número (por defecto: 1)
+  --bates-digits N      los dígitos del número, como mínimo (por defecto: 6)
+  --bates-suffix TEXTO  texto después del número
+  --date-format FORMATO
+                        cómo escribe $date la fecha: medium, long, m/d/yy,
+                        m/d/yyyy, mm/dd/yyyy, d/m/yy, d/m/yyyy, dd/mm/yyyy,
+                        dd.mm.yyyy, yyyy-mm-dd (por defecto: medium, como 28
+                        nov 2007)
+
+añadir, actualizar y quitar:
+  --add                 conservar lo que py-pdftools añadió antes a las
+                        páginas (marcas de agua); si no, se reemplaza
+  --update              reemplazar lo último añadido (marcas de agua), con
+                        su configuración y las opciones dadas
+  --remove              quitar lo que añadió py-pdftools (marcas de agua)
+                        (en --pages, o en todas)
+
+perfiles:
+  --profile NOMBRE      partir de la configuración de este perfil
+  --save-profile NOMBRE
+                        guardar esta configuración como un perfil
+  --show-on-menu, --no-show-on-menu
+                        con --save-profile: mostrar el perfil en el menú de
+                        la ventana
+  --list-profiles       listar los perfiles guardados
+  --delete-profile NOMBRE
+                        borrar un perfil
+
+Una marca de agua es un texto (--text, con las variables de header-footer,
+como $page o $date; póngalo entre comillas simples) o una página de otro PDF
+(--file, --file-page). --scale hace que ocupe ese porcentaje de la página
+(por defecto conserva su propio tamaño); --rotation la gira, en sentido
+contrario a las agujas del reloj; --opacity va de 0 (invisible) a 1 (o de 0%
+a 100%).
+
+Va en el centro de la página salvo que --horizontal y --vertical digan otra
+cosa, desplazada desde allí por --hoffset y --voffset. --behind la pone detrás
+del contenido de las páginas (donde una página pintada de blanco la taparía).
+--no-print o --no-screen la muestran solo en pantalla o solo al imprimir, en
+los visores que siguen esas indicaciones.
+
+Una marca de agua añadida a una página reemplaza las que py-pdftools había
+añadido antes, salvo que --add las conserve; --update reemplaza la última
+añadida; --remove las quita, dejando las páginas como estaban.
+
+Por ejemplo: py-pdftools watermark libro.pdf --text BORRADOR --opacity 30%
+--scale 60 -i
+.fi
+.SS pages
+.nf
+uso: py-pdftools pages [-h] [--interface {en,es}] [--order PÁGINAS]
+                       [--move PÁGINAS DÓNDE] [--delete PÁGINAS]
+                       [--duplicate PÁGINAS [DÓNDE] [PÁGINAS [DÓNDE] ...]]
+                       [--reverse [PÁGINAS]] [--rotate PÁGINAS GRADOS]
+                       [--insert-blank DÓNDE [CUÁNTAS] [DÓNDE [CUÁNTAS] ...]]
+                       [--insert PDF DÓNDE [PÁGINAS] [PDF DÓNDE [PÁGINAS] ...]]
+                       [--replace PÁGINAS PDF [PRIMERA] [PÁGINAS PDF [PRIMERA] ...]]
+                       [--extract PÁGINAS] [--labels {follow,position}]
+                       [--source-password CONTRASEÑA] [--split-every N]
+                       [--split-at PÁGINAS] [-o OUTPUT | -i |
+                       --output-dir CARPETA] [--name-prefix TEXTO]
+                       [--name-suffix TEXTO] [-n] [--conform NORMA]
+                       [--password CONTRASEÑA]
+                       ARCHIVO [ARCHIVO ...]
+
+Ordena las páginas de los PDF: las mueve, borra, duplica, invierte o gira, las pone en un orden nuevo, inserta páginas de otro PDF o reemplaza páginas por ellas, y guarda algunas como un archivo nuevo, o el todo como varios.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+  -o, --output OUTPUT   PDF de salida, con una sola entrada (por defecto:
+                        <entrada>-labelled.pdf)
+  -i, --in-place        cambiar los propios archivos de entrada
+  --output-dir CARPETA  guardar los PDF en esta carpeta, con sus propios
+                        nombres salvo que se den --name-prefix o --name-
+                        suffix
+  --name-prefix TEXTO   poner esto antes de los nombres de los PDF guardados
+  --name-suffix TEXTO   poner esto después de los nombres de los PDF
+                        guardados (por defecto: -labelled, o nada con
+                        --output-dir)
+  -n, --dry-run         mostrar cómo quedarían las páginas, sin escribir
+                        nada
+  --conform NORMA       guardar los PDF como PDF/A o PDF/X: a-1b, a-2b, a-3b
+                        (archivo) o x-4 (imprenta); los hace pdf2iso, que
+                        debe estar instalado
+  --password CONTRASEÑA
+                        la contraseña para abrir los PDF (su protección se
+                        conserva al guardarlos)
+
+operaciones (en el orden dado):
+  --order PÁGINAS       las páginas en este orden (repetidas: duplicadas;
+                        omitidas: borradas)
+  --move PÁGINAS DÓNDE  mover PÁGINAS antes de la página DÓNDE (o al
+                        principio o al final)
+  --delete PÁGINAS      borrar PÁGINAS
+  --duplicate PÁGINAS [DÓNDE] [PÁGINAS [DÓNDE] ...]
+                        copiar PÁGINAS, justo después de ellas o antes de la
+                        página DÓNDE
+  --reverse [PÁGINAS]   invertir el orden de PÁGINAS (por defecto: todas)
+  --rotate PÁGINAS GRADOS
+                        girar PÁGINAS 90, 180 o 270 grados en el sentido de
+                        las agujas del reloj (-90: en sentido contrario)
+  --insert-blank DÓNDE [CUÁNTAS] [DÓNDE [CUÁNTAS] ...]
+                        insertar CUÁNTAS páginas en blanco (por defecto: 1)
+                        antes de la página DÓNDE, del tamaño de la página
+                        anterior (al principio, de la primera página)
+  --insert PDF DÓNDE [PÁGINAS] [PDF DÓNDE [PÁGINAS] ...]
+                        insertar las páginas de otro PDF (o algunas) antes
+                        de la página DÓNDE
+  --replace PÁGINAS PDF [PRIMERA] [PÁGINAS PDF [PRIMERA] ...]
+                        reemplazar el contenido de PÁGINAS por páginas de
+                        otro PDF, desde su página PRIMERA (por defecto: 1);
+                        los enlaces y marcadores se quedan
+  --extract PÁGINAS     conservar solo PÁGINAS (con -o, un archivo nuevo con
+                        ellas)
+
+las etiquetas y el resultado:
+  --labels {follow,position}
+                        las etiquetas siguen a las páginas (por defecto), o
+                        se quedan por posición
+  --source-password CONTRASEÑA
+                        la contraseña de los PDF de --insert y --replace
+  --split-every N       guardar el resultado en archivos de N páginas cada
+                        uno
+  --split-at PÁGINAS    guardar el resultado en archivos que empiezan en
+                        PÁGINAS
+
+Las operaciones se hacen en el orden en que se dan, cada una sobre las
+páginas tal como las dejaron las anteriores. PÁGINAS es una lista de páginas,
+como 9-20,31 (LAST cuenta desde el final), 'all', 'even', 'odd', o 1-50,odd;
+DÓNDE es una página (las páginas van antes de ella), 'start' o 'end'.
+--order da todo el orden nuevo: 1-8,20-30,9-19,31- (las páginas pueden
+repetirse u omitirse; 10-1 va hacia atrás).
+
+Por defecto, las etiquetas siguen a las páginas: cada página conserva su
+etiqueta, y las páginas insertadas traen las que tenían. Con --labels
+position, los intervalos de etiquetas se quedan donde están, y las páginas
+toman las etiquetas de sus nuevos lugares. Los marcadores y los enlaces van
+con sus páginas; los que iban a una página borrada van a la siguiente.
+
+--split-every y --split-at guardan el resultado en varios archivos, con el
+nombre de la entrada y -1, -2 ... (en --output-dir, si se da).
+
+Por ejemplo: py-pdftools pages libro.pdf --move 201-214 9 --delete LAST
+--rotate even 90 -i
+.fi
+.SS impose
+.nf
+uso: py-pdftools impose [-h] [--units {cm,mm,in,pt}]
+                        [--registration {black,cmyk,all}]
+                        [--bleed {use,ignore}] [--pdfx]
+                        [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                        [--interface {en,es}] [--version]
+                        ORDEN ...
+
+Herramientas de imposición de PDF: folletos, n-up, paso y repetición,
+reordenación, recorte, sangrados, números de página, sellos, secuencias de
+automatización y carpetas vigiladas.
+
+argumentos posicionales:
+  ORDEN
+    bleed               definir los sangrados de las páginas (cajas de corte
+                        y de sangrado)
+    booklet             crear un folleto 2-up
+    creep               compensar el corrimiento en folletos plegados
+    delete              eliminar páginas
+    duplicate           duplicar páginas
+    evenodd             separar, reordenar o volver a unir las páginas
+                        impares y pares
+    impose              imponer en un solo paso: folletos, corte y apilado,
+                        secuencial o paso y repetición
+    info                mostrar tamaños de página, cajas, sangrados y
+                        órdenes registradas
+    insert              insertar páginas en blanco o páginas de otro PDF
+    join                unir dos páginas lado a lado en una sola
+    manual              imponer páginas en posiciones exactas descritas en
+                        un archivo de disposición
+    mask                pegar cinta de enmascarar sobre zonas de las páginas
+    merge-data          combinación de datos variables desde un archivo CSV
+    move                mover páginas dentro del documento
+    nup                 colocar varias páginas en cada pliego (n-up)
+    peel                despegar texto, cinta, marcas o páginas PDF pegados
+    replay              repetir las órdenes registradas en otra salida
+                        (imposición por ejemplo)
+    resize              ajustar tamaños de página (escalar, rellenar o
+                        recortar a un tamaño)
+    reverse             invertir el orden de todas las páginas
+    rotate              girar las páginas cualquier ángulo
+    run                 ejecutar una secuencia guardada de órdenes en uno o
+                        más PDF
+    sample              crear un documento de muestra para probar
+                        imposiciones
+    shuffle             reordenar (y girar) las páginas según una regla que
+                        se repite
+    split               dividir en partes, procesar cada parte de forma
+                        distinta y, opcionalmente, volver a unirlas
+    step-repeat         llenar los pliegos con copias de cada página
+    stick-pdf           pegar páginas de otro PDF sobre las páginas
+    text                pegar texto y números de página
+    tile                dividir las páginas en teselas (o deshacer un
+                        folleto 2-up)
+    trim-shift          recortar, ampliar, redimensionar o desplazar el
+                        contenido de las páginas
+    watch               carpeta vigilada: procesar los PDF a medida que
+                        llegan
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --version             mostrar el número de versión del programa y terminar
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+
+Ejecute 'py-pdftools impose COMMAND -h' para obtener ayuda sobre una orden.
+\&'py-pdftools impose file.pdf' por sí solo crea un folleto con los ajustes
+por defecto.
+.fi
+.SS impose bleed
+.nf
+uso: py-pdftools impose bleed [-h] [--units {cm,mm,in,pt}]
+                              [--registration {black,cmyk,all}]
+                              [--bleed {use,ignore}] [--pdfx]
+                              [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                              [--interface {en,es}] [-o OUTPUT]
+                              [--pages RANGE] [--parity {all,odd,even}]
+                              [--mode {all,except-fold,edges,from-crop,remove,generate-only}]
+                              [--amount LEN] [--left LEN] [--right LEN]
+                              [--top LEN] [--bottom LEN] [--outside]
+                              [--show] [--direction {left,right}]
+                              [--generate {none,mirror,scale}]
+                              input
+
+Definir sangrados: establecer TrimBox/BleedBox para que la imposición alinee el área de corte y permita que el contenido se extienda más allá. Puede generar el sangrado que falte reflejando o escalando.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --mode {all,except-fold,edges,from-crop,remove,generate-only}
+                        all: el mismo sangrado en todos los bordes; except-
+                        fold: sin sangrado en el borde de encuadernación;
+                        edges: valores por borde; from-crop: corte = caja de
+                        recorte, sangrado = caja del soporte; remove:
+                        eliminar los sangrados; generate-only: conservar las
+                        cajas existentes y solo generar el contenido del
+                        sangrado (por defecto: all)
+  --amount LEN          sangrado para all/except-fold (por defecto: 3mm)
+  --left LEN            sangrado del borde left con --mode edges
+  --right LEN           sangrado del borde right con --mode edges
+  --top LEN             sangrado del borde top con --mode edges
+  --bottom LEN          sangrado del borde bottom con --mode edges
+  --outside             tomar el sangrado de fuera del área visible
+                        (contenido recortado previamente); si no, el
+                        sangrado queda dentro de la página visible
+  --show                hacer visible toda el área de sangrado (caja de
+                        recorte = caja de sangrado)
+  --direction {left,right}
+                        borde de encuadernación para --mode except-fold (por
+                        defecto: left)
+  --generate {none,mirror,scale}
+                        rellenar el área de sangrado: reflejar los bordes de
+                        la página o ampliar el área de corte (por defecto:
+                        none)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose booklet
+.nf
+uso: py-pdftools impose booklet [-h] [--units {cm,mm,in,pt}]
+                                [--registration {black,cmyk,all}]
+                                [--bleed {use,ignore}] [--pdfx]
+                                [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                [--interface {en,es}] [-o OUTPUT]
+                                [--binding {perfect,saddle,continuous,cut-stack}]
+                                [--signature N]
+                                [--pad-last {full,multiple-of-4}]
+                                [--single-sided] [--direction {left,right}]
+                                [--paper SIZE]
+                                [--orientation {tall,wide,portrait,landscape,best,as-is}]
+                                [--margin LEN] [--margin-top LEN]
+                                [--margin-bottom LEN] [--margin-left LEN]
+                                [--margin-right LEN] [--gutter LEN]
+                                [--no-auto-scale | --no-scale]
+                                [--align {center,fold,spine}]
+                                [--sides {duplex,flip-backs,fronts-then-backs,separate}]
+                                [--reverse-backs] [--crop-marks]
+                                [--mark-offset LEN] [--mark-length LEN]
+                                [--mark-width LEN] [--mark-white-background]
+                                input
+
+Reordenar las páginas y colocarlas de dos en dos por cara del pliego para plegarlas en un folleto.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --binding {perfect,saddle,continuous,cut-stack}
+                        perfect: cuadernillos plegados por separado y
+                        apilados; saddle: todos los pliegos encajados y
+                        plegados juntos; continuous: páginas en orden 1,2 |
+                        3,4 (sin plegar); cut-stack: los pliegos se cortan
+                        por la mitad y las pilas se colocan una sobre otra
+                        (por defecto: perfect)
+  --signature, --pages-per-fold N
+                        páginas por cuadernillo para encuadernación
+                        encolada; múltiplo de 4 (por defecto: 4)
+  --pad-last {full,multiple-of-4}
+                        encuadernación encolada: completar un último
+                        cuadernillo corto hasta la longitud completa o solo
+                        hasta un múltiplo de 4
+  --single-sided        cut-stack: pilas a una cara
+  --direction {left,right}
+                        borde de encuadernación: left (libros de izquierda a
+                        derecha) o right (de derecha a izquierda) (por
+                        defecto: left)
+  --paper SIZE          tamaño del pliego: a0, a1, a2, a3, a4, a5, a6, b4,
+                        b5, executive, ledger, legal, letter, max, sra3,
+                        statement, tabloid, auto, o WxH como 21x29.7cm (por
+                        defecto: legal)
+  --orientation {tall,wide,portrait,landscape,best,as-is}
+                        orientación del pliego (por defecto: wide)
+  --margin LEN          space at the edge of the sheet en los cuatro lados
+                        (por defecto: 0)
+  --margin-top LEN      top space at the edge of the sheet (anula --margin)
+  --margin-bottom LEN   bottom space at the edge of the sheet (anula
+                        --margin)
+  --margin-left LEN     left space at the edge of the sheet (anula --margin)
+  --margin-right LEN    right space at the edge of the sheet (anula
+                        --margin)
+  --gutter LEN          espacio entre las dos páginas (por defecto: 0)
+  --no-auto-scale       reducir las páginas que no caben, nunca ampliar
+  --no-scale            colocar las páginas al 100%; fallar si no caben
+  --align {center,fold,spine}
+                        centrar las páginas en su mitad del pliego, o
+                        acercarlas al pliegue/lomo (por defecto: center)
+  --sides {duplex,flip-backs,fronts-then-backs,separate}
+                        cómo producir anversos y reversos: duplex (en
+                        orden), flip-backs (reversos boca abajo), fronts-
+                        then-backs (un archivo, primero todos los anversos),
+                        separate (dos archivos) (por defecto: duplex)
+  --reverse-backs       producir los reversos en orden inverso (para
+                        imprimir a doble cara manualmente)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+
+marcas:
+  --crop-marks          añadir marcas de corte inteligentes
+  --mark-offset LEN     separación entre el borde de la página y la marca de
+                        corte (por defecto: 10pt)
+  --mark-length LEN     longitud de las marcas de corte (por defecto: 20pt)
+  --mark-width LEN      grosor de línea de las marcas de corte (por defecto:
+                        0.5pt)
+  --mark-white-background
+                        dibujar un halo casi blanco detrás de las marcas
+                        para que se vean sobre fondos oscuros
+.fi
+.SS impose creep
+.nf
+uso: py-pdftools impose creep [-h] [--units {cm,mm,in,pt}]
+                              [--registration {black,cmyk,all}]
+                              [--bleed {use,ignore}] [--pdfx]
+                              [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                              [--interface {en,es}] [-o OUTPUT]
+                              [--scope {document,signatures}]
+                              [--signature N] (--thickness LEN |
+                              --total LEN) [--shift-most {inside,outside}]
+                              [--method {shift,scale}]
+                              [--direction {left,right}]
+                              input
+
+Compensar el corrimiento de las páginas para la encuadernación: desplazar (o comprimir) el contenido de las páginas para que quede alineado tras plegar y cortar. Ejecutar antes de 'booklet'.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --scope {document,signatures}
+                        document: un único folleto plegado; signatures:
+                        cuadernillos plegados por separado
+  --signature N         páginas por cuadernillo con --scope signatures (por
+                        defecto: 16)
+  --thickness LEN       grosor del papel (p. ej. 0.1mm)
+  --total LEN           desplazamiento total de las páginas más desplazadas
+  --shift-most {inside,outside}
+                        inside: las páginas centrales se desplazan más
+                        (hacia el lomo); outside: las páginas exteriores se
+                        desplazan más (hacia el corte delantero), p. ej.,
+                        para un pliego central (por defecto: inside)
+  --method {shift,scale}
+                        desplazar el contenido o escalarlo horizontalmente
+                        (por defecto: shift)
+  --direction {left,right}
+                        borde de encuadernación (por defecto: left)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose delete
+.nf
+uso: py-pdftools impose delete [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               --pages RANGE [--parity {all,odd,even}]
+                               input
+
+eliminar páginas
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         páginas que eliminar
+  --parity {all,odd,even}
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose duplicate
+.nf
+uso: py-pdftools impose duplicate [-h] [--units {cm,mm,in,pt}]
+                                  [--registration {black,cmyk,all}]
+                                  [--bleed {use,ignore}] [--pdfx]
+                                  [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                  [--interface {en,es}] [-o OUTPUT]
+                                  [--pages RANGE] --copies COPIES
+                                  [--no-collate]
+                                  input
+
+duplicar páginas
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         páginas que duplicar (por defecto: todas)
+  --copies COPIES       número de copias adicionales
+  --no-collate          1 1 1 2 2 2 en lugar de 1 2 1 2 1 2
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose evenodd
+.nf
+uso: py-pdftools impose evenodd [-h] [--units {cm,mm,in,pt}]
+                                [--registration {black,cmyk,all}]
+                                [--bleed {use,ignore}] [--pdfx]
+                                [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                [--interface {en,es}] [-o OUTPUT]
+                                [--mode {none,odds-first,split,join}]
+                                [--evens PDF] [--reverse-evens]
+                                [--rotate-evens]
+                                input
+
+Reordenar páginas pares/impares: útil para imprimir a doble cara en una impresora de una sola cara.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --mode {none,odds-first,split,join}
+                        none: mantener el orden; odds-first: todas las
+                        páginas impares y luego todas las pares; split: dos
+                        documentos; join: intercalar este documento (páginas
+                        impares) con --evens (por defecto: odds-first)
+  --evens PDF           con --mode join: el documento que contiene las
+                        páginas pares
+  --reverse-evens       invertir el orden de las páginas pares
+  --rotate-evens        poner cabeza abajo las páginas pares
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose impose
+.nf
+uso: py-pdftools impose impose [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               [--layout {2up-booklet,4up-booklet,8up-booklet,cut-stacks,sequential,step-repeat}]
+                               [--cols COLS] [--rows ROWS]
+                               [--binding {saddle,perfect}]
+                               [--sheets-per-fold N]
+                               [--direction {left,right}] [--single-sided]
+                               [--gutter-v LEN] [--gutter-h LEN]
+                               [--spread LEN] [--creep LEN] [--media SIZE]
+                               [--orientation {portrait,landscape}]
+                               [--auto-rotate] [--no-auto-scale] [--enlarge]
+                               [--margin LEN] [--margin-top LEN]
+                               [--margin-bottom LEN] [--margin-left LEN]
+                               [--margin-right LEN] [--page-trim LEN]
+                               [--page-trim-top LEN]
+                               [--page-trim-bottom LEN]
+                               [--page-trim-left LEN]
+                               [--page-trim-right LEN] [--trim-marks]
+                               [--bleed-marks] [--registration-marks]
+                               [--page-info | --no-page-info]
+                               input
+
+Imponer un documento en un solo paso, con las disposiciones habituales (folletos de 2, 4 y 8, corte y apilado, secuencial, paso y repetición), encuadernación, medianiles, papel, márgenes y marcas de impresión. El modo básico de la ventana ejecuta esta orden. Para que el contenido de las páginas ocupe más del pliego, recorte sus bordes blancos con --page-trim y déjelas crecer con --enlarge; los márgenes y los medianiles también pueden ser negativos (--margin=-1cm), de modo que las páginas se salgan de los bordes del pliego o se solapen, cortadas en el borde o en la mitad del solapamiento.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --margin LEN          margen en los cuatro lados (por defecto: 0)
+  --margin-top LEN      top margen (anula --margin)
+  --margin-bottom LEN   bottom margen (anula --margin)
+  --margin-left LEN     left margen (anula --margin)
+  --margin-right LEN    right margen (anula --margin)
+  --page-trim LEN       recorte de página (lo que se corta de los bordes de
+                        cada página) en los cuatro lados (por defecto: 0)
+  --page-trim-top LEN   top recorte de página (lo que se corta de los bordes
+                        de cada página) (anula --page-trim)
+  --page-trim-bottom LEN
+                        bottom recorte de página (lo que se corta de los
+                        bordes de cada página) (anula --page-trim)
+  --page-trim-left LEN  left recorte de página (lo que se corta de los
+                        bordes de cada página) (anula --page-trim)
+  --page-trim-right LEN
+                        right recorte de página (lo que se corta de los
+                        bordes de cada página) (anula --page-trim)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+
+disposición:
+  --layout {2up-booklet,4up-booklet,8up-booklet,cut-stacks,sequential,step-repeat}
+                        2up-booklet: 2 páginas una al lado de otra; 4up-
+                        booklet: 2 filas de 2; 8up-booklet: 2 filas de 4;
+                        cut-stacks: cortar los pliegos y apilar las pilas;
+                        sequential: páginas en orden; step-repeat: copias de
+                        cada página (por defecto: 2up-booklet)
+  --cols COLS           columnas, para cut-stacks, sequential y step-repeat
+                        (por defecto: 2)
+  --rows ROWS           filas, para cut-stacks, sequential y step-repeat
+                        (por defecto: 2)
+
+encuadernación:
+  --binding {saddle,perfect}
+                        saddle: todos los pliegos plegados juntos y
+                        grapados; perfect: pilas de pliegos plegados,
+                        encoladas por el lomo (por defecto: perfect)
+  --sheets-per-fold N   encuadernación encolada: pliegos en cada cuadernillo
+                        plegado (por defecto: 4)
+  --direction {left,right}
+                        borde de encuadernación (por defecto: left)
+  --single-sided        imprimir por una sola cara: los anversos y luego los
+                        reversos (folletos), o pilas a una cara
+
+medianiles:
+  --gutter-v LEN        espacio entre columnas (por defecto: 0)
+  --gutter-h LEN        espacio entre filas (por defecto: 0)
+  --spread LEN          8up-booklet: espacio entre la 2.ª y la 3.ª columna
+                        (por defecto: como --gutter-v)
+  --creep LEN           folletos: cuánto se desplazan hacia el lomo las
+                        páginas más interiores, por el grosor del papel (por
+                        defecto: 0)
+
+papel:
+  --media SIZE          tamaño del pliego: un nombre de papel o WxH, o
+                        'auto' para ajustarse exactamente a las páginas (por
+                        defecto: legal)
+  --orientation {portrait,landscape}
+                        orientación de un tamaño de pliego con nombre (por
+                        defecto: landscape)
+  --auto-rotate         girar las páginas 90° cuando así encajan mejor en su
+                        celda
+  --no-auto-scale       no reducir las páginas más grandes que su celda
+  --enlarge             ampliar también las páginas más pequeñas que su
+                        celda, para llenarla
+
+marcas de impresión:
+  --trim-marks          marcas donde se han de cortar las páginas
+  --bleed-marks         contorno del área de sangrado de las páginas que la
+                        tienen
+  --registration-marks  dianas en los lados del pliego, para alinear las
+                        planchas
+  --page-info, --no-page-info
+                        el nombre del documento, el número de pliego, la
+                        fecha y la hora arriba a la izquierda de cada pliego
+                        (activado por defecto; --no-page-info lo omite)
+.fi
+.SS impose info
+.nf
+uso: py-pdftools impose info [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT] [--json]
+                             [--all-pages] [--report-units {cm,mm,in,pt}]
+                             input
+
+Mostrar el tamaño, las cajas y los sangrados de las páginas, y las órdenes registradas en el documento.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --json                salida legible por máquina
+  --all-pages           listar todas las páginas en lugar de agrupar series
+  --report-units {cm,mm,in,pt}
+                        unidades del informe (por defecto: --units)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose insert
+.nf
+uso: py-pdftools impose insert [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               (--blank N | --file PDF) [--file-pages RANGE]
+                               [--copies COPIES] [--no-collate]
+                               [--before PAGE | --after PAGE |
+                               --at {start,end}] [--size SIZE]
+                               [--size-of PAGE] [--every K]
+                               [--each-time N|all] [--stop-when-exhausted]
+                               [--if COND | --unless COND | --until COND]
+                               [input]
+
+Insertar páginas: páginas en blanco o páginas de un archivo, en una posición, a intervalos o hasta que se cumpla una condición (p. ej. --until multiple:4). Sin un PDF de entrada, crea un documento nuevo.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --blank N             insertar N páginas en blanco
+  --file PDF            insertar páginas de este PDF
+  --file-pages RANGE    páginas de --file que insertar
+  --copies COPIES       copias de las páginas insertadas (por defecto: 1)
+  --no-collate          copias como A A B B en lugar de A B A B
+  --before PAGE         insertar antes de esta página (p. ej., 1, LAST)
+  --after PAGE          insertar después de esta página (p. ej., 3, LAST-1)
+  --at {start,end}      insertar al principio o al final (por defecto)
+  --size SIZE           tamaño de las páginas en blanco (papel o WxH); por
+                        defecto: el tamaño de una página vecina
+  --size-of PAGE        páginas en blanco del mismo tamaño que esta página
+  --every K             insertar a intervalos: insertar, luego saltar K
+                        páginas originales, y repetir
+  --each-time N|all     con --file y --every: insertar la selección completa
+                        cada vez, o las N páginas siguientes
+  --stop-when-exhausted
+                        con --each-time N: detenerse cuando se acaben las
+                        páginas del archivo en lugar de volver a empezar
+  --if COND             insertar solo si el número de páginas cumple COND:
+                        odd, even, lt:N, ge:N, multiple:N
+  --unless COND         insertar salvo que se cumpla COND
+  --until COND          insertar páginas de una en una hasta que se cumpla
+                        COND (hasta el número pedido)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose join
+.nf
+uso: py-pdftools impose join [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT]
+                             [--first PAGE | --all]
+                             [--valign {top,middle,bottom}]
+                             input
+
+Unir dos páginas: formar una doble página a partir de dos páginas, sin cambiar los márgenes.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --first PAGE          unir esta página con la siguiente (por defecto: 1)
+  --all                 unir cada par de páginas (1+2, 3+4, ...)
+  --valign {top,middle,bottom}
+                        alineación vertical cuando las alturas difieren (por
+                        defecto: bottom)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose manual
+.nf
+uso: py-pdftools impose manual [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               --layout LAYOUT [--mark-offset LEN]
+                               [--mark-length LEN] [--mark-width LEN]
+                               [--mark-white-background] [--smart-marks]
+                               input
+
+Imposición manual: colocar cada página en los pliegos con un desplazamiento de esquina, una escala y un giro elegidos, opcionalmente a doble cara con reversos reflejados automáticamente, repitiendo la disposición en todo el documento.
+
+Ejemplo de archivo de disposición (TOML):
+
+    sheet = "a3"              # nombre de papel o WxH; omítase si se usa un fondo
+    orientation = "wide"      # tall | wide | as-is
+    background = "plate.pdf"  # PDF de fondo opcional (fija el tamaño del pliego)
+    sides = "double-h"        # single | double-h (reversos reflejados de izquierda a derecha) | double-v (de arriba abajo)
+    sheets = 1                # pliegos (single) o pares anverso/reverso (double) en un ciclo
+    repeat = true             # repetir el ciclo hasta colocar todas las páginas
+    crop_marks = true         # valor por defecto para cada colocación
+
+    [[place]]                 # una entrada por página, tomadas del origen en orden
+    side = "front"            # front | back | both (anverso, y la página siguiente en el reverso)
+    sheet = 1                 # qué pliego / par del ciclo
+    corner = "top-left"       # esquina del pliego y de la página entre las que se miden los desplazamientos
+    x = "1cm"                 # desplazamiento horizontal (en la dirección natural desde la esquina)
+    y = "1cm"                 # desplazamiento vertical
+    scale = 100               # porcentaje
+    rotate = 0                # en el sentido de las agujas del reloj: 0, 90, 180, 270
+    page = 3                  # opcional: una página de origen fija en vez de la siguiente
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --layout LAYOUT       archivo de disposición (TOML); véase la descripción
+  --mark-offset LEN
+  --mark-length LEN
+  --mark-width LEN
+  --mark-white-background
+  --smart-marks         omitir los segmentos de las marcas de corte que se
+                        solaparían con las páginas
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose mask
+.nf
+uso: py-pdftools impose mask [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT]
+                             [--pages RANGE] [--parity {all,odd,even}]
+                             --rect X,Y,W,H
+                             [--origin {bottom-left,top-left}]
+                             [--color COLOR]
+                             input
+
+Pegar cinta de enmascarar: cubrir zonas (p. ej. números de página antiguos) con rectángulos opacos. Se quita después con 'peel --what tape'.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --rect X,Y,W,H        área que cubrir, medida desde --origin de la página
+                        visible; repetible
+  --origin {bottom-left,top-left}
+                        esquina desde la que se miden las coordenadas de
+                        --rect (por defecto: bottom-left)
+  --color COLOR         color de la cinta (por defecto: white)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose merge-data
+.nf
+uso: py-pdftools impose merge-data [-h] [--units {cm,mm,in,pt}]
+                                   [--registration {black,cmyk,all}]
+                                   [--bleed {use,ignore}] [--pdfx]
+                                   [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                   [--interface {en,es}] [-o OUTPUT]
+                                   --data DATA --fields FIELDS
+                                   [--separator SEPARATOR]
+                                   [--encoding ENCODING] [--master]
+                                   [--pages-per-record N] [--strict]
+                                   [--records RANGE]
+                                   input
+
+Combinación de datos variables: añadir texto, bloques de texto e imágenes a las páginas con registros de un archivo CSV, ya sea copiando un documento maestro por registro o rellenando páginas sucesivas.
+
+Archivo de campos (TOML). Los valores de las columnas se escriben como {Column Name}:
+
+    [[text]]
+    template = "{Name} - {Company Name}"
+    page = 1                       # página dentro del maestro / registro (por defecto: todas)
+    position = "top-left"          # véanse las posiciones en 'text --help'
+    x = "2cm"
+    y = "2cm"
+    font = "Helvetica"
+    size = 12
+    color = "black"
+    rotation = 0
+
+    [[picture]]
+    file = "logos.pdf"             # una imagen por página
+    column = "Logo number"         # número de página de la imagen que se usa
+    position = "top-right"
+    x = "1cm"
+    y = "1cm"
+    fit = "3x2cm"                  # o scale = 100
+
+    [[block]]                      # un bloque de texto, p. ej. una etiqueta postal
+    width = "8cm"
+    height = "4cm"
+    position = "bottom-left"
+    x = "2cm"
+    y = "2cm"
+    font = "Helvetica"
+    size = 11
+    justify = "left"               # left | center | right
+    overflow = "scale"             # scale | cut | fail
+    warn_below = 50                # avisar si el texto se reduce por debajo de este porcentaje
+    rotation = 0
+    lines = [
+      { text = "{Title}" },
+      { text = "{First name}" },
+      { text = "{Last name}", same_line = true },
+      { text = "{Address 1}", close_gap = true },
+      { text = "{Address 2}", close_gap = true, justify = "right", size = 9 },
+    ]
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --data DATA           fuente de datos: CSV/TSV con una fila de encabezado
+  --fields FIELDS       archivo de campos (TOML); véase la descripción
+  --separator SEPARATOR
+                        separador de columnas: auto, ',', ';', 'tab'
+  --encoding ENCODING   codificación de texto de los datos (por defecto:
+                        utf-8-sig)
+  --master              el documento es una plantilla que se copia una vez
+                        por registro (si no, los registros se añaden a
+                        grupos sucesivos de páginas)
+  --pages-per-record N  sin --master: páginas usadas por cada registro (por
+                        defecto: 1)
+  --strict              fallar si los registros y las páginas no coinciden
+                        exactamente
+  --records RANGE       registros que usar, p. ej. 1-10
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose move
+.nf
+uso: py-pdftools impose move [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT] --pages RANGE
+                             (--before PAGE | --after PAGE)
+                             input
+
+mover páginas dentro del documento
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         páginas que mover
+  --before PAGE         mover antes de esta página (numeración original)
+  --after PAGE          mover después de esta página (numeración original)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose nup
+.nf
+uso: py-pdftools impose nup [-h] [--units {cm,mm,in,pt}]
+                            [--registration {black,cmyk,all}]
+                            [--bleed {use,ignore}] [--pdfx]
+                            [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                            [--interface {en,es}] [-o OUTPUT] [--paper SIZE]
+                            [--orientation {tall,wide,portrait,landscape,best,as-is}]
+                            [--cols COLS] [--rows ROWS] [--scale MODE]
+                            [--trim] [--margin LEN] [--margin-top LEN]
+                            [--margin-bottom LEN] [--margin-left LEN]
+                            [--margin-right LEN] [--spacing LEN]
+                            [--hspace LIST] [--vspace LIST]
+                            [--align {top-left,top,top-right,left,center,right,bottom-left,bottom,bottom-right}]
+                            [--align-sheets-independently] [--align-rows]
+                            [--mirror {none,h,v,hv}] [--crop-marks]
+                            [--frames] [--mark-offset LEN]
+                            [--mark-length LEN] [--mark-width LEN]
+                            [--mark-white-background] [--background PDF]
+                            [--background-pages RANGE]
+                            [--background-mode {repeat,once,repeat-last}]
+                            [--background-repeat-last N]
+                            [--flow {normal,double,double-flip}]
+                            input
+
+Combinar páginas en pliegos más grandes en filas y columnas, con márgenes, espaciado, alineación, marcas de corte y fondos.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --paper SIZE          tamaño del pliego: a0, a1, a2, a3, a4, a5, a6, b4,
+                        b5, executive, ledger, legal, letter, max, sra3,
+                        statement, tabloid, o WxH como 21x29.7cm (por
+                        defecto: a4)
+  --orientation {tall,wide,portrait,landscape,best,as-is}
+                        orientación del pliego (por defecto: best)
+  --cols COLS           columnas por pliego (máximo, o exacto con --scale
+                        fit)
+  --rows ROWS           filas por pliego (máximo, o exacto con --scale fit)
+  --scale MODE          'none' (100%), 'fit' (escalar para que quepan
+                        exactamente --cols x --rows, según la primera
+                        página) o un porcentaje como 50 (por defecto: none)
+  --trim                recortar el espacio no usado en el borde de cada
+                        pliego (el pliego se reduce a las páginas más los
+                        márgenes)
+  --margin LEN          margin en los cuatro lados (por defecto: 0)
+  --margin-top LEN      top margin (anula --margin)
+  --margin-bottom LEN   bottom margin (anula --margin)
+  --margin-left LEN     left margin (anula --margin)
+  --margin-right LEN    right margin (anula --margin)
+  --spacing LEN         espacio entre filas y columnas (por defecto: 0)
+  --hspace LIST         espaciado horizontal entre columnas; una lista como
+                        '0 40' se repite (anula --spacing)
+  --vspace LIST         espaciado vertical entre filas; una lista se repite
+                        (anula --spacing)
+  --align {top-left,top,top-right,left,center,right,bottom-left,bottom,bottom-right}
+                        dónde se sitúan las páginas en los pliegos que no
+                        están llenos (por defecto: top-left)
+  --align-sheets-independently
+                        alinear cada pliego por separado en lugar de igualar
+                        todos los pliegos
+  --align-rows          alinear también cada fila horizontalmente (filas
+                        cortas)
+  --mirror {none,h,v,hv}
+                        reflejar márgenes y alineación en los pliegos pares
+                        (reverso): horizontal, verticalmente o en ambos
+                        sentidos
+  --flow {normal,double,double-flip}
+                        normal: llenar cada pliego por turno; double:
+                        alternar pliegos de anverso/reverso con los reversos
+                        reflejados; double-flip: como double, con los
+                        reversos boca abajo (por defecto: normal)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+
+marcas:
+  --crop-marks          añadir marcas de corte inteligentes
+  --frames              dibujar un marco alrededor de cada página
+  --mark-offset LEN     separación entre el borde de la página y la marca de
+                        corte (por defecto: 10pt)
+  --mark-length LEN     longitud de las marcas de corte (por defecto: 20pt)
+  --mark-width LEN      grosor de línea de las marcas de corte (por defecto:
+                        0.5pt)
+  --mark-white-background
+                        dibujar un halo casi blanco detrás de las marcas
+                        para que se vean sobre fondos oscuros
+
+fondo:
+  --background PDF      imponer sobre las páginas de este PDF en lugar de
+                        pliegos en blanco (fija el tamaño del pliego)
+  --background-pages RANGE
+                        páginas de fondo que se usan
+  --background-mode {repeat,once,repeat-last}
+                        repetir los fondos, usarlos una vez o repetir solo
+                        los N últimos (por defecto: repeat)
+  --background-repeat-last N
+                        con --background-mode repeat-last: cuántas páginas
+                        repetir
+.fi
+.SS impose peel
+.nf
+uso: py-pdftools impose peel [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT]
+                             [--what {text,tape,marks,pdf,bleed,all}]
+                             [--pages RANGE] [--parity {all,odd,even}]
+                             input
+
+Despegar texto y números / cinta de enmascarar / marcas de registro añadidos por esta herramienta, incluso tras una imposición posterior.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --what {text,tape,marks,pdf,bleed,all}
+                        text (texto pegado), tape (cinta de enmascarar),
+                        marks (marcas de corte/marcos), pdf (páginas PDF
+                        pegadas), bleed (sangrado generado) o all (por
+                        defecto: text)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose replay
+.nf
+uso: py-pdftools impose replay [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               --from EXAMPLE [--export EXPORT]
+                               input
+
+Imposición por ejemplo: cada salida registra las órdenes que la produjeron. Repítalas en un documento nuevo o expórtelas como archivo de secuencia.
+
+argumentos posicionales:
+  input                 PDF que procesar
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --from EXAMPLE        un PDF hecho con esta herramienta; se repiten las
+                        órdenes que tiene registradas
+  --export EXPORT       escribir en cambio las órdenes registradas en este
+                        archivo de secuencia
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose resize
+.nf
+uso: py-pdftools impose resize [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               [--pages RANGE] [--parity {all,odd,even}]
+                               (--size SIZE | --percent PERCENT |
+                               --same-as PAGE)
+                               [--orientation {as-is,tall,wide}]
+                               [--method {anamorphic,proportional,none}]
+                               [--rotate-to-fit {no,cw,ccw}]
+                               [--only {both,enlarge,shrink}]
+                               [--similar LEN] [--verify] [--keep-bleed]
+                               [--no-uncover]
+                               input
+
+Ajustar tamaños de página: escalar las páginas a un tamaño o porcentaje, girarlas para que se ajusten, verificar tamaños.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --size SIZE           tamaño de destino: nombre del papel o WxH
+  --percent PERCENT     escalar en un porcentaje, p. ej. 200
+  --same-as PAGE        dar a las páginas el tamaño de esta página
+  --orientation {as-is,tall,wide}
+                        orientación de --size (por defecto: as-is)
+  --method {anamorphic,proportional,none}
+                        anamorphic: estirar para ajustar; proportional: la
+                        misma escala en ambos sentidos y luego rellenar;
+                        none: sin escalado, rellenar o recortar (por
+                        defecto: proportional)
+  --rotate-to-fit {no,cw,ccw}
+                        girar las páginas 90° cuando así se ajusten mejor a
+                        la forma de destino
+  --only {both,enlarge,shrink}
+                        solo ampliar o solo reducir las páginas (por
+                        defecto: ambas cosas)
+  --similar LEN         ajustar solo las páginas cuyo tamaño esté a esta
+                        distancia del objetivo
+  --verify              no cambiar nada; fallar si las páginas difieren
+  --keep-bleed          anamorphic: dimensionar el área de corte y mantener
+                        iguales los márgenes de sangrado
+  --no-uncover          no revelar nunca contenido recortado previamente al
+                        añadir espacio
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose reverse
+.nf
+uso: py-pdftools impose reverse [-h] [--units {cm,mm,in,pt}]
+                                [--registration {black,cmyk,all}]
+                                [--bleed {use,ignore}] [--pdfx]
+                                [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                [--interface {en,es}] [-o OUTPUT]
+                                input
+
+invertir el orden de todas las páginas
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose rotate
+.nf
+uso: py-pdftools impose rotate [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               [--pages RANGE] [--parity {all,odd,even}]
+                               --angle ANGLE [--only {all,tall,wide}]
+                               [--keep-size] [--crop-first]
+                               input
+
+girar las páginas cualquier ángulo
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --angle ANGLE         ángulo en grados en sentido horario; 90/180/270
+                        fijan la rotación de la página, otros valores giran
+                        libremente el contenido
+  --only {all,tall,wide}
+                        girar solo las páginas altas o solo las anchas
+  --keep-size           giro libre: conservar el tamaño y el sangrado
+                        originales de la página en lugar de ampliarla
+  --crop-first          giro libre: recortar primero a la página visible
+                        para que solo aparezca fondo en blanco
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose run
+.nf
+uso: py-pdftools impose run [-h] [--units {cm,mm,in,pt}]
+                            [--registration {black,cmyk,all}]
+                            [--bleed {use,ignore}] [--pdfx]
+                            [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                            [--interface {en,es}] [-o OUTPUT]
+                            --sequence SEQUENCE [--out-dir OUT_DIR]
+                            [--suffix SUFFIX]
+                            inputs [inputs ...]
+
+Secuencias de automatización: ejecutar varias órdenes en orden, sobre un lote de archivos.
+
+Archivo de secuencia (TOML):
+
+    name = "numbered booklet"
+    units = "mm"                   # preferencias opcionales: units, registration, bleed, pdfx
+    steps = [
+      "text --position bottom-center --offset-y 10",
+      "booklet --paper legal --orientation wide",
+    ]
+
+Cada paso es una línea de órdenes sin los archivos de entrada y salida.
+
+argumentos posicionales:
+  inputs                Archivos PDF que procesar
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --sequence SEQUENCE   archivo de secuencia (TOML); véase la descripción
+  --out-dir OUT_DIR     directorio para los resultados (por defecto: junto a
+                        cada entrada)
+  --suffix SUFFIX       sufijo del nombre de salida (por defecto: el nombre
+                        de la secuencia)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose sample
+.nf
+uso: py-pdftools impose sample [-h] [--units {cm,mm,in,pt}]
+                               [--registration {black,cmyk,all}]
+                               [--bleed {use,ignore}] [--pdfx]
+                               [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                               [--interface {en,es}] [-o OUTPUT]
+                               [--paper PAPER]
+                               [--orientation {tall,wide,as-is}]
+                               [--count COUNT]
+
+Crear documento de muestra: páginas grises con un borde grueso, un número de página grande y líneas a 20 mm y a 1 pulgada de cada borde.
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --paper PAPER         tamaño de página: nombre del papel o WxH (por
+                        defecto: a4)
+  --orientation {tall,wide,as-is}
+  --count COUNT         número de páginas (por defecto: 8)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose shuffle
+.nf
+uso: py-pdftools impose shuffle [-h] [--units {cm,mm,in,pt}]
+                                [--registration {black,cmyk,all}]
+                                [--bleed {use,ignore}] [--pdfx]
+                                [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                [--interface {en,es}] [-o OUTPUT]
+                                --rule RULE [--group GROUP]
+                                [--repeat {normal,saddle,cut-single,cut-double}]
+                                [--consecutive A] [--restart-after B]
+                                input
+
+Reordenar páginas para la imposición. Normalmente seguido de 'nup'.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --rule RULE           orden de las páginas de un grupo, p. ej. '4 1 2 3' o
+                        '8 1 5* 4* 2 7 3* 6*'. Sufijo * = cabeza abajo, > =
+                        90° en sentido horario, < = 90° en sentido
+                        antihorario; X = en blanco; a..b = intervalo
+  --group GROUP         tamaño del grupo: páginas antes de que se repita la
+                        regla (por defecto: el número de página más alto de
+                        la regla)
+  --repeat {normal,saddle,cut-single,cut-double}
+                        normal/perfect bound: repetir la regla en cada
+                        grupo; saddle: la regla describe el primer pliego de
+                        un libro grapado a caballete y se extiende a
+                        cualquier longitud; cut-single / cut-double: pilas
+                        cortadas impresas a una o a dos caras (por defecto:
+                        normal)
+  --consecutive A       corte y apilado: páginas consecutivas por grupo
+                        (pilas avanzadas A)
+  --restart-after B     corte y apilado: volver a empezar las pilas después
+                        de B pliegos; 0 = nunca (pilas avanzadas B)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose split
+.nf
+uso: py-pdftools impose split [-h] [--units {cm,mm,in,pt}]
+                              [--registration {black,cmyk,all}]
+                              [--bleed {use,ignore}] [--pdfx]
+                              [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                              [--interface {en,es}] [-o OUTPUT]
+                              --by {odd-even,list,equal,duplicates}
+                              [--list PARTS] [--page-count PAGE_COUNT]
+                              [--ignore-missing] [--size SIZE]
+                              [--copies COPIES] [--sequence SEQUENCE]
+                              [--part-sequence N=FILE]
+                              [--part-steps N=STEPS] [--merge]
+                              input
+
+Dividir/unir (parciales): dividir un documento por impares/pares, listas de páginas, tamaños iguales o duplicados, ejecutar una secuencia en cada parte y luego unir o conservar las partes.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --by {odd-even,list,equal,duplicates}
+                        odd-even: dos partes; list: páginas indicadas para
+                        cada parte; equal: partes de --size páginas;
+                        duplicates: --copies copias completas del documento
+  --list PARTS          con --by list: partes separadas por ';', p. ej.
+                        '1..4 9..12; 5..8*'. Las páginas pueden usar
+                        LAST/LAST-n, intervalos a..b, sufijos de rotación *
+                        > < y X para una en blanco
+  --page-count PAGE_COUNT
+                        con --by list: exigir exactamente este número de
+                        páginas (0 = cualquiera)
+  --ignore-missing      omitir las páginas indicadas que estén más allá del
+                        final
+  --size SIZE           con --by equal: páginas por parte
+  --copies COPIES       con --by duplicates: número de copias
+  --sequence SEQUENCE   archivo de secuencia que ejecutar en cada parte
+  --part-sequence N=FILE
+                        archivo de secuencia para la parte N (anula
+                        --sequence); se puede repetir
+  --part-steps N=STEPS  órdenes en línea para la parte N, separadas por ';',
+                        p. ej., '2=nup --cols 2 --rows 2 --scale fit';
+                        repetible
+  --merge               unir las partes procesadas en un documento
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose step-repeat
+.nf
+uso: py-pdftools impose step-repeat [-h] [--units {cm,mm,in,pt}]
+                                    [--registration {black,cmyk,all}]
+                                    [--bleed {use,ignore}] [--pdfx]
+                                    [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                    [--interface {en,es}] [-o OUTPUT]
+                                    [--paper SIZE]
+                                    [--orientation {tall,wide,portrait,landscape,best,as-is}]
+                                    [--cols COLS] [--rows ROWS]
+                                    [--scale MODE] [--trim] [--margin LEN]
+                                    [--margin-top LEN] [--margin-bottom LEN]
+                                    [--margin-left LEN] [--margin-right LEN]
+                                    [--spacing LEN] [--hspace LIST]
+                                    [--vspace LIST]
+                                    [--align {top-left,top,top-right,left,center,right,bottom-left,bottom,bottom-right}]
+                                    [--align-sheets-independently]
+                                    [--align-rows] [--mirror {none,h,v,hv}]
+                                    [--crop-marks] [--frames]
+                                    [--mark-offset LEN] [--mark-length LEN]
+                                    [--mark-width LEN]
+                                    [--mark-white-background]
+                                    [--background PDF]
+                                    [--background-pages RANGE]
+                                    [--background-mode {repeat,once,repeat-last}]
+                                    [--background-repeat-last N] [--rotate]
+                                    input
+
+Paso y repetición: cada pliego de salida contiene tantas copias de una página de origen como quepan.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --paper SIZE          tamaño del pliego: a0, a1, a2, a3, a4, a5, a6, b4,
+                        b5, executive, ledger, legal, letter, max, sra3,
+                        statement, tabloid, o WxH como 21x29.7cm (por
+                        defecto: a4)
+  --orientation {tall,wide,portrait,landscape,best,as-is}
+                        orientación del pliego (por defecto: best)
+  --cols COLS           columnas por pliego (máximo, o exacto con --scale
+                        fit)
+  --rows ROWS           filas por pliego (máximo, o exacto con --scale fit)
+  --scale MODE          'none' (100%), 'fit' (escalar para que quepan
+                        exactamente --cols x --rows, según la primera
+                        página) o un porcentaje como 50 (por defecto: none)
+  --trim                recortar el espacio no usado en el borde de cada
+                        pliego (el pliego se reduce a las páginas más los
+                        márgenes)
+  --margin LEN          margin en los cuatro lados (por defecto: 0)
+  --margin-top LEN      top margin (anula --margin)
+  --margin-bottom LEN   bottom margin (anula --margin)
+  --margin-left LEN     left margin (anula --margin)
+  --margin-right LEN    right margin (anula --margin)
+  --spacing LEN         espacio entre filas y columnas (por defecto: 0)
+  --hspace LIST         espaciado horizontal entre columnas; una lista como
+                        '0 40' se repite (anula --spacing)
+  --vspace LIST         espaciado vertical entre filas; una lista se repite
+                        (anula --spacing)
+  --align {top-left,top,top-right,left,center,right,bottom-left,bottom,bottom-right}
+                        dónde se sitúan las páginas en los pliegos que no
+                        están llenos (por defecto: top-left)
+  --align-sheets-independently
+                        alinear cada pliego por separado en lugar de igualar
+                        todos los pliegos
+  --align-rows          alinear también cada fila horizontalmente (filas
+                        cortas)
+  --mirror {none,h,v,hv}
+                        reflejar márgenes y alineación en los pliegos pares
+                        (reverso): horizontal, verticalmente o en ambos
+                        sentidos
+  --rotate              permitir filas de copias giradas cuando así caben
+                        más en un pliego (no con escalado)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+
+marcas:
+  --crop-marks          añadir marcas de corte inteligentes
+  --frames              dibujar un marco alrededor de cada página
+  --mark-offset LEN     separación entre el borde de la página y la marca de
+                        corte (por defecto: 10pt)
+  --mark-length LEN     longitud de las marcas de corte (por defecto: 20pt)
+  --mark-width LEN      grosor de línea de las marcas de corte (por defecto:
+                        0.5pt)
+  --mark-white-background
+                        dibujar un halo casi blanco detrás de las marcas
+                        para que se vean sobre fondos oscuros
+
+fondo:
+  --background PDF      imponer sobre las páginas de este PDF en lugar de
+                        pliegos en blanco (fija el tamaño del pliego)
+  --background-pages RANGE
+                        páginas de fondo que se usan
+  --background-mode {repeat,once,repeat-last}
+                        repetir los fondos, usarlos una vez o repetir solo
+                        los N últimos (por defecto: repeat)
+  --background-repeat-last N
+                        con --background-mode repeat-last: cuántas páginas
+                        repetir
+.fi
+.SS impose stick-pdf
+.nf
+uso: py-pdftools impose stick-pdf [-h] [--units {cm,mm,in,pt}]
+                                  [--registration {black,cmyk,all}]
+                                  [--bleed {use,ignore}] [--pdfx]
+                                  [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                  [--interface {en,es}] [-o OUTPUT]
+                                  --file FILE [--source-pages RANGE]
+                                  [--pages RANGE] [--parity {all,odd,even}]
+                                  [--position {top-left,top-center,top-right,left,center,right,bottom-left,bottom-center,bottom-right}]
+                                  [--offset-x LEN] [--offset-y LEN]
+                                  [--scale SCALE | --fit WxH] [--stretch]
+                                  [--rotate {0,90,180,270}] [--under]
+                                  input
+
+Pegar páginas PDF: añadir un logotipo, sello o anuncio de otro PDF.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --file FILE           PDF cuyas páginas se añaden
+  --source-pages RANGE  páginas de --file que usar; se repiten cíclicamente
+                        sobre las páginas de destino (por defecto: todas)
+  --pages RANGE         target pages: p. ej. 'all', '1-4,7', 'LAST-1..LAST'
+                        (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --position {top-left,top-center,top-right,left,center,right,bottom-left,bottom-center,bottom-right}
+                        (por defecto: center)
+  --offset-x LEN        desplazamiento horizontal, medido en la dirección
+                        natural desde la posición
+  --offset-y LEN        desplazamiento vertical
+  --scale SCALE         porcentaje (por defecto: 100)
+  --fit WxH             escalar para ajustar a esta caja
+  --stretch             con --fit: no conservar la relación de aspecto
+  --rotate {0,90,180,270}
+                        giro en sentido horario
+  --under               colocar detrás del contenido de la página
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose text
+.nf
+uso: py-pdftools impose text [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT]
+                             [--pages RANGE] [--parity {all,odd,even}]
+                             [--text TEXT] [--start START] [--repeat-each N]
+                             [--increase-by N] [--every N]
+                             [--position {top-left,top-center,top-right,left,center,right,bottom-left,bottom-center,bottom-right}]
+                             [--offset-x LEN] [--offset-y LEN]
+                             [--mirror-odd-even] [--font FONT] [--size SIZE]
+                             [--color COLOR] [--rotation {0,90,180,270}]
+                             input
+
+Pegar texto y números: números de página, números Bates, etiquetas y campos. Se quitan después con 'peel --what text'.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --text TEXT           texto que añadir; [#] es el número, y se sustituyen
+                        campos como [Doc:NumPages], [Page], [Date],
+                        [Date:mdy], [Time], [DateTime], [File:Name],
+                        [File:Path], [File:Folder], [Doc:Title], [Computer].
+                        Use \en para una línea nueva. Por defecto: '[#]'
+  --start START         primer número; se conservan los ceros iniciales (p.
+                        ej., 00098 para la numeración Bates) (por defecto:
+                        1)
+  --repeat-each N       repetir cada número N veces
+  --increase-by N       incremento entre números (puede ser negativo)
+  --every N             añadir texto solo cada N páginas (los números no
+                        avanzan en las páginas omitidas)
+  --position {top-left,top-center,top-right,left,center,right,bottom-left,bottom-center,bottom-right}
+                        (por defecto: bottom-center)
+  --offset-x LEN        desplazamiento horizontal desde la posición
+  --offset-y LEN        desplazamiento vertical (hasta la línea base del
+                        texto) desde la posición (por defecto: 1cm)
+  --mirror-odd-even     intercambiar las posiciones izquierda y derecha en
+                        las páginas pares (esquinas exteriores de un libro)
+  --font FONT           nombre de fuente PDF estándar, archivo TrueType o
+                        nombre de fuente instalada (incrustada) (por
+                        defecto: Helvetica)
+  --size SIZE           tamaño en puntos (por defecto: 10)
+  --color COLOR         black, red, #rrggbb, rgb:R,G,B, cmyk:C,M,Y,K
+                        (porcentaje), gray:P o registration
+  --rotation {0,90,180,270}
+                        rotación del texto, en sentido antihorario
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose tile
+.nf
+uso: py-pdftools impose tile [-h] [--units {cm,mm,in,pt}]
+                             [--registration {black,cmyk,all}]
+                             [--bleed {use,ignore}] [--pdfx]
+                             [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                             [--interface {en,es}] [-o OUTPUT]
+                             [--grid COLSxROWS | --sizes WIDTHS/HEIGHTS |
+                             --undo-booklet {saddle,perfect}]
+                             [--signature SIGNATURE]
+                             [--direction {left,right}] [--overlap LEN]
+                             [--overlap-bleed] [--only-wide]
+                             input
+
+Páginas en mosaico: dividir cada página en páginas más pequeñas, con solapamiento opcional.
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --grid COLSxROWS      dividir cada página en una cuadrícula, p. ej. 2x1
+  --sizes WIDTHS/HEIGHTS
+                        tamaños exactos de las teselas: una lista de anchos
+                        y una de altos separadas por '/', p. ej., '4in 4.5in
+                        / 4in 3in' (las listas se repiten)
+  --undo-booklet {saddle,perfect}
+                        cortar un folleto 2-up de nuevo en páginas sueltas
+                        en orden de lectura
+  --signature SIGNATURE
+                        --undo-booklet perfect: páginas por cuadernillo
+  --direction {left,right}
+                        --undo-booklet: borde de encuadernación
+  --overlap LEN         solapamiento entre teselas
+  --overlap-bleed       convertir el solapamiento en sangrado (cajas de
+                        corte/sangrado)
+  --only-wide           dividir solo las páginas anchas (p. ej. dobles
+                        páginas de lector)
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose trim-shift
+.nf
+uso: py-pdftools impose trim-shift [-h] [--units {cm,mm,in,pt}]
+                                   [--registration {black,cmyk,all}]
+                                   [--bleed {use,ignore}] [--pdfx]
+                                   [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                                   [--interface {en,es}] [-o OUTPUT]
+                                   [--pages RANGE] [--parity {all,odd,even}]
+                                   [--trim EDGE=LEN] [--add EDGE=LEN]
+                                   [--same-size SIZE] [--shift DIR=LEN]
+                                   [--shift-variable DIR=FIRST:LAST]
+                                   [--mode {improved,original}]
+                                   [--keep-bleed]
+                                   input
+
+Recortar y desplazar: quitar o añadir espacio en los bordes de las páginas, igualar el tamaño de las páginas y desplazar el contenido (p. ej., para desplazamientos de encuadernación).
+
+argumentos posicionales:
+  input                 PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --pages RANGE         pages to process: p. ej. 'all', '1-4,7',
+                        'LAST-1..LAST' (por defecto: all)
+  --parity {all,odd,even}
+                        limitar a números de página impares o pares
+  --trim EDGE=LEN       recortar espacio de un borde
+                        (left/right/top/bottom/all); se puede repetir
+  --add EDGE=LEN        añadir espacio en un borde (puede hacer las páginas
+                        más grandes que el original); repetible
+  --same-size SIZE      dar a todas las páginas este tamaño (nombre de papel
+                        o WxH), centradas, recortando o rellenando
+  --shift DIR=LEN       desplazar el contenido en una cantidad fija:
+                        left/right/up/down
+  --shift-variable DIR=FIRST:LAST
+                        desplazar en una cantidad que varía de FIRST
+                        (primera página) a LAST (última página), p. ej.
+                        right=0:3mm
+  --mode {improved,original}
+                        improved: no descubrir nunca contenido recortado,
+                        mover el contenido; original: mover el origen de la
+                        página y permitir descubrirlo (por defecto:
+                        improved)
+  --keep-bleed          mantener iguales los márgenes de sangrado/corte
+                        después de recortar
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS impose watch
+.nf
+uso: py-pdftools impose watch [-h] [--units {cm,mm,in,pt}]
+                              [--registration {black,cmyk,all}]
+                              [--bleed {use,ignore}] [--pdfx]
+                              [--conform {a-1b,a-2b,a-3b,x-4}] [-q]
+                              [--interface {en,es}] [-o OUTPUT]
+                              --sequence SEQUENCE [--out OUT] [--done DONE]
+                              [--errors ERRORS] [--interval INTERVAL]
+                              [--once]
+                              folder
+
+Carpetas vigiladas: vigilar una carpeta y ejecutar una secuencia en cada PDF que se deje en ella. Los resultados van a una carpeta de salida; las entradas se mueven a done/ o errors/. Ctrl+C para detener.
+
+argumentos posicionales:
+  folder                carpeta vigilada en la que buscar PDF
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output OUTPUT   PDF de salida (por defecto: <input>-<command>.pdf)
+  --sequence SEQUENCE   archivo de secuencia que ejecutar en cada PDF
+  --out OUT             carpeta de salida (por defecto: FOLDER/out)
+  --done DONE           las entradas procesadas se mueven aquí (por defecto:
+                        FOLDER/done)
+  --errors ERRORS       las entradas que fallaron se mueven aquí (por
+                        defecto: FOLDER/errors)
+  --interval INTERVAL   segundos entre exploraciones (por defecto: 2)
+  --once                procesar lo que haya ahora y terminar
+
+preferencias:
+  --units {cm,mm,in,pt}
+                        unidad de las longitudes dadas sin sufijo (por
+                        defecto: cm)
+  --registration {black,cmyk,all}
+                        color de las marcas y del texto en color de
+                        registro: negro, CMYK o todas las separaciones
+  --bleed {use,ignore}  usar las cajas de sangrado de las páginas al
+                        imponer, o ignorarlas (por defecto: use)
+  --pdfx                conservar una TrimBox al eliminar los sangrados
+                        (PDF/X); para hacer un archivo PDF/X-4, use
+                        --conform x-4
+  --conform {a-1b,a-2b,a-3b,x-4}
+                        guardar la salida como PDF/A (a-1b, a-2b, a-3b: para
+                        archivo) o PDF/X-4 (x-4: para imprenta), hecho por
+                        pdf2iso, que debe estar instalado
+  -q, --quiet           sin avisos
+  --interface {en,es}   el idioma de la interfaz, solo para esta ejecución
+                        (para conservar una elección, use la orden
+                        'interface')
+.fi
+.SS completion
+.nf
+uso: py-pdftools completion [-h] [--interface {en,es}] SHELL
+
+Imprime el script que completa las órdenes, las opciones y los archivos de
+py-pdftools en SHELL. Por ejemplo: py-pdftools completion fish >
+~/.config/fish/completions/py-pdftools.fish
+
+argumentos posicionales:
+  SHELL                bash, fish o zsh
+
+opciones:
+  -h, --help           mostrar esta ayuda y terminar
+  --interface {en,es}  el idioma de la interfaz, solo para esta ejecución
+                       (para conservar una elección, use la orden
+                       'interface')
+.fi
+.SS interface
+.nf
+uso: py-pdftools interface [-h] [--interface {en,es}] [{en,es}]
+
+El idioma de la ayuda, los mensajes y la ventana. La elección se guarda en
+el archivo de configuración; --interface CODE la cambia solo para una
+ejecución.
+
+argumentos posicionales:
+  {en,es}              el idioma que se usará de ahora en adelante; sin él,
+                       se listan los idiomas y se marca el que está en uso
+
+opciones:
+  -h, --help           mostrar esta ayuda y terminar
+  --interface {en,es}  el idioma de la interfaz, solo para esta ejecución
+                       (para conservar una elección, use la orden
+                       'interface')
+.fi
+.SH ARCHIVOS
+El archivo de configuración, con el idioma de la interfaz y los ajustes: ~/.config/py-pdftools/config.toml (o $PY_PDFTOOLS_CONFIG/config.toml).
+.SH VÉASE TAMBIÉN
+La ventana, que además anota y censura documentos: py-pdftools-gui [archivo.pdf].
+.SH AUTOR
+Nicolas Vaughan <nicolasvaughan@proton.me>

@@ -1,0 +1,17 @@
+[Desktop Entry]
+Type=Application
+Version=1.0
+Name=py-pdftools
+GenericName=PDF editor
+GenericName[es]=Editor de PDF
+Comment=Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
+Comment[es]=Editar documentos PDF: anotar, censurar, etiquetar, sellar, ordenar e imponer sus páginas
+Keywords=annotate;annotation;highlight;redact;redaction;page labels;watermark;header;footer;booklet;imposition;PDF;
+Keywords[es]=anotar;anotación;resaltar;censurar;censura;etiquetas de página;marca de agua;encabezado;pie;folleto;imposición;PDF;
+Categories=Office;Viewer;
+Icon=py-pdftools
+Exec=py-pdftools-gui %f
+MimeType=application/pdf;
+Terminal=false
+StartupNotify=true
+StartupWMClass=py-pdftools

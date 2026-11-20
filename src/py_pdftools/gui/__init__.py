@@ -1,4 +1,4 @@
-"""The window of py-pdftools (PySide6 / Qt 6). Start it with ``py-pdftools [file.pdf]``."""
+"""The window of py-pdftools (PySide6 / Qt 6). Start it with ``py-pdftools-gui [file.pdf]``."""
 
 from __future__ import annotations
 
@@ -24,7 +24,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"py-pdftools {__version__}")
         return 0
     if argv and argv[0] in ("--help", "-h"):
-        print("Usage: py-pdftools [file.pdf]")
+        print("Usage: py-pdftools-gui [file.pdf]   (the command line: py-pdftools --help)")
         return 0
     from ..core import interface
 

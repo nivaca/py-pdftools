@@ -1,0 +1,116 @@
+# The installers of install/, run on Linux, macOS and Windows: each installs
+# py-pdftools from this source with Python 3.14, checks what it made, runs the
+# tests of the program (not those of the packaging, which are Fedora's) against
+# the program installed, and uninstalls it. macOS (whose minutes count ten
+# times) only for tags, on Mondays and when started by hand.
+
+name: installers
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+    paths: ["install/**", "src/**", "tests/**", "pyproject.toml", ".github/workflows/installers.yml"]
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+jobs:
+  unix:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        mac:
+          - ${{ github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') }}
+        exclude:
+          - os: macos-latest
+            mac: false
+    runs-on: ${{ matrix.os }}
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Libraries for Qt
+        if: runner.os == 'Linux'
+        run: sudo apt-get update -q && sudo apt-get install -q -y libegl1 libgl1 libxkbcommon0 libfontconfig1 libdbus-1-3
+      - name: Install
+        run: bash install/install.sh
+      - name: What it made
+        run: |
+          set -x
+          ~/.local/bin/py-pdftools --version || ~/bin/py-pdftools --version
+          ~/.local/bin/py-pdftools-gui --version || ~/bin/py-pdftools-gui --version
+          if [ "$RUNNER_OS" = macOS ]; then
+            app=~/Applications/py-pdftools.app
+            test -x "$app/Contents/MacOS/py-pdftools"
+            plutil -lint "$app/Contents/Info.plist"
+            test -s "$app/Contents/Resources/py-pdftools.icns"
+            "$app/Contents/MacOS/py-pdftools" --version
+            venv=~/"Library/Application Support/py-pdftools/venv"
+          else
+            desktop-file-validate ~/.local/share/applications/py-pdftools.desktop || true
+            grep -q "^Exec=\"$HOME/.local/share/py-pdftools/venv/bin/py-pdftools-gui\"" ~/.local/share/applications/py-pdftools.desktop
+            test -s ~/.local/share/icons/hicolor/48x48/apps/py-pdftools.png
+            venv=~/.local/share/py-pdftools/venv
+          fi
+          echo "VENV=$venv" >> "$GITHUB_ENV"
+      - name: Tests, against the program installed
+        run: |
+          "$VENV/bin/python" -m pip install --quiet pytest
+          "$VENV/bin/python" -m pytest -q -p no:cacheprovider tests --ignore=tests/test_packaging.py
+      - name: Uninstall
+        run: |
+          bash install/install.sh --uninstall
+          test ! -e "$VENV"
+          test ! -e ~/.local/bin/py-pdftools
+          test ! -e ~/.local/bin/py-pdftools-gui
+          test ! -e ~/Applications/py-pdftools.app
+          test ! -e ~/.local/share/applications/py-pdftools.desktop
+
+  windows:
+    runs-on: windows-latest
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Install (through install.bat, as a user would)
+        shell: cmd
+        run: install\install.bat -Desktop < nul
+      - name: What it made
+        shell: pwsh
+        run: |
+          $venv = Join-Path $env:LOCALAPPDATA "py-pdftools\venv"
+          & (Join-Path $venv "Scripts\python.exe") -m py_pdftools --version
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+          if (-not (Test-Path (Join-Path $venv "Scripts\py-pdftools.exe"))) { throw "no py-pdftools.exe" }
+          if (-not (Test-Path (Join-Path $venv "Scripts\py-pdftools-gui.exe"))) { throw "no py-pdftools-gui.exe" }
+          $link = Join-Path ([Environment]::GetFolderPath("Programs")) "py-pdftools.lnk"
+          if (-not (Test-Path $link)) { throw "no Start menu shortcut" }
+          if (-not (Test-Path (Join-Path ([Environment]::GetFolderPath("Desktop")) "py-pdftools.lnk"))) { throw "no desktop shortcut" }
+          $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($link)
+          if ($shortcut.TargetPath -notlike "*\Scripts\pythonw.exe") { throw "shortcut to $($shortcut.TargetPath)" }
+          $ico = Join-Path $env:LOCALAPPDATA "py-pdftools\py-pdftools.ico"
+          $bytes = [IO.File]::ReadAllBytes($ico)
+          if ($bytes[2] -ne 1 -or $bytes[4] -ne 7) { throw "the icon is not an .ico of 7 sizes" }
+          "VENV=$venv" | Out-File -Append -Encoding utf8 $env:GITHUB_ENV
+      - name: Tests, against the program installed
+        shell: pwsh
+        run: |
+          & "$env:VENV\Scripts\python.exe" -m pip install --quiet pytest
+          & "$env:VENV\Scripts\python.exe" -m pytest -q -p no:cacheprovider tests --ignore=tests/test_packaging.py
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: Uninstall
+        shell: cmd
+        run: install\install.bat -Uninstall < nul
+      - name: Nothing left
+        shell: pwsh
+        run: |
+          if (Test-Path $env:VENV) { throw "the environment is still there" }
+          if (Test-Path (Join-Path ([Environment]::GetFolderPath("Programs")) "py-pdftools.lnk")) { throw "the shortcut is still there" }

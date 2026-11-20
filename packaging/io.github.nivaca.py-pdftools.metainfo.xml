@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- AppStream metadata of py-pdftools, for software centres. The RPM installs it. -->
+<component type="desktop-application">
+  <id>io.github.nivaca.py-pdftools</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>py-pdftools</name>
+  <summary>Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages</summary>
+  <summary xml:lang="es">Editar documentos PDF: anotar, censurar, etiquetar, sellar, ordenar e imponer sus páginas</summary>
+  <developer id="io.github.nivaca">
+    <name>Nicolas Vaughan</name>
+  </developer>
+  <description>
+    <p>
+      py-pdftools edits PDF documents. It brings together, in one window and one command line,
+      what four programs did apart: annotations, redaction, page labels with headers, footers,
+      watermarks and the order of the pages, and imposition for printing.
+    </p>
+    <p xml:lang="es">
+      py-pdftools edita documentos PDF. Reúne, en una sola ventana y una sola línea de órdenes, lo
+      que hacían por separado cuatro programas: las anotaciones, la censura, las etiquetas de página
+      con los encabezados, los pies de página, las marcas de agua y el orden de las páginas, y la
+      imposición para imprenta.
+    </p>
+    <ul>
+      <li>Annotate: highlights, notes, text boxes, shapes, drawings and stamps, as ordinary PDF annotations, with comments, replies and review statuses</li>
+      <li xml:lang="es">Anotar: resaltados, notas, cuadros de texto, formas, dibujos y sellos, como anotaciones PDF corrientes, con comentarios, respuestas y estados de revisión</li>
+      <li>Redact: boxes over text, areas, words and patterns found, and a redacted copy in which what is under them is removed for good, and checked</li>
+      <li xml:lang="es">Censurar: recuadros sobre texto, zonas, palabras y patrones encontrados, y una copia censurada en la que lo que hay debajo se elimina para siempre, y se comprueba</li>
+      <li>Pages: page labels (roman numbers, folios, prefixes), headers and footers with Bates numbers, watermarks, and pages moved, deleted, turned, inserted and extracted</li>
+      <li xml:lang="es">Páginas: etiquetas de página (números romanos, folios, prefijos), encabezados y pies con números Bates, marcas de agua, y páginas movidas, borradas, giradas, insertadas y extraídas</li>
+      <li>Impose: booklets, n-up, step and repeat, bleeds, crop marks, sequences and hot folders</li>
+      <li xml:lang="es">Imponer: folletos, n-up, paso y repetición, sangrados, marcas de corte, secuencias y carpetas vigiladas</li>
+      <li>Copies as PDF/A and PDF/X</li>
+      <li xml:lang="es">Copias como PDF/A y PDF/X</li>
+      <li>A window and a command line in English or Spanish</li>
+      <li xml:lang="es">Una ventana y una línea de órdenes en inglés o en español</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">py-pdftools.desktop</launchable>
+  <icon type="stock">py-pdftools</icon>
+  <categories>
+    <category>Office</category>
+    <category>Viewer</category>
+  </categories>
+  <keywords>
+    <keyword>annotation</keyword>
+    <keyword>redaction</keyword>
+    <keyword>page labels</keyword>
+    <keyword>imposition</keyword>
+    <keyword>PDF</keyword>
+    <keyword xml:lang="es">anotación</keyword>
+    <keyword xml:lang="es">censura</keyword>
+    <keyword xml:lang="es">imposición</keyword>
+  </keywords>
+  <url type="homepage">https://github.com/nivaca/py-pdftools</url>
+  <url type="bugtracker">https://github.com/nivaca/py-pdftools/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>A document annotated, in the mode Annotate</caption>
+      <image>https://raw.githubusercontent.com/nivaca/py-pdftools/main/docs/img/annotate_en.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Boxes over what is to be removed, in the mode Redact</caption>
+      <image>https://raw.githubusercontent.com/nivaca/py-pdftools/main/docs/img/redact_en.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>Page labels, in the mode Pages</caption>
+      <image>https://raw.githubusercontent.com/nivaca/py-pdftools/main/docs/img/pages_en.png</image>
+    </screenshot>
+    <screenshot>
+      <caption>A booklet, in the mode Impose</caption>
+      <image>https://raw.githubusercontent.com/nivaca/py-pdftools/main/docs/img/impose_en.png</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-11-19"/>
+  </releases>
+</component>
