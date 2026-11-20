@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        0.3.0
+Version:        0.4.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -99,6 +99,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Fri Nov 20 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.4.0-1
+- OCR with the tesseract program, into the document; the hints of the modes over
+  the pages
+
 * Fri Nov 20 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.3.0-1
 - Large documents: several rendering processes, a time limit per page,
   thumbnails only near view, deep zoom in tiles, working copies on disk
