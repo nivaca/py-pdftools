@@ -383,6 +383,16 @@ class StampDialog(QDialog):
         self._fill_profiles("")
         return True
 
+    def accept(self):
+        """OK: the settings checked again now (the preview that enabled OK runs a moment after a change, and
+        a change made just before may be wrong); if they are wrong, the dialog stays, and says why."""
+        self.timer.stop()
+        settings, _, problem = self.check()
+        if settings is None:
+            self.update_preview()
+            return
+        super().accept()
+
     def done(self, result: int):
         # The source PDF stays open while the dialog runs; it is closed here, whether the dialog is accepted or not.
         self.pdf.close()
@@ -395,7 +405,5 @@ def ask(dialog_class, parent, settings, source: Path, password: str, labels: lis
     dlg = dialog_class(parent, settings, source, password, labels, page, existing)
     if dlg.exec() != QDialog.DialogCode.Accepted:
         return None
-    # TODO: Apply is enabled by the last preview, which runs 150 ms after a change; a change made just before
-    # clicking it can make check() fail here and return (None, keep). Check again in accept() instead.
-    settings, _, _ = dlg.check()
+    settings, _, _ = dlg.check()  # (right: accept() checked them)
     return settings, dlg.keep.isChecked()

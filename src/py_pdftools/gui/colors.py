@@ -11,8 +11,6 @@ from ..core.interface import tr
 # Estado del módulo: la ventana lo cambia con set_palette al leer o cambiar los ajustes.
 _palette: list[tuple[str, str | None]] = [(c, None) for c, _, _ in settings.PALETTE]
 _NAMES = {c: name for c, name, _ in settings.PALETTE}
-# _MEANINGS is not read anywhere at present: meaning() goes to settings.PALETTE itself.
-_MEANINGS = {i: meaning for i, (_, _, meaning) in enumerate(settings.PALETTE)}
 
 
 def set_palette(palette) -> None:

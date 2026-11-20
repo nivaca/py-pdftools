@@ -31,7 +31,8 @@ def store(settings: QSettings, strokes: Strokes) -> None:
 
 
 def normalized(strokes: Strokes) -> Strokes:
-    """STROKES moved to (0, 0) and scaled to a width of 1 (their height in proportion)."""
+    """STROKES moved to (0, 0) and scaled so that the larger of their width and height is 1 (the other
+    in proportion)."""
     points = [p for stroke in strokes for p in stroke]
     if not points:
         return []

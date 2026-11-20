@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 import re
-import shlex
 
 from PySide6.QtCore import QSize, Qt, Signal
 from PySide6.QtGui import QColor, QIcon, QPainter, QPainterPath, QPen, QPixmap
@@ -686,11 +685,6 @@ class BasicPanel(QWidget):
         if i >= 0:
             self.profile.setCurrentIndex(i)
         self._profile_buttons()
-
-
-# Unused leftover of py-imposition: the window shows its own command line (see Workspace._form_changed).
-def shell_line(tokens: list[str]) -> str:
-    return "py-imposition " + shlex.join(tokens)
 
 
 __all__ = ["BasicPanel", "Qt"]

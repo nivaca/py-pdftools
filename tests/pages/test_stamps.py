@@ -273,6 +273,13 @@ def test_window_dialogs(book, tmp_path, monkeypatch):
     settings, pages, problem = dlg.check()
     assert problem == "" and settings.source == str(EXAMPLE) and settings.text == "" and settings.scale == 40
     dlg.reject()
+    # (a wrong setting typed just before OK, before the preview runs: the dialog stays, and says why)
+    dlg = WatermarkDialog(None, Watermark(text="DRAFT"), book, "", None, 3)
+    dlg.update_preview()
+    dlg.pages.setText("nonsense")
+    dlg.accept()
+    assert dlg.result() == 0 and dlg.problem.text()  # (accepted, it would be 1)
+    dlg.reject()
     batch = BatchDialog(None, [book], tmp_path)
     other = tmp_path / "other.pdf"
     shutil.copyfile(EXAMPLE, other)
