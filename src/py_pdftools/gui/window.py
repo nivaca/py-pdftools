@@ -35,6 +35,7 @@ from .canvas import PageCanvas, page_image
 from .colors import color_name, colors_menu, swatch, swatches
 from .files import FilesMixin, ask_save
 from .hint import HintOverlay
+from .ocring import OcrMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
@@ -152,7 +153,7 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -438,6 +439,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         m.addSeparator()
         self.a_select_all = self._action(m, tr("Select the annotations of this page"), self.select_page,
                                          QKeySequence.StandardKey.SelectAll)
+        m.addSeparator()
+        # El OCR cambia el documento mismo (como las etiquetas): va en Editar, y se deshace como lo demás.
+        self.a_recognise = self._action(m, tr("Recognise text (OCR)…"), self.recognise_dialog, "Ctrl+Shift+O",
+                                        tip=tr("Read the text of scanned pages with tesseract and write it into "
+                                               "the document, invisible, under their pictures: it can then be "
+                                               "found, copied and marked"))
         self.a_select_kind = self._action(m, tr("Select those of the same kind on this page"), self.select_kind)
         self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
         self.m_align = m.addMenu(tr("Align"))
@@ -2669,6 +2676,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         from ..annotate import ocr
 
         self.a_ocr.setEnabled(has and ocr.available())
+        self.a_recognise.setEnabled(has and ocr.available())
         self.a_ocr.setToolTip(self.a_ocr.toolTip() if ocr.available() else tr("Needs Tesseract: install it"))
         for act in self.standard_actions.values():
             act.setEnabled(has and self._have_conform)

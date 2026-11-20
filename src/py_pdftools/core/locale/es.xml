@@ -9145,4 +9145,108 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{name} could not be downloaded: {error}</en>
     <tr>no se pudo descargar {name}: {error}</tr>
   </text>
+  <text>
+    <en>As read; correct it, or empty it to leave the word out</en>
+    <tr>Tal como se leyó; corríjala, o vacíela para dejar fuera la palabra</tr>
+  </text>
+  <text>
+    <en>As tesseract names them; several with +, the main one first: lat+spa. Better models can be downloaded in the settings.</en>
+    <tr>Como los nombra tesseract; varios con +, el principal primero: lat+spa. En la configuración se pueden descargar modelos mejores.</tr>
+  </text>
+  <text>
+    <en>Check the doubtful words before the text is written</en>
+    <tr>Revisar las palabras dudosas antes de escribir el texto</tr>
+  </text>
+  <text>
+    <en>Doubtful words</en>
+    <tr>Palabras dudosas</tr>
+  </text>
+  <text>
+    <en>Languages:</en>
+    <tr>Idiomas:</tr>
+  </text>
+  <text>
+    <en>Needs tesseract's orientation model (osd): download it in the settings</en>
+    <tr>Necesita el modelo de orientación de tesseract (osd): descárguelo en la configuración</tr>
+  </text>
+  <text>
+    <en>No page of those chosen is a scan without text</en>
+    <tr>Ninguna de las páginas elegidas es un escaneo sin texto</tr>
+  </text>
+  <text>
+    <en>Nothing was written</en>
+    <tr>No se escribió nada</tr>
+  </text>
+  <text>
+    <en>Pages that already have text are left as they are.</en>
+    <tr>Las páginas que ya tienen texto se dejan como están.</tr>
+  </text>
+  <text>
+    <en>Read the text of scanned pages with tesseract and write it into the document, invisible, under their pictures: it can then be found, copied and marked</en>
+    <tr>Leer con tesseract el texto de las páginas escaneadas y escribirlo en el documento, invisible, bajo sus imágenes: así se puede buscar, copiar y marcar</tr>
+  </text>
+  <text>
+    <en>Reading the scanned pages: {done} of {of}…</en>
+    <tr>Leyendo las páginas escaneadas: {done} de {of}…</tr>
+  </text>
+  <text>
+    <en>Recognise text (OCR)</en>
+    <tr>Reconocer el texto (OCR)</tr>
+  </text>
+  <text>
+    <en>Recognise text (OCR)…</en>
+    <tr>Reconocer el texto (OCR)…</tr>
+  </text>
+  <text>
+    <en>Tesseract was not sure of {count} word. Correct it if it is wrong; the confidence is beside it.</en>
+    <tr>Tesseract no estaba seguro de {count} palabra. Corríjala si está mal; a su lado está la confianza.</tr>
+  </text>
+  <text>
+    <en>Tesseract was not sure of {count} words. Correct those that are wrong; the confidence is beside each.</en>
+    <tr>Tesseract no estaba seguro de {count} palabras. Corrija las que estén mal; al lado de cada una está la confianza.</tr>
+  </text>
+  <text>
+    <en>Text recognised on {count} page</en>
+    <tr>Texto reconocido en {count} página</tr>
+  </text>
+  <text>
+    <en>Text recognised on {count} pages</en>
+    <tr>Texto reconocido en {count} páginas</tr>
+  </text>
+  <text>
+    <en>The page selected in the list of pages ({count})</en>
+    <tr>La página elegida en la lista de páginas ({count})</tr>
+  </text>
+  <text>
+    <en>The page shown ({page})</en>
+    <tr>La página a la vista ({page})</tr>
+  </text>
+  <text>
+    <en>The pages selected in the list of pages ({count})</en>
+    <tr>Las páginas elegidas en la lista de páginas ({count})</tr>
+  </text>
+  <text>
+    <en>The scanned page ({count})</en>
+    <tr>La página escaneada ({count})</tr>
+  </text>
+  <text>
+    <en>The scanned pages ({count})</en>
+    <tr>Las páginas escaneadas ({count})</tr>
+  </text>
+  <text>
+    <en>Turn the pages lying sideways or upside down</en>
+    <tr>Girar las páginas que estén de lado o al revés</tr>
+  </text>
+  <text>
+    <en>Write the text</en>
+    <tr>Escribir el texto</tr>
+  </text>
+  <text>
+    <en>{count} page turned</en>
+    <tr>{count} página girada</tr>
+  </text>
+  <text>
+    <en>{count} pages turned</en>
+    <tr>{count} páginas giradas</tr>
+  </text>
 </interface>

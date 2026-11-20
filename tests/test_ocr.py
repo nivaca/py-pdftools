@@ -130,3 +130,84 @@ def test_download(own, monkeypatch):
     assert not (own / "nope.part").exists() and not (own / "nope.traineddata").exists()
     with pytest.raises(ocr.OcrError):
         ocr.download(["../x"])
+
+
+@pytest.fixture
+def window(tmp_path, monkeypatch):
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui.window import MainWindow
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    yield w
+    w.annotations = w.saved = []
+    w.drop_work()
+    w.close()
+
+
+@needs_tesseract
+def test_text_recognised_into_the_document(window, tmp_path):
+    """The text read goes into the document as a change of it: undone and redone like the others, and
+    corrected where the review said so."""
+    path = scan(tmp_path / "scan.pdf", pages=2)
+    assert window.open_path(path)
+    results = window.recognise([0, 1], "eng")
+    assert [r.number for r in results] == [0, 1]
+    first = results[0].words[0].text
+    assert window.write_recognised(results, {0: {0: "CORRECTED"}})
+    assert window.work is not None and "CORRECTED" in window.doc[0].get_text() and "zebras" in window.doc[1].get_text()
+    assert first not in window.doc[0].get_text().split()[:1]
+    window.undo()
+    assert window.doc[0].get_text().strip() == ""
+    window.redo()
+    assert "zebras" in window.doc[0].get_text()
+    # (read again: those pages have text now, and are left out)
+    assert window.recognise([0, 1], "eng") is None
+
+
+@needs_tesseract
+def test_the_dialogs(window, tmp_path, monkeypatch):
+    from PySide6.QtWidgets import QDialog
+
+    from py_pdftools.gui import ocr_dialog
+
+    path = scan(tmp_path / "scan.pdf", pages=3)
+    assert window.open_path(path)
+    dialog = ocr_dialog.OcrDialog(window, 3, [0, 1, 2], [], 1, "eng")
+    assert dialog.all.isChecked() and not dialog.chosen.isEnabled() and dialog.page_list() == [0, 1, 2]
+    dialog.pages.setText("2-")
+    dialog.listed.setChecked(True)
+    assert dialog.page_list() == [1, 2]
+    dialog.pages.setText("9")
+    dialog.accept()
+    assert dialog.result() == 0 and "out of range" in dialog.problem.text()
+    dialog.pages.setText("1")
+    dialog.language.setCurrentText("klingon")
+    dialog.accept()
+    assert dialog.result() == 0 and "klingon" in dialog.problem.text()
+    dialog.reject()
+
+    # (the whole of it: pages 1 and 3, everything doubtful, one word corrected in the review)
+    def ask(self):
+        self.listed.setChecked(True)
+        self.pages.setText("1, 3")
+        return QDialog.DialogCode.Accepted
+
+    def review(self):
+        assert self.fields and all(page in (0, 2) for page, *_ in self.fields)
+        self.fields[0][3].setText("FIXED")
+        return QDialog.DialogCode.Accepted
+
+    monkeypatch.setattr(ocr_dialog.OcrDialog, "exec", ask)
+    monkeypatch.setattr(ocr_dialog.ReviewDialog, "exec", review)
+    monkeypatch.setattr(ocr, "DOUBTFUL", 101)
+    monkeypatch.setattr(ocr.PageResult, "doubtful", lambda self, below=101: list(self.words))
+    real = ocr_dialog.ReviewDialog.__init__
+    monkeypatch.setattr(ocr_dialog.ReviewDialog, "__init__", lambda self, parent, results, below=101:
+                        real(self, parent, results, 101))
+    assert window.recognise_dialog()
+    assert window.doc[0].get_text().split()[0] == "FIXED" and window.doc[1].get_text().strip() == ""
+    assert "zebras" in window.doc[2].get_text()
