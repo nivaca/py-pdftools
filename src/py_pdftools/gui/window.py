@@ -17,7 +17,7 @@ from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QKeySequ
 from PySide6.QtWidgets import (
     QApplication, QColorDialog, QDialog, QDockWidget, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit,
     QListView, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox, QSlider, QSpinBox, QSplitter,
-    QToolBar, QToolButton, QVBoxLayout, QWidget,
+    QStackedWidget, QToolBar, QToolButton, QVBoxLayout, QWidget,
 )
 
 from .. import __version__
@@ -34,6 +34,7 @@ from . import colors
 from .canvas import PageCanvas, page_image
 from .colors import color_name, swatch, swatches
 from .files import FilesMixin
+from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
 from .working import DocState, WorkingMixin
@@ -135,7 +136,7 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -294,7 +295,9 @@ class MainWindow(PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow)
         self.splitter.setStretchFactor(0, 0)
         self.splitter.setStretchFactor(1, 1)
         self.splitter.setSizes([150, 800])
-        self.setCentralWidget(self.splitter)
+        self.central = QStackedWidget()  # (the pages; or, in the mode Impose, its workspace)
+        self.central.addWidget(self.splitter)
+        self.setCentralWidget(self.central)
         # the list of the annotations, with their authors, and the one selected: a panel on the right that
         # can be hidden (View, or its close button), moved to the left, or taken out of the window
         self.panel = QDockWidget(tr("Annotations"), self)
@@ -559,6 +562,7 @@ class MainWindow(PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow)
         }
         self.modes["redact"] = self._build_redact()
         self.modes["pages"] = self._build_pages()
+        self.modes["impose"] = self._build_impose()
         self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
@@ -676,6 +680,7 @@ class MainWindow(PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow)
         if self.finder is not None:
             self.finder.close()
         self.drop_work()
+        self.workspace.close_down()
         self.save_settings()
         super().closeEvent(event)
 

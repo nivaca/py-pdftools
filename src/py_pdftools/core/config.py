@@ -21,7 +21,7 @@ import tomllib
 from pathlib import Path
 
 ENV = "PY_PDFTOOLS_CONFIG"
-SETTINGS = {"interface": "en", "pdfconform": ""}  # name: default
+SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False}  # name: default (show_document: Impose)
 
 
 class ConfigError(Exception):

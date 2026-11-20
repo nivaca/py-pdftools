@@ -110,6 +110,31 @@ class WorkingMixin:
             self.status(message)
         return True
 
+    def adopt_file(self, file: Path, message: str = "") -> bool:
+        """Make the PDF FILE the document (the result of an imposition, applied), as a step of the history.
+        Its annotations are those FILE has."""
+        if self.path is None:
+            return False
+        before = DocState(self.work, tuple(self.annotations), self.page)
+        target = self._new_work()
+        try:
+            target.write_bytes(file.read_bytes())
+        except OSError as e:
+            self.status(str(e), error=True)
+            return False
+        found = self._load_work(target, 0)
+        if found is None:
+            return False
+        self.undo_stack.append(before)
+        self.redo_stack.clear()
+        self.annotations = found
+        self.selected = []
+        self.document_changed()
+        self.refresh()
+        if message:
+            self.status(message)
+        return True
+
     def _state(self) -> DocState:
         return DocState(self.work, tuple(self.annotations), self.page)
 
@@ -128,3 +153,5 @@ class WorkingMixin:
 
     def document_changed(self):
         """(After a change of the document itself: what the modes keep of it is read again.)"""
+        if hasattr(self, "workspace"):
+            self.impose_document_changed()

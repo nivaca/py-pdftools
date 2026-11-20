@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pikepdf
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QColor, QIcon, QImage, QPainter, QPixmap
+from PySide6.QtGui import QColor, QIcon, QImage, QPixmap
 from PySide6.QtWidgets import (
     QCheckBox, QColorDialog, QComboBox, QDialog, QDialogButtonBox, QFormLayout, QGridLayout, QGroupBox,
     QHBoxLayout, QInputDialog, QLabel, QLineEdit, QMessageBox, QPushButton, QRadioButton, QSpinBox, QVBoxLayout,
@@ -80,7 +80,6 @@ class StampDialog(QDialog):
         self.doc = stamps.document_of(self.pdf, source, labels)
         self.now = datetime.now()
         self._loading = False
-        self._buffer: QBuffer | None = None
         self.timer = QTimer(self, singleShot=True, interval=150)
         self.timer.timeout.connect(self.update_preview)
         self.target: TextTarget | None = None

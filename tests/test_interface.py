@@ -97,8 +97,6 @@ def test_every_text_is_translated():
         assert sorted(needed - translated) == [], f"{code}: not translated"
 
 
-@pytest.mark.skip(reason="the texts of the windows of py-redact, py-foliation and py-imposition are used again "
-                         "as the modes Redact, Pages and Impose are made (stages 5-7)")
 def test_every_translation_is_used():
     needed = program_texts()
     for code, path in interface.files().items():

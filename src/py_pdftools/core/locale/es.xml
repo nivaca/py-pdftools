@@ -2472,14 +2472,6 @@
     <tr>Siguiente</tr>
   </text>
   <text>
-    <en>Drawn on page {page}, repeated on: {pages}</en>
-    <tr>Dibujado en la página {page}, repetido en: {pages}</tr>
-  </text>
-  <text>
-    <en>Only on this page</en>
-    <tr>Solo en esta página</tr>
-  </text>
-  <text>
     <en>Grey</en>
     <tr>Gris</tr>
   </text>
@@ -2500,16 +2492,8 @@
     <tr>Estas páginas:</tr>
   </text>
   <text>
-    <en>The pages; the number after ● is how many boxes a page has</en>
-    <tr>Las páginas; el número después de ● es cuántos recuadros tiene cada una</tr>
-  </text>
-  <text>
     <en>Show the result</en>
     <tr>Mostrar el resultado</tr>
-  </text>
-  <text>
-    <en>The page as it will be in the redacted copy (the boxes can't be changed while it is shown)</en>
-    <tr>La página tal como quedará en la copia censurada (mientras se muestra, los recuadros no se pueden cambiar)</tr>
   </text>
   <text>
     <en>Drag over text to mark it, or elsewhere to draw a box (Ctrl+drag: always a box); double-click a word or an image to mark it. Drag a box to move or resize it; double-click it for its properties, right-click it for more.</en>
@@ -2540,30 +2524,6 @@
     <tr>Quitar también lo que el documento guarda además de sus páginas: el título, el autor y otros metadatos, el texto que no se ve, los archivos adjuntos, el JavaScript y los enlaces</tr>
   </text>
   <text>
-    <en>Delete the selected boxes</en>
-    <tr>Borrar los recuadros seleccionados</tr>
-  </text>
-  <text>
-    <en>Select the boxes of this page</en>
-    <tr>Seleccionar los recuadros de esta página</tr>
-  </text>
-  <text>
-    <en>Delete the boxes drawn on this page</en>
-    <tr>Borrar los recuadros dibujados en esta página</tr>
-  </text>
-  <text>
-    <en>Delete all the boxes</en>
-    <tr>Borrar todos los recuadros</tr>
-  </text>
-  <text>
-    <en>Opened {path} ({count} page)</en>
-    <tr>Se abrió {path} ({count} página)</tr>
-  </text>
-  <text>
-    <en>Opened {path} ({count} pages)</en>
-    <tr>Se abrió {path} ({count} páginas)</tr>
-  </text>
-  <text>
     <en>Save the redacted copy</en>
     <tr>Guardar la copia censurada</tr>
   </text>
@@ -2584,18 +2544,6 @@
     <tr>Su página</tr>
   </text>
   <text>
-    <en>Unsaved boxes</en>
-    <tr>Recuadros sin guardar</tr>
-  </text>
-  <text>
-    <en>The boxes haven't been applied to a redacted copy. Save one before going on?</en>
-    <tr>Los recuadros no se han aplicado a ninguna copia censurada. ¿Guardar una antes de seguir?</tr>
-  </text>
-  <text>
-    <en>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Redacts PDF documents: what lies under the boxes drawn on their pages is removed for good, and the boxes are filled with a colour.&lt;/p&gt;&lt;p&gt;By {author}.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License, version 3 or later.&lt;/p&gt;</en>
-    <tr>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Censura documentos PDF: lo que hay debajo de los recuadros dibujados en sus páginas se elimina definitivamente, y los recuadros se rellenan con un color.&lt;/p&gt;&lt;p&gt;Por {author}.&lt;/p&gt;&lt;p&gt;Bajo la Licencia Pública General de GNU, versión 3 o posterior.&lt;/p&gt;</tr>
-  </text>
-  <text>
     <en>Goes on</en>
     <tr>Va en</tr>
   </text>
@@ -2610,22 +2558,6 @@
   <text>
     <en>{width} × {height} mm, {left} mm from the left and {top} mm from the top</en>
     <tr>{width} × {height} mm, a {left} mm de la izquierda y {top} mm de arriba</tr>
-  </text>
-  <text>
-    <en>Replace the original</en>
-    <tr>Reemplazar el original</tr>
-  </text>
-  <text>
-    <en>The redacted copy will take the place of {name}, and what is under the boxes will be lost for good. Go on?</en>
-    <tr>La copia censurada ocupará el lugar de {name}, y lo que hay debajo de los recuadros se perderá definitivamente. ¿Seguir?</tr>
-  </text>
-  <text>
-    <en>Delete the {count} box of the document?</en>
-    <tr>¿Borrar el {count} recuadro del documento?</tr>
-  </text>
-  <text>
-    <en>Delete the {count} boxes of the document?</en>
-    <tr>¿Borrar los {count} recuadros del documento?</tr>
   </text>
   <text>
     <en>Boxes</en>
@@ -2666,10 +2598,6 @@
   <text>
     <en>Delete the {count} boxes</en>
     <tr>Borrar los {count} recuadros</tr>
-  </text>
-  <text>
-    <en>Draw boxes</en>
-    <tr>Dibujar recuadros</tr>
   </text>
   <text>
     <en>Drawings under a box:</en>
@@ -2742,14 +2670,6 @@
   <text>
     <en>Box drawn on page {page} — {pages}</en>
     <tr>Recuadro dibujado en la página {page} — {pages}</tr>
-  </text>
-  <text>
-    <en>Delete the selected box</en>
-    <tr>Borrar el recuadro seleccionado</tr>
-  </text>
-  <text>
-    <en>Delete the {count} selected boxes</en>
-    <tr>Borrar los {count} recuadros seleccionados</tr>
   </text>
   <text>
     <en>Find a text, or a regular expression, on some or all pages, and put boxes over it</en>
@@ -2874,14 +2794,6 @@
     <tr>Comprobar la copia censurada</tr>
   </text>
   <text>
-    <en>Dragging moves the page in the window</en>
-    <tr>Arrastrar mueve la página en la ventana</tr>
-  </text>
-  <text>
-    <en>Dragging on the page always draws a box, even over text</en>
-    <tr>Arrastrar sobre la página siempre dibuja un recuadro, aun sobre el texto</tr>
-  </text>
-  <text>
     <en>Locked: can't be moved, resized or deleted</en>
     <tr>Bloqueado: no se puede mover, redimensionar ni borrar</tr>
   </text>
@@ -2968,14 +2880,6 @@
   <text>
     <en>checked: nothing under the boxes can be read</en>
     <tr>comprobado: no se puede leer nada debajo de los recuadros</tr>
-  </text>
-  <text>
-    <en>{count} box is locked, and was kept</en>
-    <tr>{count} recuadro está bloqueado y se conservó</tr>
-  </text>
-  <text>
-    <en>{count} boxes are locked, and were kept</en>
-    <tr>{count} recuadros están bloqueados y se conservaron</tr>
   </text>
   <text>
     <en>(found when the copy is written)</en>
@@ -3328,10 +3232,6 @@
   <text>
     <en>The redacted copy was saved as a plain PDF: {command} is not installed (or not where Settings say)</en>
     <tr>La copia censurada se guardó como PDF corriente: {command} no está instalado (o no está donde dice la Configuración)</tr>
-  </text>
-  <text>
-    <en>Write a copy of the document with what is under the boxes removed, as a plain PDF (File &gt; Save as: PDF/A or PDF/X)</en>
-    <tr>Escribir una copia del documento sin lo que hay debajo de los recuadros, como PDF corriente (Archivo &gt; Guardar como: PDF/A o PDF/X)</tr>
   </text>
   <text>
     <en>A bookmark of {name} may give away what was redacted:</en>
@@ -3704,10 +3604,6 @@ siguiente.</tr>
     <tr>error: {error}</tr>
   </text>
   <text>
-    <en>The window needs PySide6. Install it with: pip install 'py-pdftools[gui]'</en>
-    <tr>La ventana necesita PySide6. Instálelo con: pip install 'py-pdftools[gui]'</tr>
-  </text>
-  <text>
     <en>Add a range</en>
     <tr>Añadir un intervalo</tr>
   </text>
@@ -3736,36 +3632,12 @@ siguiente.</tr>
     <tr>La orden que da estas etiquetas a un archivo</tr>
   </text>
   <text>
-    <en>Give the file open these page labels</en>
-    <tr>Dar estas etiquetas de página al archivo abierto</tr>
-  </text>
-  <text>
-    <en>Save a copy of the file with these page labels</en>
-    <tr>Guardar una copia del archivo con estas etiquetas de página</tr>
-  </text>
-  <text>
-    <en>Revert to the labels of the file</en>
-    <tr>Volver a las etiquetas del archivo</tr>
-  </text>
-  <text>
-    <en>Page {page} of {count} — label: {label}</en>
-    <tr>Página {page} de {count} — etiqueta: {label}</tr>
-  </text>
-  <text>
     <en>Unsaved changes</en>
     <tr>Cambios sin guardar</tr>
   </text>
   <text>
-    <en>The new page labels haven't been saved. Save them before going on?</en>
-    <tr>Las nuevas etiquetas de página no se han guardado. ¿Guardarlas antes de seguir?</tr>
-  </text>
-  <text>
     <en>Command line copied</en>
     <tr>Línea de órdenes copiada</tr>
-  </text>
-  <text>
-    <en>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Changes the page labels of PDF documents: the numbering a PDF viewer shows for their pages.&lt;/p&gt;&lt;p&gt;By {author}.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License, version 3 or later.&lt;/p&gt;</en>
-    <tr>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Cambia las etiquetas de página de documentos PDF: la numeración que un visor de PDF muestra para sus páginas.&lt;/p&gt;&lt;p&gt;Por {author}.&lt;/p&gt;&lt;p&gt;Con licencia GNU General Public License, versión 3 o posterior.&lt;/p&gt;</tr>
   </text>
   <text>
     <en>From page</en>
@@ -3818,10 +3690,6 @@ siguiente.</tr>
   <text>
     <en>Text put before the number of each page</en>
     <tr>Texto que se pone antes del número de cada página</tr>
-  </text>
-  <text>
-    <en>Open a PDF (File ▸ Open, or drop a file on the window)</en>
-    <tr>Abra un PDF (Archivo ▸ Abrir, o suelte un archivo en la ventana)</tr>
   </text>
   <text>
     <en>page {page} of the file: {label}</en>
@@ -4080,70 +3948,6 @@ siguiente.</tr>
     <tr>los argumentos mutuamente excluyentes deben ser opcionales</tr>
   </text>
   <text>
-    <en>Add the py-pdftools window to the applications menu, or remove it. Everything goes in your own folders; no administrator rights are needed.</en>
-    <tr>Añadir la ventana de py-pdftools al menú de aplicaciones, o quitarla. Todo va en sus propias carpetas; no se necesitan permisos de administrador.</tr>
-  </text>
-  <text>
-    <en>Added py-pdftools to {where}:</en>
-    <tr>Se añadió py-pdftools a {where}:</tr>
-  </text>
-  <text>
-    <en>Applications (in your home folder)</en>
-    <tr>Aplicaciones (en su carpeta personal)</tr>
-  </text>
-  <text>
-    <en>Change the page labels of PDF documents: the numbering a viewer shows</en>
-    <tr>Cambiar las etiquetas de página de documentos PDF: la numeración que muestra un visor</tr>
-  </text>
-  <text>
-    <en>If that Python environment moves or is rebuilt, run this again.</en>
-    <tr>Si ese entorno de Python se mueve o se reconstruye, vuelva a ejecutar esto.</tr>
-  </text>
-  <text>
-    <en>It starts the window with:</en>
-    <tr>Inicia la ventana con:</tr>
-  </text>
-  <text>
-    <en>Removed py-pdftools from {where}.</en>
-    <tr>Se quitó py-pdftools de {where}.</tr>
-  </text>
-  <text>
-    <en>There was nothing to remove.</en>
-    <tr>No había nada que quitar.</tr>
-  </text>
-  <text>
-    <en>could not make the shortcut {path}: {output}</en>
-    <tr>no se pudo crear el acceso directo {path}: {output}</tr>
-  </text>
-  <text>
-    <en>py-pdftools-install: {error}</en>
-    <tr>py-pdftools-install: {error}</tr>
-  </text>
-  <text>
-    <en>remove what was added</en>
-    <tr>quitar lo que se añadió</tr>
-  </text>
-  <text>
-    <en>the Start menu</en>
-    <tr>el menú Inicio</tr>
-  </text>
-  <text>
-    <en>the applications menu</en>
-    <tr>el menú de aplicaciones</tr>
-  </text>
-  <text>
-    <en>the window needs PySide6, which is not installed for {executable}; install py-pdftools with the gui extra: pip install 'py-pdftools[gui]' (or uv tool install 'py-pdftools[gui]')</en>
-    <tr>la ventana necesita PySide6, que no está instalado para {executable}; instale py-pdftools con el extra gui: pip install 'py-pdftools[gui]' (o uv tool install 'py-pdftools[gui]')</tr>
-  </text>
-  <text>
-    <en>{app} exists and was not made by py-pdftools-install; move it away first</en>
-    <tr>{app} existe y no lo creó py-pdftools-install; muévalo antes a otro lugar</tr>
-  </text>
-  <text>
-    <en>(it has {count} pages)</en>
-    <tr>(tiene {count} páginas)</tr>
-  </text>
-  <text>
     <en>--from-file takes the labels of all the pages, one on each line (as 'show --all' writes them, with or without the page numbers; - is the standard input), and finds the fewest ranges that give them.</en>
     <tr>--from-file toma las etiquetas de todas las páginas, una en cada línea
 (como las escribe 'show --all', con o sin los números de página; - es la
@@ -4252,10 +4056,6 @@ cuando lee el archivo.</tr>
   <text>
     <en>PASSWORD</en>
     <tr>CONTRASEÑA</tr>
-  </text>
-  <text>
-    <en>Page {page}, labelled {label}</en>
-    <tr>Página {page}, con la etiqueta {label}</tr>
   </text>
   <text>
     <en>Print the script that completes py-pdftools's commands, options and files in SHELL. For instance: py-pdftools completion fish &gt; ~/.config/fish/completions/py-pdftools.fish</en>
@@ -4770,10 +4570,6 @@ $pagelabel de $totalpages' --header-right '$date' --pages 9- -i</tr>
   <text>
     <en>Header and footer</en>
     <tr>Encabezado y pie de página</tr>
-  </text>
-  <text>
-    <en>Header and footer added (they are written when the file is saved)</en>
-    <tr>Encabezado y pie añadidos (se escriben al guardar el archivo)</tr>
   </text>
   <text>
     <en>Header and footer on these pages…</en>
@@ -5667,10 +5463,6 @@ los visores que siguen esas indicaciones.</tr>
     <tr>Quitar solo los encabezados y pies con números Bates</tr>
   </text>
   <text>
-    <en>Taken away (when the file is saved)</en>
-    <tr>Quitados (al guardar el archivo)</tr>
-  </text>
-  <text>
     <en>The Bates numbers go on from one file to the next, in this order</en>
     <tr>Los números Bates siguen de un archivo al siguiente, en este orden</tr>
   </text>
@@ -5693,10 +5485,6 @@ los visores que siguen esas indicaciones.</tr>
   <text>
     <en>Update…</en>
     <tr>Actualizar…</tr>
-  </text>
-  <text>
-    <en>Watermark added (it is written when the file is saved)</en>
-    <tr>Marca de agua añadida (se escribe al guardar el archivo)</tr>
   </text>
   <text>
     <en>Watermark on these pages…</en>
@@ -5947,36 +5735,12 @@ los visores que siguen esas indicaciones.</tr>
     <tr>{what}, en {count} páginas: {pages}</tr>
   </text>
   <text>
-    <en>A copy as {standard} can't take the place of the file open; choose another name</en>
-    <tr>Una copia en {standard} no puede reemplazar el archivo abierto; elija otro nombre</tr>
-  </text>
-  <text>
     <en>PDF/A and PDF/X are made by pdf2iso</en>
     <tr>Los PDF/A y PDF/X los hace pdf2iso</tr>
   </text>
   <text>
     <en>STANDARD</en>
     <tr>NORMA</tr>
-  </text>
-  <text>
-    <en>The copy was saved as a plain PDF, but it could not be made {standard}:
-
-{error}</en>
-    <tr>La copia se guardó como PDF corriente, pero no se pudo convertir en {standard}:
-
-{error}</tr>
-  </text>
-  <text>
-    <en>Where pdf2iso is, which makes PDF/A and PDF/X</en>
-    <tr>Dónde está pdf2iso, que hace los PDF/A y PDF/X</tr>
-  </text>
-  <text>
-    <en>pdf2iso</en>
-    <tr>pdf2iso</tr>
-  </text>
-  <text>
-    <en>pdf2iso…</en>
-    <tr>pdf2iso…</tr>
   </text>
   <text>
     <en>save the PDFs as PDF/A or PDF/X: a-1b, a-2b, a-3b (archiving) or x-4 (printing), made by pdf2iso, which must be installed</en>
@@ -5993,14 +5757,6 @@ los visores que siguen esas indicaciones.</tr>
   <text>
     <en>{standard} can't be made: {command} is not installed (or not on the PATH, in ~/bin or in ~/.local/bin, or where the setting pdfconform says)</en>
     <tr>no se puede hacer {standard}: {command} no está instalado (o no está en el PATH, en ~/bin ni en ~/.local/bin, ni donde dice el ajuste pdfconform)</tr>
-  </text>
-  <text>
-    <en>{standard} can't be made: {command} is not installed (or not where Settings say)</en>
-    <tr>No se puede hacer {standard}: {command} no está instalado (o no está donde dicen los Ajustes)</tr>
-  </text>
-  <text>
-    <en>(written when the file is saved)</en>
-    <tr>(se escribe al guardar el archivo)</tr>
   </text>
   <text>
     <en>--duplicate takes PAGES and, if wished, WHERE</en>
@@ -6074,10 +5830,6 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
   <text>
     <en>Do so from now on (Pages ▸ The labels, to change it)</en>
     <tr>Hacerlo así de ahora en adelante (Páginas ▸ Las etiquetas, para cambiarlo)</tr>
-  </text>
-  <text>
-    <en>Double-click a page to start a range at it; select pages (Shift, Ctrl) and right-click them for more; drag them to move them (with Ctrl, to copy them), or drop PDFs to insert their pages</en>
-    <tr>Doble clic en una página para empezar un intervalo en ella; seleccione páginas (Mayús, Ctrl) y haga clic derecho en ellas para más; arrástrelas para moverlas (con Ctrl, para copiarlas), o suelte PDF para insertar sus páginas</tr>
   </text>
   <text>
     <en>Duplicate pages</en>
@@ -6506,30 +6258,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>insertar CUÁNTAS páginas en blanco (por defecto: 1) antes de la página DÓNDE, del tamaño de la página anterior (al principio, de la primera página)</tr>
   </text>
   <text>
-    <en>Thumbnails</en>
-    <tr>Miniaturas</tr>
-  </text>
-  <text>
-    <en>A panel with the pages as thumbnails, of the size you choose</en>
-    <tr>Un panel con las páginas en miniatura, del tamaño que elija</tr>
-  </text>
-  <text>
-    <en>Click a page to show it; select pages (Shift, Ctrl) and right-click them for more; drag them to move them (with Ctrl, to copy them); Ctrl and the mouse wheel change the size</en>
-    <tr>Haga clic en una página para mostrarla; seleccione páginas (Mayús, Ctrl) y haga clic derecho en ellas para más; arrástrelas para moverlas (con Ctrl, para copiarlas); Ctrl y la rueda del ratón cambian el tamaño</tr>
-  </text>
-  <text>
-    <en>The size of the thumbnails (Ctrl and the mouse wheel, too)</en>
-    <tr>El tamaño de las miniaturas (también con Ctrl y la rueda del ratón)</tr>
-  </text>
-  <text>
-    <en>List of pages</en>
-    <tr>Lista de páginas</tr>
-  </text>
-  <text>
-    <en>The list of the pages and their labels, under the ranges</en>
-    <tr>La lista de las páginas y sus etiquetas, debajo de los intervalos</tr>
-  </text>
-  <text>
     <en>Rotate 90° counterclockwise</en>
     <tr>Girar 90° en sentido antihorario</tr>
   </text>
@@ -6752,10 +6480,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>invalid position {pos!r}</en>
     <tr>posición no válida {pos!r}</tr>
-  </text>
-  <text>
-    <en>The GUI needs PySide6. Install it with: pip install 'py-pdftools[gui]'</en>
-    <tr>La interfaz gráfica necesita PySide6. Instálela con: pip install 'py-pdftools[gui]'</tr>
   </text>
   <text>
     <en>All files (*)</en>
@@ -7030,14 +6754,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Mensajes</tr>
   </text>
   <text>
-    <en>&amp;Run</en>
-    <tr>&amp;Ejecutar</tr>
-  </text>
-  <text>
-    <en>Language of the interface</en>
-    <tr>Idioma de la interfaz</tr>
-  </text>
-  <text>
     <en>Stopped</en>
     <tr>Detenido</tr>
   </text>
@@ -7052,18 +6768,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{count} commands applied</en>
     <tr>{count} órdenes aplicadas</tr>
-  </text>
-  <text>
-    <en>Undone</en>
-    <tr>Deshecho</tr>
-  </text>
-  <text>
-    <en>py-pdftools {current} --help</en>
-    <tr>py-pdftools {current} --help</tr>
-  </text>
-  <text>
-    <en>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;A PDF imposition toolkit.&lt;/p&gt;&lt;p&gt;By {author}.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License, version 3 or later.&lt;/p&gt;</en>
-    <tr>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Un conjunto de herramientas de imposición de PDF.&lt;/p&gt;&lt;p&gt;Por {author}.&lt;/p&gt;&lt;p&gt;Distribuido bajo la Licencia Pública General de GNU, versión 3 o posterior.&lt;/p&gt;</tr>
   </text>
   <text>
     <en>Add current</en>
@@ -7154,10 +6858,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Sangrados</tr>
   </text>
   <text>
-    <en>Revert to original</en>
-    <tr>Volver al original</tr>
-  </text>
-  <text>
     <en>Command-line help for this command</en>
     <tr>Ayuda de línea de órdenes para esta orden</tr>
   </text>
@@ -7188,14 +6888,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{job_label}: done (no PDF produced)</en>
     <tr>{job_label}: hecho (no se produjo ningún PDF)</tr>
-  </text>
-  <text>
-    <en>Nothing to undo</en>
-    <tr>Nada que deshacer</tr>
-  </text>
-  <text>
-    <en>Reverted to the original document</en>
-    <tr>Se volvió al documento original</tr>
   </text>
   <text>
     <en>Nothing to save</en>
@@ -7544,10 +7236,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>conditions can't be combined with --every</en>
     <tr>las condiciones no pueden combinarse con --every</tr>
-  </text>
-  <text>
-    <en>Impose PDF pages: booklets, n-up, step and repeat and more</en>
-    <tr>Imponer páginas PDF: folletos, n-up, paso y repetición y más</tr>
   </text>
   <text>
     <en>layout file (TOML); see the description</en>
@@ -9114,16 +8802,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>el recorte de página es mayor que las páginas</tr>
   </text>
   <text>
-    <en>Save the current document, with the commands applied so far but without the current command</en>
-    <tr>Guardar el documento actual, con las órdenes aplicadas hasta ahora pero sin la orden actual</tr>
-  </text>
-  <text>
     <en>Save the document as it is</en>
     <tr>Guardar el documento tal como está</tr>
-  </text>
-  <text>
-    <en>Save the document as it is…</en>
-    <tr>Guardar el documento tal como está…</tr>
   </text>
   <text>
     <en>Save the result shown on the right (if it isn't up to date, the command runs first)</en>
@@ -9172,10 +8852,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>The result was saved as a plain PDF: {command} is not installed (or not where Settings say)</en>
     <tr>El resultado se guardó como PDF corriente: {command} no está instalado (o no está donde dicen los Ajustes)</tr>
-  </text>
-  <text>
-    <en>Where pdf2iso is, which makes PDF/A and PDF/X (File ▸ Save as)</en>
-    <tr>Dónde está pdf2iso, que hace los PDF/A y PDF/X (Archivo ▸ Guardar como)</tr>
   </text>
   <text>
     <en>save the output as PDF/A (a-1b, a-2b, a-3b: for archiving) or PDF/X-4 (x-4: for printing), made by pdf2iso, which must be installed</en>
@@ -9332,5 +9008,13 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>it is gone</en>
     <tr>ya no existe</tr>
+  </text>
+  <text>
+    <en>&amp;Impose</en>
+    <tr>&amp;Imponer</tr>
+  </text>
+  <text>
+    <en>py-pdftools impose {current} --help</en>
+    <tr>py-pdftools impose {current} --help</tr>
   </text>
 </interface>
