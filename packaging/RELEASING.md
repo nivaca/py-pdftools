@@ -26,7 +26,8 @@
 
 ```bash
 sudo dnf install rpm-build rpm-sign rpmdevtools python3-devel pyproject-rpm-macros \
-    python3-uv-build python3-PyMuPDF python3-pyside6 python3-pytest desktop-file-utils
+    python3-uv-build python3-PyMuPDF python3-pikepdf python3-reportlab python3-pyside6 python3-pytest \
+    desktop-file-utils /usr/bin/appstreamcli
 ```
 
 `rpmbuild` checks the build dependencies of the spec, and `%check` runs the

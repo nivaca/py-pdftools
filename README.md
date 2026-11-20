@@ -52,10 +52,35 @@ The mode Impose: a booklet:
 Installation
 ------------
 
-From the first release on, each version will be in the releases, on GitHub
-and on Codeberg, with the source (with the installers), the AppImage, the
-signed Fedora package, the wheel and the source package. Until then, it is
-installed from the source.
+Every version is in the [releases](https://github.com/nivaca/py-pdftools/releases),
+on GitHub and on [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases),
+with these files:
+
+    py-pdftools-VERSION.zip                 the source, with the installers
+    py-pdftools-VERSION-x86_64.AppImage     the AppImage (Linux)
+    py-pdftools-VERSION-1.fc45.noarch.rpm   the Fedora package, signed
+    RPM-GPG-KEY-py-pdftools                 the key that signs it
+    py_pdftools-VERSION.tar.gz              the source package, for Python
+    py_pdftools-VERSION-py3-none-any.whl    the wheel, for Python
+
+**Fedora.** From [Copr](https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/),
+for Fedora 45 and later, with Fedora's own Python, PyMuPDF, pikepdf,
+reportlab and PySide6, a menu entry and the manual (`man py-pdftools`):
+
+    $ sudo dnf copr enable nivaca/py-pdftools
+    $ sudo dnf install py-pdftools
+
+Updates then come with `sudo dnf upgrade`. The RPM of each release can also
+be installed by hand, after importing its key: `sudo rpm --import
+RPM-GPG-KEY-py-pdftools`.
+
+**AppImage (any Linux).** It needs nothing else: it brings its own Python,
+Qt and libraries, and runs with glibc 2.34 or later (Ubuntu 22.04, Debian
+12, Fedora 35 and later). Make it executable and run it:
+
+    $ chmod +x py-pdftools-*-x86_64.AppImage
+    $ ./py-pdftools-*-x86_64.AppImage [file.pdf]                 the window
+    $ ./py-pdftools-*-x86_64.AppImage impose booklet book.pdf    a command
 
 **With the installers (Linux, macOS, Windows).** They need Python 3.14 or
 later. From the folder of the source:
@@ -78,13 +103,6 @@ needs administrator rights, and the settings are never touched.
     $ cd py-pdftools
     $ uv run py-pdftools-gui [file.pdf]       the window
     $ uv run py-pdftools --help               the command line
-
-**AppImage and RPM.** `tools/bundle-appimage.py` makes an AppImage, which
-brings its own Python and libraries and runs on any Linux with glibc 2.34
-or later; it starts the window, or the command line if a command is given
-(`py-pdftools.AppImage impose booklet book.pdf`). `packaging/build-rpm.sh`
-makes the RPM for Fedora, with Fedora's own Python, PyMuPDF, pikepdf and
-PySide6, a menu entry and the manual (`man py-pdftools`).
 
 To save copies as PDF/A or PDF/X, [pdf2iso](https://github.com/nivaca/pdf2iso)
 is needed too, with Ghostscript. For searchable copies of scanned pages,
