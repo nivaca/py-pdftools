@@ -54,6 +54,25 @@ class PagesState:
     added: tuple[stamps.Addition, ...] = ()
 
 
+def write_page_labels(doc, ranges: list[Range]) -> None:
+    """Give DOC (a pymupdf.Document) these page labels, as labels.write_labels writes them with pikepdf
+    (but its entries direct objects): so that the document is written with its annotations at once."""
+    import pymupdf
+
+    items = []
+    for page, style, prefix, start in labels.entries(ranges, doc.page_count):
+        entry = "/Type /PageLabel"
+        if style:
+            entry += f" /S /{style}"
+        if prefix:
+            entry += f" /P {pymupdf.get_pdf_str(prefix)}"
+        if start != 1:
+            entry += f" /St {start}"
+        items.append(f"{page - 1} << {entry} >>")
+    catalog = doc.pdf_catalog()
+    doc.xref_set_key(catalog, "PageLabels", f"<< /Nums [ {' '.join(items)} ] >>" if items else "null")
+
+
 class PagesMixin:
     """(Mixed into MainWindow: it uses its attributes.)"""
 
@@ -259,7 +278,7 @@ class PagesMixin:
         if ranges == self.ranges:
             self.fill_pages_panel(select)
             return False
-        done = self.transform(labels.write_labels, ranges, message=tr("Labels changed"))
+        done = self.edit_document(lambda doc: write_page_labels(doc, ranges), message=tr("Labels changed"))
         self.fill_pages_panel(select)
         return done
 

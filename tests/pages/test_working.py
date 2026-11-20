@@ -95,3 +95,34 @@ def test_redacted_copy_from_the_working_copy(window, sample, tmp_path):
     assert window.save_redacted(out, [box_of(box)])
     doc = pymupdf.open(out)
     assert doc.page_count == 3 and "Page 1" not in doc[0].get_text() and "Page 3" in doc[1].get_text()
+
+
+def test_labels_written_by_pymupdf_read_as_pikepdf_writes_them(tmp_path):
+    """The labels the window writes with PyMuPDF (to write them with the annotations at once) are read back
+    as those py-foliation writes with pikepdf: folios, prefixes, suffixes, numbers that don't start at 1."""
+    import pikepdf
+
+    from py_pdftools.gui.paging import write_page_labels
+
+    ranges = [Range(1, "", prefix="Cover"), Range(2, "r", start=3), Range(6, "D", prefix="[A-", suffix="]"),
+              Range(9, "f", start=24), Range(14, "A", prefix="Ápp (é)\\")]
+    doc = pymupdf.open()
+    for _ in range(20):
+        doc.new_page()
+    write_page_labels(doc, ranges)
+    doc.save(tmp_path / "mupdf.pdf")
+    with pikepdf.open(tmp_path / "mupdf.pdf") as pdf:
+        mine = labels.read_labels(pdf)
+        shown = labels.page_labels(mine, 20)
+    with pikepdf.new() as pdf:
+        for _ in range(20):
+            pdf.add_blank_page()
+        labels.write_labels(pdf, ranges)
+        theirs = labels.read_labels(pdf)
+        expected = labels.page_labels(theirs, 20)
+    assert mine == theirs and shown == expected
+    assert shown[0] == "Cover" and shown[1] == "iii" and shown[5] == "[A-1]" and shown[8] == "12v"
+    write_page_labels(doc, [])
+    doc.save(tmp_path / "none.pdf")
+    with pikepdf.open(tmp_path / "none.pdf") as pdf:
+        assert labels.read_labels(pdf) == []

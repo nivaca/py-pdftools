@@ -744,11 +744,17 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
 
 def _reply_roots(doc: pymupdf.Document, page: pymupdf.Page) -> dict[int, int]:
     """{xref of a reply: xref of the annotation it answers, at the root of the thread} on PAGE."""
+    return _roots(doc, page.annot_xrefs())
+
+
+def _roots(doc: pymupdf.Document, items) -> dict[int, int]:
+    """_reply_roots of the annotations ITEMS of a page ((xref, type, id), as annot_xrefs gives them): from
+    the keys of their objects alone, without loading them (thousands of annotations)."""
     parent = {}
-    for annot in page.annots() or []:
-        if annot.type[0] == pymupdf.PDF_ANNOT_TEXT and doc.xref_get_key(annot.xref, "IRT")[0] == "xref" \
-                and not _grouped(doc, annot.xref):  # (a note in the group of another isn't a reply to it)
-            parent[annot.xref] = annot.irt_xref
+    for xref, kind, _ in items:
+        if kind == pymupdf.PDF_ANNOT_TEXT and (irt := _irt(doc, xref)) \
+                and not _grouped(doc, xref):  # (a note in the group of another isn't a reply to it)
+            parent[xref] = irt
     roots = {}
     for xref in parent:
         root, seen = parent[xref], {xref}
@@ -775,14 +781,23 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
     known = known or {}
     out = []
     for page in doc:
-        roots = _reply_roots(doc, page)
+        items = page.annot_xrefs()
+        if not items:
+            continue
+        roots = _roots(doc, items)
         found, replies = [], {}
-        for annot in page.annots() or []:
-            if annot.xref in roots:
-                if roots[annot.xref] not in known:
-                    replies.setdefault(roots[annot.xref], []).append(read_reply(doc, annot))
+        # (by the numbers of their objects: an annotation known is not loaded at all)
+        for xref, kind, _ in items:
+            if kind in (pymupdf.PDF_ANNOT_WIDGET, pymupdf.PDF_ANNOT_POPUP, pymupdf.PDF_ANNOT_LINK):
+                continue  # (_others lists links; form fields and pop-ups are never listed)
+            if xref in roots:
+                if roots[xref] not in known:
+                    replies.setdefault(roots[xref], []).append(read_reply(doc, page.load_annot(xref)))
                 continue
-            a = known[annot.xref] if annot.xref in known else read_annotation(doc, page, annot)
+            if xref in known:
+                found.append(known[xref])
+                continue
+            a = read_annotation(doc, page, page.load_annot(xref))
             if a is not None:
                 found.append(a)
         found += _others(doc, page)
@@ -949,17 +964,29 @@ def _delete(page: pymupdf.Page, xref: int) -> None:
 
 
 def remove_editable(doc: pymupdf.Document, pages: list[int] | None = None) -> None:
-    """Take out of DOC (of its PAGES: all if None) the annotations that read() gives, and their
-    replies (for showing its pages without them: the window draws them itself)."""
-    _unlink_groups(doc, pages)
-    for page in (doc if pages is None else (doc[n] for n in pages)):
-        if page.first_annot is None:
+    """Take out of DOC (of its PAGES: all if None) the annotations that read() gives, their replies and
+    their pop-ups (for showing its pages without them: the window draws them itself). DOC is only shown,
+    never saved: they are taken out of the list of each page (/Annots), and their objects left as they
+    are, without loading a page or an annotation (thousands of them: deleting each one took long)."""
+    for n in range(doc.page_count) if pages is None else pages:
+        items = doc.page_annot_xrefs(n)
+        if not items:
             continue
-        roots = _reply_roots(doc, page)
-        editable = [annot.xref for annot in page.annots() or [] if _editable(doc, annot)]
-        # (the replies first: taking out an annotation takes its replies with it)
-        for xref in [x for x, root in roots.items() if root in set(editable)] + editable:
-            page.delete_annot(page.load_annot(xref))
+        roots = _roots(doc, items)
+        editable = {x for x, kind, _ in items
+                    if kind in _TYPES and (not _irt(doc, x) or _grouped(doc, x))}
+        gone = editable | {x for x, root in roots.items() if root in editable}
+        gone |= {x for x, kind, _ in items if kind == pymupdf.PDF_ANNOT_POPUP and _parent(doc, x) in gone}
+        if gone:
+            kept = [x for x, _, _ in items if x not in gone]
+            doc.xref_set_key(doc.page_xref(n), "Annots",
+                             "[" + " ".join(f"{x} 0 R" for x in kept) + "]" if kept else "null")
+
+
+def _parent(doc: pymupdf.Document, xref: int) -> int:
+    """The annotation a pop-up belongs to (0 if none)."""
+    kind, value = doc.xref_get_key(xref, "Parent")
+    return int(value.split()[0]) if kind == "xref" else 0
 
 
 def _placed(page: pymupdf.Page, make, rect: Rect, size: tuple[float, float]) -> pymupdf.Annot:
@@ -1324,8 +1351,10 @@ def save_doc(doc: pymupdf.Document, target: Path) -> None:
 
 def write(source: Path, annotations: list[Annotation], target: Path, password: str = "",
           kept: set[int] | None = None, result: list[Annotation] | None = None,
-          original: list[Annotation] | None = None, shown: dict[str, bool] | None = None) -> int:
-    """SOURCE with ANNOTATIONS (see apply), saved as TARGET. Into SOURCE itself, the
+          original: list[Annotation] | None = None, shown: dict[str, bool] | None = None,
+          edit=None) -> int:
+    """SOURCE with ANNOTATIONS (see apply), saved as TARGET; EDIT, if given, makes another change
+    to the document (EDIT(doc), before it is saved: one that leaves its annotations as they are). Into SOURCE itself, the
     changes are added at its end (an incremental save: what was signed stays as it was
     signed), unless the file can't take that or has a password; else it is written whole
     (safely, through a file of its own). KEPT: see apply. RESULT, if given, gets the annotations as
@@ -1337,6 +1366,8 @@ def write(source: Path, annotations: list[Annotation], target: Path, password: s
         written = apply(doc, annotations, kept=kept, untouched=same, original=original)
         if shown:
             set_layers(doc, shown)
+        if edit is not None:
+            edit(doc)
         if result is not None:  # (saving keeps the numbers of the objects: garbage=1 doesn't renumber them)
             result[:] = read(doc, known=same)
         same_file = target.resolve() == source.resolve()

@@ -376,6 +376,19 @@ def read_labels(pdf: Pdf) -> list[Range]:
     return normalize(out)
 
 
+def entries(ranges: list[Range], n: int) -> list[tuple[int, str, str, int]]:
+    """The entries of the tree of page labels that gives a document of N pages these RANGES:
+    (page, from 1; style, '' for none; prefix; first number). Virtual ranges are one prefix-only
+    entry for each page."""
+    out = []
+    for r, last in spans(normalize(ranges), n):
+        if r.virtual:
+            out += [(page, "", r.label(page), 1) for page in range(r.page, last + 1)]
+        else:
+            out.append((r.page, r.style, r.prefix, r.start))
+    return out
+
+
 def write_labels(pdf: Pdf, ranges: list[Range]) -> None:
     """Give the document these ranges ([]: no page labels at all). Virtual
     ranges are written as one prefix-only entry for each page."""
@@ -385,8 +398,7 @@ def write_labels(pdf: Pdf, ranges: list[Range]) -> None:
             del pdf.Root["/PageLabels"]
         return
     nums = Array()
-
-    def entry(page: int, style: str, prefix: str, start: int):
+    for page, style, prefix, start in entries(ranges, len(pdf.pages)):
         d = Dictionary(Type=Name.PageLabel)
         if style:
             d.S = Name("/" + style)
@@ -396,13 +408,6 @@ def write_labels(pdf: Pdf, ranges: list[Range]) -> None:
             d.St = start
         nums.append(page - 1)
         nums.append(pdf.make_indirect(d))
-
-    for r, last in spans(ranges, len(pdf.pages)):
-        if r.virtual:
-            for page in range(r.page, last + 1):
-                entry(page, "", r.label(page), 1)
-        else:
-            entry(r.page, r.style, r.prefix, r.start)
     pdf.Root.PageLabels = pdf.make_indirect(Dictionary(Nums=nums))
 
 

@@ -165,7 +165,7 @@ Tests
 
     $ uv run pytest
 
-There are 398 tests: those of the four programs, and those of what is new
+There are 399 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, the Spanish interface, the packaging). See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.

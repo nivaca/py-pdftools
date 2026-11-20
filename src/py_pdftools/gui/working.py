@@ -33,8 +33,10 @@ from ..core.interface import tr
 class DocState:
     """The document as it was before a change of the document itself (a step of the history)."""
     work: Path | None  # the working copy it was shown from (None: the document's file)
-    annotations: tuple[Annotation, ...]
+    annotations: tuple[Annotation, ...]  # (as the window had them)
     page: int
+    in_file: tuple[Annotation, ...] = ()  # the annotations as that file has them (see file_annotations)
+    stamp: tuple | None = None  # (the time and size of that file then: if it changed, it is read again)
 
 
 class WorkingMixin:
@@ -43,11 +45,27 @@ class WorkingMixin:
     work: Path | None = None
     _work_dir: tempfile.TemporaryDirectory | None = None
     _works = 0
+    # the annotations as the file shown has them (as read() gives them), kept when it is loaded or written:
+    # what writes it next needn't read them again (see known_in_file)
+    file_annotations: list[Annotation] = []
 
     @property
     def file(self) -> Path | None:
         """The file the document is read from: its working copy, if it has one, else its own."""
         return self.work or self.path
+
+    def file_stamp(self) -> tuple | None:
+        """The time and size of the file shown (None if it can't be read)."""
+        source = self._source(self.file, self.password, False) if self.file is not None else None
+        return source[2] if source is not None else None
+
+    def known_in_file(self) -> list[Annotation] | None:
+        """The annotations of the file shown, if the window knows them: unless the file changed since it
+        was read (another program wrote it); else None (it must be read)."""
+        stamp = self.file_stamp()
+        if self.canvas.source is None or stamp is None or stamp != self.canvas.source[2]:
+            return None
+        return self.file_annotations
 
     def _new_work(self, suffix: str = "") -> Path:
         if self._work_dir is None:
@@ -66,14 +84,32 @@ class WorkingMixin:
             self.undo_stack.clear()
             self.redo_stack.clear()
 
-    def _load_work(self, file: Path, page: int) -> list[Annotation] | None:
-        """Show FILE (a working copy, or the document's own file), keeping the document's path."""
+    def _load_work(self, file: Path, page: int, known: list[Annotation] | None = None) -> list[Annotation] | None:
+        """Show FILE (a working copy, or the document's own file), keeping the document's path. KNOWN: its
+        annotations, if they are known (they are not read again)."""
         path = self.path
-        found = self._load(file, self.password, page)
+        found = self._load(file, self.password, page, known=known)
         self.path = path
         if found is not None:
             self.work = None if file == path else file
         return found
+
+    def _state(self) -> DocState:
+        return DocState(self.work, tuple(self.annotations), self.page, tuple(self.file_annotations),
+                        self.file_stamp())
+
+    def _step(self, before: DocState, found: list[Annotation], message: str, page: int | None = None):
+        """(A change of the document itself, made: BEFORE, its step of the history; FOUND, the annotations.)"""
+        self.undo_stack.append(before)
+        self.redo_stack.clear()
+        self.annotations = found
+        self.selected = []
+        self.document_changed()
+        self.refresh()
+        if page is not None:
+            self.show_page(page)
+        if message:
+            self.status(message)
 
     def transform(self, change, *args, page: int | None = None, message: str = "") -> bool:
         """Change the document itself with CHANGE(pdf, *ARGS) (a pikepdf.Pdf, changed in place), as a
@@ -83,11 +119,12 @@ class WorkingMixin:
             return False
         self.canvas.commit_text()
         self.keep_comment()
-        before = DocState(self.work, tuple(self.annotations), self.page)
+        before = self._state()
         written = self._new_work("-annotated")
         target = self._new_work()
         try:  # (the annotations of the window go into the document first: the change may move their pages)
-            annots.write(self.file, self.annotations, written, self.password, shown=self.layers)
+            annots.write(self.file, self.annotations, written, self.password, shown=self.layers,
+                         original=self.known_in_file())
             with pikepdf.open(written, password=self.password) as pdf:
                 change(pdf, *args)
                 pdf.save(target, encryption=True if pdf.is_encrypted else None)
@@ -96,18 +133,34 @@ class WorkingMixin:
             return False
         finally:
             written.unlink(missing_ok=True)
+        # (pikepdf numbers the objects anew: the annotations are read again)
         found = self._load_work(target, self.page if page is None else page)
         if found is None:
             return False
-        self.undo_stack.append(before)
-        self.redo_stack.clear()
-        self.annotations = found
-        self.selected = []
-        self.document_changed()
-        self.refresh()
-        self.show_page(self.page)
-        if message:
-            self.status(message)
+        self._step(before, found, message, self.page)
+        return True
+
+    def edit_document(self, edit, message: str = "") -> bool:
+        """Change the document itself with EDIT(doc) (a pymupdf.Document, changed in place), as a step of the
+        history: a change that leaves its pages and annotations as they are (its page labels). Quicker than
+        transform: it is made while the annotations are written, and they are not read again."""
+        if self.path is None:
+            return False
+        self.canvas.commit_text()
+        self.keep_comment()
+        before = self._state()
+        target = self._new_work()
+        result: list[Annotation] = []
+        try:
+            annots.write(self.file, self.annotations, target, self.password, shown=self.layers, result=result,
+                         original=self.known_in_file(), edit=edit)
+        except AnnotateError as e:
+            self.status(str(e), error=True)
+            return False
+        found = self._load_work(target, self.page, known=result)
+        if found is None:
+            return False
+        self._step(before, found, message, self.page)
         return True
 
     def adopt_file(self, file: Path, message: str = "") -> bool:
@@ -115,7 +168,7 @@ class WorkingMixin:
         Its annotations are those FILE has."""
         if self.path is None:
             return False
-        before = DocState(self.work, tuple(self.annotations), self.page)
+        before = self._state()
         target = self._new_work()
         try:
             target.write_bytes(file.read_bytes())
@@ -125,22 +178,15 @@ class WorkingMixin:
         found = self._load_work(target, 0)
         if found is None:
             return False
-        self.undo_stack.append(before)
-        self.redo_stack.clear()
-        self.annotations = found
-        self.selected = []
-        self.document_changed()
-        self.refresh()
-        if message:
-            self.status(message)
+        self._step(before, found, message)
         return True
-
-    def _state(self) -> DocState:
-        return DocState(self.work, tuple(self.annotations), self.page)
 
     def restore(self, state: DocState) -> bool:
         """Show the document as it was in STATE (undo, redo)."""
-        found = self._load_work(state.work or self.path, state.page)
+        file = state.work or self.path
+        source = self._source(file, self.password, False)
+        known = list(state.in_file) if source is not None and source[2] == state.stamp else None
+        found = self._load_work(file, state.page, known=known)
         if found is None:
             self.status(tr("{path} cannot be read: {error}", path=state.work, error=tr("it is gone")), error=True)
             return False

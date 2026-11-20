@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in nine stages.
+py-imposition. Here I explain how it was made, in ten stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -181,15 +181,42 @@ the one the program installs from PyPI, reads them right. The window and
 the exports now read the labels with py-foliation's engine, which reads the
 label tree as it is.
 
+10. Faster changes
+------------------
+
+With a book of 300 pages and 3,000 annotations, a change of the page labels
+took almost two seconds, and Undo and Redo one each. Measuring showed why:
+the annotations were read twice for each change, about a second each time,
+once to write them into the document and once to read them back from the
+new file. Both readings could be spared. The window now keeps the
+annotations as the file it shows has them, checked against the time and
+size of that file, and passes them on, so the file is not read before it is
+written. Page labels, which are only an entry of the catalog, are written
+by PyMuPDF while the annotations are written, as direct objects, and since
+PyMuPDF keeps the numbers of the objects, the annotations are not read
+again either. Undo and Redo take the annotations from the history instead
+of reading them from the file.
+
+Two more things were slow with many annotations: taking them out of the
+copy of the document the window draws from (each one loaded and deleted
+apart), and reading them, which loaded every annotation even when it was
+known. Now both go by the numbers of the objects: the list of annotations
+of each page is written anew, and only the annotations not known are
+loaded. A test compared the old and the new ways on a document with every
+kind of annotation, replies, groups, a link and a pop-up: the same
+annotations, and pages drawn alike to the pixel. A change of labels now
+takes 0.3 seconds, Undo and Redo less than a tenth, saving 0.3 instead of
+1.2, and the tests run in 28 seconds instead of 42.
+
 Testing
 -------
 
-The program has 398 tests (`uv run pytest`): those of the four programs,
+The program has 399 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
 the window, the boxes as redaction marks, the working copies with their
-undo and redo, the Spanish interface (every text translated, and none left
+undo and redo, the page labels written by PyMuPDF as pikepdf writes them, the Spanish interface (every text translated, and none left
 over) and the packaging. The windows of the four modes are tested as a user
 would use them, with mouse events on the pages; the redacted copy is also
 written in a process of its own, as the window does it, and imposition runs

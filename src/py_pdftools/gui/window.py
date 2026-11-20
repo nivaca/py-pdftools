@@ -848,6 +848,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             return None
         self._close_doc()
         self.doc, self.path, self.password, self.count = doc, path, password, doc.page_count
+        self.file_annotations = list(found)  # (as the file has them: see working.py)
         self.page = min(page, self.count - 1)
         self._thumbs, self._thumb_shown, self._marked, self._words = {}, {}, {}, {}
         self.redact_texts, self.redact_meta = {}, None
@@ -903,10 +904,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.keep_comment()
         source, page = self.file, self.page
         replacing = target.resolve() == self.path.resolve()
-        # (what the file has is what was read when it was opened, unless it changed since: then it is read again)
-        source_stamp = self._source(source, self.password, False)
-        known = self.saved if self.canvas.source is not None and source_stamp is not None \
-            and source_stamp[2] == self.canvas.source[2] and self.work is None else None
+        # (what the file has is what was read when it was shown, unless it changed since: then it is read again)
+        known = self.known_in_file()
         if replacing:  # (the file is about to change under the open document)
             self._close_doc()
         kept: set[int] = set()

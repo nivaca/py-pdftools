@@ -7,6 +7,7 @@ Tesseract is not needed otherwise: without it, there is no OCR (see available).
 
 from __future__ import annotations
 
+import functools
 import shutil
 from collections.abc import Callable
 from pathlib import Path
@@ -20,8 +21,10 @@ from ..core.interface import tr
 DPI = 300  # (at which the pages are read)
 
 
+@functools.cache
 def tessdata() -> str | None:
-    """The folder of Tesseract's languages; None if Tesseract is not installed."""
+    """The folder of Tesseract's languages; None if Tesseract is not installed. (Looked for once: the
+    window asks each time it shows its menus.)"""
     if shutil.which("tesseract") is None:
         return None
     try:
