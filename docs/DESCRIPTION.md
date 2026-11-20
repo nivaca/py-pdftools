@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in twelve stages.
+py-imposition. Here I explain how it was made, in thirteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -242,10 +242,43 @@ way: Qt reads where the settings are only once in a process, so all the
 tests shared them, and the mode one test left the window in was the first
 mode of the next. Each test now starts with them cleared.
 
+13. Fixes, and one copy of each thing
+-------------------------------------
+
+When I commented the code, I marked as TODO what looked wrong, and then
+fixed the worst of it, each with a test that failed first. The parts of a
+document split by `pages --split-every` lost its password, and ignored
+`--conform`. The summary of the comments made pages without end when one
+comment was longer than a page. In Impose, two methods had one name, so
+choosing another output of a command didn't show it. A process that drew a
+page without its annotations then drew it so also when they were wanted.
+Changing the language of the interface lost the changes not yet saved in
+Foliate. And the dialogs of headers and footers accepted a setting typed
+just before OK without checking it.
+
+Then I looked for duplicated code, with pylint and with a comparison of
+the syntax of every function. The four programs had brought copies of the
+same things: opening a PDF, rectangles and colours, the words under the
+mouse (annotate and redact), the matrices of PDF (three copies, in
+imposition and the stamps), the command `interface`, the fields shared by
+headers, footers and watermarks, the field of pdf2iso in three settings
+dialogs, a colour button, a colour menu, and the question about unsaved
+changes. Each is now in one place: `core/pdfdoc.py`, `core/matrix.py`,
+`core/interface.py`, `stamps.StampSettings`, `gui/conform_field.py`,
+`gui/props.py`, `gui/colors.py` and `gui/files.py`.
+
+The tests on GitHub had failed from the start, which I had not seen. On
+Ubuntu qpdf and pdftotext were missing; on Windows, also a file still open
+can't be removed with its folder, `SIGALRM` doesn't exist, and pdftotext
+read a rotated text in another order. The workflow now installs the tools,
+the tests that need them are skipped where they are missing, the text of
+headers and watermarks is read with PyMuPDF, and the temporary folders are
+removed even with a file still open.
+
 Testing
 -------
 
-The program has 403 tests (`uv run pytest`): those of the four programs,
+The program has 407 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -257,5 +290,6 @@ written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 99 files of Python, around 27,700
-lines, and 2,214 texts of the interface in Spanish.
+made for the test. The program has 103 files of Python, around 31,000
+lines (about a tenth of them comments), and 2,228 texts of the interface
+in Spanish.
