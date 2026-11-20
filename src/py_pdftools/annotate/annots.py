@@ -48,7 +48,9 @@ from pathlib import Path
 
 import pymupdf
 
+from ..core import pdfdoc
 from ..core.interface import N_, tr
+from ..core.pdfdoc import nearest_word, normalized, rgb  # noqa: F401  (also annots.rgb ... for the others)
 
 Rect = tuple[float, float, float, float]  # x0, y0, x1, y1
 Point = tuple[float, float]
@@ -251,11 +253,6 @@ class PasswordError(AnnotateError):
 
 # --------------------------------------------------------------------- geometry
 
-def normalized(rect: Rect) -> Rect:
-    x0, y0, x1, y1 = rect
-    return min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)
-
-
 def bounds(points: list[Point], pad: float = 0.0) -> Rect:
     xs, ys = [p[0] for p in points], [p[1] for p in points]
     return min(xs) - pad, min(ys) - pad, max(xs) + pad, max(ys) + pad
@@ -391,15 +388,6 @@ def anchor(box: Rect, point: Point) -> Point:
 
 # --------------------------------------------------------------------- colours and dates
 
-def rgb(color: str) -> tuple[float, float, float]:
-    """'#rrggbb' as PyMuPDF's (r, g, b), each from 0 to 1."""
-    c = color.lstrip("#")
-    # Seis cifras sin '#'; los colores cortos (#abc) no se aceptan aquí.
-    if len(c) != 6:
-        raise ValueError(color)
-    return tuple(int(c[i:i + 2], 16) / 255 for i in (0, 2, 4))
-
-
 def hex_color(values) -> str:
     """A colour of a PDF (grey, RGB or CMYK, from 0 to 1) as '#rrggbb'; '' for none."""
     values = [min(max(float(v), 0.0), 1.0) for v in values or []]
@@ -446,19 +434,7 @@ def date_text(date: str) -> str:
 
 def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
     """The PDF at PATH, opened with PASSWORD if it needs one (raises AnnotateError)."""
-    # PyMuPDF also opens images and other formats; is_pdf, below, turns them away.
-    try:
-        doc = pymupdf.open(path)
-    except (pymupdf.FileNotFoundError, pymupdf.FileDataError, RuntimeError) as e:
-        raise AnnotateError(tr("{path} cannot be read as a PDF: {error}", path=path, error=e)) from None
-    if not doc.is_pdf:
-        doc.close()
-        raise AnnotateError(tr("{path} is not a PDF", path=path))
-    # authenticate() devuelve 0 si la contraseña no sirve.
-    if doc.needs_pass and not doc.authenticate(password):
-        doc.close()
-        raise PasswordError(tr("{path} is protected by a password", path=path))
-    return doc
+    return pdfdoc.open_pdf(path, password, AnnotateError, PasswordError)
 
 
 def kind_of(doc: pymupdf.Document, annot: pymupdf.Annot) -> str | None:
@@ -1503,31 +1479,10 @@ def words(page: pymupdf.Page) -> list[tuple[Rect, int, int]]:
     return out
 
 
-def nearest_word(found: list[tuple[Rect, int, int]], x: float, y: float) -> int | None:
-    """The index of the word at (X, Y), or else of the nearest one; None if there are none."""
-    if not found:
-        return None
-
-    def distance(i):
-        x0, y0, x1, y1 = found[i][0]
-        dx = max(x0 - x, 0, x - x1)
-        dy = max(y0 - y, 0, y - y1)
-        return dx * dx + 4 * dy * dy  # (the line it is on matters more)
-
-    return min(range(len(found)), key=distance)
-
-
 def text_rects(found: list[tuple[Rect, int, int]], first: int, last: int) -> list[Rect]:
     """The rectangles that cover the words FIRST to LAST (in either order) of
     FOUND: one for each line."""
-    if first > last:
-        first, last = last, first
-    lines: dict[tuple[int, int], list[float]] = {}
-    # One rectangle for each (block, line): the union of its words in the range.
-    for (x0, y0, x1, y1), block, line in found[first:last + 1]:
-        r = lines.setdefault((block, line), [x0, y0, x1, y1])
-        r[0], r[1], r[2], r[3] = min(r[0], x0), min(r[1], y0), max(r[2], x1), max(r[3], y1)
-    return [(_r(x0), _r(y0), _r(x1), _r(y1)) for x0, y0, x1, y1 in lines.values()]
+    return pdfdoc.text_rects(found, first, last)
 
 
 def page_text(page: pymupdf.Page) -> list[tuple[Rect, str]]:

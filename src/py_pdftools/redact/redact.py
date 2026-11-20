@@ -22,7 +22,9 @@ from typing import NamedTuple
 
 import pymupdf
 
+from ..core import pdfdoc
 from ..core.interface import tr
+from ..core.pdfdoc import nearest_word, normalized, rgb  # noqa: F401  (also redact.rgb ... for the others)
 from ..core.pagesel import parse_pages
 
 Rect = tuple[float, float, float, float]  # x0, y0, x1, y1
@@ -59,19 +61,6 @@ class RedactError(Exception):
 
 class PasswordError(RedactError):
     """A document whose password is missing or wrong."""
-
-
-def normalized(rect: Rect) -> Rect:
-    x0, y0, x1, y1 = rect
-    return min(x0, x1), min(y0, y1), max(x0, x1), max(y0, y1)
-
-
-def rgb(color: str) -> tuple[float, float, float]:
-    """'#rrggbb' as PyMuPDF's (r, g, b), each from 0 to 1."""
-    c = color.lstrip("#")
-    if len(c) != 6:
-        raise ValueError(color)
-    return tuple(int(c[i:i + 2], 16) / 255 for i in (0, 2, 4))
 
 
 ALIGN = {"left": pymupdf.TEXT_ALIGN_LEFT, "center": pymupdf.TEXT_ALIGN_CENTER, "right": pymupdf.TEXT_ALIGN_RIGHT}
@@ -204,18 +193,7 @@ def redact(doc: pymupdf.Document, boxes: list[Box], clean: bool = False, images:
 
 def open_pdf(path: Path, password: str = "") -> pymupdf.Document:
     """The PDF at PATH, opened with PASSWORD if it needs one (raises RedactError)."""
-    try:
-        doc = pymupdf.open(path)
-    except (pymupdf.FileNotFoundError, pymupdf.FileDataError, RuntimeError) as e:
-        raise RedactError(tr("{path} cannot be read as a PDF: {error}", path=path, error=e)) from None
-    if not doc.is_pdf:
-        doc.close()
-        raise RedactError(tr("{path} is not a PDF", path=path))
-    # needs_pass is false for a file with only an owner password: such files open without asking.
-    if doc.needs_pass and not doc.authenticate(password):
-        doc.close()
-        raise PasswordError(tr("{path} is protected by a password", path=path))
-    return doc
+    return pdfdoc.open_pdf(path, password, RedactError, PasswordError)
 
 
 def write_redacted(source: Path, boxes: list[Box], target: Path, password: str = "",
@@ -310,33 +288,10 @@ def words(page: pymupdf.Page) -> list[Word]:
             for x0, y0, x1, y1, w, block, line, _n in page.get_text("words", sort=False)]
 
 
-def nearest_word(found: list[Word], x: float, y: float) -> int | None:
-    """The index of the word at (X, Y), or else of the nearest one; None if there are none."""
-    if not found:
-        return None
-
-    # Squared distance to the word's rectangle (0 inside it): the root is not needed to compare.
-    def distance(i):
-        x0, y0, x1, y1 = found[i][0]
-        dx = max(x0 - x, 0, x - x1)
-        dy = max(y0 - y, 0, y - y1)
-        return dx * dx + 4 * dy * dy  # (the line it is on matters more)
-
-    return min(range(len(found)), key=distance)
-
-
 def text_rects(found: list[Word], first: int, last: int, pad: float = 1.0) -> list[Rect]:
     """The rectangles that cover the words FIRST to LAST (in either order) of
     FOUND: one for each line, a little larger than the words (PAD points)."""
-    if first > last:
-        first, last = last, first
-    # Un rectángulo por línea (bloque, línea): las palabras de una misma línea se unen.
-    lines: dict[tuple[int, int], list[float]] = {}
-    for (x0, y0, x1, y1), block, line, _text in found[first:last + 1]:
-        r = lines.setdefault((block, line), [x0, y0, x1, y1])
-        r[0], r[1], r[2], r[3] = min(r[0], x0), min(r[1], y0), max(r[2], x1), max(r[3], y1)
-    return [(round(x0 - pad, 2), round(y0 - pad, 2), round(x1 + pad, 2), round(y1 + pad, 2))
-            for x0, y0, x1, y1 in lines.values()]
+    return pdfdoc.text_rects(found, first, last, pad)
 
 
 @dataclasses.dataclass(frozen=True)
