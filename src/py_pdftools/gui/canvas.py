@@ -607,6 +607,18 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         if changed:
             self.page_changed.emit(page)
 
+    def scroll_to(self, page: int, y: float):
+        """Put the point at height Y (in points, from the top of PAGE as shown) at the top of the view."""
+        item = self.pages.get(page)
+        if item is None:
+            return
+        self._quiet = True
+        point = item.mapToScene(QPointF(0, max(0.0, min(y, item.rect().height()))))
+        bar = self.verticalScrollBar()
+        bar.setValue(round(self.mapFromScene(QPointF(0, point.y() - GAP)).y() + bar.value()))
+        self._quiet = False
+        self.render_timer.start()
+
     def _scrolled(self, _value):
         self.render_timer.start()
         if self._quiet or not self.continuous or not self.pages:

@@ -10093,4 +10093,44 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Pages {pages} ({count})</en>
     <tr>Páginas {pages} ({count})</tr>
   </text>
+  <text>
+    <en>(no title)</en>
+    <tr>(sin título)</tr>
+  </text>
+  <text>
+    <en>Bookmark</en>
+    <tr>Marcador</tr>
+  </text>
+  <text>
+    <en>Close every branch</en>
+    <tr>Cerrar todas las ramas</tr>
+  </text>
+  <text>
+    <en>Collapse</en>
+    <tr>Plegar</tr>
+  </text>
+  <text>
+    <en>Expand all</en>
+    <tr>Desplegar todo</tr>
+  </text>
+  <text>
+    <en>Find a bookmark…</en>
+    <tr>Buscar un marcador…</tr>
+  </text>
+  <text>
+    <en>Only the bookmarks of the first level</en>
+    <tr>Solo los marcadores del primer nivel</tr>
+  </text>
+  <text>
+    <en>Show every bookmark</en>
+    <tr>Mostrar todos los marcadores</tr>
+  </text>
+  <text>
+    <en>The bookmarks of the document (its outline), to go to its parts</en>
+    <tr>Los marcadores del documento (su índice), para ir a sus partes</tr>
+  </text>
+  <text>
+    <en>Top level</en>
+    <tr>Primer nivel</tr>
+  </text>
 </interface>

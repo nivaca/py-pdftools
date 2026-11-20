@@ -37,6 +37,7 @@ from .files import FilesMixin, ask_save
 from .hint import HintOverlay
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
+from .outline import OutlineMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
@@ -158,7 +159,8 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, FilesMixin, QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, WorkingMixin, FilesMixin,
+                 QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -204,6 +206,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         # El orden importa: los modos se arman con las barras y menús ya creados, y _restore necesita todas las
         # barras (con su objectName) antes de que set_mode oculte las de los otros modos.
         self._build()
+        self._build_outline()
         self._build_menus()
         self._build_modes()
         self._restore()
@@ -521,6 +524,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.a_panel.setShortcut(QKeySequence("F4"))
         self.a_panel.setToolTip(tr("The list of the annotations, with their authors, on the right of the window"))
         m.addAction(self.a_panel)
+        m.addAction(self.a_outline)
         self.a_thumbs = QAction(tr("The thumbnails of the pages"), self, checkable=True, checked=True)
         self.a_thumbs.setShortcut(QKeySequence("F3"))
         self.a_thumbs.setToolTip(tr("The pages, small, on the left of the window"))
@@ -1005,6 +1009,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.canvas.source = self._source(path, password, bool(found))
         self.canvas.set_document(doc, self.page)
         self._fill_pages()
+        self.outline_refresh()
         return found
 
     @staticmethod
@@ -2530,6 +2535,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.pages.blockSignals(False)
         self._show_panel()
         self.ocr_refresh()
+        self._outline_mark(page)
         self._enable()
         # _page_shown may run while the window is being built, before the modes (and the mode Pages) exist.
         if hasattr(self, "modes"):
