@@ -38,7 +38,7 @@ from .conform_field import Pdf2isoField
 from .props import ColorButton
 
 # the actions with a shortcut that aren't tools
-ACTION_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"), "eraser": N_("Eraser"),
+ACTION_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"), "zoomarea": N_("Zoom to area"), "eraser": N_("Eraser"),
                 "comment": N_("Comment on the annotation selected"), "next": N_("Next annotation"),
                 "previous": N_("Previous annotation"), "copy": N_("Copy"), "paste": N_("Paste"),
                 "duplicate": N_("Duplicate"), "properties": N_("Properties"),

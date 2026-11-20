@@ -15,9 +15,9 @@ import pymupdf
 from PySide6.QtCore import QByteArray, QItemSelection, QItemSelectionModel, QPoint, QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QKeySequence, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QAbstractItemView, QApplication, QColorDialog, QDialog, QDockWidget, QFileDialog, QHBoxLayout, QInputDialog,
-    QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox, QSlider,
-    QSplitter, QStackedWidget, QToolBar, QToolButton, QVBoxLayout, QWidget,
+    QAbstractItemView, QApplication, QColorDialog, QComboBox, QDialog, QDockWidget, QFileDialog, QHBoxLayout,
+    QInputDialog, QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox,
+    QSlider, QSplitter, QStackedWidget, QToolBar, QToolButton, QVBoxLayout, QWidget,
 )
 
 from .. import __version__
@@ -67,6 +67,7 @@ TOOLS = [
                                            "double-click a word, triple-click a line, Shift+click to extend; "
                                            "Ctrl+C copies it, right-click for more")),
      ("hand", "transform-browse", N_("Dragging moves the pages in the window")),
+     ("zoomarea", "zoom-select", N_("Zoom to area: drag a frame on a page to zoom to it; a click zooms in there")),
      ("eraser", "draw-eraser", N_("Drag over annotations to erase them (over a drawing, only what is touched)"))],
     [("highlight", "draw-highlight", N_("Drag over text to highlight it")),
      ("area", "highlight-area", N_("Drag on the page to highlight a region (a picture, a table, a scanned page)")),
@@ -97,11 +98,13 @@ TOOLS = [
     [("ink", "draw-freehand", N_("Draw on the page by hand (with a tablet's pen, pressing harder draws wider)")),
      ("marker", "draw-marker", N_("Highlight by hand, where there is no text to drag over"))],
 ]
+ZOOMS = (25, 50, 75, 100, 125, 150, 200, 300, 400, 800, 1600)  # (the percentages offered in the box of the zoom)
 DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one it was left in)
 # the toolbar of each group of TOOLS (object name, title)
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
-TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
+TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"),
+              "zoomarea": N_("Zoom to area"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
               "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature")}
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
 MARKS = {"check": (N_("Check mark ✓"), (((0.1, 0.55), (0.4, 0.85), (0.9, 0.15)),)),
@@ -285,7 +288,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.menu_asked.connect(self.annotation_menu)
         self.canvas.page_changed.connect(self._page_shown)
         self.canvas.text_done.connect(self.text_done)
-        self.canvas.zoom_changed.connect(lambda z: self.zoom_label.setText(f"{z * 100:.0f} %"))
+        self.canvas.zoom_changed.connect(self._show_zoom)
         # La casilla de la página muestra su etiqueta (iv, 12v, 12) y acepta una etiqueta o un número.
         self.page_box = QLineEdit()
         self.page_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -296,7 +299,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # (beside it, how many pages there are; or 3/180, where the label is not the place of the page)
         self.page_label = QLabel("")
         self.page_label.setStyleSheet("color: palette(placeholder-text);")
-        self.zoom_label = QLabel("")
+        # La casilla del zoom: un porcentaje escrito, o uno de la lista, o un ajuste (página, ancho, alto...).
+        self.zoom_label = QComboBox()
+        self.zoom_label.setEditable(True)
+        self.zoom_label.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
+        self.zoom_label.setMinimumContentsLength(7)
+        self.zoom_label.setToolTip(tr("The zoom: type a percentage and press Enter, or choose"))
+        for text, data in ((tr("Fit the page"), "page"), (tr("Fit the width"), "width"),
+                           (tr("Fit the height"), "height"), (tr("Fit the inked area"), "visible"),
+                           (tr("Actual size"), "actual"), *[(f"{p} %", p / 100) for p in ZOOMS]):
+            self.zoom_label.addItem(text, data)
+        self.zoom_label.activated.connect(lambda i: self._choose_zoom(self.zoom_label.itemData(i)))
+        self.zoom_label.lineEdit().returnPressed.connect(lambda: self._choose_zoom(self.zoom_label.currentText()))
         top = QHBoxLayout()
         top.addWidget(self.page_box)
         top.addWidget(self.page_label)
@@ -575,6 +589,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         m.addSeparator()
         self.a_fit = self._action(m, tr("Fit the page"), lambda: self._fit("page"), "Ctrl+0")
         self.a_fit_width = self._action(m, tr("Fit the width"), lambda: self._fit("width"), "Ctrl+9")
+        self.a_fit_height = self._action(m, tr("Fit the height"), lambda: self._fit("height"), "Ctrl+8")
+        self.a_fit_visible = self._action(m, tr("Fit the inked area"), lambda: self._fit("visible"), "Ctrl+7",
+                                          tip=tr("The part of the page that has ink (its margins left out), as wide "
+                                                 "as the window"))
+        self.a_actual = self._action(m, tr("Actual size"), self.canvas.actual_size, "Ctrl+Shift+0",
+                                     tip=tr("The page at its printed size on this screen"))
         self.a_zoom_in = self._action(m, tr("Zoom in"), lambda: self.canvas.zoom_by(1.25),
                                       [QKeySequence(QKeySequence.StandardKey.ZoomIn), QKeySequence("Ctrl+=")])
         self.a_zoom_out = self._action(m, tr("Zoom out"), lambda: self.canvas.zoom_by(1 / 1.25),
@@ -615,14 +635,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             # (Select text and Hand: in every mode, Read too)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward, self.a_prev, self.a_next,
                                                              self.tool_actions["selecttext"],
-                                                             self.tool_actions["hand"]]),
+                                                             self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
         ]
         self.addToolBarBreak()
         # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
         self.tool_bars = []
         for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
-            tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext")]
+            tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext", "zoomarea")]
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
             # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
             for tool in tools:
@@ -686,7 +706,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                         menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
                         # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
                         actions=[act for tool, act in self.tool_actions.items()
-                                 if tool not in ("select", "hand", "selecttext")])
+                                 if tool not in ("select", "hand", "selecttext", "zoomarea")])
         # Leer: solo las páginas y sus miniaturas; nada es suyo, y el ratón mueve las páginas (la mano).
         read = Mode("read", lambda a: False, without=("edit",), entered=lambda: self.set_tool("hand"))
         self.hints["read"] = tr("Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel "
@@ -2594,6 +2614,29 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # _page_shown may run while the window is being built, before the modes (and the mode Pages) exist.
         if hasattr(self, "modes"):
             self.pages_page_shown()
+
+    def _show_zoom(self, z: float):
+        """The zoom in its box (not while it is being typed)."""
+        if not self.zoom_label.lineEdit().hasFocus():
+            self.zoom_label.setEditText(f"{z * 100:.0f} %")
+
+    def _choose_zoom(self, value):
+        """A fit ('page', 'width'...), 'actual', a factor, or a percentage typed ('150', '150 %')."""
+        if value in ("page", "width", "height", "visible"):
+            self._fit(value)
+        elif value == "actual":
+            self.canvas.actual_size()
+        elif isinstance(value, float):
+            self.canvas.set_zoom(value)
+        else:
+            text = str(value).replace("%", "").replace(",", ".").strip()
+            try:
+                self.canvas.set_zoom(float(text) / 100)
+            except ValueError:
+                self.status(tr("{text} is not a zoom: type a percentage, such as 150", text=value), error=True)
+        self.zoom_label.lineEdit().clearFocus()
+        self.canvas.setFocus()
+        self._show_zoom(self.canvas.zoom())
 
     def _fit(self, how: str):
         self.canvas.fit = how

@@ -449,7 +449,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         self.doc: pymupdf.Document | None = None
         self.continuous = True  # all the pages one under the other; else only the page shown
         self.page = 0  # the page in view (of a continuous view: the one in the middle of the window)
-        self.fit = "page"  # 'page', 'width' or '' (a zoom of its own)
+        self.fit = "page"  # 'page', 'width', 'height', 'visible' (the inked area: see ink_rect), or '' (a zoom of its own)
+        self._ink: dict = {}  # (document, page) -> the inked area of the page (see ink_rect)
         self.spread = False  # (two pages side by side: see rows)
         self.cover = False  # (with spread: the first page alone, as the cover of a book)
         # 'select': selects, moves and resizes; 'hand': dragging scrolls; 'eraser': dragging erases;
@@ -507,6 +508,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         self.doc = doc
         self.page = page
         self._words = {}
+        self._ink = {}
         self._word_texts = {}
         self._links = {}
         self.text_sel, self._sel_marks = None, []
@@ -941,7 +943,46 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         # Los 4 píxeles dejan sitio al borde de la vista, para que el ajuste no haga aparecer barras.
         by_width = (room.width() - 4) / (widest + 2 * GAP)
         by_height = (room.height() - 4) / (size.height() + 2 * GAP)
-        self.set_zoom(by_width if self.fit == "width" else min(by_width, by_height), self.fit)
+        if self.fit == "visible":  # (the inked area of the page shown, as wide as the view, and centred)
+            ink = self.ink_rect(self.page)
+            fit = self.fit
+            self.set_zoom((room.width() - 4) / (ink.width() + 2 * GAP), fit)
+            centre = self.pages[self.page].mapToScene(ink.center())
+            self.centerOn(centre.x(), self.mapToScene(self.viewport().rect().center()).y())
+            return
+        factor = {"width": by_width, "height": by_height}.get(self.fit, min(by_width, by_height))
+        self.set_zoom(factor, self.fit)
+
+    def zoom_to(self, page, rect: QRectF):
+        """Zoom so that RECT (on PAGE, in its points) fills the view, and centre it."""
+        room = self.viewport().size()
+        factor = min((room.width() - 8) / rect.width(), (room.height() - 8) / rect.height())
+        self.set_zoom(factor)
+        self.centerOn(page.mapToScene(rect.center()))
+
+    def actual_size(self):
+        """The page at its printed size on this screen (its points are 1/72 inch)."""
+        self.set_zoom(self.logicalDpiX() / 72)
+
+    def ink_rect(self, number: int) -> QRectF:
+        """The part of page NUMBER that has ink (what isn't white, found on a small rendering), in its points;
+        the whole page if it is blank."""
+        key = (id(self.doc), number)
+        if key not in self._ink:
+            page = self.doc[number]
+            scale = 0.25
+            pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False, colorspace=pymupdf.csGRAY)
+            data, w, h, stride = pix.samples, pix.width, pix.height, pix.stride
+            rows = [y for y in range(h) if min(data[y * stride:y * stride + w]) < 235]
+            cols = [x for x in range(w) if any(data[y * stride + x] < 235 for y in rows)] if rows else []
+            if rows and cols:
+                pad = 4
+                r = QRectF((cols[0] - pad) / scale, (rows[0] - pad) / scale, (cols[-1] - cols[0] + 2 * pad) / scale,
+                           (rows[-1] - rows[0] + 2 * pad) / scale)
+                self._ink[key] = r & self.page_rect(number)
+            else:
+                self._ink[key] = self.page_rect(number)
+        return self._ink[key]
 
     def zoom_by(self, factor: float):
         self.set_zoom(self.zoom() * factor)
@@ -1427,6 +1468,19 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
                 super().mousePressEvent(event)
                 return
             self.commit_text()
+        if self.mode == "zoomarea" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+            # Zoom to area: a frame dragged on a page, zoomed to on the release (a click zooms in, there).
+            page, point = self.locate(event.position().toPoint())
+            if page is not None:
+                start = self._clamp(page, point)
+                band = QGraphicsRectItem(QRectF(start, start), page)
+                pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
+                pen.setCosmetic(True)
+                band.setPen(pen)
+                band.setZValue(4)
+                self._drag = {"kind": "zoomarea", "page": page, "start": start, "item": band}
+            event.accept()
+            return
         if self.mode == TEXT_SELECT and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
             # (text is selected also in a document that can't be changed)
             self.setFocus()
@@ -1636,7 +1690,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
             self._show_text(self._text_selection(n, drag["start"], point))
         elif kind == "erase":
             self._erase_at(point)
-        elif kind == "band":
+        elif kind in ("band", "zoomarea"):
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
             tip = drag["start"]
@@ -1799,6 +1853,15 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         n = page.number
         if kind == "select-text":
             self.text_select_release(drag, moved)
+            return
+        if kind == "zoomarea":
+            r = drag["item"].rect()
+            self.scene().removeItem(drag["item"])
+            if moved and r.width() > 2 and r.height() > 2:
+                self.zoom_to(page, r)
+            else:  # (a click: in, twice as near, around it)
+                self.set_zoom(self.zoom() * 2)
+                self.centerOn(page.mapToScene(point))
             return
         if kind == "text":
             rects = self._text_selection(n, drag["start"], point) if moved else []

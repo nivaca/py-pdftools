@@ -10289,4 +10289,40 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>With two pages side by side: the first page by itself, so that the even pages are on the left</en>
     <tr>Con dos páginas lado a lado: la primera página sola, para que las pares queden a la izquierda</tr>
   </text>
+  <text>
+    <en>Actual size</en>
+    <tr>Tamaño real</tr>
+  </text>
+  <text>
+    <en>Fit the height</en>
+    <tr>Ajustar al alto</tr>
+  </text>
+  <text>
+    <en>Fit the inked area</en>
+    <tr>Ajustar a lo impreso</tr>
+  </text>
+  <text>
+    <en>The page at its printed size on this screen</en>
+    <tr>La página a su tamaño impreso en esta pantalla</tr>
+  </text>
+  <text>
+    <en>The part of the page that has ink (its margins left out), as wide as the window</en>
+    <tr>La parte de la página que tiene tinta (sin sus márgenes), tan ancha como la ventana</tr>
+  </text>
+  <text>
+    <en>The zoom: type a percentage and press Enter, or choose</en>
+    <tr>El zoom: escriba un porcentaje y pulse Intro, o elija</tr>
+  </text>
+  <text>
+    <en>Zoom to area</en>
+    <tr>Ampliar una zona</tr>
+  </text>
+  <text>
+    <en>Zoom to area: drag a frame on a page to zoom to it; a click zooms in there</en>
+    <tr>Ampliar una zona: arrastre un marco sobre una página para ampliarlo; un clic amplía allí</tr>
+  </text>
+  <text>
+    <en>{text} is not a zoom: type a percentage, such as 150</en>
+    <tr>{text} no es un zoom: escriba un porcentaje, como 150</tr>
+  </text>
 </interface>

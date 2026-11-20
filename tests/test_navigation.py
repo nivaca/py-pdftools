@@ -358,3 +358,49 @@ def test_a_document_asking_for_two_pages(window, tmp_path):
     assert window.open_path(path)
     assert window.canvas.spread and window.canvas.cover
     assert window.settings.value("spread", "false") == "false"  # (the document's choice: not kept as the user's)
+
+
+def test_more_zooms(window, tmp_path):
+    from PySide6.QtCore import QEvent, QPointF, Qt
+    from PySide6.QtGui import QMouseEvent
+
+    canvas = window.canvas
+    room = canvas.viewport().size()
+    window.a_fit_height.trigger()
+    page = canvas.pages[window.page]
+    assert canvas.fit == "height" and abs(page.rect().height() * canvas.zoom() - (room.height() - 4) +
+                                          2 * 12 * canvas.zoom()) < 3
+    # (the inked area: a small block of text, far narrower than the page, fills the width)
+    path = tmp_path / "ink.pdf"
+    doc = pymupdf.open()
+    doc.new_page().insert_text((250, 400), "A short line", fontsize=12)
+    doc.save(path)
+    assert window.open_path(path)
+    window.a_fit_width.trigger()
+    width_zoom = canvas.zoom()
+    window.a_fit_visible.trigger()
+    ink = canvas.ink_rect(0)
+    assert canvas.fit == "visible" and ink.width() < 150 and canvas.zoom() > width_zoom * 3
+    window.a_actual.trigger()
+    assert abs(canvas.zoom() - canvas.logicalDpiX() / 72) < 1e-6 and canvas.fit == ""
+    window._choose_zoom("250 %")
+    assert abs(canvas.zoom() - 2.5) < 1e-6 and window.zoom_label.currentText() == "250 %"
+    window._choose_zoom(window.zoom_label.itemData(1))  # (Fit the width, chosen in the box)
+    assert canvas.fit == "width"
+    # (the tool Zoom to area: a frame dragged on the page fills the view)
+    window.set_tool("zoomarea")
+    item = canvas.pages[0]
+    before = canvas.zoom()
+    for kind, point in ((QEvent.Type.MouseButtonPress, QPointF(240, 380)), (QEvent.Type.MouseMove, QPointF(340, 410)),
+                        (QEvent.Type.MouseButtonRelease, QPointF(340, 410))):
+        pos = QPointF(canvas.mapFromScene(item.mapToScene(point)))
+        buttons = Qt.MouseButton.NoButton if kind == QEvent.Type.MouseButtonRelease else Qt.MouseButton.LeftButton
+        event = QMouseEvent(kind, pos, canvas.viewport().mapToGlobal(pos), Qt.MouseButton.LeftButton, buttons,
+                            Qt.KeyboardModifier.NoModifier)
+        {QEvent.Type.MouseButtonPress: canvas.mousePressEvent, QEvent.Type.MouseMove: canvas.mouseMoveEvent,
+         QEvent.Type.MouseButtonRelease: canvas.mouseReleaseEvent}[kind](event)
+    assert canvas.zoom() > before * 2
+    centre = item.mapFromScene(canvas.mapToScene(canvas.viewport().rect().center()))
+    assert abs(centre.x() - 290) < 10 and abs(centre.y() - 395) < 10
+    window.set_mode("read")
+    assert window.tool_actions["zoomarea"].isEnabled()
