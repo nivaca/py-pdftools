@@ -157,7 +157,9 @@ needs administrator rights, and the settings are never touched.
 
 Copies as PDF/A or PDF/X need Ghostscript, which makes them (pdf2iso, which
 prepares and checks them, is part of py-pdftools: see "Where it comes
-from"). For searchable copies of scanned pages, Tesseract.
+from"). For OCR, the tesseract program, with the languages of the
+documents (`tesseract-langpack-…` on Fedora, `tesseract-ocr-…` on Debian
+and Ubuntu).
 
 The window
 ----------
@@ -191,6 +193,18 @@ arrangement back, also the next time the program is opened.
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
+
+Edit > Recognise text (OCR) (Ctrl+Shift+O) reads the text of scanned pages
+with tesseract and writes it into the document, invisible, under their
+pictures, so that it can be found, copied and marked; it is a change of
+the document, undone and saved like the others. It reads the scanned
+pages, those selected or a list of them, in one language or several
+(lat+spa), and can turn first the pages scanned sideways or upside down.
+The words tesseract was not sure of are shown beside their pictures, to
+be corrected before the text is written. The settings show tesseract's
+languages and download its more accurate models (tessdata_best), and osd,
+which finds how pages are turned (this needs the internet, once). From the
+command line: `py-pdftools ocr scan.pdf -l lat+spa --rotate --report`.
 
 Each mode works on its own annotations: in Annotate, the redaction boxes are
 shown, but the mouse goes through them, and in Redact the annotations are.
@@ -247,7 +261,7 @@ Tests
 
     $ uv run pytest
 
-There are 417 tests: those of the four programs, and those of what is new
+There are 428 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, the Spanish interface, the packaging). See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.

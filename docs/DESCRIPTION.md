@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in fourteen stages.
+py-imposition. Here I explain how it was made, in fifteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -311,10 +311,37 @@ the folder where the project was before, so `pytest` ran with the system's
 Python and the installed package, not this one; `uv sync --reinstall`
 wrote them again.
 
+15. OCR
+-------
+
+There was OCR already, from py-annotate: a searchable copy, read through
+PyMuPDF, which carries its own Tesseract and needs only its languages. I
+wanted the newest Tesseract, the one the system installs (5.5.4), and the
+confidence of each word, which PyMuPDF does not give; so py-pdftools now
+runs the tesseract program itself, page by page, in processes of its own,
+several at once. Each page is drawn at 300 dpi and read as a table of words
+(TSV), with their places and their confidence. The first try returned no
+words at all: given a folder of languages of its own (--tessdata-dir), as
+py-pdftools gives it, tesseract no longer finds its configuration file for
+the table, and quietly gives plain text; the table is asked for with a
+setting instead.
+
+The text now goes into the document itself (Edit > Recognise text), as a
+change of it, undone and saved like the others; the searchable copy stays.
+The pages can be chosen, and those lying sideways turned first, with
+Tesseract's model of orientation, osd; I checked by turning a page every
+way that its "Rotate" is clockwise, as PDF's own. The words it was unsure
+of are shown beside a picture of themselves, to be corrected before the text
+is written. The settings download its more accurate models (tessdata_best)
+into a folder of py-pdftools, and for each run a folder of links gives
+tesseract, for each language, the better model if there is one. The command
+line has `py-pdftools ocr`. Tesseract is optional: without it, there is no
+OCR, and its tests are skipped.
+
 Testing
 -------
 
-The program has 417 tests (`uv run pytest`): those of the four programs,
+The program has 428 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -326,6 +353,6 @@ written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 103 files of Python, around 31,300
-lines (about a tenth of them comments), and 2,231 texts of the interface
+made for the test. The program has 108 files of Python, around 32,200
+lines (about a tenth of them comments), and 2,305 texts of the interface
 in Spanish.

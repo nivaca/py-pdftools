@@ -29,6 +29,9 @@ BuildRequires:  python3-pyside6
 # (the tests of imposition check each result with qpdf, and some tests read pages with pdftotext)
 BuildRequires:  qpdf
 BuildRequires:  poppler-utils
+# (the tests of OCR read scans with it)
+BuildRequires:  tesseract
+BuildRequires:  tesseract-langpack-eng
 
 # PyMuPDF, pikepdf and reportlab come from the package's metadata (pyproject.toml).
 # The window: Fedora's PySide6 (pyproject.toml names the PyPI wheel, pyside6-essentials).
@@ -36,7 +39,7 @@ Requires:       python3-pyside6
 # (for copies as PDF/A and PDF/X: Ghostscript makes them, for the pdf2iso py-pdftools includes)
 Recommends:     ghostscript
 Requires:       hicolor-icon-theme
-# (for the searchable copies of scanned pages: OCR)
+# (for OCR: the tesseract program, and its English; the other languages as needed)
 Recommends:     tesseract
 Recommends:     tesseract-langpack-eng
 

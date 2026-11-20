@@ -22,7 +22,7 @@ La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-fo
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 103 archivos de Python, unas 31 300 líneas (una décima parte, comentarios), y 2231 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 108 archivos de Python, unas 32 200 líneas (una décima parte, comentarios), y 2305 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -40,7 +40,7 @@ Las copias están en el disco (`~/.cache/py-pdftools/work`), no en /tmp, que en 
 
 ### Documentos con miles de anotaciones
 
-Con un libro de 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos, porque las anotaciones se leían dos veces. Ahora la ventana guarda las anotaciones tal como las tiene el archivo que muestra, y las etiquetas, que son solo una entrada del catálogo, las escribe PyMuPDF al escribir las anotaciones, sin renumerar los objetos: el cambio tarda 0,3 segundos, y deshacer, menos de una décima. Quitar las anotaciones de la copia que se dibuja y leerlas se hace por los números de sus objetos, sin cargar las que ya se conocen.
+Con 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos: las anotaciones se leían dos veces. Ahora la ventana recuerda las del archivo que muestra, y PyMuPDF escribe las etiquetas al escribir las anotaciones, sin renumerar los objetos: el cambio tarda 0,3 segundos.
 
 ### pdf2iso, incluido
 
@@ -58,9 +58,13 @@ Del código de PDFCraft, un editor escrito en Rust, se tomaron cuatro ideas. Hay
 
 Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y colores, las palabras bajo el ratón, las matrices de PDF (tres veces), la orden `interface`, los campos comunes de encabezados y marcas de agua, el campo de pdf2iso en tres diálogos de ajustes, un botón y un menú de colores. Se buscaron con pylint y comparando la sintaxis de cada función, y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`, `stamps.StampSettings`, `gui/conform_field.py`, entre otros).
 
+### OCR
+
+El OCR usa el programa tesseract (la versión del sistema), en varios procesos a la vez; de cada palabra lee el lugar y la confianza. El texto se escribe en el documento, invisible, como un cambio que se deshace como los demás, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
+
 ## Validación
 
-Hay 417 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 428 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
@@ -70,9 +74,9 @@ Las pruebas corren también en GitHub, en Ubuntu y en Windows, contra el program
 
 ## Plataforma
 
-Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta Ghostscript (pdf2iso, otro programa del autor, viene incluido); para las copias con texto buscable de páginas escaneadas, Tesseract.
+Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta Ghostscript (pdf2iso, otro programa del autor, viene incluido); para el OCR, el programa tesseract y los idiomas de los documentos.
 
-Es una aplicación de escritorio y no necesita internet. Nada sale del equipo.
+Es una aplicación de escritorio y no necesita internet, salvo para descargar, si se quiere, los modelos más precisos de Tesseract. Nada del usuario sale del equipo.
 
 ## Ambiente
 

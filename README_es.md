@@ -162,8 +162,9 @@ permisos de administrador, y la configuración nunca se toca.
 
 Las copias como PDF/A o PDF/X necesitan Ghostscript, que las hace (pdf2iso,
 que las prepara y las comprueba, es parte de py-pdftools: véase «De dónde
-viene»). Para las copias con texto buscable de páginas escaneadas,
-Tesseract.
+viene»). Para el OCR, el programa tesseract, con los idiomas de los
+documentos (`tesseract-langpack-…` en Fedora, `tesseract-ocr-…` en Debian
+y Ubuntu).
 
 La ventana
 ----------
@@ -199,6 +200,19 @@ nuevo, vuelva así, también la próxima vez que se abra el programa.
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
+
+Editar > Reconocer el texto (OCR) (Ctrl+Mayús+O) lee con tesseract el
+texto de las páginas escaneadas y lo escribe en el documento, invisible,
+bajo sus imágenes, para que se pueda buscar, copiar y marcar; es un cambio
+del documento, que se deshace y se guarda como los demás. Lee las páginas
+escaneadas, las elegidas o una lista, en un idioma o en varios (lat+spa),
+y puede girar antes las que se escanearon de lado o al revés. Las palabras
+de las que tesseract no estaba seguro se muestran junto a su imagen, para
+corregirlas antes de escribir el texto. La configuración muestra los
+idiomas de tesseract y descarga sus modelos más precisos (tessdata_best),
+y osd, que averigua cómo están giradas las páginas (para eso hace falta
+internet, una vez). Desde la línea de órdenes:
+`py-pdftools ocr escaneo.pdf -l lat+spa --rotate --report`.
 
 Cada modo trabaja sobre sus propias anotaciones: en Anotar, los recuadros de
 censura se ven, pero el ratón los atraviesa, y en Censurar, las anotaciones.
@@ -260,7 +274,7 @@ Pruebas
 
     $ uv run pytest
 
-Hay 417 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 428 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, la interfaz en español, el empaquetado). Cómo se hizo el
 programa está en [docs/DESCRIPCIÓN_es.md](docs/DESCRIPCIÓN_es.md).
