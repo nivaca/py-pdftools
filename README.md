@@ -211,6 +211,26 @@ within half of the free memory), whether selections are drawn with
 transparency or as outlines, and whether text and graphics are smoothed
 (antialiasing).
 
+Moving through a document works in every mode. View > Bookmarks (F5)
+shows the document's bookmarks as a tree that can be filtered; its right
+click adds, renames, moves, indents and styles them, or makes them from
+the headings. Links are followed with a click (with Select, Ctrl+click),
+web and mail addresses written in the text too, and Alt+Left and
+Alt+Right go back and forth through the places jumped to. A document
+opens where it was left, or as it asks (its page, zoom and panel), and
+`py-pdftools-gui book.pdf#page=12` or `#nameddest=intro` opens it at a
+place. The menu View has two pages side by side (Ctrl+Shift+2, with the
+first alone as a cover if wished), the zooms (fit the page, the width, the
+height, or the inked area; actual size; a percentage typed in the box of
+the zoom; and the tool Zoom to area, Z), the view turned without changing
+the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
+black, or one's own), the gaps between the pages hidden, and Full screen
+(F11) as a presentation. File > Open in a new tab (Ctrl+T) puts documents
+in tabs of one window, and View > Split the view (`Ctrl+\`) shows two side
+by side. A document changed by another program opens again by itself.
+Space held turns any tool into Hand, and the middle button scrolls by
+itself.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
@@ -284,9 +304,9 @@ Tests
 
     $ uv run pytest
 
-There are 443 tests: those of the four programs, and those of what is new
+There are 466 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
-the working copies, OCR, the Spanish interface, the packaging). Their
+the working copies, OCR, navigation, the Spanish interface, the packaging). Their
 windows are drawn on an X server of their own (Xvfb), if it is installed,
 else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See

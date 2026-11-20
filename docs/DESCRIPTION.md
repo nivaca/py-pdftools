@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in sixteen stages.
+py-imposition. Here I explain how it was made, in seventeen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -375,21 +375,60 @@ I also learnt to keep my hands off the files while a release is being made:
 it packages the folder as it is, and I had started on the next change during
 its tests.
 
+17. Moving through a document
+-----------------------------
+
+Then I read PDFCraft's code once more, this time for what a reader of
+PDFs expects when moving through a long document, and made fifteen
+changes, one commit each. The bookmarks became a panel common to every
+mode, a tree with a filter, and they can be edited there: added at the
+place shown, renamed, moved, indented, made bold or coloured, or made
+from the headings, which are the lines in the three largest sizes above
+the size of the body. Links are followed, and also the web and mail
+addresses written in the text, which most documents don't make links; a
+web address is opened only after asking. Every jump (a link, a bookmark,
+the page box, Find) goes into a history, gone through with Alt+Left and
+Alt+Right as in a browser. A document opens where it was left, or as it
+asks to be opened, and `book.pdf#page=12` opens it at a page.
+
+The view got two pages side by side, with the first one alone as a cover
+if wished, which made the canvas lay out rows of pages and not pages; more
+zooms, one of them to the inked area of the page, found on a small grey
+drawing of it; the pages turned in the view only; reading colours, made
+with PyMuPDF's tint_with, for the pages in view and not the thumbnails;
+full screen as a presentation, where a page with a display time turns by
+itself; the details of a page on its thumbnail; Space as Hand for a
+moment and the middle button for scrolling; and the gaps between the
+pages, which can be hidden.
+
+Tabs were the largest change. Each tab is a whole window of its own,
+with its menus, panels and undo, put inside a window of tabs, which can
+show two of them side by side. Two problems came out. With two windows in
+view, their shortcuts were the same keys in the same window, so they now
+act only where the focus is. And the window of tabs, when it closed,
+deleted the windows inside it, which other tests still found in the list
+of windows: a tab closed now leaves its window as a closed window stays,
+hidden. Reloading a file changed by another program was simple, but its
+first version named an attribute `_stamp`, which hid the method that
+makes stamp annotations; one test of annotations found it.
+
 Testing
 -------
 
-The program has 443 tests (`uv run pytest`): those of the four programs,
+The program has 466 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
 the window, the boxes as redaction marks, the working copies with their
-undo and redo, the page labels written by PyMuPDF as pikepdf writes them, the Spanish interface (every text translated, and none left
-over) and the packaging. The windows of the four modes are tested as a user
+undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
+the moving through a document (bookmarks, links, the history, the views,
+tabs, reloading), the Spanish interface (every text translated, and none
+left over) and the packaging. The windows of the four modes are tested as a user
 would use them, with mouse events on the pages; the redacted copy is also
 written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 112 files of Python, around 33,400
-lines (about a tenth of them comments), and 2,479 texts of the interface
+made for the test. The program has 120 files of Python, around 35,400
+lines (about a tenth of them comments), and 2,581 texts of the interface
 in Spanish.

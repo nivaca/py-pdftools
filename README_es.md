@@ -218,6 +218,27 @@ páginas y miniaturas, dentro de la mitad de la memoria libre), si las
 selecciones se dibujan con transparencia o como contornos, y si el texto
 y los gráficos se suavizan (antialiasing).
 
+Moverse por un documento funciona en todos los modos. Ver > Marcadores
+(F5) muestra los marcadores del documento como un árbol que se puede
+filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
+estilo, o los saca de los títulos. Los enlaces se siguen con un clic (con
+Seleccionar, Ctrl+clic), también las direcciones web y de correo escritas
+en el texto, y Alt+Izquierda y Alt+Derecha van y vuelven por los lugares
+visitados. Un documento se abre donde se dejó, o como pide (su página, su
+zoom y su panel), y `py-pdftools-gui libro.pdf#page=12` o
+`#nameddest=intro` lo abre en un lugar. El menú Ver tiene dos páginas lado
+a lado (Ctrl+Mayús+2, con la primera sola como portada si se quiere), los
+zooms (ajustar a la página, al ancho, al alto o a lo impreso; tamaño real;
+un porcentaje escrito en la casilla del zoom; y la herramienta Ampliar una
+zona, Z), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
+colores de lectura (blanco, amarillo o verde sobre negro, o propios), el
+espacio entre las páginas, que se puede quitar, y Pantalla completa (F11)
+como presentación. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
+documentos en pestañas de una ventana, y Ver > Dividir la vista (`Ctrl+\`)
+muestra dos lado a lado. Un documento que otro programa cambia se abre de
+nuevo solo. La barra espaciadora, mantenida, convierte cualquier
+herramienta en Mano, y el botón central desplaza solo.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
@@ -297,9 +318,10 @@ Pruebas
 
     $ uv run pytest
 
-Hay 443 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 466 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
-copias de trabajo, el OCR, la interfaz en español, el empaquetado). Sus
+copias de trabajo, el OCR, la navegación, la interfaz en español, el
+empaquetado). Sus
 ventanas se dibujan en un servidor X propio (Xvfb), si está instalado, o
 si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el
