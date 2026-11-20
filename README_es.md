@@ -171,12 +171,14 @@ La ventana
 
 Un documento se abre con Archivo > Abrir, o soltándolo sobre la ventana. Sus
 páginas se ven una debajo de otra, con sus miniaturas a la izquierda. La
-barra de modos, arriba (o Ctrl+1 a Ctrl+5), elige qué hace la ventana, y
+barra de modos, arriba (o Ctrl+1 a Ctrl+6), elige qué hace la ventana, y
 cómo se dispone:
 
 * **Leer**: solo las páginas y sus miniaturas, con las barras para abrir,
   buscar, recorrer las páginas y cambiar el tamaño; el ratón mueve las
   páginas;
+* **OCR**: el texto de las páginas escaneadas, leído por tesseract; su
+  panel elige las páginas, los idiomas y cómo leerlas (véase abajo);
 * **Censurar**: la herramienta Censurar (arrastrar sobre un texto lo marca;
   en otra parte, o con Ctrl, dibuja un recuadro), Buscar y censurar, los
   códigos de censura y el panel de los recuadros;
@@ -201,17 +203,19 @@ Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
 
-Editar > Reconocer el texto (OCR) (Ctrl+Mayús+O) lee con tesseract el
-texto de las páginas escaneadas y lo escribe en el documento, invisible,
+El modo OCR (Ctrl+Mayús+O, o su botón Reconocer el texto) lee con
+tesseract el texto de las páginas escaneadas y lo escribe en el documento, invisible,
 bajo sus imágenes, para que se pueda buscar, copiar y marcar; es un cambio
 del documento, que se deshace y se guarda como los demás. Lee las páginas
-escaneadas, las elegidas o una lista, en un idioma o en varios (lat+spa),
-y puede girar antes las que se escanearon de lado o al revés. Las palabras
+escaneadas, las elegidas en las miniaturas o una lista, en los idiomas
+marcados en su panel (el principal primero), y puede girar antes las que se escanearon de lado o al revés. Las palabras
 de las que tesseract no estaba seguro se muestran junto a su imagen, para
-corregirlas antes de escribir el texto. La configuración muestra los
-idiomas de tesseract y descarga sus modelos más precisos (tessdata_best),
-y osd, que averigua cómo están giradas las páginas (para eso hace falta
-internet, una vez). Desde la línea de órdenes:
+corregirlas antes de escribir el texto (en el panel se elige cuánta
+seguridad basta). OCR > Idiomas muestra todos los idiomas que tesseract
+puede leer, y descarga, actualiza o quita sus modelos más precisos
+(tessdata_best), y osd, que averigua cómo están giradas las páginas (para
+eso hace falta internet, una vez). En los otros modos, el menú de las
+miniaturas lee las páginas elegidas. Desde la línea de órdenes:
 `py-pdftools ocr escaneo.pdf -l lat+spa --rotate --report`.
 
 Cada modo trabaja sobre sus propias anotaciones: en Anotar, los recuadros de

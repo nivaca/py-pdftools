@@ -169,7 +169,10 @@ def test_text_recognised_into_the_document(window, tmp_path):
 
 
 @needs_tesseract
-def test_the_dialogs(window, tmp_path, monkeypatch):
+def test_the_mode_ocr(window, tmp_path, monkeypatch):
+    """The dialog of the menu of the thumbnails, and the mode OCR: its panel chooses the pages and the
+    languages, reads them, and writes the text after the doubtful words were checked."""
+    from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QDialog
 
     from py_pdftools.gui import ocr_dialog
@@ -177,40 +180,39 @@ def test_the_dialogs(window, tmp_path, monkeypatch):
     path = scan(tmp_path / "scan.pdf", pages=3)
     assert window.open_path(path)
     dialog = ocr_dialog.OcrDialog(window, 3, [0, 1, 2], [], 1, "eng")
-    assert dialog.all.isChecked() and not dialog.chosen.isEnabled() and dialog.page_list() == [0, 1, 2]
-    dialog.pages.setText("2-")
-    dialog.listed.setChecked(True)
-    assert dialog.page_list() == [1, 2]
-    dialog.pages.setText("9")
+    o = dialog.options
+    assert o.all.isChecked() and not o.chosen.isEnabled() and o.page_list() == [0, 1, 2]
+    assert o.language() == "eng" and o.languages.item(0).data(Qt.ItemDataRole.UserRole) == "eng"
+    o.pages.setText("2-")
+    o.listed.setChecked(True)
+    assert o.page_list() == [1, 2]
+    o.pages.setText("9")
     dialog.accept()
-    assert dialog.result() == 0 and "out of range" in dialog.problem.text()
-    dialog.pages.setText("1")
-    dialog.language.setCurrentText("klingon")
+    assert dialog.result() == 0 and "out of range" in o.problem.text()
+    o.pages.setText("1")
+    o.languages.item(0).setCheckState(Qt.CheckState.Unchecked)
     dialog.accept()
-    assert dialog.result() == 0 and "klingon" in dialog.problem.text()
+    assert dialog.result() == 0 and "no language" in o.problem.text()
     dialog.reject()
 
-    # (the whole of it: pages 1 and 3, everything doubtful, one word corrected in the review)
-    def ask(self):
-        self.listed.setChecked(True)
-        self.pages.setText("1, 3")
-        return QDialog.DialogCode.Accepted
+    # (the mode: pages 1 and 3, every word under 100 % doubtful, one corrected in the review)
+    window.set_mode("ocr")
+    panel = window.ocr_options
+    assert "3 pages are scans" in window.ocr_summary.text() and panel.all.isChecked()
+    panel.listed.setChecked(True)
+    panel.pages.setText("1, 3")
+    panel.doubtful.setValue(100)
 
     def review(self):
         assert self.fields and all(page in (0, 2) for page, *_ in self.fields)
         self.fields[0][3].setText("FIXED")
         return QDialog.DialogCode.Accepted
 
-    monkeypatch.setattr(ocr_dialog.OcrDialog, "exec", ask)
     monkeypatch.setattr(ocr_dialog.ReviewDialog, "exec", review)
-    monkeypatch.setattr(ocr, "DOUBTFUL", 101)
-    monkeypatch.setattr(ocr.PageResult, "doubtful", lambda self, below=101: list(self.words))
-    real = ocr_dialog.ReviewDialog.__init__
-    monkeypatch.setattr(ocr_dialog.ReviewDialog, "__init__", lambda self, parent, results, below=101:
-                        real(self, parent, results, 101))
-    assert window.recognise_dialog()
+    assert window.recognise_from_panel()
     assert window.doc[0].get_text().split()[0] == "FIXED" and window.doc[1].get_text().strip() == ""
     assert "zebras" in window.doc[2].get_text()
+    assert "1 page is a scan" in window.ocr_summary.text()
 
 
 @needs_tesseract

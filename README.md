@@ -166,11 +166,13 @@ The window
 
 A document is opened with File > Open, or dropped on the window. Its pages
 are shown one under the other, with their thumbnails on the left. The bar
-of modes, at the top (or Ctrl+1 to Ctrl+5), chooses what the window does,
+of modes, at the top (or Ctrl+1 to Ctrl+6), chooses what the window does,
 and how it is arranged:
 
 * **Read**: only the pages and their thumbnails, with the toolbars to open,
   find, move through the pages and zoom; the mouse moves the pages;
+* **OCR**: the text of scanned pages, read by tesseract; its panel chooses
+  the pages, the languages and how to read them (see below);
 * **Redact**: the tool Redact (dragging over text marks it; elsewhere, or
   with Ctrl, it draws a box), Find and redact, redaction codes, and the
   panel of the boxes;
@@ -194,16 +196,18 @@ When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
 
-Edit > Recognise text (OCR) (Ctrl+Shift+O) reads the text of scanned pages
-with tesseract and writes it into the document, invisible, under their
+The mode OCR (Ctrl+Shift+O, or its button Recognise text) reads the text of
+scanned pages with tesseract and writes it into the document, invisible, under their
 pictures, so that it can be found, copied and marked; it is a change of
 the document, undone and saved like the others. It reads the scanned
-pages, those selected or a list of them, in one language or several
-(lat+spa), and can turn first the pages scanned sideways or upside down.
+pages, those chosen in the thumbnails or a list of them, in the languages
+ticked in its panel (the main one first), and can turn first the pages scanned sideways or upside down.
 The words tesseract was not sure of are shown beside their pictures, to
-be corrected before the text is written. The settings show tesseract's
-languages and download its more accurate models (tessdata_best), and osd,
-which finds how pages are turned (this needs the internet, once). From the
+be corrected before the text is written (how sure is sure enough is set in
+the panel). OCR > Languages lists every language tesseract can read, and
+downloads, updates or removes its more accurate models (tessdata_best), and
+osd, which finds how pages are turned (this needs the internet, once). In
+the other modes, the menu of the thumbnails reads the pages chosen. From the
 command line: `py-pdftools ocr scan.pdf -l lat+spa --rotate --report`.
 
 Each mode works on its own annotations: in Annotate, the redaction boxes are

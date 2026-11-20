@@ -9142,10 +9142,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Tal como se leyó; corríjala, o vacíela para dejar fuera la palabra</tr>
   </text>
   <text>
-    <en>As tesseract names them; several with +, the main one first: lat+spa. Better models can be downloaded in the settings.</en>
-    <tr>Como los nombra tesseract; varios con +, el principal primero: lat+spa. En la configuración se pueden descargar modelos mejores.</tr>
-  </text>
-  <text>
     <en>Check the doubtful words before the text is written</en>
     <tr>Revisar las palabras dudosas antes de escribir el texto</tr>
   </text>
@@ -9156,10 +9152,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Languages:</en>
     <tr>Idiomas:</tr>
-  </text>
-  <text>
-    <en>Needs tesseract's orientation model (osd): download it in the settings</en>
-    <tr>Necesita el modelo de orientación de tesseract (osd): descárguelo en la configuración</tr>
   </text>
   <text>
     <en>No page of those chosen is a scan without text</en>
@@ -9174,20 +9166,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Las páginas que ya tienen texto se dejan como están.</tr>
   </text>
   <text>
-    <en>Read the text of scanned pages with tesseract and write it into the document, invisible, under their pictures: it can then be found, copied and marked</en>
-    <tr>Leer con tesseract el texto de las páginas escaneadas y escribirlo en el documento, invisible, bajo sus imágenes: así se puede buscar, copiar y marcar</tr>
-  </text>
-  <text>
     <en>Reading the scanned pages: {done} of {of}…</en>
     <tr>Leyendo las páginas escaneadas: {done} de {of}…</tr>
   </text>
   <text>
     <en>Recognise text (OCR)</en>
     <tr>Reconocer el texto (OCR)</tr>
-  </text>
-  <text>
-    <en>Recognise text (OCR)…</en>
-    <tr>Reconocer el texto (OCR)…</tr>
   </text>
   <text>
     <en>Tesseract was not sure of {count} word. Correct it if it is wrong; the confidence is beside it.</en>
@@ -9940,5 +9924,65 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{name} was not downloaded</en>
     <tr>{name} no se había descargado</tr>
+  </text>
+  <text>
+    <en>&amp;OCR</en>
+    <tr>&amp;OCR</tr>
+  </text>
+  <text>
+    <en>A word read with less confidence than this is doubtful</en>
+    <tr>Una palabra leída con menos confianza que esta es dudosa</tr>
+  </text>
+  <text>
+    <en>Choose the pages to read and their languages in the panel, and press Recognise text: the text of scanned pages is written into the document, under their pictures, so that it can be found, copied and marked. Choose several pages in the thumbnails with Ctrl or Shift.</en>
+    <tr>Elija en el panel las páginas que se leen y sus idiomas, y pulse Reconocer el texto: el texto de las páginas escaneadas se escribe en el documento, bajo sus imágenes, para que se pueda buscar, copiar y marcar. Varias páginas se eligen en las miniaturas con Ctrl o Mayús.</tr>
+  </text>
+  <text>
+    <en>Doubtful below:</en>
+    <tr>Dudosa por debajo de:</tr>
+  </text>
+  <text>
+    <en>Languages…</en>
+    <tr>Idiomas…</tr>
+  </text>
+  <text>
+    <en>Needs tesseract's orientation model (osd): download it in OCR &gt; Languages</en>
+    <tr>Necesita el modelo de orientación de tesseract (osd): descárguelo en OCR &gt; Idiomas</tr>
+  </text>
+  <text>
+    <en>No document is open.</en>
+    <tr>No hay ningún documento abierto.</tr>
+  </text>
+  <text>
+    <en>No page is a scan without text.</en>
+    <tr>Ninguna página es un escaneo sin texto.</tr>
+  </text>
+  <text>
+    <en>OCR</en>
+    <tr>OCR</tr>
+  </text>
+  <text>
+    <en>Read the text of scanned pages, so that it can be found, copied and marked</en>
+    <tr>Leer el texto de las páginas escaneadas, para que se pueda buscar, copiar y marcar</tr>
+  </text>
+  <text>
+    <en>Read the text of the pages chosen in the panel with tesseract and write it into the document, invisible, under their pictures: it can then be found, copied and marked</en>
+    <tr>Leer con tesseract el texto de las páginas elegidas en el panel y escribirlo en el documento, invisible, bajo sus imágenes: así se puede buscar, copiar y marcar</tr>
+  </text>
+  <text>
+    <en>Recognise text</en>
+    <tr>Reconocer el texto</tr>
+  </text>
+  <text>
+    <en>Tick the languages of the text; drag them to put the main one first. OCR &gt; Languages downloads others, and better models.</en>
+    <tr>Marque los idiomas del texto; arrástrelos para poner primero el principal. OCR &gt; Idiomas descarga otros, y modelos mejores.</tr>
+  </text>
+  <text>
+    <en>{count} page is a scan without text.</en>
+    <tr>{count} página es un escaneo sin texto.</tr>
+  </text>
+  <text>
+    <en>{count} pages are scans without text.</en>
+    <tr>{count} páginas son escaneos sin texto.</tr>
   </text>
 </interface>

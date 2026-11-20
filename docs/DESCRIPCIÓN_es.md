@@ -60,7 +60,7 @@ Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y co
 
 ### OCR
 
-El OCR usa el programa tesseract (la versión del sistema), en varios procesos a la vez; de cada palabra lee el lugar y la confianza. El texto se escribe en el documento, invisible, como un cambio que se deshace como los demás, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
+El OCR usa el programa tesseract (la versión del sistema), en varios procesos a la vez; de cada palabra lee el lugar y la confianza. Tiene su propio modo, entre Leer y Censurar. El texto se escribe en el documento, invisible, como un cambio que se deshace como los demás, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
 
 ## Validación
 

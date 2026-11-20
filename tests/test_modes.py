@@ -50,9 +50,9 @@ def shown(item) -> bool:
 def test_the_modes_in_order(app, sample, monkeypatch):
     monkeypatch.setattr(window_module, "DEFAULT_MODE", "read")
     w = make(app, sample)
-    assert list(w.modes) == ["read", "redact", "annotate", "pages", "impose"]
-    assert [a.text() for a in w.mode_actions.values()] == ["Read", "Redact", "Annotate", "Foliate", "Impose"]
-    assert [a.shortcut().toString() for a in w.mode_actions.values()] == [f"Ctrl+{n}" for n in range(1, 6)]
+    assert list(w.modes) == ["read", "ocr", "redact", "annotate", "pages", "impose"]
+    assert [a.text() for a in w.mode_actions.values()] == ["Read", "OCR", "Redact", "Annotate", "Foliate", "Impose"]
+    assert [a.shortcut().toString() for a in w.mode_actions.values()] == [f"Ctrl+{n}" for n in range(1, 7)]
     # (the first time, Read: only the pages, the hand, and the toolbars of every mode but Edit)
     assert w.mode == "read" and w.canvas.mode == "hand"
     assert not any(shown(b) for m in w.modes.values() for b in m.bars + m.docks)

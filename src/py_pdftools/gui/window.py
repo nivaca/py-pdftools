@@ -449,12 +449,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         m.addSeparator()
         self.a_select_all = self._action(m, tr("Select the annotations of this page"), self.select_page,
                                          QKeySequence.StandardKey.SelectAll)
-        m.addSeparator()
-        # El OCR cambia el documento mismo (como las etiquetas): va en Editar, y se deshace como lo demás.
-        self.a_recognise = self._action(m, tr("Recognise text (OCR)…"), self.recognise_dialog, "Ctrl+Shift+O",
-                                        tip=tr("Read the text of scanned pages with tesseract and write it into "
-                                               "the document, invisible, under their pictures: it can then be "
-                                               "found, copied and marked"))
+
         self.a_select_kind = self._action(m, tr("Select those of the same kind on this page"), self.select_kind)
         self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
         self.m_align = m.addMenu(tr("Align"))
@@ -654,16 +649,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
                                 "zoom. Choose another mode, above, to annotate, redact, foliate or impose the "
                                 "document.")
         redact, pages, impose = self._build_redact(), self._build_pages(), self._build_impose()
-        # (in this order on the bar, and for Ctrl+1 ... Ctrl+5; 'pages' is the mode Foliate)
-        self.modes: dict[str, Mode] = {"read": read, "redact": redact, "annotate": annotate, "pages": pages,
-                                       "impose": impose}
+        ocr_mode = self._build_ocr()
+        # (in this order on the bar, and for Ctrl+1 ... Ctrl+6; 'pages' is the mode Foliate; OCR comes before
+        # the modes that mark text, since it gives scanned pages their text)
+        self.modes: dict[str, Mode] = {"read": read, "ocr": ocr_mode, "redact": redact, "annotate": annotate,
+                                       "pages": pages, "impose": impose}
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
         bar.setObjectName("modes")
         bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         group = QActionGroup(self)
         self.mode_actions: dict[str, QAction] = {}
-        # Ctrl+1 a Ctrl+5 siguen el orden del diccionario: leer, censurar, anotar, foliar, imponer.
+        # Ctrl+1 a Ctrl+6 siguen el orden del diccionario: leer, OCR, censurar, anotar, foliar, imponer.
         for n, key in enumerate(self.modes, 1):
             act = QAction(tr(TITLES[key]), self, checkable=True)
             act.setToolTip(tr(TIPS[key]))
@@ -2384,6 +2381,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
                 pl.item(n).setSelected(n in rows)
             pl.blockSignals(False)
             self._update_page_actions()
+            self.ocr_refresh()
         finally:
             self._syncing_selection = False
 
@@ -2454,6 +2452,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
             self.pages.setCurrentRow(page)
         self.pages.blockSignals(False)
         self._show_panel()
+        self.ocr_refresh()
         self._enable()
         # _page_shown may run while the window is being built, before the modes (and the mode Pages) exist.
         if hasattr(self, "modes"):

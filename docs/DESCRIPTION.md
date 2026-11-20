@@ -326,7 +326,8 @@ py-pdftools gives it, tesseract no longer finds its configuration file for
 the table, and quietly gives plain text; the table is asked for with a
 setting instead.
 
-The text now goes into the document itself (Edit > Recognise text), as a
+The text now goes into the document itself (the mode OCR, of its own,
+between Read and Redact, since marking text needs it), as a
 change of it, undone and saved like the others; the searchable copy stays.
 The pages can be chosen, and those lying sideways turned first, with
 Tesseract's model of orientation, osd; I checked by turning a page every

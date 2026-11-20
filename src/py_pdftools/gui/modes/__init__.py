@@ -8,6 +8,7 @@ which annotations are its own (``owns``): those the mouse, the list and the
 Edit menu work on. The others are shown on the pages, but can't be touched.
 
 * Read: only the pages and their thumbnails, to read them (no tools, no panels)
+* OCR: the text of scanned pages, read by tesseract and written into the document
 * Annotate: highlights, notes, text boxes, shapes, drawings... (py-annotate)
 * Redact: boxes over what is to be removed (py-redact), kept as the PDF's
   redaction marks (annotations of kind ``redact``) until a redacted copy is made
@@ -26,9 +27,10 @@ from ...core.interface import N_
 
 # Títulos y descripciones se marcan con N_ y se traducen al construir la barra de los modos (tr).
 # ('pages' is the mode Foliate: its key, kept from before it took that name, is in the settings of users)
-TITLES = {"read": N_("Read"), "annotate": N_("Annotate"), "redact": N_("Redact"), "pages": N_("Foliate"),
+TITLES = {"read": N_("Read"), "ocr": N_("OCR"), "annotate": N_("Annotate"), "redact": N_("Redact"), "pages": N_("Foliate"),
           "impose": N_("Impose")}
 TIPS = {"read": N_("Only the pages, to read them: no tools, no panels"),
+        "ocr": N_("Read the text of scanned pages, so that it can be found, copied and marked"),
         "annotate": N_("Highlights, notes, text boxes, shapes and drawings"),
         "redact": N_("Mark what is to be removed, and write a redacted copy"),
         "pages": N_("Page labels, headers and footers, watermarks, and the order of the pages"),
