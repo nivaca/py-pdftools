@@ -36,7 +36,7 @@ Los dos analizadores de argumentos no se reescribieron: sus órdenes se injertar
 
 Cada cambio del documento escribe primero el documento con sus anotaciones, hace el cambio con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página, de modo que Deshacer recorre por igual los cambios de las anotaciones y los del documento.
 
-Las copias de trabajo están en la carpeta de caché (`~/.cache/py-pdftools/work`), en el disco, y no en la carpeta temporal: en Fedora, /tmp está en la memoria, y cada cambio de un documento de 1 GB ocupaba otro gigabyte de RAM. El historial guarda los diez últimos cambios del documento.
+Las copias están en el disco (`~/.cache/py-pdftools/work`), no en /tmp, que en Fedora está en la memoria; el historial guarda los diez últimos cambios del documento.
 
 ### Documentos con miles de anotaciones
 
@@ -52,7 +52,7 @@ El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su pr
 
 ### Documentos grandes
 
-Para los documentos grandes se estudió el código de PDFCraft, un editor escrito en Rust, y se tomaron cuatro ideas. Los procesos que dibujan las páginas son varios por carril, y una página que tarda más de 20 segundos, o que hace caer su proceso, se muestra en gris con la causa y no se vuelve a intentar. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom, la página se dibuja entera a 2048 píxeles como máximo, y la parte que se ve, en teselas de 1024 píxeles a la escala completa.
+Del código de PDFCraft, un editor escrito en Rust, se tomaron cuatro ideas. Hay varios procesos de dibujo por carril, y una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom, la página se dibuja entera a 2048 píxeles como máximo, y la parte que se ve, en teselas de 1024 píxeles a la escala completa.
 
 ### Una sola copia de cada cosa
 
