@@ -18,10 +18,10 @@ from dataclasses import dataclass, field
 import pikepdf
 from pikepdf import Array, Dictionary, Name, Pdf
 
-Rect = tuple[float, float, float, float]
-Matrix = tuple[float, float, float, float, float, float]
+from ..core.matrix import IDENTITY, Matrix, apply, invert  # noqa: F401  (pdfutil.apply ... for the others)
+from ..core.matrix import multiply as mul
 
-IDENTITY: Matrix = (1, 0, 0, 1, 0, 0)
+Rect = tuple[float, float, float, float]
 
 # Marked-content tags so that stuck-on items can be peeled off again.
 TAG_TEXT = "PyImpText"
@@ -52,20 +52,6 @@ def keep_alive(pdf: "Pdf") -> "Pdf":
 # --------------------------------------------------------------------------- matrices
 
 
-def mul(m1: Matrix, m2: Matrix) -> Matrix:
-    # Producto con vectores fila, [x y 1]·m1·m2: m1 se aplica primero, como con dos operadores cm seguidos.
-    a1, b1, c1, d1, e1, f1 = m1
-    a2, b2, c2, d2, e2, f2 = m2
-    return (
-        a1 * a2 + b1 * c2,
-        a1 * b2 + b1 * d2,
-        c1 * a2 + d1 * c2,
-        c1 * b2 + d1 * d2,
-        e1 * a2 + f1 * c2 + e2,
-        e1 * b2 + f1 * d2 + f2,
-    )
-
-
 def chain(*ms: Matrix) -> Matrix:
     # chain(a, b, c) applies a first and c last, so it reads in the order of the transformations.
     out = IDENTITY
@@ -90,19 +76,6 @@ def rotate(deg_ccw: float) -> Matrix:
     # snap tiny values so right angles stay exact
     c, s = (0.0 if abs(c) < 1e-12 else c), (0.0 if abs(s) < 1e-12 else s)
     return (c, s, -s, c, 0, 0)
-
-
-def invert(m: Matrix) -> Matrix:
-    a, b, c, d, e, f = m
-    # No check for a singular matrix: a zero scale would raise ZeroDivisionError here.
-    det = a * d - b * c
-    ia, ib, ic, id_ = d / det, -b / det, -c / det, a / det
-    return (ia, ib, ic, id_, -(e * ia + f * ic), -(e * ib + f * id_))
-
-
-def apply(m: Matrix, x: float, y: float) -> tuple[float, float]:
-    a, b, c, d, e, f = m
-    return a * x + c * y + e, b * x + d * y + f
 
 
 def transform_rect(m: Matrix, r: Rect) -> Rect:

@@ -246,7 +246,7 @@ class Overlay:
             page = self.pdf.pages[index].obj
             geom = pu.geometry(page, use_bleed=False)
             # overlay visual coordinates -> page user space
-            inv = invert(geom.visual_matrix())
+            inv = pu.invert(geom.visual_matrix())
             # Recorte a la caja de la página overlay: nada de lo dibujado fuera de ella aparece.
             form = imp.form(ov.pages[k].obj, box)
             canvas = pu.Canvas(self.pdf, page)
@@ -257,13 +257,6 @@ class Overlay:
 
 
 # TODO: es la misma función que pu.invert (pdfutil.py); bastaría con usar esa.
-def invert(m: pu.Matrix) -> pu.Matrix:
-    a, b, c, d, e, f = m
-    det = a * d - b * c
-    ia, ib, ic, id_ = d / det, -b / det, -c / det, a / det
-    return (ia, ib, ic, id_, -(e * ia + f * ic), -(e * ib + f * id_))
-
-
 # --------------------------------------------------------------------------- stick on text and numbers
 
 
@@ -400,7 +393,7 @@ def stick_pdf(pdf: Pdf, a, ctx: Context):
         # Matriz: girar la página fuente y llevarla al origen, escalar, colocar en (x, y) y volver del espacio visual
         # al de usuario de la página destino (que puede tener /Rotate).
         m = pu.chain(geom.visual_matrix(a.rotate), pu.scale(sx, sy), pu.translate(x, y),
-                     invert(tgeom.visual_matrix()))
+                     pu.invert(tgeom.visual_matrix()))
         canvas = pu.Canvas(pdf, page)
         canvas.form(imp.form(spage, geom.clip), m, tag=pu.TAG_PDF)
         canvas.finish(prepend=a.under)

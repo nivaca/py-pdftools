@@ -30,6 +30,9 @@ from pikepdf import Array, Dictionary, Name, Pdf
 
 from .fontmetrics import FONTS
 from ..core.interface import N_, tr
+# (the matrices; stamps.multiply, invert and transform for the others)
+from ..core.matrix import IDENTITY, Matrix, invert, multiply  # noqa: F401
+from ..core.matrix import apply as transform  # noqa: F401
 from .labels import LabelError, page_labels, parse_pages, read_labels
 
 KEY = "/PyFoliationStamps"  # the records of the layers of a page (an array, in the order they were added)
@@ -335,30 +338,6 @@ def text_width(text: str, font: str, size: float) -> float:
 
 
 # =========================================================================== drawing
-
-
-Matrix = tuple[float, float, float, float, float, float]
-IDENTITY: Matrix = (1, 0, 0, 1, 0, 0)
-
-
-def multiply(m: Matrix, n: Matrix) -> Matrix:
-    """The matrix of doing M, then N (as PDF writes them: [a b c d e f])."""
-    a, b, c, d, e, f = m
-    A, B, C, D, E, F = n
-    # Row-vector convention, as in PDF: a point is [x y 1] times the matrix, so M then N is M x N.
-    return (a * A + b * C, a * B + b * D, c * A + d * C, c * B + d * D, e * A + f * C + E, e * B + f * D + F)
-
-
-def invert(m: Matrix) -> Matrix:
-    a, b, c, d, e, f = m
-    det = a * d - b * c
-    ia, ib, ic, id_ = d / det, -b / det, -c / det, a / det
-    return (ia, ib, ic, id_, -(e * ia + f * ic), -(e * ib + f * id_))
-
-
-def transform(m: Matrix, x: float, y: float) -> tuple[float, float]:
-    a, b, c, d, e, f = m
-    return a * x + c * y + e, b * x + d * y + f
 
 
 def shown_frame(page: pikepdf.Page) -> tuple[float, float, Matrix]:

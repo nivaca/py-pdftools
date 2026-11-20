@@ -13,7 +13,7 @@ from pikepdf import Pdf
 from . import pdfutil as pu
 from .common import Context, ImpositionError, command
 from ..core.pagesel import parse_pages
-from .stamp import POSITIONS, Overlay, TextSpec, draw_text, invert, parse_color, resolve_font
+from .stamp import POSITIONS, Overlay, TextSpec, draw_text, parse_color, resolve_font
 from ..core.interface import tr
 
 FIELDS_HELP = """\
@@ -294,7 +294,7 @@ def merge_data(pdf: Pdf, a, ctx: Context):
         # Same matrix as in stick-pdf: the source in visual space, scaled, placed, and taken back to the target
         # page's own space.
         m = pu.chain(geom.visual_matrix(int(p.get("rotate", 0))), pu.scale(s), pu.translate(r[0], r[1]),
-                     invert(tg.visual_matrix()))
+                     pu.invert(tg.visual_matrix()))
         canvas = pu.Canvas(doc, page)
         canvas.form(imp.form(spage, geom.clip), m, tag=pu.TAG_PDF)
         canvas.finish()
