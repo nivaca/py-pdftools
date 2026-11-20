@@ -219,7 +219,8 @@ def test_window(book, tmp_path, monkeypatch):
     QApplication.processEvents()
     assert dropped == [([1], 5, True)]
     menu = w.build_pages_menu()
-    assert "Move to the end" in [a.text() for a in menu.actions()]
+    move = next(a.menu() for a in menu.actions() if a.text() == "Move")
+    assert "Move to the end" in [a.text() for a in move.actions()]
     assert w.save() and w.count == 100 and labels_of(book)[8] == "A" and w.work is None
     assert w.write_parts([(tmp_path / "part.pdf", [9, 10])]) and labels_of(tmp_path / "part.pdf") == ["A", "B"]
     w.close()

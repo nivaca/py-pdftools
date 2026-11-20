@@ -524,11 +524,13 @@ class PagesMixin:
             return False
         return self.transform(view.write_view, new, message=tr("The view when the document is opened changed"))
 
-    def add_view_menus(self, menu: QMenu, page: int | None = None) -> None:
+    def add_view_menus(self, menu: QMenu, page: int | None = None, heading: bool = True) -> None:
         """The submenus of MENU that choose the page layout and the page view of the document when it is
-        opened, and with PAGE, the page it opens at."""
+        opened, and with PAGE, the page it opens at (HEADING: under a heading that says so; not in a submenu
+        whose title says it already)."""
         opening = self.pages_state().opening
-        menu.addSection(tr("When the document is opened"))
+        if heading:
+            menu.addSection(tr("When the document is opened"))
         for title, field, current, titles, tips in (
                 (tr("Page layout"), "layout", opening.layout, view.LAYOUT_TITLES, view.LAYOUT_TIPS),
                 (tr("Page view"), "zoom", opening.zoom, view.PAGE_VIEW_TITLES, view.PAGE_VIEW_TIPS)):
@@ -839,63 +841,93 @@ class PagesMixin:
         if menu is not None:
             self.show_menu(menu, self.page_list.viewport().mapToGlobal(pos))
 
+    def pages_title(self, pages: list[int]) -> str:
+        """PAGES (1-based) for the heading of their menu: 'Page 3 (iv)', or 'Pages 3–7, 9 (6)'."""
+        if len(pages) == 1:
+            found = self.page_labels()
+            label = found[pages[0] - 1] if pages[0] - 1 < len(found) else ""
+            text = tr("Page {page}", page=pages[0])
+            return f"{text} ({label})" if label and label != str(pages[0]) else text
+        runs, start, last = [], pages[0], pages[0]
+        for p in pages[1:] + [None]:
+            if p is not None and p == last + 1:
+                last = p
+                continue
+            runs.append(str(start) if start == last else f"{start}–{last}")
+            if p is not None:
+                start = last = p
+        return tr("Pages {pages} ({count})", pages=", ".join(runs), count=len(pages))
+
     def build_pages_menu(self) -> QMenu | None:
-        """The menu of actions on the pages chosen."""
+        """The menu of actions on the pages chosen: those used most at its top, the others in submenus by
+        kind (moving, inserting, labels, headers and watermarks, more arranging, the view on opening)."""
         pages = self.selected_pages()
         if not pages:
             return None
         menu = QMenu(self)
         menu.setToolTipsVisible(True)
         count = len(pages)
-        menu.addAction(tr("Number these pages…") if count > 1 else tr("Number this page…"), self.number_selected)
-        menu.addAction(tr("Continue the numbering from before"), self.continue_selected).setEnabled(pages[0] > 1)
-        menu.addAction(tr("Give them one label…") if count > 1 else tr("Give it a label…"), self.label_selected)
-        if count > 1:
-            menu.addAction(tr("Edit their labels one by one…"), self.edit_selected)
-        menu.addAction(tr("No label"), lambda: self.set_ranges(labels.relabel(self.ranges, self.count,
-                                                                              {p: "" for p in pages})))
-        menu.addSeparator()
-        menu.addAction(tr("Start a range at page {page}", page=pages[0]), lambda: self.start_range_at(pages[0]))
-        menu.addAction(tr("Copy their labels") if count > 1 else tr("Copy its label"), self.copy_labels)
-        # Las acciones sobre el orden de las páginas, las mismas del menú Páginas ▸ Ordenar, pero sobre la selección.
-        menu.addSection(tr("Pages"))
-        menu.addAction(tr("Move to the start"), lambda *_: self.move_pages(pages, 1)).setEnabled(pages[0] > 1)
-        menu.addAction(tr("Move to the end"), lambda *_: self.move_pages(pages, self.count + 1)).setEnabled(
-            pages[-1] < self.count)
-        menu.addAction(tr("Move before page…"), lambda *_: self.arrange_dialog("move", pages))
+        menu.addSection(self.pages_title(pages))
+        # Lo que más se hace con unas páginas, a la vista; el resto, agrupado en submenús.
         turn = menu.addMenu(tr("Rotate"))
         for angle, text in ((90, N_("90° clockwise")), (270, N_("90° counterclockwise")), (180, N_("180°"))):
             turn.addAction(tr(text), lambda *_, a=angle: self.arrange_pages(arrange.Rotate(tuple(pages), a)))
         menu.addAction(tr("Duplicate"), lambda *_: self.arrange_pages(arrange.Duplicate(tuple(pages))))
-        if count > 1:
-            menu.addAction(tr("Reverse their order"), lambda *_: self.arrange_pages(arrange.Reverse(tuple(pages))))
+        menu.addAction(tr("Extract to a new PDF…"), lambda *_: self.arrange_dialog("extract", pages))
         # Delete is disabled when every page is chosen: the document must keep at least one.
         menu.addAction(tr("Delete"), lambda *_: self.arrange_pages(arrange.Delete(tuple(pages)))).setEnabled(
             count < self.count)
-        menu.addAction(tr("Insert a blank page before this one") if count == 1 else
-                       tr("Insert a blank page before these"),
-                       lambda *_: self.arrange_pages(arrange.InsertBlank(pages[0])))
-        menu.addAction(tr("Insert a blank page after this one") if count == 1 else
-                       tr("Insert a blank page after these"),
-                       lambda *_: self.arrange_pages(arrange.InsertBlank(pages[-1] + 1)))
-        menu.addAction(tr("Insert pages of a PDF before this one…") if count == 1 else
-                       tr("Insert pages of a PDF before these…"), lambda *_: self.arrange_dialog("insert", pages))
-        menu.addAction(tr("Replace by pages of a PDF…"), lambda *_: self.arrange_dialog("replace", pages))
-        menu.addAction(tr("Extract to a new PDF…"), lambda *_: self.arrange_dialog("extract", pages))
-        self._fill_arrange(menu.addMenu(tr("More")))
-        menu.addSection(tr("Header, footer and watermark"))
-        menu.addAction(tr("Header and footer on these pages…") if count > 1 else tr("Header and footer on this page…"),
-                       lambda *_: self.stamp_dialog(stamps.HEADER_FOOTER, pages))
-        menu.addAction(tr("Watermark on these pages…") if count > 1 else tr("Watermark on this page…"),
-                       lambda *_: self.stamp_dialog(stamps.WATERMARK, pages))
-        a = menu.addAction(tr("Remove their header and footer") if count > 1 else tr("Remove its header and footer"),
-                           lambda *_: self.remove_stamps(stamps.HEADER_FOOTER, pages))
+        menu.addSeparator()
+
+        move = menu.addMenu(tr("Move"))
+        move.addAction(tr("Move to the start"), lambda *_: self.move_pages(pages, 1)).setEnabled(pages[0] > 1)
+        move.addAction(tr("Move to the end"), lambda *_: self.move_pages(pages, self.count + 1)).setEnabled(
+            pages[-1] < self.count)
+        move.addAction(tr("Move before page…"), lambda *_: self.arrange_dialog("move", pages))
+        if count > 1:
+            move.addAction(tr("Reverse their order"), lambda *_: self.arrange_pages(arrange.Reverse(tuple(pages))))
+
+        insert = menu.addMenu(tr("Insert"))
+        insert.addAction(tr("Insert a blank page before this one") if count == 1 else
+                         tr("Insert a blank page before these"),
+                         lambda *_: self.arrange_pages(arrange.InsertBlank(pages[0])))
+        insert.addAction(tr("Insert a blank page after this one") if count == 1 else
+                         tr("Insert a blank page after these"),
+                         lambda *_: self.arrange_pages(arrange.InsertBlank(pages[-1] + 1)))
+        insert.addSeparator()
+        insert.addAction(tr("Insert pages of a PDF before this one…") if count == 1 else
+                         tr("Insert pages of a PDF before these…"), lambda *_: self.arrange_dialog("insert", pages))
+        insert.addAction(tr("Replace by pages of a PDF…"), lambda *_: self.arrange_dialog("replace", pages))
+
+        names = menu.addMenu(tr("Labels"))
+        names.addAction(tr("Number these pages…") if count > 1 else tr("Number this page…"), self.number_selected)
+        names.addAction(tr("Continue the numbering from before"), self.continue_selected).setEnabled(pages[0] > 1)
+        names.addAction(tr("Give them one label…") if count > 1 else tr("Give it a label…"), self.label_selected)
+        if count > 1:
+            names.addAction(tr("Edit their labels one by one…"), self.edit_selected)
+        names.addAction(tr("No label"), lambda: self.set_ranges(labels.relabel(self.ranges, self.count,
+                                                                               {p: "" for p in pages})))
+        names.addSeparator()
+        names.addAction(tr("Start a range at page {page}", page=pages[0]), lambda: self.start_range_at(pages[0]))
+        names.addAction(tr("Copy their labels") if count > 1 else tr("Copy its label"), self.copy_labels)
+
+        marks = menu.addMenu(tr("Header, footer and watermark"))
+        marks.addAction(tr("Header and footer on these pages…") if count > 1 else
+                        tr("Header and footer on this page…"),
+                        lambda *_: self.stamp_dialog(stamps.HEADER_FOOTER, pages))
+        marks.addAction(tr("Watermark on these pages…") if count > 1 else tr("Watermark on this page…"),
+                        lambda *_: self.stamp_dialog(stamps.WATERMARK, pages))
+        marks.addSeparator()
+        a = marks.addAction(tr("Remove their header and footer") if count > 1 else tr("Remove its header and footer"),
+                            lambda *_: self.remove_stamps(stamps.HEADER_FOOTER, pages))
         # "Remove" is enabled only if some page chosen has a layer of that kind.
         a.setEnabled(bool(self.pages_with(stamps.HEADER_FOOTER) & set(pages)))
-        a = menu.addAction(tr("Remove their watermark") if count > 1 else tr("Remove its watermark"),
-                           lambda *_: self.remove_stamps(stamps.WATERMARK, pages))
+        a = marks.addAction(tr("Remove their watermark") if count > 1 else tr("Remove its watermark"),
+                            lambda *_: self.remove_stamps(stamps.WATERMARK, pages))
         a.setEnabled(bool(self.pages_with(stamps.WATERMARK) & set(pages)))
-        self.add_view_menus(menu, pages[0])
+
+        self._fill_arrange(menu.addMenu(tr("More arranging")))
+        self.add_view_menus(menu.addMenu(tr("When the document is opened")), pages[0], heading=False)
         return menu
 
     # ----------------------------------------------------------------- the panel

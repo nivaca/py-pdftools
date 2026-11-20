@@ -6254,10 +6254,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Mover una página después</tr>
   </text>
   <text>
-    <en>More</en>
-    <tr>Más</tr>
-  </text>
-  <text>
     <en>{inp} not found</en>
     <tr>no se encontró {inp}</tr>
   </text>
@@ -10084,5 +10080,17 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Transparency effects</en>
     <tr>Efectos de transparencia</tr>
+  </text>
+  <text>
+    <en>More arranging</en>
+    <tr>Más formas de ordenar</tr>
+  </text>
+  <text>
+    <en>Move</en>
+    <tr>Mover</tr>
+  </text>
+  <text>
+    <en>Pages {pages} ({count})</en>
+    <tr>Páginas {pages} ({count})</tr>
   </text>
 </interface>

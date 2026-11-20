@@ -111,6 +111,16 @@ def test_annotations_stay_on_their_pages(window):
     assert "5" in window.doc[0].get_text()
 
 
+def all_texts(menu) -> list[str]:
+    """The texts of MENU's entries, and of those of its submenus."""
+    out = []
+    for a in menu.actions():
+        out.append(a.text())
+        if a.menu() is not None:
+            out += all_texts(a.menu())
+    return out
+
+
 def test_view_on_opening_and_menus(window, monkeypatch):
     assert window.set_view_part("layout", "TwoPageRight")
     assert window.pages_state().opening.layout == "TwoPageRight"
@@ -118,7 +128,7 @@ def test_view_on_opening_and_menus(window, monkeypatch):
     monkeypatch.setattr(window, "show_menu", lambda menu, where: shown.append(menu))
     window.page_list.setCurrentRow(3)
     window.pages_menu(window.page_list.visualItemRect(window.page_list.item(3)).center())
-    texts = [a.text() for a in shown[-1].actions()]
+    texts = all_texts(shown[-1])
     assert "Number this page…" in texts and "Duplicate" in texts
     window._fill_stamp_menu(window.m_headfoot, stamps.HEADER_FOOTER)
     assert [a.text() for a in window.m_headfoot.actions()][:2] == ["Add…", "Update…"]
@@ -185,3 +195,30 @@ def test_several_thumbnails_chosen_in_any_mode(window, app, monkeypatch):
     for row in (0, 1):
         window.page_list.item(row).setSelected(True)
     assert window.selected_pages() == [1, 2] and {i.row() for i in thumbs.selectedIndexes()} == {0, 1}
+
+
+def test_the_menu_of_pages_in_groups(window):
+    """The menu of the pages chosen: a heading naming them, the actions used most at its top, the others
+    in submenus by kind."""
+    window.set_ranges([Range(1, "r"), Range(5, "D")])
+    window.page_list.clearSelection()
+    window.page_list.item(2).setSelected(True)
+    menu = window.build_pages_menu()
+    top = [a.text() for a in menu.actions() if a.text()]
+    assert top[0] == "Page 3 (iii)"
+    assert top[1:5] == ["Rotate", "Duplicate", "Extract to a new PDF…", "Delete"]
+    subs = [a.text() for a in menu.actions() if a.menu() is not None]
+    assert subs == ["Rotate", "Move", "Insert", "Labels", "Header, footer and watermark", "More arranging",
+                    "When the document is opened"]
+    labels_menu = next(a.menu() for a in menu.actions() if a.text() == "Labels")
+    assert "Number this page…" in all_texts(labels_menu) and len(top) < 14
+    for row in (3, 4, 5, 8):
+        window.page_list.item(row).setSelected(True)
+    menu = window.build_pages_menu()
+    assert menu.actions()[0].text() == "Pages 3–6, 9 (5)"
+    assert "Reverse their order" in all_texts(next(a.menu() for a in menu.actions() if a.text() == "Move"))
+    # (the thumbnails' menu is the same, with OCR at its end)
+    shown = []
+    window.show_menu = lambda m, where: shown.append(m)
+    window.thumbs_menu(window.pages.visualItemRect(window.pages.item(4)).center())
+    assert shown and "OCR" in [a.text() for a in shown[0].actions() if a.text()][-1]
