@@ -992,7 +992,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             self.status(str(e), error=True)
             return False
         recovery.discard(self.path)
-        working = self.work is not None
+        # (with a working copy, or with a change of the document itself still to redo after undoing back to
+        # the file: those steps are of other files, and are dropped, as drop_work does)
+        working = self.work is not None or any(isinstance(s, DocState) for s in self.undo_stack + self.redo_stack)
         # Las anotaciones escritas vienen en result: el archivo recién guardado no se vuelve a leer.
         found = self._load(target, self.password, page, known=result)
         if found is None:
@@ -1004,8 +1006,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             kept = set()  # (another file: its xrefs are its own)
         # (the history keeps the xrefs of the annotations still there; the others are new to it)
         replies = {r.xref for a in found if a.xref in kept for r in a.replies}
-        # TODO: with no working copy, the redo stack may still hold a DocState (after undoing back to the file's
-        # own state): _remapped can't iterate it, and saving (Save as) then fails with a TypeError.
         self.undo_stack = [self._remapped(s, kept, replies) for s in self.undo_stack]
         self.redo_stack = [self._remapped(s, kept, replies) for s in self.redo_stack]
         self.annotations, self.saved = list(found), list(found)

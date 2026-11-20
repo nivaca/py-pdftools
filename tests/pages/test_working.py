@@ -126,3 +126,15 @@ def test_labels_written_by_pymupdf_read_as_pikepdf_writes_them(tmp_path):
     doc.save(tmp_path / "none.pdf")
     with pikepdf.open(tmp_path / "none.pdf") as pdf:
         assert labels.read_labels(pdf) == []
+
+
+def test_save_as_after_undoing_a_change_of_the_document(window, tmp_path):
+    """After a change of the document itself is undone, the history still holds it (to redo): saving must
+    not take it for a list of annotations."""
+    window.add(Annotation("rect", 2, (100, 200, 200, 300), "#ff0000"))
+    assert window.transform(labels.write_labels, [Range(1, "r")])
+    window.undo()
+    assert window.work is None and any(not isinstance(s, list) for s in window.redo_stack)
+    out = tmp_path / "copy.pdf"
+    assert window.save_to(out)
+    assert [a.type[1] for a in pymupdf.open(out)[2].annots()] == ["Square"]
