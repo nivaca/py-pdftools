@@ -5,60 +5,19 @@ from __future__ import annotations
 
 import dataclasses
 
-from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
-    QCheckBox, QColorDialog, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFormLayout, QGroupBox, QLineEdit,
-    QPushButton, QVBoxLayout,
+    QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFormLayout, QGroupBox, QLineEdit, QVBoxLayout,
 )
 
 from ...core.interface import N_, ntr, tr
 from ...redact.redact import Box
+from ..props import SAME, ColorButton, tristate_check
 
 ALIGNS = [("left", N_("Left")), ("center", N_("Centre")), ("right", N_("Right"))]
-SAME = object()  # (a property that differs among the boxes: left as each has it)
-
-
-class ColorButton(QPushButton):
-    """A button that shows a colour and lets the user choose another; NONE
-    allows 'no colour' ('')."""
-
-    def __init__(self, color, swatch, color_name, none: bool = False, parent=None):
-        super().__init__(parent)
-        self._swatch, self._name, self.none = swatch, color_name, none
-        self.color = color
-        self.clicked.connect(self._choose)
-        self._show()
-
-    def _show(self):
-        if self.color is SAME:
-            self.setText(tr("(several)"))
-            self.setIcon(self._swatch("#808080"))
-        else:
-            self.setText(self._name(self.color))
-            self.setIcon(self._swatch(self.color))
-
-    def _choose(self):
-        from PySide6.QtWidgets import QMenu
-
-        menu = QMenu(self)
-        if self.none:
-            menu.addAction(self._swatch(""), tr("No colour"), lambda: self.set_color(""))
-        menu.addAction(tr("Choose…"), self._dialog)
-        menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
-
-    def _dialog(self):
-        start = QColor(self.color) if isinstance(self.color, str) and self.color else QColor("#000000")
-        chosen = QColorDialog.getColor(start, self, tr("Colour"))
-        if chosen.isValid():
-            self.set_color(chosen.name())
-
-    def set_color(self, color: str):
-        self.color = color
-        self._show()
 
 
 class PropertiesDialog(QDialog):
-    def __init__(self, boxes: list[Box], swatch, color_name, parent=None):
+    def __init__(self, boxes: list[Box], color_name, parent=None):
         super().__init__(parent)
         self.setWindowTitle(ntr("Properties of the box", "Properties of the {count} boxes", len(boxes)))
         self.boxes = boxes
@@ -68,12 +27,12 @@ class PropertiesDialog(QDialog):
             values = {getattr(b, name) for b in boxes}
             return values.pop() if len(values) == 1 else SAME
 
-        self.fill = ColorButton(common("color"), swatch, color_name, none=True)
+        self.fill = ColorButton(common("color"), none=True, choices=list, name=color_name)
         self.fill.setToolTip(tr("With no colour, what is under the box is removed and nothing is painted there"))
         text = common("text")
         self.text = QLineEdit("" if text is SAME else text)
         self.text.setPlaceholderText(tr("(several)") if text is SAME else tr("REDACTED, [name]…"))
-        self.text_color = ColorButton(common("text_color"), swatch, color_name)
+        self.text_color = ColorButton(common("text_color"), choices=list, name=color_name)
         self.font_size = QDoubleSpinBox()
         self.font_size.setRange(0, 72)
         self.font_size.setDecimals(1)
@@ -90,11 +49,11 @@ class PropertiesDialog(QDialog):
         align = common("align")
         # -1 deja el combo vacío: así changes() sabe que la alineación no se tocó.
         self.align.setCurrentIndex(-1 if align is SAME else [v for v, _ in ALIGNS].index(align))
-        self.repeat_text = self._check(tr("Repeat the text all along the box"), common("repeat_text"))
+        self.repeat_text = tristate_check(tr("Repeat the text all along the box"), common("repeat_text"))
         note = common("note")
         self.note = QLineEdit("" if note is SAME else note)
         self.note.setPlaceholderText(tr("(several)") if note is SAME else tr("Shown when the mouse is over the box"))
-        self.locked = self._check(tr("Locked: can't be moved, resized or deleted"), common("locked"))
+        self.locked = tristate_check(tr("Locked: can't be moved, resized or deleted"), common("locked"))
         self.as_default = QCheckBox(tr("Save as default for new boxes"))
         self.as_default.setToolTip(tr("The fill and the text, with its colour, size and alignment"))
 
@@ -120,17 +79,6 @@ class PropertiesDialog(QDialog):
         lay.addWidget(buttons)
         self._text_given = text is not SAME
         self.resize(420, self.sizeHint().height())
-
-    @staticmethod
-    def _check(text: str, value) -> QCheckBox:
-        box = QCheckBox(text)
-        if value is SAME:
-            # The third state stands for 'several': changes() then leaves the boxes as they are.
-            box.setTristate(True)
-            box.setCheckState(box.checkState().PartiallyChecked)
-        else:
-            box.setChecked(bool(value))
-        return box
 
     def changes(self) -> dict:
         """What to change in each box (what the user left as '(several)' isn't changed)."""

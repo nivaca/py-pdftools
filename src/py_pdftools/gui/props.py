@@ -56,12 +56,16 @@ SAME = object()  # (a property that differs among the annotations: left as each 
 
 class ColorButton(QPushButton):
     """A button that shows a colour and lets the user choose another; NONE
-    allows 'no colour' ('')."""
+    allows 'no colour' (''). CHOICES gives the colours its menu offers ((value,
+    name), the palette if not given), NAME the name of a colour."""
 
-    def __init__(self, color, none: bool = False, parent=None, none_text: str = ""):
+    def __init__(self, color, none: bool = False, parent=None, none_text: str = "", choices=None, name=None):
         super().__init__(parent)
         self.none = none
         self.none_text = none_text  # (what 'no colour' means here, if not that)
+        # (the mode Redact gives its own: no palette, and the names of its fills)
+        self._choices = swatches if choices is None else choices
+        self._name = color_name if name is None else name
         self.color = color
         self.clicked.connect(self._choose)
         self._show()
@@ -72,17 +76,19 @@ class ColorButton(QPushButton):
             self.setIcon(swatch("#808080"))
         else:
             # Para el relleno o el borde, '' significa sin color; none_text dice qué pasa entonces.
-            self.setText(self.none_text if not self.color and self.none_text else color_name(self.color))
+            self.setText(self.none_text if not self.color and self.none_text else self._name(self.color))
             self.setIcon(swatch(self.color))
 
     def _choose(self):
         menu = QMenu(self)
-        for value, name in swatches():
+        offered = self._choices()
+        for value, name in offered:
             menu.addAction(swatch(value), name, lambda v=value: self.set_color(v))
         if self.none:
             menu.addAction(swatch(""), self.none_text or tr("No colour"), lambda: self.set_color(""))
-        menu.addSeparator()
-        menu.addAction(tr("Other colour…"), self._dialog)
+        if offered:
+            menu.addSeparator()
+        menu.addAction(tr("Other colour…") if offered else tr("Choose…"), self._dialog)
         # The menu opens under the button, as a drop-down list would.
         menu.exec(self.mapToGlobal(self.rect().bottomLeft()))
 
@@ -96,6 +102,18 @@ class ColorButton(QPushButton):
     def set_color(self, color: str):
         self.color = color
         self._show()
+
+
+def tristate_check(text: str, value) -> QCheckBox:
+    """A check box for VALUE; SAME (it differs among those chosen) is its third state, 'several', which
+    leaves each as it is."""
+    box = QCheckBox(text)
+    if value is SAME:
+        box.setTristate(True)
+        box.setCheckState(box.checkState().PartiallyChecked)
+    else:
+        box.setChecked(bool(value))
+    return box
 
 
 def _combo(choices: dict, value) -> QComboBox:
@@ -152,7 +170,7 @@ class PropertiesDialog(QDialog):
             self.width = self._number(common("width", STROKED), 0 if kinds & set(TEXTUAL) else 0.25, 20, " pt")
             form.addRow(tr("Border width:") if kinds <= set(TEXTUAL) else tr("Line width:"), self.width)
         if kinds & set(DASHABLE):
-            self.dashed = self._check(tr("Dashed"), common("dashed", DASHABLE))
+            self.dashed = tristate_check(tr("Dashed"), common("dashed", DASHABLE))
             form.addRow("", self.dashed)
         if kinds & (set(ENDED) | {"arrow"}):
             ends = common("ends", ENDED + ("arrow",))
@@ -232,7 +250,7 @@ class PropertiesDialog(QDialog):
                 self.categories.addItem(item)
             self.categories.setMaximumHeight(110)
             form.addRow(tr("Categories:"), self.categories)
-            self.locked = self._check(tr("Locked: can't be moved, resized, erased or deleted"), common("locked"))
+            self.locked = tristate_check(tr("Locked: can't be moved, resized, erased or deleted"), common("locked"))
             form.addRow("", self.locked)
             if len(annotations) == 1:
                 a = annotations[0]
@@ -312,16 +330,6 @@ class PropertiesDialog(QDialog):
         else:
             box.setRange(low, high)
             box.setValue(value)
-        return box
-
-    @staticmethod
-    def _check(text: str, value) -> QCheckBox:
-        box = QCheckBox(text)
-        if value is SAME:
-            box.setTristate(True)
-            box.setCheckState(box.checkState().PartiallyChecked)
-        else:
-            box.setChecked(bool(value))
         return box
 
     def changes(self) -> dict:

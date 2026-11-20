@@ -310,7 +310,7 @@ class RedactMixin:
         chosen = [i for i in self.selected if self.annotations[i].kind == KIND]
         if not chosen:
             return
-        dialog = PropertiesDialog([box_of(self.annotations[i]) for i in chosen], swatch, color_name, self)
+        dialog = PropertiesDialog([box_of(self.annotations[i]) for i in chosen], color_name, self)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return
         annotations = list(self.annotations)
