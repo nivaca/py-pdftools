@@ -85,6 +85,7 @@ TOOLS = [
     [("ink", "draw-freehand", N_("Draw on the page by hand (with a tablet's pen, pressing harder draws wider)")),
      ("marker", "draw-marker", N_("Highlight by hand, where there is no text to drag over"))],
 ]
+DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one it was left in)
 # the toolbar of each group of TOOLS (object name, title)
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
@@ -195,7 +196,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self._build_menus()
         self._build_modes()
         self._restore()
-        self.set_mode(str(self.settings.value("mode", "annotate")))
+        self.set_mode(str(self.settings.value("mode", DEFAULT_MODE)))
         # Recovery copies of the annotations every few minutes (Settings); the document itself is never written.
         self.autosave_timer = QTimer(self)
         self.autosave_timer.timeout.connect(self.keep_recovery)
@@ -617,26 +618,27 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _build_modes(self):
         """The modes (see modes/), and the bar that chooses one (Ctrl+1, Ctrl+2 ...)."""
-        self.modes: dict[str, Mode] = {
-            # Anotar es dueño de todo salvo las cajas de censura, que pertenecen al modo Censurar.
-            "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=list(self.tool_bars), docks=[self.panel],
-                             menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
-                             # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
-                             actions=[act for tool, act in self.tool_actions.items()
-                                      if tool not in ("select", "hand")]),
-        }
-        self.modes["redact"] = self._build_redact()
-        self.modes["pages"] = self._build_pages()
-        self.modes["impose"] = self._build_impose()
-        self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
-        self._bars_shown: dict[str, set] = {}  # mode -> its toolbars that were shown when it was left
+        # Anotar es dueño de todo salvo las cajas de censura, que pertenecen al modo Censurar.
+        annotate = Mode("annotate", lambda a: a.kind != "redact", bars=list(self.tool_bars), docks=[self.panel],
+                        menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
+                        # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
+                        actions=[act for tool, act in self.tool_actions.items() if tool not in ("select", "hand")])
+        # Leer: solo las páginas y sus miniaturas; nada es suyo, y el ratón mueve las páginas (la mano).
+        read = Mode("read", lambda a: False, without=("edit",), entered=lambda: self.set_tool("hand"))
+        self.hints["read"] = tr("Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel "
+                                "zoom. Choose another mode, above, to annotate, redact, foliate or impose the "
+                                "document.")
+        redact, pages, impose = self._build_redact(), self._build_pages(), self._build_impose()
+        # (in this order on the bar, and for Ctrl+1 ... Ctrl+5; 'pages' is the mode Foliate)
+        self.modes: dict[str, Mode] = {"read": read, "redact": redact, "annotate": annotate, "pages": pages,
+                                       "impose": impose}
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
         bar.setObjectName("modes")
         bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
         group = QActionGroup(self)
         self.mode_actions: dict[str, QAction] = {}
-        # Ctrl+1 a Ctrl+4 siguen el orden del diccionario: anotar, censurar, páginas, imponer.
+        # Ctrl+1 a Ctrl+5 siguen el orden del diccionario: leer, censurar, anotar, foliar, imponer.
         for n, key in enumerate(self.modes, 1):
             act = QAction(tr(TITLES[key]), self, checkable=True)
             act.setToolTip(tr(TIPS[key]))
@@ -676,7 +678,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def set_mode(self, key: str):
         """Turn on the mode KEY (see modes/): its toolbars, panels and menus are shown, those of the others hidden."""
         if key not in self.modes:
-            key = "annotate"
+            key = DEFAULT_MODE
         if key == self.mode:
             return
         old = self.modes.get(self.mode)
@@ -684,9 +686,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if old is not None:
             self.canvas.commit_text()
             self.canvas.cancel_polygon()
-            # Remember which docks and toolbars were visible, to show the same ones when the mode is entered again.
-            self._docks_shown[old.key] = {id(d) for d in old.docks if d.isVisible()}
-            self._bars_shown[old.key] = {id(b) for b in old.bars if b.isVisible()}
+            # The arrangement of the window it leaves is kept, to come back with it (see arrangement).
+            self.keep_arrangement()
             old.left()
         self.mode = key
         mode = self.modes[key]
@@ -694,22 +695,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if old is None or old.without != mode.without:
             for bar in self.common_bars:
                 bar.setVisible(bar.objectName() not in mode.without)
-        # None la primera vez que se entra en un modo: se muestran todas sus barras.
-        shown_bars = self._bars_shown.get(key)
         for other in self.modes.values():
             on = other is mode
             for bar in other.bars:
-                bar.setVisible(on and (shown_bars is None or id(bar) in shown_bars))
+                bar.setVisible(on)
             for act in other.menus:
                 act.setVisible(on)
             for act in other.actions:
                 act.setEnabled(on)
-            if not on:
-                for dock in other.docks:
-                    dock.setVisible(False)
-        shown = self._docks_shown.get(key)
-        for dock in mode.docks:
-            dock.setVisible(shown is None or id(dock) in shown)
+            for dock in other.docks:
+                dock.setVisible(on)
+        # La disposición propia del modo, si ya tiene una: dónde están sus barras y paneles, cuáles se ven.
+        self.arrange(key)
         self.mode_actions[key].setChecked(True)
         self.hint.setText(self.hints.get(key, ""))
         self._mode_enable()
@@ -722,6 +719,40 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         mode.entered()
         self.settings.setValue("mode", key)
         self.refresh()
+
+    def keep_arrangement(self):
+        """Keep the arrangement of the window in the mode on (its toolbars and panels, where they are and which
+        are shown; the thumbnails, and the width of the pages beside them), to give it back when the mode is
+        chosen again, in this session or another (see arrange)."""
+        if not self.mode:
+            return
+        self.settings.setValue(f"arrangement/{self.mode}/state", self.saveState())
+        self.settings.setValue(f"arrangement/{self.mode}/splitter", self.splitter.saveState())
+        self.settings.setValue(f"arrangement/{self.mode}/thumbnails", self.a_thumbs.isChecked())
+
+    def arrange(self, key: str):
+        """The arrangement of the window kept for the mode KEY, if it has one: then, whatever it says, only
+        the toolbars, panels and menus of that mode are shown (and of every mode, but those it has no use for)."""
+        state = self.settings.value(f"arrangement/{key}/state")
+        if isinstance(state, QByteArray):
+            self.restoreState(state)
+            mode = self.modes[key]
+            for other in self.modes.values():
+                if other is not mode:
+                    for item in other.bars + other.docks:
+                        item.setVisible(False)
+            for bar in self.common_bars:
+                if bar.objectName() in mode.without:
+                    bar.setVisible(False)
+            self.modes_bar.setVisible(True)
+        split = self.settings.value(f"arrangement/{key}/splitter")
+        if isinstance(split, QByteArray):
+            self.splitter.restoreState(split)
+        thumbs = self.settings.value(f"arrangement/{key}/thumbnails")
+        if thumbs is not None:
+            on = thumbs in (True, "true")
+            self.a_thumbs.setChecked(on)
+            self.show_thumbnails(on)
 
     # ----------------------------------------------------------------- the window's state (kept by Qt between sessions)
 
@@ -748,6 +779,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.settings.setValue("splitter2", self.splitter.saveState())
         self.settings.setValue("thumbnails", self.a_thumbs.isChecked())
         self.settings.setValue("toolbars", self.saveState())
+        self.keep_arrangement()  # (that of the mode on, to come back with it)
         self.settings.sync()
 
     def closeEvent(self, event):

@@ -9061,4 +9061,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>convert PDFs to PDF/A or PDF/X-4 (pdf2iso, which is included; it needs Ghostscript)</en>
     <tr>convertir PDF a PDF/A o PDF/X-4 (pdf2iso, que viene incluido; necesita Ghostscript)</tr>
   </text>
+  <text>
+    <en>Read</en>
+    <tr>Leer</tr>
+  </text>
+  <text>
+    <en>Foliate</en>
+    <tr>Foliar</tr>
+  </text>
+  <text>
+    <en>Only the pages, to read them: no tools, no panels</en>
+    <tr>Solo las páginas, para leerlas: sin herramientas ni paneles</tr>
+  </text>
+  <text>
+    <en>Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel zoom. Choose another mode, above, to annotate, redact, foliate or impose the document.</en>
+    <tr>Recorra las páginas, o arrástrelas con el ratón; Ctrl y la rueda del ratón cambian el tamaño. Elija otro modo, arriba, para anotar, censurar, foliar o imponer el documento.</tr>
+  </text>
 </interface>

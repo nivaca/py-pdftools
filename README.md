@@ -40,7 +40,7 @@ second:
 
 ![Redact](docs/img/redact_en.png)
 
-The mode Pages: no label on the title page, then 1, 2, 3, and the label in
+The mode Foliate: no label on the title page, then 1, 2, 3, and the label in
 the footer:
 
 ![Pages](docs/img/pages_en.png)
@@ -65,7 +65,7 @@ were, each with its own repository and releases.
     py-annotate 1.1.0      the mode Annotate; the window itself (its pages,
                            thumbnails and panels) is py-annotate's
     py-redact 1.0.9        the mode Redact
-    py-foliation 1.0.1     the mode Pages, and the commands labels, view,
+    py-foliation 1.0.1     the mode Foliate, and the commands labels, view,
                            header-footer, watermark and pages
     py-imposition 0.10.3   the mode Impose, and the commands under impose
 
@@ -75,7 +75,7 @@ What changed when they were brought together:
   history, so that Undo goes back through everything done to the document.
 * The boxes of py-redact are now the PDF's own redaction marks: they are
   saved in the document, not applied, until the redacted copy is written.
-* The changes of the mode Pages are made at once, and shown, instead of
+* The changes of the mode Foliate are made at once, and shown, instead of
   waiting, as in py-foliation, until the file is saved.
 * One command line, with groups: the labels of py-foliation are under
   `labels`, and every command of py-imposition under `impose`.
@@ -164,20 +164,29 @@ The window
 
 A document is opened with File > Open, or dropped on the window. Its pages
 are shown one under the other, with their thumbnails on the left. The bar
-of modes, at the top (or Ctrl+1 to Ctrl+4), chooses what the window does:
+of modes, at the top (or Ctrl+1 to Ctrl+5), chooses what the window does,
+and how it is arranged:
 
-* **Annotate**: the tools of py-annotate, in the second toolbar and the
-  menu Tools; the panel of the annotations on the right, which can be
-  searched, filtered and sorted;
+* **Read**: only the pages and their thumbnails, with the toolbars to open,
+  find, move through the pages and zoom; the mouse moves the pages;
 * **Redact**: the tool Redact (dragging over text marks it; elsewhere, or
   with Ctrl, it draws a box), Find and redact, redaction codes, and the
   panel of the boxes;
-* **Pages**: the ranges of labels and the list of the pages with their
+* **Annotate**: the tools of py-annotate, in the second toolbar and the
+  menu Tools; the panel of the annotations on the right, which can be
+  searched, filtered and sorted;
+* **Foliate**: the ranges of labels and the list of the pages with their
   labels, on the right; the actions on the pages chosen in the toolbar and
   in their right-click menu; headers and footers, watermarks and the view
   when the document is opened, in the menu Pages;
 * **Impose**: py-imposition's workspace, with its basic form, the forms of
   every command, the sequence and the log, in place of the pages.
+
+Each mode keeps its own arrangement of the window: which toolbars and
+panels are shown, where they are, the thumbnails and the width of the
+pages beside them. Arrange a mode once (drag its toolbars and panels,
+hide them with a right click on them) and choosing it again brings that
+arrangement back, also the next time the program is opened.
 
 Each mode works on its own annotations: in Annotate, the redaction boxes are
 shown, but the mouse goes through them, and in Redact the annotations are.
@@ -185,7 +194,7 @@ Undo goes back through everything done to the document, in any mode.
 
 **Saving.** File > Save writes the document: its annotations, its redaction
 boxes (as the PDF's redaction marks, not yet applied), and the changes of
-the modes Pages and Impose. Those changes are made at once on a working
+the modes Foliate and Impose. Those changes are made at once on a working
 copy, and shown, but the file stays as it was until it is saved.
 
 **Redacting.** Nothing under the boxes is removed until the redacted copy is
@@ -234,7 +243,7 @@ Tests
 
     $ uv run pytest
 
-There are 399 tests: those of the four programs, and those of what is new
+There are 403 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, the Spanish interface, the packaging). See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.

@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in eleven stages.
+py-imposition. Here I explain how it was made, in twelve stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -225,10 +225,27 @@ still a program apart, and the window now says that it is Ghostscript that
 is missing, not pdf2iso. The setting that named a pdf2iso remains, for
 another one, and the tests use it to put fake ones in its place.
 
+12. Modes as arrangements
+-------------------------
+
+At first the modes were four, one for each program. A fifth came first in
+the bar, Read, with only the pages and their thumbnails, and the mode
+Pages was named Foliate (its key in the settings stayed `pages`, so that
+the mode a user left the window in is still found). The modes are now in
+the order of the work done on a document: Read, Redact, Annotate, Foliate,
+Impose. And each mode keeps its own arrangement of the window: when it is
+left, the state of the toolbars and panels (Qt's own), the thumbnails and
+the width of the pages beside them are kept in the settings, and given back
+when the mode is chosen again, then made to show only what belongs to the
+mode, whatever the state says. The tests showed something unrelated on the
+way: Qt reads where the settings are only once in a process, so all the
+tests shared them, and the mode one test left the window in was the first
+mode of the next. Each test now starts with them cleared.
+
 Testing
 -------
 
-The program has 399 tests (`uv run pytest`): those of the four programs,
+The program has 403 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

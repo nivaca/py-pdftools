@@ -43,7 +43,7 @@ desde la segunda:
 
 ![Censurar](docs/img/redact_es.png)
 
-El modo Páginas: la portada sin etiqueta, luego 1, 2, 3, y la etiqueta en
+El modo Foliar: la portada sin etiqueta, luego 1, 2, 3, y la etiqueta en
 el pie de página:
 
 ![Páginas](docs/img/pages_es.png)
@@ -68,7 +68,7 @@ quedan como estaban, cada uno con su repositorio y sus versiones.
     py-annotate 1.1.0      el modo Anotar; la ventana misma (sus páginas,
                            miniaturas y paneles) es la de py-annotate
     py-redact 1.0.9        el modo Censurar
-    py-foliation 1.0.1     el modo Páginas, y las órdenes labels, view,
+    py-foliation 1.0.1     el modo Foliar, y las órdenes labels, view,
                            header-footer, watermark y pages
     py-imposition 0.10.3   el modo Imponer, y las órdenes de impose
 
@@ -79,7 +79,7 @@ Lo que cambió al reunirlos:
 * Los recuadros de py-redact son ahora las marcas de redacción del propio
   PDF: se guardan en el documento, sin aplicar, hasta que se escribe la
   copia censurada.
-* Los cambios del modo Páginas se hacen en el acto, y se ven, en lugar de
+* Los cambios del modo Foliar se hacen en el acto, y se ven, en lugar de
   esperar, como en py-foliation, a que se guarde el archivo.
 * Una sola línea de órdenes, con grupos: las etiquetas de py-foliation están
   en `labels`, y todas las órdenes de py-imposition en `impose`.
@@ -170,15 +170,19 @@ La ventana
 
 Un documento se abre con Archivo > Abrir, o soltándolo sobre la ventana. Sus
 páginas se ven una debajo de otra, con sus miniaturas a la izquierda. La
-barra de modos, arriba (o Ctrl+1 a Ctrl+4), elige qué hace la ventana:
+barra de modos, arriba (o Ctrl+1 a Ctrl+5), elige qué hace la ventana, y
+cómo se dispone:
 
-* **Anotar**: las herramientas de py-annotate, en la segunda barra y en el
-  menú Herramientas; el panel de las anotaciones a la derecha, que se puede
-  buscar, filtrar y ordenar;
+* **Leer**: solo las páginas y sus miniaturas, con las barras para abrir,
+  buscar, recorrer las páginas y cambiar el tamaño; el ratón mueve las
+  páginas;
 * **Censurar**: la herramienta Censurar (arrastrar sobre un texto lo marca;
   en otra parte, o con Ctrl, dibuja un recuadro), Buscar y censurar, los
   códigos de censura y el panel de los recuadros;
-* **Páginas**: los intervalos de etiquetas y la lista de las páginas con sus
+* **Anotar**: las herramientas de py-annotate, en la segunda barra y en el
+  menú Herramientas; el panel de las anotaciones a la derecha, que se puede
+  buscar, filtrar y ordenar;
+* **Foliar**: los intervalos de etiquetas y la lista de las páginas con sus
   etiquetas, a la derecha; las acciones sobre las páginas elegidas, en la
   barra y en su menú del botón derecho; los encabezados y pies, las marcas
   de agua y la vista al abrir el documento, en el menú Páginas;
@@ -186,13 +190,19 @@ barra de modos, arriba (o Ctrl+1 a Ctrl+4), elige qué hace la ventana:
   básico, los formularios de cada orden, la secuencia y el registro, en
   lugar de las páginas.
 
+Cada modo guarda su propia disposición de la ventana: qué barras y paneles
+se ven, dónde están, las miniaturas y el ancho de las páginas a su lado.
+Basta con disponer un modo una vez (arrastrar sus barras y paneles,
+ocultarlos con el botón derecho sobre ellos) para que, al elegirlo de
+nuevo, vuelva así, también la próxima vez que se abra el programa.
+
 Cada modo trabaja sobre sus propias anotaciones: en Anotar, los recuadros de
 censura se ven, pero el ratón los atraviesa, y en Censurar, las anotaciones.
 Deshacer recorre todo lo que se hizo al documento, en cualquier modo.
 
 **Guardar.** Archivo > Guardar escribe el documento: sus anotaciones, sus
 recuadros de censura (como marcas de redacción del PDF, todavía sin
-aplicar) y los cambios de los modos Páginas e Imponer. Esos cambios se
+aplicar) y los cambios de los modos Foliar e Imponer. Esos cambios se
 hacen en el acto sobre una copia de trabajo, y se ven, pero el archivo
 queda como estaba hasta que se guarda.
 
@@ -246,7 +256,7 @@ Pruebas
 
     $ uv run pytest
 
-Hay 399 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 403 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, la interfaz en español, el empaquetado). Cómo se hizo el
 programa está en [docs/DESCRIPCIÓN_es.md](docs/DESCRIPCIÓN_es.md).

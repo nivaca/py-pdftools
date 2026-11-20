@@ -26,3 +26,23 @@ def pages_here(monkeypatch):
 
     monkeypatch.setattr(renderer, "ENABLED", False)
     monkeypatch.setattr(background, "ENABLED", False)
+
+
+@pytest.fixture(autouse=True)
+def annotating_first(monkeypatch):
+    """The window starts in the mode Annotate (its tests come from py-annotate's), not in Read, as it does
+    the first time a user opens it (a test may set the mode itself)."""
+    from py_pdftools.gui import window
+
+    monkeypatch.setattr(window, "DEFAULT_MODE", "annotate")
+
+
+@pytest.fixture(autouse=True)
+def own_window_settings():
+    """The window's own settings (QSettings: its mode, the arrangement of each mode, the toolbars...)
+    cleared for each test: Qt reads where they are once in a process, so the tests would share them."""
+    from PySide6.QtCore import QSettings
+
+    for app in ("py-pdftools", "py-pdftools-impose"):
+        QSettings("py-pdftools", app).clear()
+    yield
