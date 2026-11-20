@@ -26,7 +26,7 @@ from ..core import config, conform, interface
 
 from ..annotate import annots, exchange, recovery, search, settings
 from ..annotate.annots import (
-    FILLED, KINDS, MARKUP, NAMES, STAMPS, STATES, TEXTUAL, AnnotateError, Annotation, PasswordError, Rect, Reply,
+    ANNOTATING, FILLED, KINDS, MARKUP, NAMES, STAMPS, STATES, TEXTUAL, AnnotateError, Annotation, PasswordError, Rect, Reply,
     date_text,
 )
 from ..core.interface import N_, ntr, tr
@@ -34,6 +34,7 @@ from . import colors
 from .canvas import PageCanvas, page_image
 from .colors import color_name, swatch, swatches
 from .files import FilesMixin
+from .redacting import RedactMixin
 from .finder import FindDialog
 from .listing import AnnotationModel, Panel
 from .paint import paint
@@ -132,7 +133,7 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(FilesMixin, QMainWindow):
+class MainWindow(RedactMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -252,6 +253,8 @@ class MainWindow(FilesMixin, QMainWindow):
         hint.setWordWrap(True)
         hint.setStyleSheet("color: palette(placeholder-text);")
         lay.addWidget(hint)
+        self.hint = hint
+        self.hints = {"annotate": hint.text()}  # (each mode's; see set_mode)
 
         self.model = AnnotationModel(lambda: self.annotations, self.marked_text)
         self.listing = Panel(self.model)
@@ -425,7 +428,7 @@ class MainWindow(FilesMixin, QMainWindow):
         self.tool_actions["select"].setChecked(True)
         self._action(m, tr("Properties of the tool…"), lambda: self.tool_dialog(self.canvas.mode))
         m.addSeparator()
-        self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_dialog(),
+        self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(),
                                    QKeySequence.StandardKey.Find,
                                    tr("Find a word, a phrase or a pattern on the pages, and highlight (or underline, "
                                       "strike out…) the places found"))
@@ -548,8 +551,11 @@ class MainWindow(FilesMixin, QMainWindow):
         """The modes (see modes/), and the bar that chooses one (Ctrl+1, Ctrl+2 ...)."""
         self.modes: dict[str, Mode] = {
             "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=[self.tools_bar], docks=[self.panel],
-                             menus=[self.m_tools.menuAction(), self.m_layers.menuAction()]),
+                             menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
+                             actions=[act for tool, act in self.tool_actions.items()
+                                      if tool not in ("select", "hand")]),
         }
+        self.modes["redact"] = self._build_redact()
         self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
@@ -566,6 +572,26 @@ class MainWindow(FilesMixin, QMainWindow):
             bar.addAction(act)
             self.mode_actions[key] = act
         self.insertToolBar(self.toolbar, bar)
+
+    def unmarked(self) -> list[Annotation]:
+        """The annotations without the redaction boxes: for copies that make the annotations part of the
+        pages, or print them (a box flattened there would hide what is under it, which would still be in
+        the file: only a redacted copy, made in the mode Redact, takes it out)."""
+        return [a for a in self.annotations if a.kind != "redact"]
+
+    def _mode_enable(self):
+        """The actions of the modes that are not on, disabled (their tools, and their shortcuts)."""
+        for other in self.modes.values():
+            if other.key != self.mode:
+                for act in other.actions:
+                    act.setEnabled(False)
+
+    def find_in_mode(self):
+        """Find: and highlight (Annotate), or redact (Redact)."""
+        if self.mode == "redact":
+            self.redact_find_dialog()
+        else:
+            self.find_dialog()
 
     def owns(self, a: Annotation) -> bool:
         """Whether A is an annotation of the mode on (one the mouse, the list and the Edit menu work on)."""
@@ -601,6 +627,8 @@ class MainWindow(FilesMixin, QMainWindow):
         for dock in mode.docks:
             dock.setVisible(shown is None or id(dock) in shown)
         self.mode_actions[key].setChecked(True)
+        self.hint.setText(self.hints.get(key, ""))
+        self._mode_enable()
         self.canvas.touchable = mode.owns
         self.selected = [i for i in self.selected if mode.owns(self.annotations[i])]
         self.set_tool("select")
@@ -781,6 +809,7 @@ class MainWindow(FilesMixin, QMainWindow):
         self.doc, self.path, self.password, self.count = doc, path, password, doc.page_count
         self.page = min(page, self.count - 1)
         self._thumbs, self._thumb_shown, self._marked, self._words = {}, {}, {}, {}
+        self.redact_texts, self.redact_meta = {}, None
         self._by_page = [[] for _ in range(self.count)]
         self.canvas.source = self._source(path, password, bool(found))
         self.canvas.set_document(doc, self.page)
@@ -935,7 +964,7 @@ class MainWindow(FilesMixin, QMainWindow):
         """The menu of a tool (right-click on its button): its colour, its stamp, its properties."""
         menu = QMenu(self)
         menu.addSection(tool_name(tool))
-        if tool in KINDS:
+        if tool in ANNOTATING:
             style = self.prefs.style(tool)
             for value, name in swatches():
                 act = menu.addAction(swatch(value), name, lambda v=value: self.set_tool_color(tool, v))
@@ -990,7 +1019,7 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def tool_dialog(self, tool: str):
         """The properties of TOOL: how the annotations it makes look, and how it behaves."""
-        if tool not in KINDS:
+        if tool not in ANNOTATING:
             return
         style = self.prefs.style(tool)
         dialog = PropertiesDialog([self.new_annotation(tool, 0, (0, 0, 10, 10))], self, tool=style)
@@ -1054,6 +1083,8 @@ class MainWindow(FilesMixin, QMainWindow):
     def new_annotation(self, kind: str, page: int, rect: Rect, paths: tuple = (), quads: tuple = ()) -> Annotation:
         """An annotation with the style of new ones of its KIND (Settings, or Properties); a
         stamp, of its usual size where RECT has none."""
+        if kind == "redact":
+            return self.new_box(page, rect)
         if kind == "typewriter":  # (a text box with no border nor fill, written at once)
             a = self.new_annotation("freetext", page, rect)
             return dataclasses.replace(a, width=0, fill="", intent=annots.TYPEWRITER)
@@ -1228,6 +1259,9 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def add_markup(self, page: int, rects: list[Rect], kind: str | None = None):
         """A highlight (or the kind of markup of the tool) over the lines of text RECTS of PAGE."""
+        if self.canvas.mode == "redact":  # (boxes over them)
+            self.add_redact_text(page, rects)
+            return
         kind = kind or (self.canvas.mode if self.canvas.mode in MARKUP + ("replace",) else "highlight")
         if kind == "replace":
             self.replace_text(page, rects)
@@ -1256,6 +1290,9 @@ class MainWindow(FilesMixin, QMainWindow):
     def double_clicked(self, index: int, page: int, point: tuple):
         """An annotation: its text, written on the page (a text box, a note...), or its properties.
         A word, with a markup tool: that word marked."""
+        if self.mode == "redact":
+            self.redact_double_clicked(index, page, point)
+            return
         if index >= 0:
             a = self.annotations[index]
             if a.kind in TEXTUAL + ("note", "caret") and not a.locked:
@@ -1283,6 +1320,8 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def replace(self, index: int, annotation: Annotation):
         """ANNOTATION in the place of the one at INDEX (moved, resized...)."""
+        if annotation.kind == "redact":  # (moved on another of its pages: it stays a box of its own page)
+            annotation = dataclasses.replace(annotation, page=self.annotations[index].page)
         annotations = list(self.annotations)
         annotations[index] = annotation
         self.change(annotations, self.selected if index in self.selected else [index])
@@ -1433,6 +1472,9 @@ class MainWindow(FilesMixin, QMainWindow):
             self.set_tool("note")
 
     def properties_dialog(self):
+        if self.mode == "redact":
+            self.redact_properties_dialog()
+            return
         self.canvas.commit_text()
         self.keep_comment()
         if not self.selected:
@@ -1462,13 +1504,13 @@ class MainWindow(FilesMixin, QMainWindow):
         annotations of the tool chosen."""
         if self.selected:
             self._change_selected(color=color)
-        elif self.canvas.mode in KINDS:
+        elif self.canvas.mode in ANNOTATING:
             self.set_tool_color(self.canvas.mode, color)
 
     def choose_color(self):
         if self.selected:
             current = self.annotations[self.selected[0]].color
-        elif self.canvas.mode in KINDS:
+        elif self.canvas.mode in ANNOTATING:
             current = self.prefs.style(self.canvas.mode).color
         else:
             return
@@ -1577,7 +1619,7 @@ class MainWindow(FilesMixin, QMainWindow):
         self.settings.setValue("continuous", "true" if on else "false")
         page = self.page
         self.canvas.set_continuous(on)
-        self.canvas.set_annotations([(i, self.annotations[i]) for i in self.shown()], self.selected)
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
         self.canvas.apply_fit()
         self.show_page(page)
 
@@ -1638,6 +1680,9 @@ class MainWindow(FilesMixin, QMainWindow):
     def annotation_menu(self, index: int, where, page: int = -1, point=None):
         """The right-click menu: of the annotations selected (INDEX: the one clicked),
         or of the page (INDEX -1)."""
+        if self.mode == "redact":
+            self.box_menu(index, where, page, point)
+            return
         self.canvas.commit_text()
         self.keep_comment()
         menu = QMenu(self)
@@ -2014,7 +2059,13 @@ class MainWindow(FilesMixin, QMainWindow):
         if pages:
             self._label_pages()
         self.canvas.editable = self.a_show.isChecked()
-        self.canvas.set_annotations([(i, self.annotations[i]) for i in self.shown()], self.selected)
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        if self.mode == "redact":
+            if table:
+                self.fill_redact_panel()
+            else:
+                self._select_redact_rows()
+                self._show_redact_panel()
         self._show_panel()
         self._enable()
         self._update_title()
@@ -2224,7 +2275,7 @@ class MainWindow(FilesMixin, QMainWindow):
                 p.title.setText("<b>" + ntr("{count} annotation selected", "{count} annotations selected",
                                             len(chosen)) + "</b>")
             colors_ = {a.color for a in chosen}
-        elif self.canvas.mode in KINDS:
+        elif self.canvas.mode in ANNOTATING:
             p.title.setText("<b>" + tr("New annotations: {kind}", kind=tool_name(self.canvas.mode).lower()) + "</b>")
             colors_ = {self.prefs.style(self.canvas.mode).color}
         else:
@@ -2233,7 +2284,7 @@ class MainWindow(FilesMixin, QMainWindow):
         color = colors_.pop() if len(colors_) == 1 else None
         self.color_button.setIcon(swatch(color) if color else QIcon())
         self.color_button.setText(color_name(color) if color else (tr("(several)") if chosen else "—"))
-        self.color_button.setEnabled(self.doc is not None and (bool(chosen) or self.canvas.mode in KINDS))
+        self.color_button.setEnabled(self.doc is not None and (bool(chosen) or self.canvas.mode in ANNOTATING))
         one = chosen[0] if len(chosen) == 1 else None
         self.comment.blockSignals(True)
         self.comment.setEnabled(one is not None)
@@ -2297,6 +2348,8 @@ class MainWindow(FilesMixin, QMainWindow):
         for w in (self.a_delete, self.b_delete, self.a_props, self.b_props, self.a_copy, self.a_duplicate,
                   self.a_lock):
             w.setEnabled(bool(self.selected))
+        if hasattr(self, "modes"):
+            self._mode_enable()
 
     # ----------------------------------------------------------------- unsaved changes
 

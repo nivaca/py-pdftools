@@ -39,7 +39,7 @@ class FilesMixin:
         self.canvas.commit_text()
         self.keep_comment()
         try:
-            exchange.save_flattened(self.path, self.annotations, target, self.password)
+            exchange.save_flattened(self.path, self.unmarked(), target, self.password)
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False
@@ -161,7 +161,7 @@ class FilesMixin:
             return not progress.wasCanceled()
 
         try:
-            pages, words = ocr.save_searchable(self.path, self.annotations, target, self.password,
+            pages, words = ocr.save_searchable(self.path, self.unmarked(), target, self.password,
                                                self.prefs.ocr_language, step)
         except AnnotateError as e:
             self.status(str(e), error=True)
@@ -263,8 +263,8 @@ class FilesMixin:
         self.canvas.commit_text()
         self.keep_comment()
         try:
-            done = print_document(self, self.path, [self.annotations[i] for i in self.shown()], self.password,
-                                  self.page, with_them=True)
+            chosen = [self.annotations[i] for i in self.shown() if self.annotations[i].kind != "redact"]
+            done = print_document(self, self.path, chosen, self.password, self.page, with_them=True)
         except (AnnotateError, RuntimeError, ValueError) as e:
             self.status(str(e), error=True)
             return False

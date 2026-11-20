@@ -115,24 +115,50 @@ def test_only_changes_are_written(sample, tmp_path):
     assert moved_stamp.xref == stamp.xref and close(moved_stamp.rect[:2], (stamp.rect[0] + 10, stamp.rect[1]))
 
 
+def _watermark_annotation(doc, page, rect) -> int:
+    """A /Watermark annotation on PAGE of DOC (one of the kinds no tool makes): its xref."""
+    xref = doc.get_new_xref()
+    doc.update_object(xref, "<</Type/Annot/Subtype/Watermark/Rect[%g %g %g %g]/F 4>>" % rect)
+    kind, value = doc.xref_get_key(doc[page].xref, "Annots")
+    doc.xref_set_key(doc[page].xref, "Annots", (value.rstrip("]") if kind == "array" else "[") + f" {xref} 0 R]")
+    return xref
+
+
 def test_other_annotations_are_kept(sample, tmp_path):
-    """Annotations of other kinds (a redaction mark, a link) are read, to be listed, locked, and
+    """Annotations of other kinds (a watermark annotation, a link) are read, to be listed, locked, and
     kept as they are: neither changed nor taken out, whatever is given for them."""
     doc = pymupdf.open(sample)
-    doc[0].add_redact_annot((300, 300, 400, 320))
     doc[0].insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(60, 60, 200, 80), "uri": "https://example.org"})
+    _watermark_annotation(doc, 0, (300, 500, 400, 520))
     doc.save(tmp_path / "stamped.pdf")
     found = annots.read(annots.open_pdf(tmp_path / "stamped.pdf"))
-    assert sorted((a.kind, a.other, a.locked) for a in found) == [("other", "Link", True), ("other", "Redact", True)]
+    assert sorted((a.kind, a.other, a.locked) for a in found) == [("other", "Link", True), ("other", "Watermark", True)]
     link = next(a for a in found if a.other == "Link")
     assert link.contents == "https://example.org" and abs(link.rect[0] - 60) < 1 and abs(link.rect[1] - 60) < 1
-    mark = next(a for a in found if a.other == "Redact")
-    assert mark.name() == "Redaction mark"
+    mark = next(a for a in found if a.other == "Watermark")
+    assert mark.name() == "Watermark"
     changed = [dataclasses.replace(mark, color="#ff0000", contents="no")]  # (and the link left out)
     annots.write(tmp_path / "stamped.pdf", changed, tmp_path / "out.pdf")
     out = annots.open_pdf(tmp_path / "out.pdf")
-    assert [a.type[1] for a in out[0].annots()] == ["Redact"] and len(out[0].get_links()) == 1
-    assert sorted(a.other for a in annots.read(out)) == ["Link", "Redact"]
+    assert [a.type[1] for a in out[0].annots()] == ["Watermark"] and len(out[0].get_links()) == 1
+    assert sorted(a.other for a in annots.read(out)) == ["Link", "Watermark"]
+
+
+def test_redaction_boxes(sample, tmp_path):
+    """A redaction box is written as the PDF's redaction mark, with all it has, on a page as it is and on
+    a turned one, and read back; a mark made by another program is read as a box, with its fill."""
+    boxes = [Annotation("redact", 0, (100, 100, 200, 130), "#ffffff", fill="#000000", font_size=0, align="center",
+                        overlay="REDACTED", overlay_repeat=True, repeat="1-2, LAST", contents="a name", locked=True),
+             Annotation("redact", 2, (100, 100, 200, 130), "#ff0000", fill="", font_size=9, align="left")]
+    annots.write(sample, boxes, tmp_path / "marked.pdf")
+    doc = annots.open_pdf(tmp_path / "marked.pdf")
+    assert [a.type[1] for page in doc for a in page.annots()] == ["Redact", "Redact"]
+    found = annots.read(doc)
+    assert all(annots.same(a, b) for a, b in zip(boxes, found, strict=True))
+    other = pymupdf.open(sample)
+    other[1].add_redact_annot((300, 300, 400, 320), fill=(1, 0, 0))
+    (box,) = annots.read(other)
+    assert box.kind == "redact" and box.fill == "#ff0000" and box.page == 1 and not box.overlay
 
 
 def test_attached_files(sample, tmp_path):

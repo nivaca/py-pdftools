@@ -300,4 +300,54 @@ def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
                 p.setFont(_font(p, "helv", min(r.height() * 0.5, 24)))
                 p.drawText(r, int(Qt.AlignmentFlag.AlignCenter), tr(STAMPS[a.stamp]).upper() if a.stamp in STAMPS
                            else a.contents)
+    elif a.kind == "redact":
+        _redaction(p, a, thumbnail)
     p.restore()
+
+
+# how a redaction box looks until it is applied (the settings of redaction give them: see set_redaction_look)
+REDACTION = {"outline": "#d03030", "opacity": 60, "result": False}
+
+
+def set_redaction_look(outline: str, opacity: int, result: bool = False) -> None:
+    """The colour of the outline of the redaction boxes, how much of their fill is seen (in %), and
+    whether they are shown as they will be once applied (RESULT: opaque, the outline left out)."""
+    REDACTION.update(outline=outline, opacity=opacity, result=result)
+
+
+def _redaction(p: QPainter, a: Annotation, thumbnail: bool) -> None:
+    """A redaction box: see-through in its colour, with an outline (dashed if it goes on other pages);
+    with no colour, hatched; its text shown as it will be written."""
+    from ..redact.redact import box_of, overlay
+
+    r = qrect(a.rect)
+    result = REDACTION["result"]
+    if result:
+        p.fillRect(r, QColor(a.fill) if a.fill else QColor("white"))
+    elif a.fill:
+        fill = QColor(a.fill)
+        fill.setAlpha(round(255 * REDACTION["opacity"] / 100))
+        p.fillRect(r, fill)
+    else:
+        hatch = QColor(REDACTION["outline"])
+        hatch.setAlpha(110)
+        p.fillRect(r, QBrush(hatch, Qt.BrushStyle.BDiagPattern))
+    if not result:
+        pen = QPen(QColor(REDACTION["outline"]), 1.5)
+        pen.setCosmetic(True)
+        if a.repeat.strip():
+            pen.setStyle(Qt.PenStyle.DashLine)
+        p.setPen(pen)
+        p.setBrush(Qt.BrushStyle.NoBrush)
+        p.drawRect(r)
+    if thumbnail:
+        return
+    import pymupdf
+
+    text, size = overlay(box_of(a), pymupdf.Rect(r.left(), r.top(), r.right(), r.bottom()))
+    if text:
+        p.setFont(_font(p, "helv", size))
+        p.setPen(QColor(a.color))
+        flags = {"left": Qt.AlignmentFlag.AlignLeft, "right": Qt.AlignmentFlag.AlignRight}.get(
+            a.align, Qt.AlignmentFlag.AlignHCenter) | Qt.AlignmentFlag.AlignVCenter
+        p.drawText(r.adjusted(1, 0, -1, 0), int(flags), text)

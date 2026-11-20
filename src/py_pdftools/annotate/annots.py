@@ -61,13 +61,16 @@ OTHER_NAMES = {"Link": N_("Link"), "FileAttachment": N_("Attached file"), "Sound
                "Watermark": N_("Watermark"), "PrinterMark": N_("Printer's mark"), "TrapNet": N_("Trap network"),
                "Projection": N_("Projection")}
 KINDS = ("highlight", "underline", "strikeout", "squiggly", "caret", "note", "freetext", "callout", "area", "rect",
-         "ellipse", "polygon", "cloud", "line", "arrow", "polyline", "ink", "marker", "stamp", "attachment")
+         "ellipse", "polygon", "cloud", "line", "arrow", "polyline", "ink", "marker", "stamp", "attachment", "redact")
+# (those of the mode Annotate, with their styles and tools: a redaction box is of the mode Redact, and its look is
+# that of the settings of redaction, see redact/settings.py)
+ANNOTATING = KINDS[:-1]
 NAMES = {"highlight": N_("Highlight"), "underline": N_("Underline"), "strikeout": N_("Strikeout"),
          "squiggly": N_("Squiggly underline"), "caret": N_("Insert text"), "note": N_("Note"),
          "freetext": N_("Text box"), "attachment": N_("Attached file"), "callout": N_("Callout"), "area": N_("Area highlight"),
          "rect": N_("Rectangle"), "ellipse": N_("Ellipse"), "polygon": N_("Polygon"), "cloud": N_("Cloud"),
          "line": N_("Line"), "arrow": N_("Arrow"), "polyline": N_("Polyline"), "ink": N_("Freehand"),
-         "marker": N_("Freehand highlight"), "stamp": N_("Stamp")}
+         "marker": N_("Freehand highlight"), "stamp": N_("Stamp"), "redact": N_("Redaction box")}
 MARKUP = ("highlight", "underline", "strikeout", "squiggly")  # (over text: neither moved nor resized)
 FIXED = ("note", "caret")  # (of a size of their own: moved, not resized)
 TEXTUAL = ("freetext", "callout")  # (with a font)
@@ -79,7 +82,7 @@ DASHABLE = ("freetext", "callout", "rect", "ellipse", "polygon", "line", "arrow"
 ENDED = ("line", "arrow", "polyline", "callout")  # (with ends: arrowheads...)
 VERTICES = ("polygon", "cloud", "polyline", "line", "arrow")  # (whose points can be dragged one by one)
 RESIZABLE = ("freetext", "callout", "area", "rect", "ellipse", "polygon", "cloud", "line", "arrow", "polyline",
-             "ink", "marker", "stamp")
+             "ink", "marker", "stamp", "redact")
 NOTE_SIZE = 16.0  # points: the side of a note's icon (MuPDF makes them all of this size)
 CARET_SIZE = (20.0, 14.0)  # points: the size of a caret's mark (MuPDF's)
 
@@ -115,6 +118,7 @@ TAGS_KEY, CATEGORIES_KEY = "PyAnnotateTags", "PyAnnotateCategories"
 # _link_groups writes): with it, the group is known while those links are out (see apply)
 GROUP_KEY = "PyAnnotateGroup"
 CRITICAL_KEY = "PyAnnotateCritical"  # (an entry of textual criticism: its fields, as JSON)
+REPEAT_KEY = "PyPdftoolsPages"  # (the pages a redaction box goes on, besides its own: see Annotation.repeat)
 DASHES = (3, 3)
 
 _TYPES = {pymupdf.PDF_ANNOT_HIGHLIGHT: "highlight", pymupdf.PDF_ANNOT_UNDERLINE: "underline",
@@ -123,7 +127,8 @@ _TYPES = {pymupdf.PDF_ANNOT_HIGHLIGHT: "highlight", pymupdf.PDF_ANNOT_UNDERLINE:
           pymupdf.PDF_ANNOT_FREE_TEXT: "freetext", pymupdf.PDF_ANNOT_SQUARE: "rect",
           pymupdf.PDF_ANNOT_CIRCLE: "ellipse", pymupdf.PDF_ANNOT_POLYGON: "polygon",
           pymupdf.PDF_ANNOT_POLY_LINE: "polyline", pymupdf.PDF_ANNOT_LINE: "line", pymupdf.PDF_ANNOT_INK: "ink",
-          pymupdf.PDF_ANNOT_STAMP: "stamp", pymupdf.PDF_ANNOT_FILE_ATTACHMENT: "attachment"}
+          pymupdf.PDF_ANNOT_STAMP: "stamp", pymupdf.PDF_ANNOT_FILE_ATTACHMENT: "attachment",
+          pymupdf.PDF_ANNOT_REDACT: "redact"}
 
 
 # the kinds of entries of textual criticism (see Critical)
@@ -208,6 +213,14 @@ class Annotation:
     data: bytes = b""  # of an attached file: its bytes
     filename: str = ""  # of an attached file: its name
     layer: str = ""  # the name of its layer (the PDF's optional content, which viewers show or hide); '' for none
+    # a redaction box (kind 'redact': the PDF's redaction mark, /Redact, which marks what is to be removed, and
+    # is applied when a redacted copy is made; see redact/redact.py): FILL is the colour it leaves (none: ''),
+    # CONTENTS a note shown over it; OVERLAY is the text written where it was once applied (/OverlayText),
+    # in COLOR, FONT_SIZE (0: as large as fits) and ALIGN, and OVERLAY_REPEAT says it is repeated all along
+    # (/Repeat); REPEAT, the pages it goes on ('' only its own; else as 2-10, 15, LAST: see core/pagesel.py)
+    overlay: str = ""
+    overlay_repeat: bool = False
+    repeat: str = ""
     replies: tuple[Reply, ...] = ()  # in the order they were made
     xref: int = 0  # of the annotation in the document it was read from; 0 if new
 
@@ -696,6 +709,20 @@ def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.An
             return None
         return Annotation(rect=frame(kind, paths, width), color=stroke or "#000000", fill=fill, paths=paths,
                           ends=ends if kind in ENDED else ("None", "None"), **fields)
+    if kind == "redact":
+        color, size, _ = _text_style(doc, annot.xref)
+        kind_, da = doc.xref_get_key(annot.xref, "DA")
+        if kind_ != "string" or not DA_SIZE.search(da) or not float(DA_SIZE.search(da)[1]):
+            size = 0.0  # (as large as fits)
+        ic = doc.xref_get_key(annot.xref, "IC")
+        fill = hex_color(ic[1].strip("[]").split()) if ic[0] == "array" else ""
+        q = doc.xref_get_key(annot.xref, "Q")
+        return Annotation(rect=_shown_rect(page, annot.rect), color=color if kind_ == "string" else "#ffffff",
+                          fill=fill or "", font_size=_r(size),
+                          align={"0": "left", "2": "right"}.get(q[1], "center") if q[0] == "int" else "center",
+                          overlay=_pdf_text(doc, annot.xref, "OverlayText"),
+                          overlay_repeat=doc.xref_get_key(annot.xref, "Repeat")[1] == "true",
+                          repeat=_pdf_text(doc, annot.xref, REPEAT_KEY), **fields)
     if kind == "stamp":
         name = doc.xref_get_key(annot.xref, "Name")[1].lstrip("/")
         return Annotation(rect=_shown_rect(page, annot.rect), color=stroke or "#000000",
@@ -1044,6 +1071,9 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
         stamps = list(STAMPS)
         annot = page.add_stamp_annot(_real_rect(page, a.rect),
                                      stamp=stamps.index(a.stamp) if a.stamp in stamps else a.image)
+    elif a.kind == "redact":
+        annot = page.add_redact_annot(_real_rect(page, a.rect), fill=fill if fill else False, cross_out=False)
+        _redact_keys(page.parent, annot.xref, a)
     else:
         raise ValueError(a.kind)
     _info(annot, a, when)
@@ -1058,6 +1088,8 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
                      rotate=page.rotation)
         if a.kind == "freetext":  # (PyMuPDF gives every text box a callout line, of no length)
             page.parent.xref_set_key(annot.xref, "CL", "null")
+    elif a.kind == "redact":  # (update() would write its /DA and /OverlayText as MuPDF has them)
+        pass
     elif a.kind != "stamp" or a.stamp:  # (an image stamp's look would be lost)
         annot.update()
     if a.kind in DRAWN:
@@ -1065,6 +1097,17 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
     for reply in a.replies:
         add_reply(page, annot, reply, when)
     return annot
+
+
+def _redact_keys(doc: pymupdf.Document, xref: int, a: Annotation) -> None:
+    """What a redaction box is (see Annotation.overlay), in the keys of the PDF's redaction marks."""
+    r, g, b = rgb(a.color)
+    doc.xref_set_key(xref, "DA", pymupdf.get_pdf_str(f"/Helv {_r(a.font_size):g} Tf {r:g} {g:g} {b:g} rg"))
+    doc.xref_set_key(xref, "Q", str({"left": 0, "right": 2}.get(a.align, 1)))
+    doc.xref_set_key(xref, "IC", "[" + " ".join(f"{v:g}" for v in rgb(a.fill)) + "]" if a.fill else "null")
+    doc.xref_set_key(xref, "OverlayText", pymupdf.get_pdf_str(a.overlay) if a.overlay else "null")
+    doc.xref_set_key(xref, "Repeat", "true" if a.overlay_repeat else "null")
+    doc.xref_set_key(xref, REPEAT_KEY, pymupdf.get_pdf_str(a.repeat) if a.repeat.strip() else "null")
 
 
 def _line_ends(a: Annotation) -> tuple[str, str]:
@@ -1114,8 +1157,8 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
     """Change ANNOT (which was OLD) where it is into A, keeping all else it has. Returns
     whether that could be done (False: it has to be taken out and written again)."""
     doc = page.parent
-    if old.kind != a.kind or old.page != a.page or a.kind in ("callout", "attachment"):
-        return False  # (an attached file: written again, with its file)
+    if old.kind != a.kind or old.page != a.page or a.kind in ("callout", "attachment", "redact"):
+        return False  # (an attached file: written again, with its file; a redaction box, with its keys)
     look = ("contents", "rich", "border", "color", "font", "font_size", "align")
     if (a.rich or a.border or old.rich or old.border) and any(getattr(a, f) != getattr(old, f) for f in look):
         return False  # (rich text whose text or look changed: written again, with its /RC and /DS)

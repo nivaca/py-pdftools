@@ -745,20 +745,24 @@ def test_textual_criticism_in_the_window(window):
 
 
 def test_other_kinds_listed_not_changed(app, sample, tmp_path, monkeypatch):
-    """A link and a redaction mark are listed, but are neither deleted, changed nor copied; saving
-    keeps them as they were."""
+    """A link and a watermark annotation are listed, but are neither deleted, changed nor copied; saving
+    keeps them as they were. (A redaction mark was such another kind in py-annotate; in py-pdftools it is a
+    box of the mode Redact.)"""
     import pymupdf
 
     monkeypatch.setenv("HOME", str(tmp_path))
     doc = pymupdf.open(sample)
-    doc[0].add_redact_annot((300, 300, 400, 320))
     doc[0].insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(60, 60, 200, 80), "uri": "https://example.org"})
+    xref = doc.get_new_xref()
+    doc.update_object(xref, "<</Type/Annot/Subtype/Watermark/Rect[300 500 400 520]/F 4>>")
+    annots_ = doc.xref_get_key(doc[0].xref, "Annots")[1]
+    doc.xref_set_key(doc[0].xref, "Annots", annots_.rstrip("]") + f" {xref} 0 R]")
     path = tmp_path / "linked.pdf"
     doc.save(path)
     w = MainWindow()
     w.ask_recover = lambda when: False
     assert w.open_path(path)
-    assert sorted(a.name() for a in w.annotations) == ["Link", "Redaction mark"]
+    assert sorted(a.name() for a in w.annotations) == ["Link", "Watermark"]
     assert len(w._rows) == 2
     w.pick([0, 1], False)
     w.delete_selected()
@@ -770,7 +774,7 @@ def test_other_kinds_listed_not_changed(app, sample, tmp_path, monkeypatch):
     drag(w, (100, 400), (150, 440))
     assert w.save()
     out = annots.open_pdf(path)
-    assert sorted(a.other for a in annots.read(out) if a.kind == "other") == ["Link", "Redact"]
+    assert sorted(a.other for a in annots.read(out) if a.kind == "other") == ["Link", "Watermark"]
     assert out[0].get_links()[0]["uri"] == "https://example.org"
     w.annotations = w.saved = []
     w.close()

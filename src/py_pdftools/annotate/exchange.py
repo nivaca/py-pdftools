@@ -91,7 +91,7 @@ def from_data(data: dict, keep_xref: bool = False) -> Annotation | None:
                 value = float(value)
             elif name in ("page", "xref"):
                 value = int(value)
-            elif name in ("dashed", "locked"):
+            elif name in ("dashed", "locked", "overlay_repeat"):
                 value = bool(value)
             else:
                 value = str(value)

@@ -32,7 +32,7 @@ import dataclasses
 import re
 
 from ..core import config
-from .annots import ALIGNS, DASHABLE, ENDED, ENDS, FILLED, FONTS, ICONS, KINDS, STAMPS, STROKED, TEXTUAL
+from .annots import ALIGNS, ANNOTATING, DASHABLE, ENDED, ENDS, FILLED, FONTS, ICONS, STAMPS, STROKED, TEXTUAL
 from ..core.interface import N_
 
 COLOR = re.compile(r"#[0-9a-f]{6}")
@@ -70,6 +70,7 @@ STYLES = {
     "line": Style("#e53935"), "arrow": Style("#e53935", end="OpenArrow"), "polyline": Style("#e53935"),
     "ink": Style("#1e88e5", width=2.0), "marker": Style("#ffeb3b", width=12.0, opacity=0.4), "stamp": Style("#c62828", stamp="Approved"), "attachment": Style("#1e88e5"),
 }
+OTHER_STYLE = Style("#000000")
 STYLE_FIELDS = tuple(f.name for f in dataclasses.fields(Style))
 
 
@@ -102,7 +103,7 @@ PALETTE = (("#ffeb3b", N_("Yellow"), N_("Important")), ("#43a047", N_("Green"), 
            ("#000000", N_("Black"), ""), ("#ffffff", N_("White"), ""))
 PALETTE_SIZE = len(PALETTE)
 
-# the actions that have a shortcut, besides the tools (annots.KINDS, and select, hand, eraser): the usual keys
+# the actions that have a shortcut, besides the tools (annots.ANNOTATING, and select, hand, eraser): the usual keys
 SHORTCUTS = {
     "select": "V", "hand": "M", "eraser": "E", "highlight": "H", "area": "Shift+H", "underline": "U",
     "strikeout": "S", "squiggly": "Q", "caret": "I", "note": "N", "freetext": "T", "callout": "Shift+T",
@@ -147,7 +148,8 @@ class Settings:
         return list(self.categories) if self.categories is not None else [tr(c) for c in CATEGORIES]
 
     def style(self, kind: str) -> Style:
-        return dict(self.styles).get(kind, STYLES[kind])
+        # (a kind of another mode, a redaction box: a style that opens nothing, and keeps its tool)
+        return dict(self.styles).get(kind, STYLES.get(kind, OTHER_STYLE))
 
     def with_style(self, kind: str, style: Style) -> Settings:
         styles = dict(self.styles)
@@ -226,7 +228,7 @@ def load() -> Settings:
         params = {}
     author = params.get("author", "")
     styles = []
-    for kind in KINDS:
+    for kind in ANNOTATING:
         values = {}
         for field in STYLE_FIELDS:
             value = params.get(f"{kind}_{field}")
@@ -262,7 +264,7 @@ def save(settings: Settings) -> None:
     if not valid("author", settings.author):
         raise ValueError(f"author = {settings.author!r}")
     values: dict = {"author": settings.author or None}
-    for kind in KINDS:
+    for kind in ANNOTATING:
         style, usual = settings.style(kind), STYLES[kind]
         for field in STYLE_FIELDS:
             value = getattr(style, field)

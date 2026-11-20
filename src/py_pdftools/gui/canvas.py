@@ -47,7 +47,7 @@ SELECTED = QColor(42, 127, 255)
 NEAR_TEXT = 3.0  # points: a drag that starts this close to a word selects text
 FREETEXT_SIZE = (180.0, 40.0)  # points: a text box made by a click
 NOTE_EDITOR = (220.0, 110.0)  # points: the field where the text of a note is written
-BOXES = ("freetext", "typewriter", "area", "rect", "ellipse", "cloud")  # (tools that drag a box)
+BOXES = ("freetext", "typewriter", "area", "rect", "ellipse", "cloud", "redact")  # (tools that drag a box)
 LINES = ("line", "arrow")
 TEXT_TOOLS = MARKUP + ("replace",)  # (the tools that are dragged over text)
 POLYGONS = ("polygon", "polyline")  # (tools that click point after point)
@@ -1118,7 +1118,9 @@ class PageCanvas(QGraphicsView):
         item, edges = self._hit(pos)
         shift = bool(event.modifiers() & Qt.KeyboardModifier.ShiftModifier)
         n = page.number
-        if self.mode in TEXT_TOOLS and (item is None or item.annot.kind in MARKUP or shift):
+        # (the tool Redact marks text when the drag starts on it, and draws a box elsewhere, or with Ctrl)
+        redact_text = self.mode == "redact" and item is None and not add and self.near_text(n, point)
+        if self.mode in TEXT_TOOLS and (item is None or item.annot.kind in MARKUP or shift) or redact_text:
             # (over a mark, dragging marks text too; a click selects the mark)
             self._drag = {"kind": "text", "page": page, "start": point, "marks": [], "candidate": item}
             if item is None:

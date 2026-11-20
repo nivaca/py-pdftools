@@ -19,7 +19,10 @@ def own_config(tmp_path, monkeypatch):
 
 @pytest.fixture(autouse=True)
 def pages_here(monkeypatch):
-    """Pages rendered in the tests' own process, at once (a test may turn this off)."""
+    """Pages rendered, and redacted copies saved, in the tests' own process, at once (a test may turn
+    this off)."""
     from py_pdftools.gui import renderer
+    from py_pdftools.gui.redact import background
 
     monkeypatch.setattr(renderer, "ENABLED", False)
+    monkeypatch.setattr(background, "ENABLED", False)

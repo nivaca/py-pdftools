@@ -155,11 +155,27 @@ def redact_page(page: pymupdf.Page, boxes: list[Box], images: str = "pixels", dr
     return len(areas)
 
 
+def box_of(a) -> Box:
+    """The box of A, a redaction box of the window (an annotations.Annotation of kind 'redact')."""
+    return Box(a.page, a.rect, a.fill, a.repeat, a.overlay, a.color, a.font_size, a.align, a.overlay_repeat,
+               a.contents, a.locked)
+
+
+def drop_marks(doc: pymupdf.Document) -> None:
+    """Take out of DOC its redaction marks (the PDF's /Redact annotations), not applied: the window reads
+    them as boxes, and gives them to redact() with the others (applied as they are, they would be applied
+    twice, or in a look of their own)."""
+    for page in doc:
+        for annot in list(page.annots(types=[pymupdf.PDF_ANNOT_REDACT]) or []):
+            page.delete_annot(annot)
+
+
 def redact(doc: pymupdf.Document, boxes: list[Box], clean: bool = False, images: str = "pixels",
            drawings: str = "covered") -> int:
-    """Redact BOXES in DOC (in memory). With CLEAN, also remove the metadata,
-    hidden text, attached files, scripts and links of the document. Returns how
-    many boxes were applied, counting each page a box is repeated on."""
+    """Redact BOXES in DOC (in memory), after taking out its own redaction marks (see drop_marks).
+    With CLEAN, also remove the metadata, hidden text, attached files, scripts and links of the
+    document. Returns how many boxes were applied, counting each page a box is repeated on."""
+    drop_marks(doc)
     done = 0
     for number, here in sorted(boxes_by_page(boxes, doc.page_count).items()):
         done += redact_page(doc[number], here, images, drawings)
@@ -226,6 +242,7 @@ def preview_page(doc: pymupdf.Document, number: int, boxes: list[Box], images: s
     """A new one-page document: page NUMBER of DOC with BOXES (those on it) redacted."""
     one = pymupdf.open()
     one.insert_pdf(doc, from_page=number, to_page=number)
+    drop_marks(one)
     here = boxes_on(boxes, number, doc.page_count)
     redact_page(one[0], here, images, drawings)
     return one
