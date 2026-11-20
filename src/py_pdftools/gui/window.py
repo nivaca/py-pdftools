@@ -40,6 +40,7 @@ from .paint import paint
 from .prefs import SettingsDialog
 from .props import PropertiesDialog
 from .renderer import renderer
+from .modes import TIPS, TITLES, Mode
 from .stamps import text_stamp
 
 RECENT = 10  # documents in File ▸ Open recent
@@ -169,9 +170,12 @@ class MainWindow(FilesMixin, QMainWindow):
         height = min(max(height, THUMB_SIZES[0]), THUMB_SIZES[1])
         self.thumb = QSize(round(height * 0.75), height)
         self.finder: FindDialog | None = None
+        self.mode = ""
         self._build()
         self._build_menus()
+        self._build_modes()
         self._restore()
+        self.set_mode(str(self.settings.value("mode", "annotate")))
         self.autosave_timer = QTimer(self)
         self.autosave_timer.timeout.connect(self.keep_recovery)
         self._start_autosave()
@@ -406,6 +410,7 @@ class MainWindow(FilesMixin, QMainWindow):
         m.aboutToShow.connect(self._edit_menu)
 
         m = self.menuBar().addMenu(tr("&Tools"))
+        self.m_tools = m
         m.setToolTipsVisible(True)
         group = QActionGroup(self)
         self.tool_actions: dict[str, QAction] = {}
@@ -536,6 +541,72 @@ class MainWindow(FilesMixin, QMainWindow):
         for name, act in actions.items():
             act.setShortcut(QKeySequence(self.prefs.shortcut(name)))
         self._toolbar_tips()
+
+    # ----------------------------------------------------------------- the modes
+
+    def _build_modes(self):
+        """The modes (see modes/), and the bar that chooses one (Ctrl+1, Ctrl+2 ...)."""
+        self.modes: dict[str, Mode] = {
+            "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=[self.tools_bar], docks=[self.panel],
+                             menus=[self.m_tools.menuAction(), self.m_layers.menuAction()]),
+        }
+        self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
+        bar = QToolBar(tr("Modes"))
+        self.modes_bar = bar
+        bar.setObjectName("modes")
+        bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        group = QActionGroup(self)
+        self.mode_actions: dict[str, QAction] = {}
+        for n, key in enumerate(self.modes, 1):
+            act = QAction(tr(TITLES[key]), self, checkable=True)
+            act.setToolTip(tr(TIPS[key]))
+            act.setShortcut(QKeySequence(f"Ctrl+{n}"))
+            act.triggered.connect(lambda _=False, k=key: self.set_mode(k))
+            group.addAction(act)
+            bar.addAction(act)
+            self.mode_actions[key] = act
+        self.insertToolBar(self.toolbar, bar)
+
+    def owns(self, a: Annotation) -> bool:
+        """Whether A is an annotation of the mode on (one the mouse, the list and the Edit menu work on)."""
+        mode = self.modes.get(self.mode)
+        return mode is None or mode.owns(a)
+
+    def set_mode(self, key: str):
+        """Turn on the mode KEY (see modes/): its toolbars, panels and menus are shown, those of the others hidden."""
+        if key not in self.modes:
+            key = "annotate"
+        if key == self.mode:
+            return
+        old = self.modes.get(self.mode)
+        if old is not None:
+            self.canvas.commit_text()
+            self.canvas.cancel_polygon()
+            self._docks_shown[old.key] = {id(d) for d in old.docks if d.isVisible()}
+            old.left()
+        self.mode = key
+        mode = self.modes[key]
+        for other in self.modes.values():
+            on = other is mode
+            for bar in other.bars:
+                bar.setVisible(on)
+            for act in other.menus:
+                act.setVisible(on)
+            for act in other.actions:
+                act.setEnabled(on)
+            if not on:
+                for dock in other.docks:
+                    dock.setVisible(False)
+        shown = self._docks_shown.get(key)
+        for dock in mode.docks:
+            dock.setVisible(shown is None or id(dock) in shown)
+        self.mode_actions[key].setChecked(True)
+        self.canvas.touchable = mode.owns
+        self.selected = [i for i in self.selected if mode.owns(self.annotations[i])]
+        self.set_tool("select")
+        mode.entered()
+        self.settings.setValue("mode", key)
+        self.refresh()
 
     # ----------------------------------------------------------------- the window's state (kept by Qt between sessions)
 
@@ -1289,8 +1360,9 @@ class MainWindow(FilesMixin, QMainWindow):
         self.change(annotations, self.selected)
 
     def _remove(self, keep) -> None:
-        """Remove the annotations for which KEEP(annotation) is false (locked ones are always kept)."""
-        annotations = [a for a in self.annotations if keep(a) or a.locked]
+        """Remove the annotations of the mode for which KEEP(annotation) is false (locked ones are always
+        kept, and so are those of the other modes)."""
+        annotations = [a for a in self.annotations if keep(a) or a.locked or not self.owns(a)]
         if len(annotations) != len(self.annotations):
             self.change(annotations, [])
 
@@ -1311,10 +1383,11 @@ class MainWindow(FilesMixin, QMainWindow):
         self._remove(lambda a: a.page != self.page)
 
     def delete_all(self):
-        if self.annotations and QMessageBox.question(
+        mine = sum(map(self.owns, self.annotations))
+        if mine and QMessageBox.question(
                 self, tr("Delete all the annotations"),
                 ntr("Delete the {count} annotation of the document?", "Delete the {count} annotations of the "
-                    "document?", len(self.annotations))) == QMessageBox.StandardButton.Yes:
+                    "document?", mine)) == QMessageBox.StandardButton.Yes:
             self._remove(lambda a: False)
 
     def copy_selected(self):
@@ -1722,6 +1795,7 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def pick(self, indices: list[int], add: bool):
         self.keep_comment()
+        indices = [i for i in indices if self.owns(self.annotations[i])]
         if add:
             chosen = list(self.selected)
             for i in indices:
@@ -1876,7 +1950,7 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def _passes(self, a: Annotation) -> bool:
         """Whether A is let through by the search and filters of the list (and its layer is shown)."""
-        if a.layer and not self.layers.get(a.layer, True):
+        if not self.owns(a) or a.layer and not self.layers.get(a.layer, True):
             return False
         kind, author, color = self.f_kind.currentData(), self.f_author.currentData(), self.f_color.currentData()
         status, tag, category = self.f_status.currentData(), self.f_tag.currentData(), self.f_category.currentData()
@@ -2066,7 +2140,7 @@ class MainWindow(FilesMixin, QMainWindow):
         self._by_page = [[] for _ in range(self.count)]
         shown = set(self.shown())
         for i, a in enumerate(self.annotations):
-            if 0 <= a.page < self.count and i in shown:
+            if 0 <= a.page < self.count and i in shown and self.owns(a):
                 self._by_page[a.page].append(a)
         for n in range(min(self.count, self.pages.count())):
             item = self.pages.item(n)
@@ -2280,7 +2354,9 @@ class MainWindow(FilesMixin, QMainWindow):
 
     def about(self):
         QMessageBox.about(self, tr("About py-pdftools"),
-                          tr("<b>py-pdftools {version}</b><p>Adds annotations to PDF documents: highlights, notes, "
-                             "text boxes, shapes, stamps and drawings, which any PDF viewer shows and can edit.</p>"
-                             "<p>By {author}.</p><p>Licensed under the GNU General Public License, version 3 or "
-                             "later.</p>", version=__version__, author=AUTHOR))
+                          tr("<b>py-pdftools {version}</b><p>Edits PDF documents: annotates them, redacts them, "
+                             "changes their page labels, headers, footers, watermarks and the order of their "
+                             "pages, and imposes them for printing.</p><p>It brings together py-annotate, "
+                             "py-redact, py-foliation and py-imposition.</p><p>By {author}.</p><p>Licensed under "
+                             "the GNU General Public License, version 3 or later.</p>",
+                             version=__version__, author=AUTHOR))

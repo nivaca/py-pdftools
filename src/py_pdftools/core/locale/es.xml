@@ -564,8 +564,8 @@
     <tr>(sin autor)</tr>
   </text>
   <text>
-    <en>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Adds annotations to PDF documents: highlights, notes, text boxes, shapes, stamps and drawings, which any PDF viewer shows and can edit.&lt;/p&gt;&lt;p&gt;By {author}.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License, version 3 or later.&lt;/p&gt;</en>
-    <tr>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Añade anotaciones a documentos PDF: resaltados, notas, cuadros de texto, formas, sellos y dibujos, que cualquier visor de PDF muestra y puede editar.&lt;/p&gt;&lt;p&gt;Por {author}.&lt;/p&gt;&lt;p&gt;Con licencia GNU General Public License, versión 3 o posterior.&lt;/p&gt;</tr>
+    <en>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Edits PDF documents: annotates them, redacts them, changes their page labels, headers, footers, watermarks and the order of their pages, and imposes them for printing.&lt;/p&gt;&lt;p&gt;It brings together py-annotate, py-redact, py-foliation and py-imposition.&lt;/p&gt;&lt;p&gt;By {author}.&lt;/p&gt;&lt;p&gt;Licensed under the GNU General Public License, version 3 or later.&lt;/p&gt;</en>
+    <tr>&lt;b&gt;py-pdftools {version}&lt;/b&gt;&lt;p&gt;Edita documentos PDF: los anota, los censura, cambia sus etiquetas de página, sus encabezados, pies de página y marcas de agua y el orden de sus páginas, y los impone para imprenta.&lt;/p&gt;&lt;p&gt;Reúne py-annotate, py-redact, py-foliation y py-imposition.&lt;/p&gt;&lt;p&gt;Por {author}.&lt;/p&gt;&lt;p&gt;Con licencia GNU General Public License, versión 3 o posterior.&lt;/p&gt;</tr>
   </text>
   <text>
     <en>A copy of the annotations not yet saved is kept this often, and offered if the program stops before they are saved</en>
@@ -9204,5 +9204,33 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>impose pages for printing: booklets, n-up, step and repeat, bleeds, stamps, sequences and hot folders</en>
     <tr>imponer páginas para imprimir: folletos, n-up, paso y repetición, sangrados, sellos, secuencias y carpetas vigiladas</tr>
+  </text>
+  <text>
+    <en>Annotate</en>
+    <tr>Anotar</tr>
+  </text>
+  <text>
+    <en>Redact</en>
+    <tr>Censurar</tr>
+  </text>
+  <text>
+    <en>Modes</en>
+    <tr>Modos</tr>
+  </text>
+  <text>
+    <en>Highlights, notes, text boxes, shapes and drawings</en>
+    <tr>Resaltados, notas, cuadros de texto, formas y dibujos</tr>
+  </text>
+  <text>
+    <en>Mark what is to be removed, and write a redacted copy</en>
+    <tr>Marcar lo que debe quitarse y escribir una copia censurada</tr>
+  </text>
+  <text>
+    <en>Page labels, headers and footers, watermarks, and the order of the pages</en>
+    <tr>Etiquetas de página, encabezados y pies de página, marcas de agua y el orden de las páginas</tr>
+  </text>
+  <text>
+    <en>Booklets, n-up, step and repeat and the rest of imposition, for printing</en>
+    <tr>Folletos, n-up, paso y repetición y el resto de la imposición, para imprenta</tr>
   </text>
 </interface>

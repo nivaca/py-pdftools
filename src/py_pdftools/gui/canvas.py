@@ -386,6 +386,9 @@ class PageCanvas(QGraphicsView):
         self.factory: Callable[[str, int, Rect, tuple], Annotation] | None = None
         self.placeholder_for: Callable[[int], QImage | None] = lambda n: None  # (a thumbnail, until it is rendered)
         self.editable = True  # (False: the annotations are hidden, and nothing can be done to them)
+        # which annotations can be selected, moved and erased: those of the mode of the window (the
+        # others are shown, but the mouse goes through them)
+        self.touchable = lambda annotation: True
         self.pages: dict[int, PageItem] = {}  # (those laid out)
         self.items_: list[AnnotItem] = []
         self._shown_items: list[tuple[int, Annotation]] = []
@@ -722,7 +725,7 @@ class PageCanvas(QGraphicsView):
             return None, ""
         grip = GRIP / (self.zoom() or 1)
         # (the selected first, then those on top: the last drawn)
-        for item in sorted((i for i in self.items_ if i.parentItem() is page),
+        for item in sorted((i for i in self.items_ if i.parentItem() is page and self.touchable(i.annot)),
                            key=lambda i: (-i.zValue(), -i.index)):
             edges = item.hit(point, grip)
             if edges is not None:
@@ -1198,7 +1201,8 @@ class PageCanvas(QGraphicsView):
         radius = ERASER / (self.zoom() or 1)
         drag["centres"].append((point.x(), point.y()))
         drag["marks"][0].setRect(QRectF(point.x() - radius, point.y() - radius, 2 * radius, 2 * radius))
-        mine = [i for i in self.items_ if i.parentItem() is drag["page"] and not i.annot.locked]
+        mine = [i for i in self.items_ if i.parentItem() is drag["page"] and not i.annot.locked
+                and self.touchable(i.annot)]
         for item in mine:
             if item.annot.kind in DRAWN:
                 original = drag.setdefault("ink", {}).setdefault(item.index, item.annot)
@@ -1399,7 +1403,7 @@ class PageCanvas(QGraphicsView):
             radius = ERASER / (self.zoom() or 1)
             changes: dict = {}
             for item in self.items_:
-                if item.annot.locked or item.parentItem() is not page:
+                if item.annot.locked or item.parentItem() is not page or not self.touchable(item.annot):
                     continue
                 if item.annot.kind in DRAWN and item.index in drag.get("ink", {}):
                     left = erase_ink(drag["ink"][item.index], drag["centres"], radius)
@@ -1413,7 +1417,8 @@ class PageCanvas(QGraphicsView):
             r = drag["item"].rect()
             self.scene().removeItem(drag["item"])
             if moved:
-                inside = [i.index for i in self.items_ if i.parentItem() is page and r.intersects(i.frame())]
+                inside = [i.index for i in self.items_ if i.parentItem() is page and r.intersects(i.frame())
+                          and self.touchable(i.annot)]
                 self.picked.emit(inside, drag["add"])
         elif kind == "click":
             self._clicked(drag, point)
