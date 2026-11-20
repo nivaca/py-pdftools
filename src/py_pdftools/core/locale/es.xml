@@ -10033,4 +10033,56 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>py-pdftools (in the background)</en>
     <tr>py-pdftools (en segundo plano)</tr>
   </text>
+  <text>
+    <en>Every page and thumbnail kept once drawn, within half of the free memory</en>
+    <tr>Cada página y miniatura se guarda una vez dibujada, dentro de la mitad de la memoria libre</tr>
+  </text>
+  <text>
+    <en>Good for every computer</en>
+    <tr>Adecuado para cualquier equipo</tr>
+  </text>
+  <text>
+    <en>High</en>
+    <tr>Alta</tr>
+  </text>
+  <text>
+    <en>Little memory: few pages kept drawn, one process to draw them</en>
+    <tr>Poca memoria: pocas páginas guardadas ya dibujadas, un solo proceso para dibujarlas</tr>
+  </text>
+  <text>
+    <en>Low</en>
+    <tr>Baja</tr>
+  </text>
+  <text>
+    <en>Memory:</en>
+    <tr>Memoria:</tr>
+  </text>
+  <text>
+    <en>More pages and thumbnails kept, drawn further ahead, by more processes</en>
+    <tr>Más páginas y miniaturas guardadas, dibujadas con más antelación, por más procesos</tr>
+  </text>
+  <text>
+    <en>Performance</en>
+    <tr>Rendimiento</tr>
+  </text>
+  <text>
+    <en>Selections drawn with transparency; without, as outlines, which is faster on a slow computer</en>
+    <tr>Selecciones dibujadas con transparencia; sin ella, como contornos, más rápido en un equipo lento</tr>
+  </text>
+  <text>
+    <en>Smooth the graphics (antialiasing)</en>
+    <tr>Suavizar los gráficos (antialiasing)</tr>
+  </text>
+  <text>
+    <en>Smooth the text (antialiasing)</en>
+    <tr>Suavizar el texto (antialiasing)</tr>
+  </text>
+  <text>
+    <en>The more memory the window may use, the faster it goes: more pages kept drawn, drawn further ahead. The number of processes that draw them changes the next time py-pdftools starts.</en>
+    <tr>Cuanta más memoria pueda usar la ventana, más rápida va: más páginas guardadas ya dibujadas, dibujadas con más antelación. El número de procesos que las dibujan cambia la próxima vez que se inicie py-pdftools.</tr>
+  </text>
+  <text>
+    <en>Transparency effects</en>
+    <tr>Efectos de transparencia</tr>
+  </text>
 </interface>

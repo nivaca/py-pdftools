@@ -26,6 +26,7 @@ from PySide6.QtCore import QObject, Qt, QTimer, Signal
 from PySide6.QtGui import QColor, QFont, QImage, QPainter
 
 from ..core import rendering
+from . import performance
 from ..core.interface import tr
 
 # Global switch read by available(); tests set it to False to render synchronously in the window.
@@ -107,7 +108,7 @@ class Renderer(QObject):
             return
         # La clave no lleva la contraseña: ruta, sello del archivo, página, escala, si van sin anotaciones
         # y el recorte. Si el archivo cambia en disco, el sello cambia y la clave también.
-        key = (source[0], source[2], number, scale, source[3], clip)
+        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS)
         ln.callbacks.setdefault(key, []).append(callback)
         # Already being rendered: the callback is added and will get the same image.
         if ln.rendering(key):
@@ -117,7 +118,7 @@ class Renderer(QObject):
         if entry is not None:
             ln.waiting.remove(entry)
         else:
-            entry = (key, (source[0], source[1], source[2], number, scale, source[3], clip))
+            entry = (key, (source[0], source[1], source[2], number, scale, source[3], clip, performance.ANTIALIAS))
         if first:
             ln.waiting.insert(0, entry)
         else:

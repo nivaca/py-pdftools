@@ -16,6 +16,7 @@ from ..annotate.annots import Rect, nearest_word
 
 TEXT_SELECT = "selecttext"  # (the name of the tool)
 SHADE = QColor(42, 127, 255, 70)  # (the colour over the text selected)
+TRANSPARENT = True  # (else the text selected is outlined: see performance.py)
 
 
 class TextSelectMixin:
@@ -113,8 +114,8 @@ class TextSelectMixin:
                 continue
             for r in rects:
                 mark = QGraphicsRectItem(QRectF(*_qrect(r)), page)
-                mark.setPen(QPen(Qt.PenStyle.NoPen))
-                mark.setBrush(QBrush(SHADE))
+                mark.setPen(QPen(Qt.PenStyle.NoPen) if TRANSPARENT else QPen(QColor(42, 127, 255), 0))
+                mark.setBrush(QBrush(SHADE) if TRANSPARENT else QBrush())
                 mark.setZValue(3)
                 self._sel_marks.append(mark)
 

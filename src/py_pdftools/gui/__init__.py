@@ -51,6 +51,9 @@ def main(argv: list[str] | None = None) -> int:
     app.setDesktopFileName("py-pdftools")
     app.setWindowIcon(app_icon())
     install_qt_translations()
+    from . import performance
+
+    performance.apply()  # (the memory profile, the transparency, the antialiasing: Settings > Performance)
     win = MainWindow()
     # La ventana entra en _WINDOWS como las que se reconstruyen al cambiar de idioma; change_language la saca
     # de ahí.

@@ -52,10 +52,15 @@ def ready() -> bool:
 
 
 def render(path: str, password: str, stamp: tuple, number: int, scale: float,
-           bare: bool = False, clip: tuple | None = None) -> tuple[int, int, int, bytes]:
+           bare: bool = False, clip: tuple | None = None,
+           antialias: tuple[int, int] | None = None) -> tuple[int, int, int, bytes]:
     """Page NUMBER of the document at PATH rendered at SCALE (BARE: without the annotations that
     the window draws itself): its width, height, bytes per line and RGB pixels. CLIP: only that
-    part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom."""
+    part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom.
+    ANTIALIAS: MuPDF's levels of antialiasing of (text, graphics), as the settings say."""
+    if antialias is not None:
+        pymupdf.mupdf.fz_set_text_aa_level(antialias[0])
+        pymupdf.mupdf.fz_set_graphics_aa_level(antialias[1])
     doc = _document(path, password, stamp, bare)
     if bare and number not in _bare.setdefault(path, set()):
         from ..annotate.annots import remove_editable

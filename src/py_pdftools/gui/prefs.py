@@ -190,6 +190,33 @@ class SettingsDialog(QDialog):
         lay.addWidget(usual, 0, Qt.AlignmentFlag.AlignRight)
         tabs.addTab(cats, tr("Categories"))
 
+        # Rendimiento: la memoria que puede usar la ventana, la transparencia de las selecciones, el suavizado.
+        from . import performance
+
+        current = performance.settings()
+        perf = QWidget()
+        form = QFormLayout(perf)
+        self.memory = QComboBox()
+        for name, title, tip in performance.PROFILES:
+            self.memory.addItem(tr(title), name)
+            self.memory.setItemData(self.memory.count() - 1, tr(tip), Qt.ItemDataRole.ToolTipRole)
+        self.memory.setCurrentIndex(max(self.memory.findData(current["memory"]), 0))
+        self.memory.setToolTip(tr("The more memory the window may use, the faster it goes: more pages kept "
+                                  "drawn, drawn further ahead. The number of processes that draw them changes "
+                                  "the next time py-pdftools starts."))
+        form.addRow(tr("Memory:"), self.memory)
+        self.transparency = QCheckBox(tr("Transparency effects"))
+        self.transparency.setChecked(current["transparency"])
+        self.transparency.setToolTip(tr("Selections drawn with transparency; without, as outlines, which is "
+                                        "faster on a slow computer"))
+        self.text_antialias = QCheckBox(tr("Smooth the text (antialiasing)"))
+        self.text_antialias.setChecked(current["text_antialias"])
+        self.graphics_antialias = QCheckBox(tr("Smooth the graphics (antialiasing)"))
+        self.graphics_antialias.setChecked(current["graphics_antialias"])
+        for box in (self.transparency, self.text_antialias, self.graphics_antialias):
+            form.addRow("", box)
+        tabs.addTab(perf, tr("Performance"))
+
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
@@ -246,6 +273,20 @@ class SettingsDialog(QDialog):
                                                           "{second}. Give another to one of them.", key=key,
                                                           first=action_name(a), second=action_name(b)))
             return
+        # (performance: kept in the configuration file, and in effect at once)
+        from . import performance
+
+        values = {"memory": self.memory.currentData(), "transparency": self.transparency.isChecked(),
+                  "text_antialias": self.text_antialias.isChecked(),
+                  "graphics_antialias": self.graphics_antialias.isChecked()}
+        before = performance.settings()
+        self.performance_changed = values != before
+        if self.performance_changed:
+            try:
+                config.set_many({k: v for k, v in values.items() if v != before[k]})
+            except OSError as e:
+                QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
+            performance.apply(values)
         # (running in the background: kept in the configuration file, and in effect at once)
         from . import background, instance
 

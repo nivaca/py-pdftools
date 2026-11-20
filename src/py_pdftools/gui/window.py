@@ -56,6 +56,7 @@ THUMB_SIZES = (60, 300, 112)  # the height of the thumbnails: smallest, largest,
 # thumbnails kept at most (those farthest from the ones in view are forgotten, and made again if the list
 # comes back to them): about 40 MB, whatever the length of the document
 MAX_THUMBS = 400
+ALL_THUMBS = False  # (the memory profile 'all': every thumbnail is made, not only those near view)
 # the tools: (name, freedesktop icon, tooltip), in groups; besides select, hand and eraser, they are the
 # kinds of annotations they make (annots.KINDS)
 TOOLS = [
@@ -1863,6 +1864,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         dialog = SettingsDialog(self.prefs, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.set_prefs(dialog.settings())
+            if getattr(dialog, "performance_changed", False):
+                # (drawn anew: with the antialiasing chosen, and caches of the new size)
+                self.canvas.clear_cache()
+                self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+                self.canvas.render_timer.start()
+                self.thumb_timer.start()
             self.refresh()
 
     def set_continuous(self, on: bool):
@@ -2560,6 +2567,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         bottom = self.pages.indexAt(QPoint(10, self.pages.viewport().height() - 10)).row()
         if bottom < top:  # (the list is taller than its rows, or not laid out yet)
             bottom = min(self.count - 1, top + 20)
+        if ALL_THUMBS:  # (those in view first, then all the others, nearest first)
+            rest = sorted(set(range(self.count)) - set(range(top, bottom + 1)), key=lambda n: abs(n - top))
+            return [*range(top, bottom + 1), *rest]
         span = bottom - top + 1
         return [*range(top, bottom + 1), *range(bottom + 1, min(self.count, bottom + 1 + span)),
                 *range(top - 1, max(-1, top - 1 - span), -1)]

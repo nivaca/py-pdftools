@@ -49,6 +49,9 @@ TILE_ABOVE = 4096
 BACKDROP_SIDE = 2048
 TILE = 1024
 MAX_TILES = 48  # tiles kept (about 150 MB): those of the pages in view, and a few of before
+# (these, and CACHED_PAGES and MAX_TILES, are those of the memory profile: see performance.py)
+AHEAD = 0.5  # pages drawn ahead of the view (and behind it), in heights of the window
+TRANSPARENT = True  # selections drawn with transparency (else outlines)
 CACHED_PAGES = 16  # renderings kept, so that a page scrolled back to needn't render again
 SELECTED = QColor(42, 127, 255)
 NEAR_TEXT = 3.0  # points: a drag that starts this close to a word selects text
@@ -669,10 +672,11 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         r = renderer()
         return r if self.source is not None and r.available() else None
 
-    def visible_pages(self, ahead: float = 0.5) -> list[int]:
+    def visible_pages(self, ahead: float | None = None) -> list[int]:
         """The pages in view (and those within AHEAD of a window's height of it), the middle one first."""
         if not self.pages:
             return []
+        ahead = AHEAD if ahead is None else ahead
         view = self.mapToScene(self.viewport().rect()).boundingRect()
         view = view.adjusted(0, -view.height() * ahead, 0, view.height() * ahead)
         found = [n for n, item in self.pages.items() if item.sceneBoundingRect().intersects(view)]
@@ -994,8 +998,9 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         marks = []
         for r in rects:
             mark = QGraphicsRectItem(qrect(r), self._drag["page"])
-            mark.setPen(QPen(Qt.PenStyle.NoPen))
-            mark.setBrush(QBrush(color))
+            # (without transparency effects: an outline, not a translucent fill)
+            mark.setPen(QPen(Qt.PenStyle.NoPen) if TRANSPARENT else QPen(QColor(SELECTED), 0))
+            mark.setBrush(QBrush(color) if TRANSPARENT else QBrush())
             mark.setZValue(3)
             marks.append(mark)
         self._drag["marks"] = marks
@@ -1377,7 +1382,7 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
             # The eraser's mark is a square of side 2 * ERASER pixels around the pointer, moved at each step.
             mark = QGraphicsRectItem(QRectF(), page)
             mark.setPen(QPen(SELECTED, 0))
-            mark.setBrush(QBrush(QColor(42, 127, 255, 40)))
+            mark.setBrush(QBrush(QColor(42, 127, 255, 40)) if TRANSPARENT else QBrush())
             mark.setZValue(4)
             self._drag = {"kind": "erase", "page": page, "start": point, "centres": [], "marks": [mark]}
             self._erase_at(point)
@@ -1430,7 +1435,7 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
             pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
             pen.setCosmetic(True)
             band.setPen(pen)
-            band.setBrush(QColor(42, 127, 255, 30))
+            band.setBrush(QColor(42, 127, 255, 30) if TRANSPARENT else QBrush())
             band.setZValue(4)
             self._drag = {"kind": "band", "page": page, "start": start, "item": band, "add": add}
         elif self.mode in CLICKS:

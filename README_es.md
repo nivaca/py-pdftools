@@ -212,6 +212,12 @@ funcionando, con sus procesos de dibujo listos y un icono en la bandeja
 (donde el escritorio la tiene), y py-pdftools-gui, iniciado otra vez, abre
 allí sus archivos al instante. Archivo > Salir lo termina.
 
+Configuración > Rendimiento fija cuánta memoria puede usar la ventana
+(Baja, Normal, Alta, o Todas las páginas, que guarda dibujadas todas las
+páginas y miniaturas, dentro de la mitad de la memoria libre), si las
+selecciones se dibujan con transparencia o como contornos, y si el texto
+y los gráficos se suavizan (antialiasing).
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.

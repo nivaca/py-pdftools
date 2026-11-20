@@ -205,6 +205,12 @@ its pages ready to be drawn and an icon in the tray (where the desktop has
 one), and py-pdftools-gui started again opens its files in it, at once.
 File > Quit ends it.
 
+Settings > Performance sets how much memory the window may use (Low,
+Normal, High, or All pages, which keeps every page and thumbnail drawn,
+within half of the free memory), whether selections are drawn with
+transparency or as outlines, and whether text and graphics are smoothed
+(antialiasing).
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
