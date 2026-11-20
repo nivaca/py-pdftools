@@ -9250,14 +9250,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>(★ modelo mejor; se pueden girar las páginas)</tr>
   </text>
   <text>
-    <en>Download better models</en>
-    <tr>Descargar modelos mejores</tr>
-  </text>
-  <text>
-    <en>Download better models…</en>
-    <tr>Descargar modelos mejores…</tr>
-  </text>
-  <text>
     <en>Downloading {name}…</en>
     <tr>Descargando {name}…</tr>
   </text>
@@ -9270,16 +9262,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Tesseract {version}: {languages}</tr>
   </text>
   <text>
-    <en>Tesseract's most accurate models (tessdata_best), for the languages chosen, into py-pdftools' own folder; also osd, to find how pages are turned. Needs the internet.</en>
-    <tr>Los modelos más precisos de Tesseract (tessdata_best), para los idiomas elegidos, en la carpeta propia de py-pdftools; también osd, para averiguar cómo están giradas las páginas. Necesita internet.</tr>
-  </text>
-  <text>
     <en>The copy was not made: {error}</en>
     <tr>No se hizo la copia: {error}</tr>
-  </text>
-  <text>
-    <en>The models to download (as tesseract names them, separated by spaces; osd finds how pages are turned):</en>
-    <tr>Los modelos que se descargarán (como los nombra tesseract, separados por espacios; osd averigua cómo están giradas las páginas):</tr>
   </text>
   <text>
     <en>no language</en>
@@ -9404,5 +9388,557 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>The pages; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several; right-click for what can be done with them</en>
     <tr>Las páginas; el número después de ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic eligen varias; el botón derecho, lo que se puede hacer con ellas</tr>
+  </text>
+  <text>
+    <en>Afrikaans</en>
+    <tr>Afrikáans</tr>
+  </text>
+  <text>
+    <en>Amharic</en>
+    <tr>Amárico</tr>
+  </text>
+  <text>
+    <en>Arabic</en>
+    <tr>Árabe</tr>
+  </text>
+  <text>
+    <en>Assamese</en>
+    <tr>Asamés</tr>
+  </text>
+  <text>
+    <en>Azerbaijani</en>
+    <tr>Azerí</tr>
+  </text>
+  <text>
+    <en>Belarusian</en>
+    <tr>Bielorruso</tr>
+  </text>
+  <text>
+    <en>Bengali</en>
+    <tr>Bengalí</tr>
+  </text>
+  <text>
+    <en>Tibetan</en>
+    <tr>Tibetano</tr>
+  </text>
+  <text>
+    <en>Bosnian</en>
+    <tr>Bosnio</tr>
+  </text>
+  <text>
+    <en>Breton</en>
+    <tr>Bretón</tr>
+  </text>
+  <text>
+    <en>Bulgarian</en>
+    <tr>Búlgaro</tr>
+  </text>
+  <text>
+    <en>Catalan</en>
+    <tr>Catalán</tr>
+  </text>
+  <text>
+    <en>Cebuano</en>
+    <tr>Cebuano</tr>
+  </text>
+  <text>
+    <en>Czech</en>
+    <tr>Checo</tr>
+  </text>
+  <text>
+    <en>Chinese (simplified)</en>
+    <tr>Chino (simplificado)</tr>
+  </text>
+  <text>
+    <en>Chinese (traditional)</en>
+    <tr>Chino (tradicional)</tr>
+  </text>
+  <text>
+    <en>Cherokee</en>
+    <tr>Cheroqui</tr>
+  </text>
+  <text>
+    <en>Corsican</en>
+    <tr>Corso</tr>
+  </text>
+  <text>
+    <en>Welsh</en>
+    <tr>Galés</tr>
+  </text>
+  <text>
+    <en>Danish</en>
+    <tr>Danés</tr>
+  </text>
+  <text>
+    <en>German</en>
+    <tr>Alemán</tr>
+  </text>
+  <text>
+    <en>German (Fraktur)</en>
+    <tr>Alemán (fraktur)</tr>
+  </text>
+  <text>
+    <en>Dhivehi</en>
+    <tr>Divehi</tr>
+  </text>
+  <text>
+    <en>Dzongkha</en>
+    <tr>Dzongkha</tr>
+  </text>
+  <text>
+    <en>Greek</en>
+    <tr>Griego</tr>
+  </text>
+  <text>
+    <en>English</en>
+    <tr>Inglés</tr>
+  </text>
+  <text>
+    <en>Middle English</en>
+    <tr>Inglés medio</tr>
+  </text>
+  <text>
+    <en>Esperanto</en>
+    <tr>Esperanto</tr>
+  </text>
+  <text>
+    <en>Equations</en>
+    <tr>Ecuaciones</tr>
+  </text>
+  <text>
+    <en>Estonian</en>
+    <tr>Estonio</tr>
+  </text>
+  <text>
+    <en>Basque</en>
+    <tr>Vasco</tr>
+  </text>
+  <text>
+    <en>Faroese</en>
+    <tr>Feroés</tr>
+  </text>
+  <text>
+    <en>Persian</en>
+    <tr>Persa</tr>
+  </text>
+  <text>
+    <en>Filipino</en>
+    <tr>Filipino</tr>
+  </text>
+  <text>
+    <en>Finnish</en>
+    <tr>Finés</tr>
+  </text>
+  <text>
+    <en>French</en>
+    <tr>Francés</tr>
+  </text>
+  <text>
+    <en>Middle French</en>
+    <tr>Francés medio</tr>
+  </text>
+  <text>
+    <en>Frisian</en>
+    <tr>Frisón</tr>
+  </text>
+  <text>
+    <en>Scottish Gaelic</en>
+    <tr>Gaélico escocés</tr>
+  </text>
+  <text>
+    <en>Irish</en>
+    <tr>Irlandés</tr>
+  </text>
+  <text>
+    <en>Galician</en>
+    <tr>Gallego</tr>
+  </text>
+  <text>
+    <en>Ancient Greek</en>
+    <tr>Griego antiguo</tr>
+  </text>
+  <text>
+    <en>Gujarati</en>
+    <tr>Guyaratí</tr>
+  </text>
+  <text>
+    <en>Haitian</en>
+    <tr>Haitiano</tr>
+  </text>
+  <text>
+    <en>Hebrew</en>
+    <tr>Hebreo</tr>
+  </text>
+  <text>
+    <en>Hindi</en>
+    <tr>Hindi</tr>
+  </text>
+  <text>
+    <en>Croatian</en>
+    <tr>Croata</tr>
+  </text>
+  <text>
+    <en>Hungarian</en>
+    <tr>Húngaro</tr>
+  </text>
+  <text>
+    <en>Armenian</en>
+    <tr>Armenio</tr>
+  </text>
+  <text>
+    <en>Inuktitut</en>
+    <tr>Inuktitut</tr>
+  </text>
+  <text>
+    <en>Indonesian</en>
+    <tr>Indonesio</tr>
+  </text>
+  <text>
+    <en>Icelandic</en>
+    <tr>Islandés</tr>
+  </text>
+  <text>
+    <en>Italian</en>
+    <tr>Italiano</tr>
+  </text>
+  <text>
+    <en>Old Italian</en>
+    <tr>Italiano antiguo</tr>
+  </text>
+  <text>
+    <en>Javanese</en>
+    <tr>Javanés</tr>
+  </text>
+  <text>
+    <en>Japanese</en>
+    <tr>Japonés</tr>
+  </text>
+  <text>
+    <en>Japanese (vertical)</en>
+    <tr>Japonés (vertical)</tr>
+  </text>
+  <text>
+    <en>Kannada</en>
+    <tr>Canarés</tr>
+  </text>
+  <text>
+    <en>Georgian</en>
+    <tr>Georgiano</tr>
+  </text>
+  <text>
+    <en>Old Georgian</en>
+    <tr>Georgiano antiguo</tr>
+  </text>
+  <text>
+    <en>Kazakh</en>
+    <tr>Kazajo</tr>
+  </text>
+  <text>
+    <en>Khmer</en>
+    <tr>Jemer</tr>
+  </text>
+  <text>
+    <en>Kyrgyz</en>
+    <tr>Kirguís</tr>
+  </text>
+  <text>
+    <en>Kurmanji</en>
+    <tr>Kurmanyi</tr>
+  </text>
+  <text>
+    <en>Korean</en>
+    <tr>Coreano</tr>
+  </text>
+  <text>
+    <en>Korean (vertical)</en>
+    <tr>Coreano (vertical)</tr>
+  </text>
+  <text>
+    <en>Lao</en>
+    <tr>Lao</tr>
+  </text>
+  <text>
+    <en>Latin</en>
+    <tr>Latín</tr>
+  </text>
+  <text>
+    <en>Latvian</en>
+    <tr>Letón</tr>
+  </text>
+  <text>
+    <en>Lithuanian</en>
+    <tr>Lituano</tr>
+  </text>
+  <text>
+    <en>Luxembourgish</en>
+    <tr>Luxemburgués</tr>
+  </text>
+  <text>
+    <en>Malayalam</en>
+    <tr>Malabar</tr>
+  </text>
+  <text>
+    <en>Marathi</en>
+    <tr>Maratí</tr>
+  </text>
+  <text>
+    <en>Macedonian</en>
+    <tr>Macedonio</tr>
+  </text>
+  <text>
+    <en>Maltese</en>
+    <tr>Maltés</tr>
+  </text>
+  <text>
+    <en>Mongolian</en>
+    <tr>Mongol</tr>
+  </text>
+  <text>
+    <en>Maori</en>
+    <tr>Maorí</tr>
+  </text>
+  <text>
+    <en>Malay</en>
+    <tr>Malayo</tr>
+  </text>
+  <text>
+    <en>Burmese</en>
+    <tr>Birmano</tr>
+  </text>
+  <text>
+    <en>Nepali</en>
+    <tr>Nepalí</tr>
+  </text>
+  <text>
+    <en>Dutch</en>
+    <tr>Neerlandés</tr>
+  </text>
+  <text>
+    <en>Norwegian</en>
+    <tr>Noruego</tr>
+  </text>
+  <text>
+    <en>Occitan</en>
+    <tr>Occitano</tr>
+  </text>
+  <text>
+    <en>Odia</en>
+    <tr>Oriya</tr>
+  </text>
+  <text>
+    <en>Orientation and script (osd)</en>
+    <tr>Orientación y escritura (osd)</tr>
+  </text>
+  <text>
+    <en>Punjabi</en>
+    <tr>Panyabí</tr>
+  </text>
+  <text>
+    <en>Polish</en>
+    <tr>Polaco</tr>
+  </text>
+  <text>
+    <en>Portuguese</en>
+    <tr>Portugués</tr>
+  </text>
+  <text>
+    <en>Pashto</en>
+    <tr>Pastún</tr>
+  </text>
+  <text>
+    <en>Quechua</en>
+    <tr>Quechua</tr>
+  </text>
+  <text>
+    <en>Romanian</en>
+    <tr>Rumano</tr>
+  </text>
+  <text>
+    <en>Russian</en>
+    <tr>Ruso</tr>
+  </text>
+  <text>
+    <en>Sanskrit</en>
+    <tr>Sánscrito</tr>
+  </text>
+  <text>
+    <en>Sinhala</en>
+    <tr>Cingalés</tr>
+  </text>
+  <text>
+    <en>Slovak</en>
+    <tr>Eslovaco</tr>
+  </text>
+  <text>
+    <en>Slovenian</en>
+    <tr>Esloveno</tr>
+  </text>
+  <text>
+    <en>Sindhi</en>
+    <tr>Sindi</tr>
+  </text>
+  <text>
+    <en>Old Spanish</en>
+    <tr>Español antiguo</tr>
+  </text>
+  <text>
+    <en>Albanian</en>
+    <tr>Albanés</tr>
+  </text>
+  <text>
+    <en>Serbian</en>
+    <tr>Serbio</tr>
+  </text>
+  <text>
+    <en>Serbian (Latin)</en>
+    <tr>Serbio (latino)</tr>
+  </text>
+  <text>
+    <en>Sundanese</en>
+    <tr>Sundanés</tr>
+  </text>
+  <text>
+    <en>Swahili</en>
+    <tr>Suajili</tr>
+  </text>
+  <text>
+    <en>Swedish</en>
+    <tr>Sueco</tr>
+  </text>
+  <text>
+    <en>Syriac</en>
+    <tr>Siríaco</tr>
+  </text>
+  <text>
+    <en>Tamil</en>
+    <tr>Tamil</tr>
+  </text>
+  <text>
+    <en>Tatar</en>
+    <tr>Tártaro</tr>
+  </text>
+  <text>
+    <en>Telugu</en>
+    <tr>Telugu</tr>
+  </text>
+  <text>
+    <en>Tajik</en>
+    <tr>Tayiko</tr>
+  </text>
+  <text>
+    <en>Thai</en>
+    <tr>Tailandés</tr>
+  </text>
+  <text>
+    <en>Tigrinya</en>
+    <tr>Tigriña</tr>
+  </text>
+  <text>
+    <en>Tongan</en>
+    <tr>Tongano</tr>
+  </text>
+  <text>
+    <en>Turkish</en>
+    <tr>Turco</tr>
+  </text>
+  <text>
+    <en>Uyghur</en>
+    <tr>Uigur</tr>
+  </text>
+  <text>
+    <en>Ukrainian</en>
+    <tr>Ucraniano</tr>
+  </text>
+  <text>
+    <en>Urdu</en>
+    <tr>Urdu</tr>
+  </text>
+  <text>
+    <en>Uzbek</en>
+    <tr>Uzbeko</tr>
+  </text>
+  <text>
+    <en>Uzbek (Cyrillic)</en>
+    <tr>Uzbeko (cirílico)</tr>
+  </text>
+  <text>
+    <en>Vietnamese</en>
+    <tr>Vietnamita</tr>
+  </text>
+  <text>
+    <en>Yiddish</en>
+    <tr>Ídish</tr>
+  </text>
+  <text>
+    <en>Yoruba</en>
+    <tr>Yoruba</tr>
+  </text>
+  <text>
+    <en>Better model</en>
+    <tr>Modelo mejor</tr>
+  </text>
+  <text>
+    <en>Better models go into {path}.</en>
+    <tr>Los modelos mejores van a {path}.</tr>
+  </text>
+  <text>
+    <en>Code</en>
+    <tr>Código</tr>
+  </text>
+  <text>
+    <en>Download</en>
+    <tr>Descargar</tr>
+  </text>
+  <text>
+    <en>Download Tesseract's most accurate model (tessdata_best) of the languages chosen, or download it again; needs the internet</en>
+    <tr>Descargar el modelo más preciso de Tesseract (tessdata_best) de los idiomas elegidos, o descargarlo otra vez; necesita internet</tr>
+  </text>
+  <text>
+    <en>Find a language…</en>
+    <tr>Buscar un idioma…</tr>
+  </text>
+  <text>
+    <en>OCR languages</en>
+    <tr>Idiomas del OCR</tr>
+  </text>
+  <text>
+    <en>OCR languages…</en>
+    <tr>Idiomas del OCR…</tr>
+  </text>
+  <text>
+    <en>Remove the better model of the languages chosen (the one installed with tesseract, if any, is used again)</en>
+    <tr>Quitar el modelo mejor de los idiomas elegidos (se vuelve a usar el que vino con tesseract, si lo hay)</tr>
+  </text>
+  <text>
+    <en>Tesseract is not installed: there is no OCR.</en>
+    <tr>Tesseract no está instalado: no hay OCR.</tr>
+  </text>
+  <text>
+    <en>Tesseract {version}.</en>
+    <tr>Tesseract {version}.</tr>
+  </text>
+  <text>
+    <en>The languages installed with tesseract are installed and removed with the system's packages (tesseract-langpack-… on Fedora, tesseract-ocr-… on Debian and Ubuntu).</en>
+    <tr>Los idiomas que vienen con tesseract se instalan y se quitan con los paquetes del sistema (tesseract-langpack-… en Fedora, tesseract-ocr-… en Debian y Ubuntu).</tr>
+  </text>
+  <text>
+    <en>The languages tesseract can read here; download, update or remove its more accurate models (and osd, to turn pages)</en>
+    <tr>Los idiomas que tesseract puede leer en este equipo; descargar, actualizar o quitar sus modelos más precisos (y osd, para girar páginas)</tr>
+  </text>
+  <text>
+    <en>With tesseract</en>
+    <tr>Con tesseract</tr>
+  </text>
+  <text>
+    <en>{count} language can be read here.</en>
+    <tr>Aquí se puede leer {count} idioma.</tr>
+  </text>
+  <text>
+    <en>{count} languages can be read here.</en>
+    <tr>Aquí se pueden leer {count} idiomas.</tr>
+  </text>
+  <text>
+    <en>{name} was not downloaded</en>
+    <tr>{name} no se había descargado</tr>
   </text>
 </interface>

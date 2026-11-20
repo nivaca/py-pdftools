@@ -38,7 +38,7 @@ from pathlib import Path
 
 import pymupdf
 
-from .interface import tr
+from .interface import N_, tr
 
 DPI = 300  # (at which the pages are read)
 DOUBTFUL = 60  # words read with a confidence below this are doubtful
@@ -48,6 +48,41 @@ TIMEOUT = 600  # seconds for one page
 BEST_URL = "https://github.com/tesseract-ocr/tessdata_best/raw/main/{name}.traineddata"
 # Un código de idioma de Tesseract: letras, cifras y guiones bajos (chi_sim, deu_latf, script/Latin no).
 LANGUAGE = re.compile(r"[A-Za-z0-9_]+")
+
+
+# The languages of tessdata_best, by the names tesseract gives them (the English name of each, for the
+# lists; languages not here are shown by their code)
+NAMES = {
+    "afr": N_("Afrikaans"), "amh": N_("Amharic"), "ara": N_("Arabic"), "asm": N_("Assamese"),
+    "aze": N_("Azerbaijani"), "bel": N_("Belarusian"), "ben": N_("Bengali"), "bod": N_("Tibetan"),
+    "bos": N_("Bosnian"), "bre": N_("Breton"), "bul": N_("Bulgarian"), "cat": N_("Catalan"), "ceb": N_("Cebuano"),
+    "ces": N_("Czech"), "chi_sim": N_("Chinese (simplified)"), "chi_tra": N_("Chinese (traditional)"),
+    "chr": N_("Cherokee"), "cos": N_("Corsican"), "cym": N_("Welsh"), "dan": N_("Danish"), "deu": N_("German"),
+    "deu_latf": N_("German (Fraktur)"), "div": N_("Dhivehi"), "dzo": N_("Dzongkha"), "ell": N_("Greek"),
+    "eng": N_("English"), "enm": N_("Middle English"), "epo": N_("Esperanto"), "equ": N_("Equations"),
+    "est": N_("Estonian"), "eus": N_("Basque"), "fao": N_("Faroese"), "fas": N_("Persian"), "fil": N_("Filipino"),
+    "fin": N_("Finnish"), "fra": N_("French"), "frm": N_("Middle French"), "fry": N_("Frisian"),
+    "gla": N_("Scottish Gaelic"), "gle": N_("Irish"), "glg": N_("Galician"), "grc": N_("Ancient Greek"),
+    "guj": N_("Gujarati"), "hat": N_("Haitian"), "heb": N_("Hebrew"), "hin": N_("Hindi"), "hrv": N_("Croatian"),
+    "hun": N_("Hungarian"), "hye": N_("Armenian"), "iku": N_("Inuktitut"), "ind": N_("Indonesian"),
+    "isl": N_("Icelandic"), "ita": N_("Italian"), "ita_old": N_("Old Italian"), "jav": N_("Javanese"),
+    "jpn": N_("Japanese"), "jpn_vert": N_("Japanese (vertical)"), "kan": N_("Kannada"), "kat": N_("Georgian"),
+    "kat_old": N_("Old Georgian"), "kaz": N_("Kazakh"), "khm": N_("Khmer"), "kir": N_("Kyrgyz"),
+    "kmr": N_("Kurmanji"), "kor": N_("Korean"), "kor_vert": N_("Korean (vertical)"), "lao": N_("Lao"),
+    "lat": N_("Latin"), "lav": N_("Latvian"), "lit": N_("Lithuanian"), "ltz": N_("Luxembourgish"),
+    "mal": N_("Malayalam"), "mar": N_("Marathi"), "mkd": N_("Macedonian"), "mlt": N_("Maltese"),
+    "mon": N_("Mongolian"), "mri": N_("Maori"), "msa": N_("Malay"), "mya": N_("Burmese"), "nep": N_("Nepali"),
+    "nld": N_("Dutch"), "nor": N_("Norwegian"), "oci": N_("Occitan"), "ori": N_("Odia"),
+    "osd": N_("Orientation and script (osd)"), "pan": N_("Punjabi"), "pol": N_("Polish"), "por": N_("Portuguese"),
+    "pus": N_("Pashto"), "que": N_("Quechua"), "ron": N_("Romanian"), "rus": N_("Russian"), "san": N_("Sanskrit"),
+    "sin": N_("Sinhala"), "slk": N_("Slovak"), "slv": N_("Slovenian"), "snd": N_("Sindhi"), "spa": N_("Spanish"),
+    "spa_old": N_("Old Spanish"), "sqi": N_("Albanian"), "srp": N_("Serbian"), "srp_latn": N_("Serbian (Latin)"),
+    "sun": N_("Sundanese"), "swa": N_("Swahili"), "swe": N_("Swedish"), "syr": N_("Syriac"), "tam": N_("Tamil"),
+    "tat": N_("Tatar"), "tel": N_("Telugu"), "tgk": N_("Tajik"), "tha": N_("Thai"), "tir": N_("Tigrinya"),
+    "ton": N_("Tongan"), "tur": N_("Turkish"), "uig": N_("Uyghur"), "ukr": N_("Ukrainian"), "urd": N_("Urdu"),
+    "uzb": N_("Uzbek"), "uzb_cyrl": N_("Uzbek (Cyrillic)"), "vie": N_("Vietnamese"), "yid": N_("Yiddish"),
+    "yor": N_("Yoruba"),
+}
 
 
 class OcrError(Exception):
@@ -141,6 +176,23 @@ def models() -> dict[str, Path]:
 def languages() -> list[str]:
     """The languages tesseract can read here ('eng', 'lat', 'spa'...), without osd (not a language)."""
     return sorted(name for name in models() if name != "osd")
+
+
+def installed(name: str) -> bool:
+    """Whether NAME came with tesseract (in its own folder: removed only with the system's packages)."""
+    return name in _models(system_tessdata())
+
+
+def remove(name: str) -> None:
+    """Remove the downloaded (better) model of NAME; the one installed with tesseract, if any, is used
+    again. OcrError if it wasn't downloaded."""
+    target = own_tessdata() / f"{name}.traineddata"
+    if not LANGUAGE.fullmatch(name) or not target.exists():
+        raise OcrError(tr("{name} was not downloaded", name=name))
+    try:
+        target.unlink()
+    except OSError as e:
+        raise OcrError(str(e)) from None
 
 
 def better(name: str) -> bool:

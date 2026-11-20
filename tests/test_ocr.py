@@ -214,31 +214,39 @@ def test_the_dialogs(window, tmp_path, monkeypatch):
 
 
 @needs_tesseract
-def test_settings_download_better_models(window, own, monkeypatch):
-    """The settings show tesseract's languages, and download the better models asked for (osd too,
-    if it is missing), marking them."""
-    from PySide6.QtWidgets import QInputDialog
-
+def test_the_languages_dialog(window, own, monkeypatch):
+    """Every language, with what there is of it here; better models downloaded and removed."""
+    from py_pdftools.gui.ocr_languages import LanguagesDialog
     from py_pdftools.gui.prefs import SettingsDialog
-
-    asked = []
-    monkeypatch.setattr(QInputDialog, "getText", staticmethod(lambda *a, **k: (asked.append(k["text"]) or "eng", True)))
 
     def download(names, progress=None):
         own.mkdir(parents=True, exist_ok=True)
         for n in names:
-            (own / f"{n}.traineddata").write_bytes(b"x")
+            (own / f"{n}.traineddata").write_bytes(b"x" * 2_000_000)
             progress(1, 1)
         return []
 
     monkeypatch.setattr(ocr, "download", download)
-    had_osd = ocr.has_osd()
-    dialog = SettingsDialog(window.prefs, window)
-    assert ocr.version() in dialog.ocr_found.text() and "eng ★" not in dialog.ocr_found.text()
-    assert dialog._download_models()
-    assert asked[0].split()[0] == "eng" and ("osd" in asked[0].split()) == (not had_osd)
-    assert "eng ★" in dialog.ocr_found.text()
+    settings = SettingsDialog(window.prefs, window)
+    assert ocr.version() in settings.ocr_found.text()
+    dialog = LanguagesDialog(window)
+    rows = {dialog.table.item(r, 0).text(): r for r in range(dialog.table.rowCount())}
+    assert {"eng", "lat", "grc", "osd"} <= set(rows) and dialog.table.item(rows["eng"], 2).text() == "yes"
+    assert rows["eng"] < rows["grc"]  # (those there first)
+    dialog.filter.setText("greek")
+    shown = [dialog.table.item(r, 0).text() for r in range(dialog.table.rowCount()) if not dialog.table.isRowHidden(r)]
+    assert set(shown) == {"ell", "grc"}
+    dialog.table.selectRow(rows["grc"])
+    assert dialog.download.isEnabled() and not dialog.remove.isEnabled()
+    assert dialog.download_chosen() and ocr.better("grc") and "grc" in ocr.languages()
+    rows = {dialog.table.item(r, 0).text(): r for r in range(dialog.table.rowCount())}
+    assert dialog.table.item(rows["grc"], 3).text().startswith("2 MB")
+    dialog.table.selectRow(rows["grc"])
+    assert dialog.remove.isEnabled() and dialog.remove_chosen() and not ocr.better("grc")
+    with pytest.raises(ocr.OcrError):
+        ocr.remove("grc")
     dialog.reject()
+    settings.reject()
 
 
 @needs_tesseract
