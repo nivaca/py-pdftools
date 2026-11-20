@@ -134,10 +134,7 @@ class OutlineMixin:
         n = item.data(0, PAGE)
         if n is None or not 0 <= n < self.count:
             return
-        top = item.data(0, TOP)
-        self.show_page(n)
-        if top is not None:
-            self.canvas.scroll_to(n, top)
+        self.go_place(n, item.data(0, TOP))
 
     def _filter_outline(self, text: str):
         """Only the bookmarks whose title has TEXT (any case), with their parents; all, without TEXT."""

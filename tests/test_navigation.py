@@ -138,3 +138,85 @@ def test_bookmarks_from_the_headings(tmp_path, monkeypatch):
     w.annotations = w.saved = []
     w.drop_work()
     w.close()
+
+
+@pytest.fixture
+def linked(tmp_path):
+    """Page 1: a link to page 3 (low on it), a link to a web address, an address in the text, a mail address,
+    a link to another PDF and one that starts a program."""
+    other = tmp_path / "other.pdf"
+    o = pymupdf.open()
+    for _ in range(4):
+        o.new_page()
+    o.save(other)
+    path = tmp_path / "linked.pdf"
+    doc = pymupdf.open()
+    for _ in range(4):
+        doc.new_page()
+    page = doc[0]
+    page.insert_text((72, 300), "See www.example.org or write to someone@example.org.", fontsize=12)
+    page.insert_link({"kind": pymupdf.LINK_GOTO, "from": pymupdf.Rect(72, 60, 200, 90), "page": 2,
+                      "to": pymupdf.Point(0, 400)})
+    page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(72, 120, 200, 150), "uri": "https://a.example"})
+    page.insert_link({"kind": pymupdf.LINK_GOTOR, "from": pymupdf.Rect(72, 180, 200, 210), "file": "other.pdf",
+                      "page": 3, "to": pymupdf.Point(0, 0)})
+    page.insert_link({"kind": pymupdf.LINK_LAUNCH, "from": pymupdf.Rect(72, 230, 200, 260), "file": "/bin/true"})
+    doc.save(path)
+    return path
+
+
+def press_release(w, page, point, modifiers=None):
+    from PySide6.QtCore import QEvent, QPointF, Qt
+    from PySide6.QtGui import QMouseEvent
+
+    modifiers = modifiers or Qt.KeyboardModifier.NoModifier
+    canvas = w.canvas
+    pos = QPointF(canvas.mapFromScene(canvas.pages[page].mapToScene(QPointF(*point))))
+    for kind, buttons in ((QEvent.Type.MouseButtonPress, Qt.MouseButton.LeftButton),
+                          (QEvent.Type.MouseButtonRelease, Qt.MouseButton.NoButton)):
+        event = QMouseEvent(kind, pos, canvas.viewport().mapToGlobal(pos), Qt.MouseButton.LeftButton, buttons,
+                            modifiers)
+        (canvas.mousePressEvent if kind == QEvent.Type.MouseButtonPress else canvas.mouseReleaseEvent)(event)
+
+
+def test_following_links(window, linked, monkeypatch):
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QDesktopServices
+    from PySide6.QtWidgets import QMessageBox
+
+    assert window.open_path(linked)
+    canvas = window.canvas
+    kinds = [link["kind"] for _, link in canvas.page_links(0)]
+    assert kinds.count(pymupdf.LINK_URI) == 3  # (the link, and the two addresses of the text)
+    mail = [link["uri"] for _, link in canvas.page_links(0) if link.get("in_text")]
+    assert mail == ["https://www.example.org", "mailto:someone@example.org"]
+    window.set_tool("hand")
+    press_release(window, 0, (100, 75))
+    assert window.page == 2
+    top = canvas.pages[2].mapFromScene(canvas.mapToScene(0, 0)).y()
+    assert top > 300  # (low on the page, where the link points)
+    window.show_page(0)
+    opened = []
+    monkeypatch.setattr(QDesktopServices, "openUrl", staticmethod(lambda url: opened.append(url.toString()) or True))
+    monkeypatch.setattr(QMessageBox, "question", staticmethod(lambda *a, **k: QMessageBox.StandardButton.No))
+    press_release(window, 0, (100, 135))
+    assert opened == []  # (asked first: and the answer was no)
+    monkeypatch.setattr(QMessageBox, "question", staticmethod(lambda *a, **k: QMessageBox.StandardButton.Yes))
+    press_release(window, 0, (100, 135))
+    assert opened == ["https://a.example"]
+    window.set_tool("select")
+    press_release(window, 0, (100, 75))  # (with Select, a plain click doesn't follow)
+    assert window.page == 0
+    press_release(window, 0, (100, 75), Qt.KeyboardModifier.ControlModifier)
+    assert window.page == 2
+    assert not window.follow_link(0, {"kind": pymupdf.LINK_LAUNCH, "file": "/bin/true"})
+    window.show_page(1)
+    assert window.follow_link(0, {"kind": pymupdf.LINK_NAMED, "name": "NextPage"}) and window.page == 2
+    from py_pdftools.gui.window import _WINDOWS
+
+    before = list(_WINDOWS)
+    assert window.follow_link(0, canvas.page_links(0)[2][1])  # (to other.pdf, page 4)
+    new = [w for w in _WINDOWS if w not in before]
+    assert new and new[0].path.name == "other.pdf" and new[0].page == 3
+    for w in new:
+        w.close()

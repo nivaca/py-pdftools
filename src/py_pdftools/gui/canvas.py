@@ -25,11 +25,13 @@ from PySide6.QtGui import (
     QBrush, QColor, QCursor, QImage, QKeySequence, QPainter, QPen, QPixmap, QPointingDevice, QTextOption,
 )
 from PySide6.QtWidgets import (
+    QToolTip,
     QApplication, QColorDialog, QGraphicsItem, QGraphicsPixmapItem, QGraphicsRectItem, QGraphicsScene,
     QGraphicsTextItem, QGraphicsView, QMenu,
 )
 
 from ..annotate import annots
+from .links import FOLLOWED_BY, LinksMixin
 from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
     CARET_SIZE, DRAWN, MARKUP, NOTE_SIZE, RESIZABLE, TEXTUAL, VERTICES, Annotation, Rect, nearest_word, text_rects,
@@ -412,7 +414,7 @@ class TextEditor(QGraphicsTextItem):
         self.textCursor().insertText(QApplication.clipboard().text())
 
 
-class PageCanvas(TextSelectMixin, QGraphicsView):
+class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
     """The pages and their annotations. The annotations are identified by their
     index in the window's list; what the user does is reported with the signals."""
 
@@ -427,6 +429,7 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
     text_chosen = Signal(int, list)  # page, [Rect]: the lines of the text selected (with a markup tool)
     text_selected = Signal()  # the text selected with the tool Select text changed (see textselect.py)
     text_menu = Signal(object)  # QPoint (global): a right click on the text selected
+    link_clicked = Signal(int, dict)  # page, the link clicked (see links.py)
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
     menu_asked = Signal(int, object, int, object)  # index (-1: none), place on the screen, page, place on it
     text_done = Signal(int, object)  # index (-1: a new one), the annotation with the text written
@@ -463,6 +466,7 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         self._selected: list[int] = []
         self._words: dict[int, list] = {}
         self._init_text_select()
+        self._init_links()
         self._drag: dict | None = None
         self._poly: dict | None = None  # (a polygon being made: its page, its points, and its picture)
         self._editor: dict | None = None  # (a text being written: its item, frame, index and annotation)
@@ -502,6 +506,7 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         self.page = page
         self._words = {}
         self._word_texts = {}
+        self._links = {}
         self.text_sel, self._sel_marks = None, []
         # id(doc) forma parte de la clave de la caché, pero un documento nuevo puede heredar el id del viejo:
         # por eso se vacía.
@@ -1357,6 +1362,19 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         event.accept()
 
     def mousePressEvent(self, event):
+        # A press on a link, with a tool that follows it (or Ctrl with Select): followed on the release, if the
+        # mouse hasn't moved (see mouseReleaseEvent); otherwise the press does what the tool does.
+        self._link_press = None
+        if self.doc is not None and event.button() == Qt.MouseButton.LeftButton and self._editor is None:
+            ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+            if self.mode in FOLLOWED_BY or (self.mode == "select" and ctrl):
+                page, point = self.locate(event.position().toPoint())
+                link = self.link_at(page.number, point) if page is not None else None
+                if link is not None:
+                    self._link_press = (event.position(), page.number, link)
+                    if self.mode == "select":  # (Ctrl+click on a link: only the link, not a selection)
+                        event.accept()
+                        return
         if self._editor is not None:
             # Un clic dentro del editor es para él (mover el cursor, seleccionar); fuera, lo cierra.
             if self._editor["item"].sceneBoundingRect().contains(self.mapToScene(event.position().toPoint())):
@@ -1520,6 +1538,21 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         if drag is not None and drag["kind"] == "select-text":
             self.text_select_move(pos)
             return
+        if drag is None and self.doc is not None and self.mode in FOLLOWED_BY + ("select",):
+            page, point = self.locate(pos)
+            link = self.link_at(page.number, point) if page is not None else None
+            if link is not None:
+                # (a hand, and where it goes; with Select, Ctrl+click follows it)
+                self.viewport().setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
+                tip = self.link_target(link)
+                if self.mode == "select":
+                    tip = tr("{target} (Ctrl+click to follow)", target=tip)
+                QToolTip.showText(event.globalPosition().toPoint(), tip, self.viewport())
+                super().mouseMoveEvent(event)
+                return
+            QToolTip.hideText()
+            if self.mode == "hand":
+                self.viewport().setCursor(QCursor(Qt.CursorShape.OpenHandCursor))
         if drag is None and self.mode == TEXT_SELECT and self.doc is not None:
             page, point = self.locate(pos)
             over = page is not None and self.near_text(page.number, point)
@@ -1702,6 +1735,12 @@ class PageCanvas(TextSelectMixin, QGraphicsView):
         return annots.fitted(a, rect)
 
     def mouseReleaseEvent(self, event):
+        pressed, self._link_press = self._link_press, None
+        if pressed is not None and (event.position() - pressed[0]).manhattanLength() < 4:
+            self._drag = None
+            super().mouseReleaseEvent(event)
+            self.link_clicked.emit(pressed[1], pressed[2])
+            return
         drag, self._drag = self._drag, None
         if drag is None or event.button() != Qt.MouseButton.LeftButton:
             super().mouseReleaseEvent(event)

@@ -10213,4 +10213,44 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Replace the bookmarks the document has with these {count}? (No: add them after them)</en>
     <tr>¿Reemplazar los marcadores del documento por estos {count}? (No: añadirlos después de ellos)</tr>
   </text>
+  <text>
+    <en>A link that starts a program is not followed</en>
+    <tr>Un enlace que inicia un programa no se sigue</tr>
+  </text>
+  <text>
+    <en>A place in the document</en>
+    <tr>Un lugar del documento</tr>
+  </text>
+  <text>
+    <en>Go to page {page}</en>
+    <tr>Ir a la página {page}</tr>
+  </text>
+  <text>
+    <en>Open the address</en>
+    <tr>Abrir la dirección</tr>
+  </text>
+  <text>
+    <en>Open this address, outside py-pdftools?</en>
+    <tr>¿Abrir esta dirección, fuera de py-pdftools?</tr>
+  </text>
+  <text>
+    <en>Open {file}</en>
+    <tr>Abrir {file}</tr>
+  </text>
+  <text>
+    <en>Starts a program (not followed)</en>
+    <tr>Inicia un programa (no se sigue)</tr>
+  </text>
+  <text>
+    <en>The place {name} is not in the document</en>
+    <tr>El lugar {name} no está en el documento</tr>
+  </text>
+  <text>
+    <en>{file} is not there</en>
+    <tr>{file} no está</tr>
+  </text>
+  <text>
+    <en>{target} (Ctrl+click to follow)</en>
+    <tr>{target} (Ctrl+clic para seguirlo)</tr>
+  </text>
 </interface>

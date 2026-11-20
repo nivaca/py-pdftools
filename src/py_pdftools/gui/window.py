@@ -37,6 +37,7 @@ from .files import FilesMixin, ask_save
 from .hint import HintOverlay
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
+from .navigation import NavigationMixin
 from .outline import OutlineMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
@@ -159,8 +160,8 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, WorkingMixin, FilesMixin,
-                 QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WorkingMixin,
+                 FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -276,6 +277,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, W
         self.canvas.picked.connect(self.pick)
         self.canvas.text_chosen.connect(self.add_markup)
         self.canvas.text_menu.connect(self.text_menu)
+        self.canvas.link_clicked.connect(self.follow_link)
         self.canvas.text_selected.connect(self._text_selection_changed)
         self.canvas.double_clicked.connect(self.double_clicked)
         self.canvas.menu_asked.connect(self.annotation_menu)
