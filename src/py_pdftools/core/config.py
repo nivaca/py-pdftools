@@ -21,7 +21,8 @@ import tomllib
 from pathlib import Path
 
 ENV = "PY_PDFTOOLS_CONFIG"
-SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False}  # name: default (show_document: Impose)
+SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name: default (show_document: Impose)
+            "background": False}  # (background: keep running after the last window, see gui/instance.py)
 
 
 class ConfigError(Exception):

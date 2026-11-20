@@ -10009,4 +10009,28 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} characters copied</en>
     <tr>{count} caracteres copiados</tr>
   </text>
+  <text>
+    <en>Close window</en>
+    <tr>Cerrar la ventana</tr>
+  </text>
+  <text>
+    <en>Keep running in the background, to open documents faster</en>
+    <tr>Seguir funcionando en segundo plano, para abrir antes los documentos</tr>
+  </text>
+  <text>
+    <en>New window</en>
+    <tr>Ventana nueva</tr>
+  </text>
+  <text>
+    <en>Quit py-pdftools</en>
+    <tr>Salir de py-pdftools</tr>
+  </text>
+  <text>
+    <en>When the last window is closed, py-pdftools goes on running (with an icon in the tray, where there is one), and opens the next document at once. File &gt; Quit ends it.</en>
+    <tr>Al cerrar la última ventana, py-pdftools sigue funcionando (con un icono en la bandeja, donde la hay) y abre el siguiente documento al instante. Archivo &gt; Salir lo termina.</tr>
+  </text>
+  <text>
+    <en>py-pdftools (in the background)</en>
+    <tr>py-pdftools (en segundo plano)</tr>
+  </text>
 </interface>

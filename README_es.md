@@ -206,6 +206,12 @@ triple clic en una línea, Mayús+clic para extender. Ctrl+C lo copia,
 Ctrl+A selecciona el texto de la página, y el botón derecho ofrece
 resaltarlo, subrayarlo o tacharlo, marcarlo para censurar, o buscarlo.
 
+Configuración > General > Seguir funcionando en segundo plano hace que los
+documentos se abran antes: al cerrar la última ventana, py-pdftools sigue
+funcionando, con sus procesos de dibujo listos y un icono en la bandeja
+(donde el escritorio la tiene), y py-pdftools-gui, iniciado otra vez, abre
+allí sus archivos al instante. Archivo > Salir lo termina.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.

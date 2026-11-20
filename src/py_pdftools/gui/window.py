@@ -430,7 +430,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
                                       tip=tr("Mark here what differs from another version of this text (another "
                                              "edition, a draft): its words, in reading order"))
         m.addSeparator()
-        self._action(m, tr("Quit"), self.close, QKeySequence.StandardKey.Quit)
+        self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
+        # Quit ends the program, also when it keeps running in the background (see instance.py).
+        self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
 
         m = self.menuBar().addMenu(tr("&Edit"))
         self.a_undo = self._action(m, tr("Undo"), self.undo, QKeySequence.StandardKey.Undo)
@@ -754,6 +756,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
     def show_tips(self):
         """Help > Tips for this mode (F1): the hint of the mode on, over the pages, again."""
         self.hint.show_text(self.hints.get(self.mode, ""))
+
+    def quit_program(self) -> bool:
+        from . import quit_all
+
+        return quit_all()
 
     def keep_arrangement(self):
         """Keep the arrangement of the window in the mode on (its toolbars and panels, where they are and which

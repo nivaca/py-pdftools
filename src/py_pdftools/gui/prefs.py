@@ -74,6 +74,14 @@ class SettingsDialog(QDialog):
         self.autosave.setToolTip(tr("A copy of the annotations not yet saved is kept this often, and offered "
                                     "if the program stops before they are saved"))
         form.addRow(tr("Recovery copy every:"), self.autosave)
+        from . import instance
+
+        self.background = QCheckBox(tr("Keep running in the background, to open documents faster"))
+        self.background.setChecked(instance.enabled())
+        self.background.setToolTip(tr("When the last window is closed, py-pdftools goes on running (with an "
+                                      "icon in the tray, where there is one), and opens the next document at "
+                                      "once. File > Quit ends it."))
+        form.addRow("", self.background)
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.conform_field = Pdf2isoField(self, prefs.pdfconform)
         self.conform_field.add_to(form)
@@ -238,6 +246,17 @@ class SettingsDialog(QDialog):
                                                           "{second}. Give another to one of them.", key=key,
                                                           first=action_name(a), second=action_name(b)))
             return
+        # (running in the background: kept in the configuration file, and in effect at once)
+        from . import background, instance
+
+        on = self.background.isChecked()
+        if on != instance.enabled():
+            try:
+                config.set("background", on)
+            except OSError as e:
+                QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
+            else:
+                background(on)
         super().accept()
 
     def settings(self) -> settings.Settings:

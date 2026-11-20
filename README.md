@@ -199,6 +199,12 @@ copies it, Ctrl+A selects the text of the page, and a right click offers
 to highlight, underline or strike it out, to mark it for redaction, or to
 find it.
 
+Settings > General > Keep running in the background makes documents open
+faster: when the last window is closed, py-pdftools goes on running, with
+its pages ready to be drawn and an icon in the tray (where the desktop has
+one), and py-pdftools-gui started again opens its files in it, at once.
+File > Quit ends it.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
