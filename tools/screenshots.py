@@ -109,6 +109,7 @@ def shoot(lang: str, out: Path, work: Path):
     w.add(Annotation("stamp", 1, (360, 520, 520, 580), "#c62828", stamp="Approved"))
     w.pick([], False)
     settle(app)
+    w.hint.dismiss()  # (the hint of the mode, over the pages, would hide them)
     w.grab().save(str(out / f"annotate_{lang}.png"))
 
     # Redact: the line with the name, the phone and the address
@@ -121,6 +122,7 @@ def shoot(lang: str, out: Path, work: Path):
         w.set_redact_repeat("2-")
     w.pick([], False)
     settle(app)
+    w.hint.dismiss()  # (the hint of the mode, over the pages, would hide them)
     w.grab().save(str(out / f"redact_{lang}.png"))
     w.change([a for a in w.annotations if a.kind != "redact"])
 
@@ -130,6 +132,7 @@ def shoot(lang: str, out: Path, work: Path):
     w.add_stamp(HeaderFooter(footer_center="$pagelabel", pages="2-"))
     w.show_page(1)
     settle(app)
+    w.hint.dismiss()  # (the hint of the mode, over the pages, would hide them)
     w.grab().save(str(out / f"pages_{lang}.png"))
 
     # Impose: a booklet, in the basic form
@@ -143,6 +146,7 @@ def shoot(lang: str, out: Path, work: Path):
         time.sleep(0.05)
     ws.res_pane.page.setValue(3)  # (a sheet with text on both halves)
     settle(app)
+    w.hint.dismiss()  # (the hint of the mode, over the pages, would hide them)
     w.grab().save(str(out / f"impose_{lang}.png"))
 
     w.annotations = w.saved = []

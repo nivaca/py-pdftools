@@ -188,6 +188,10 @@ pages beside them. Arrange a mode once (drag its toolbars and panels,
 hide them with a right click on them) and choosing it again brings that
 arrangement back, also the next time the program is opened.
 
+When a mode is chosen, a hint on what can be done in it shows over the
+bottom of the pages for a few seconds; Help > Tips for this mode (F1)
+shows it again.
+
 Each mode works on its own annotations: in Annotate, the redaction boxes are
 shown, but the mouse goes through them, and in Redact the annotations are.
 Undo goes back through everything done to the document, in any mode.
@@ -243,7 +247,7 @@ Tests
 
     $ uv run pytest
 
-There are 416 tests: those of the four programs, and those of what is new
+There are 417 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, the Spanish interface, the packaging). See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.

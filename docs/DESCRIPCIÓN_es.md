@@ -60,7 +60,7 @@ Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y co
 
 ## Validación
 
-Hay 416 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 417 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

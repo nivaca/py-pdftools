@@ -93,3 +93,36 @@ def test_each_mode_keeps_its_arrangement(app, sample):
     again.set_mode("read")
     assert not any(shown(b) for b in again.tool_bars) and not shown(again.panel)
     close(again)
+
+
+def test_the_hint_of_a_mode_over_the_pages(app, sample):
+    """A mode's hint shows over the bottom of the pages when the mode is chosen, a click on the pages takes
+    it away, F1 shows it again, and it fades by itself; nothing is kept below the pages for it."""
+    import time
+
+    from PySide6.QtCore import QEvent, QPointF, Qt
+    from PySide6.QtGui import QMouseEvent
+
+    w = make(app, sample)
+    w.set_mode("read")
+    hint = w.hint
+    assert shown(hint) and hint.text() == w.hints["read"] and hint.parent() is w.canvas
+    assert hint.geometry().bottom() <= w.canvas.height() and hint.geometry().top() > w.canvas.height() // 2
+    assert w.canvas.parentWidget().layout().count() == 2  # (only the page bar and the pages)
+    press = QMouseEvent(QEvent.Type.MouseButtonPress, QPointF(20, 20), QPointF(20, 20), Qt.MouseButton.LeftButton,
+                        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+    QApplication.sendEvent(w.canvas.viewport(), press)
+    assert not shown(hint)
+    w.a_tips.trigger()
+    assert shown(hint) and hint.text() == w.hints["read"]
+    hint.timer.setInterval(10)
+    hint.fade.setDuration(10)
+    hint.timer.start()
+    deadline = time.time() + 5
+    while shown(hint) and time.time() < deadline:
+        app.processEvents()
+        time.sleep(0.01)
+    assert not shown(hint)
+    w.set_mode("impose")  # (a mode without a hint: none shown)
+    assert not shown(hint)
+    close(w)

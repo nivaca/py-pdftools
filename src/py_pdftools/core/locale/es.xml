@@ -9093,4 +9093,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>This page was not drawn: {reason}.</en>
     <tr>Esta página no se dibujó: {reason}.</tr>
   </text>
+  <text>
+    <en>Tips for this mode</en>
+    <tr>Consejos de este modo</tr>
+  </text>
+  <text>
+    <en>What can be done in this mode, and how, shown over the pages</en>
+    <tr>Lo que se puede hacer en este modo, y cómo, sobre las páginas</tr>
+  </text>
 </interface>

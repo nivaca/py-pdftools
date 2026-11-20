@@ -34,6 +34,7 @@ from . import colors
 from .canvas import PageCanvas, page_image
 from .colors import color_name, colors_menu, swatch, swatches
 from .files import FilesMixin, ask_save
+from .hint import HintOverlay
 from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
@@ -281,15 +282,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         lay.setContentsMargins(4, 4, 4, 4)
         lay.addLayout(top)
         lay.addWidget(self.canvas, 1)
-        hint = QLabel(tr("Choose a tool in the toolbar: drag over text to mark it, drag on the page to draw, or "
-                         "click to add a note. Drag an annotation to move it or resize it; double-click it for its "
-                         "properties (a text box, or a note: to write its text), right-click it for more. "
-                         "Right-click a tool to set it up."))
-        hint.setWordWrap(True)
-        hint.setStyleSheet("color: palette(placeholder-text);")
-        lay.addWidget(hint)
-        self.hint = hint
-        self.hints = {"annotate": hint.text()}  # (each mode's; see set_mode)
+        # El consejo de cada modo flota un rato sobre las páginas al elegirlo (y con F1): ya no ocupa una franja
+        # fija debajo de ellas.
+        self.hint = HintOverlay(self.canvas)
+        self.hints = {"annotate": tr(  # (each mode's; see set_mode)
+            "Choose a tool in the toolbar: drag over text to mark it, drag on the page to draw, or "
+            "click to add a note. Drag an annotation to move it or resize it; double-click it for its "
+            "properties (a text box, or a note: to write its text), right-click it for more. "
+            "Right-click a tool to set it up.")}
 
         # The model reads the current list through a lambda: self.annotations is replaced, not mutated, on each
         # change.
@@ -542,6 +542,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             group.addAction(act)
             lang.addAction(act)
         m = self.menuBar().addMenu(tr("&Help"))
+        self.a_tips = self._action(m, tr("Tips for this mode"), self.show_tips, "F1",
+                                   tip=tr("What can be done in this mode, and how, shown over the pages"))
         self._action(m, tr("About"), self.about)
 
         for act, name in ((self.a_open, "document-open"), (self.a_save, "document-save"),
@@ -714,7 +716,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         # La disposición propia del modo, si ya tiene una: dónde están sus barras y paneles, cuáles se ven.
         self.arrange(key)
         self.mode_actions[key].setChecked(True)
-        self.hint.setText(self.hints.get(key, ""))
+        self.hint.show_text(self.hints.get(key, ""))
         self._mode_enable()
         # El lienzo solo deja seleccionar o mover las anotaciones del modo; las demás se ven, pero no se tocan.
         self.canvas.touchable = mode.owns
@@ -725,6 +727,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         mode.entered()
         self.settings.setValue("mode", key)
         self.refresh()
+
+    def show_tips(self):
+        """Help > Tips for this mode (F1): the hint of the mode on, over the pages, again."""
+        self.hint.show_text(self.hints.get(self.mode, ""))
 
     def keep_arrangement(self):
         """Keep the arrangement of the window in the mode on (its toolbars and panels, where they are and which
