@@ -35,6 +35,7 @@ from .canvas import PageCanvas, page_image
 from .colors import color_name, colors_menu, swatch, swatches
 from .files import FilesMixin, ask_save
 from .hint import HintOverlay
+from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin
@@ -564,6 +565,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
         self.a_cover.setEnabled(self.canvas.spread)
         m.addAction(self.a_cover)
+        # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
+        colours = m.addMenu(tr("Reading colours"))
+        colours.setToolTipsVisible(True)
+        group = QActionGroup(self)
+        self.reading_actions: dict[str, QAction] = {}
+        for name, title, _, _ in [*reading.SCHEMES, ("custom", N_("Colours of my own…"), None, None)]:
+            act = colours.addAction(tr(title), lambda n=name: self.set_reading(n, ask=n == "custom"))
+            act.setCheckable(True)
+            act.setToolTip(tr("Only the pages in view change, not the file; the colours of pictures change "
+                              "with them"))
+            group.addAction(act)
+            self.reading_actions[name] = act
         m.addSeparator()
         self.a_next_annot = self._action(m, tr("Next annotation"), lambda: self.go_annotation(1))
         self.a_prev_annot = self._action(m, tr("Previous annotation"), lambda: self.go_annotation(-1))
@@ -858,7 +871,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
     # ----------------------------------------------------------------- the window's state (kept by Qt between sessions)
 
+    def _restore_reading(self):
+        """The reading colours of the last time."""
+        name = str(self.settings.value("reading", ""))
+        custom = str(self.settings.value("reading_custom", ""))
+        try:
+            pair = tuple(int(v) for v in custom.split(",")) if custom else None
+        except ValueError:
+            pair = None
+        reading.TINT = reading.tint_of(name, pair)
+        self._check_reading()
+
     def _restore(self):
+        self._restore_reading()
         geo = self.settings.value("geometry")
         if isinstance(geo, QByteArray):
             self.restoreGeometry(geo)
@@ -1941,6 +1966,44 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 self.canvas.render_timer.start()
                 self.thumb_timer.start()
             self.refresh()
+
+    def set_reading(self, name: str, ask: bool = False) -> bool:
+        """The reading colours NAME (see reading.py; 'custom': asked for, if ASK, else those kept); kept for the
+        next time, and the pages drawn again in them."""
+        custom = self.settings.value("reading_custom", "")
+        try:
+            custom = tuple(int(v) for v in str(custom).split(",")) if custom else None
+        except ValueError:
+            custom = None
+        if name == "custom" and ask:
+            before = custom or (0xFFFFFF, 0x000000)
+            text = QColorDialog.getColor(QColor(f"#{before[0]:06x}"), self, tr("The colour of the text"))
+            if not text.isValid():
+                self._check_reading()
+                return False
+            page = QColorDialog.getColor(QColor(f"#{before[1]:06x}"), self, tr("The colour of the page"))
+            if not page.isValid():
+                self._check_reading()
+                return False
+            custom = (text.rgb() & 0xFFFFFF, page.rgb() & 0xFFFFFF)
+            self.settings.setValue("reading_custom", f"{custom[0]},{custom[1]}")
+        reading.TINT = reading.tint_of(name, custom)
+        if name == "custom" and reading.TINT is None:
+            name = ""
+        self.settings.setValue("reading", name)
+        self._check_reading()
+        if self.doc is not None:
+            page = self.page
+            self.canvas.clear_cache()
+            self.canvas.layout()  # (the pages not yet drawn show the page colour)
+            self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+            self.show_page(page)
+        return True
+
+    def _check_reading(self):
+        name = str(self.settings.value("reading", ""))
+        for key, act in self.reading_actions.items():
+            act.setChecked(key == name)
 
     def turn_view(self, degrees: int):
         """Turn the view DEGREES more (the file stays as it is); the page shown stays in view."""

@@ -426,3 +426,35 @@ def test_rotating_the_view(window, book):
     assert canvas.turn == 270
     assert window.open_path(book)
     assert canvas.turn == 0
+
+
+def test_reading_colours(window, monkeypatch):
+    """The pages in view drawn in other colours (white on black...), not the file nor the thumbnails; kept
+    for the next time."""
+    from PySide6.QtGui import QColor
+    from PySide6.QtWidgets import QColorDialog
+
+    from py_pdftools.gui import reading
+
+    canvas = window.canvas
+
+    def corner() -> QColor:  # (the colour of the page shown, near its corner, as drawn)
+        canvas.render_page_now()
+        return canvas.pages[window.page].pixmap.pixmap().toImage().pixelColor(3, 3)
+
+    assert corner().lightness() > 240
+    window.reading_actions["white"].trigger()
+    assert reading.TINT == (0xFFFFFF, 0x000000) and corner().lightness() < 15
+    assert window.reading_actions["white"].isChecked()
+    window._thumbs.clear()
+    window._draw_thumbnails()
+    assert all(img.pixelColor(2, 2).lightness() > 240 for img in window._thumbs.values())  # (as they are)
+    colours = iter([QColor("#ffff00"), QColor("#202060")])
+    monkeypatch.setattr(QColorDialog, "getColor", staticmethod(lambda *a, **k: next(colours)))
+    window.reading_actions["custom"].trigger()
+    assert reading.TINT == (0xFFFF00, 0x202060) and corner().name() == "#202060"
+    other = MainWindow()  # (the next time: as they were left)
+    assert reading.TINT == (0xFFFF00, 0x202060) and other.reading_actions["custom"].isChecked()
+    other.close()
+    window.reading_actions[""].trigger()
+    assert reading.TINT is None and corner().lightness() > 240

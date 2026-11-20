@@ -31,6 +31,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..annotate import annots
+from . import reading
 from .links import FOLLOWED_BY, LinksMixin
 from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
@@ -69,10 +70,13 @@ MARK_SIZE = 12.0  # points: of a check mark, a cross...
 
 # Sin canal alfa: la página siempre se pinta sobre blanco. El .copy() hace falta porque QImage
 # no copia los bytes de pix.samples, que desaparecen con el Pixmap de PyMuPDF.
-def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None) -> QImage:
-    """PAGE rendered at SCALE (only CLIP of it, in points, if given)."""
+def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint: tuple | None = None) -> QImage:
+    """PAGE rendered at SCALE (only CLIP of it, in points, if given; in the colours TINT, if given: see
+    reading.py)."""
     pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
                           clip=pymupdf.Rect(clip) if clip is not None else None)
+    if tint is not None:
+        pix.tint_with(tint[0], tint[1])
     return QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
 
 
@@ -277,7 +281,8 @@ class PageItem(QGraphicsRectItem):
         super().__init__(QRectF(0, 0, size.width(), size.height()))
         self.number = number
         self.setPen(QPen(Qt.PenStyle.NoPen))
-        self.setBrush(QBrush(Qt.GlobalColor.white))
+        # (white; or the page colour of the reading colours, while the page is drawn)
+        self.setBrush(QBrush(QColor(reading.page_colour())))
         # La imagen renderizada es hija del rectángulo blanco: mientras no llega, la página se ve en blanco.
         self.pixmap = QGraphicsPixmapItem(self)
         self.pixmap.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
@@ -869,7 +874,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
                                   words=False)
         if image is None:
             try:
-                image = page_image(self.doc[n], scale, clip)
+                image = page_image(self.doc[n], scale, clip, reading.TINT)
             except (RuntimeError, ValueError):
                 return
         pixmap = QPixmap.fromImage(image)
@@ -893,7 +898,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
                 self.local_timer.start()
             return
         try:
-            image = page_image(self.doc[n], scale)
+            image = page_image(self.doc[n], scale, tint=reading.TINT)
         # El documento se cerró o cambió entre dos turnos: se abandonan las páginas pendientes.
         except (RuntimeError, ValueError):
             self._here = []
@@ -918,7 +923,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
             image = skipped_image(round(r.width * key[2]), round(r.height * key[2]), image)
         if image is None:
             try:
-                image = page_image(self.doc[key[1]], key[2])
+                image = page_image(self.doc[key[1]], key[2], tint=reading.TINT)
             except (RuntimeError, ValueError):
                 return
         pixmap = self._keep(key, image)
@@ -933,7 +938,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         if self.doc is None or self.page not in self.pages:
             return
         scale = self._scale_for(self.page)
-        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale))
+        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale, tint=reading.TINT))
         self.pages[self.page].show(self._cache[(id(self.doc), self.page, scale)], scale)
 
     # ----------------------------------------------------------------- zoom

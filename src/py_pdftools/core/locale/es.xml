@@ -10345,4 +10345,40 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The view is upright again</en>
     <tr>La vista vuelve a estar derecha</tr>
   </text>
+  <text>
+    <en>Colours of my own…</en>
+    <tr>Colores propios…</tr>
+  </text>
+  <text>
+    <en>Green on black</en>
+    <tr>Verde sobre negro</tr>
+  </text>
+  <text>
+    <en>Light on dark grey</en>
+    <tr>Claro sobre gris oscuro</tr>
+  </text>
+  <text>
+    <en>Only the pages in view change, not the file; the colours of pictures change with them</en>
+    <tr>Solo cambian las páginas a la vista, no el archivo; los colores de las imágenes cambian con ellas</tr>
+  </text>
+  <text>
+    <en>Reading colours</en>
+    <tr>Colores de lectura</tr>
+  </text>
+  <text>
+    <en>The colour of the page</en>
+    <tr>El color de la página</tr>
+  </text>
+  <text>
+    <en>The colour of the text</en>
+    <tr>El color del texto</tr>
+  </text>
+  <text>
+    <en>White on black</en>
+    <tr>Blanco sobre negro</tr>
+  </text>
+  <text>
+    <en>Yellow on black</en>
+    <tr>Amarillo sobre negro</tr>
+  </text>
 </interface>
