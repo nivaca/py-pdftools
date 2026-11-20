@@ -1364,10 +1364,6 @@
     <tr>Dejarlas fuera</tr>
   </text>
   <text>
-    <en>Look for it on the PATH, in ~/bin and in ~/.local/bin</en>
-    <tr>Buscarlo en el PATH, en ~/bin y en ~/.local/bin</tr>
-  </text>
-  <text>
     <en>Make them part of the pages</en>
     <tr>Hacerlas parte de las páginas</tr>
   </text>
@@ -1378,10 +1374,6 @@
   <text>
     <en>Needs {command}: install it, or say where it is in Settings</en>
     <tr>Necesita {command}: instálelo, o diga dónde está en la Configuración</tr>
-  </text>
-  <text>
-    <en>Not found: PDF/A and PDF/X can't be made until it is given here</en>
-    <tr>No se encontró: no se pueden hacer PDF/A ni PDF/X hasta que se indique aquí</tr>
   </text>
   <text>
     <en>PDF/A and PDF/X can't be protected: the copy has no password</en>
@@ -9076,5 +9068,17 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel zoom. Choose another mode, above, to annotate, redact, foliate or impose the document.</en>
     <tr>Recorra las páginas, o arrástrelas con el ratón; Ctrl y la rueda del ratón cambian el tamaño. Elija otro modo, arriba, para anotar, censurar, foliar o imponer el documento.</tr>
+  </text>
+  <text>
+    <en>Empty: the one of py-pdftools</en>
+    <tr>Vacío: el de py-pdftools</tr>
+  </text>
+  <text>
+    <en>The one of py-pdftools, with Ghostscript</en>
+    <tr>El de py-pdftools, con Ghostscript</tr>
+  </text>
+  <text>
+    <en>The one of py-pdftools; but PDF/A and PDF/X can't be made: {error}</en>
+    <tr>El de py-pdftools; pero no se pueden hacer PDF/A ni PDF/X: {error}</tr>
   </text>
 </interface>

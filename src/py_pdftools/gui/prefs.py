@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
     QDialog,
     QDialogButtonBox,
     QFormLayout,
-    QHBoxLayout,
     QHeaderView,
     QKeySequenceEdit,
     QLabel,
@@ -30,11 +29,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ..core import config, conform
+from ..core import config
 
 from ..annotate import settings
 from ..annotate.annots import NAMES
 from ..core.interface import N_, tr
+from .conform_field import Pdf2isoField
 from .props import ColorButton
 
 # the actions with a shortcut that aren't tools
@@ -74,23 +74,9 @@ class SettingsDialog(QDialog):
         self.autosave.setToolTip(tr("A copy of the annotations not yet saved is kept this often, and offered "
                                     "if the program stops before they are saved"))
         form.addRow(tr("Recovery copy every:"), self.autosave)
-        self.pdfconform = QLineEdit(prefs.pdfconform)
-        self.pdfconform.setPlaceholderText(tr("Look for it on the PATH, in ~/bin and in ~/.local/bin"))
-        self.pdfconform.setToolTip(tr("Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py "
-                                      "extension); empty for its own"))
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
-        self.pdfconform.textChanged.connect(self._show_pdfconform)
-        choose = QPushButton(tr("Choose…"))
-        choose.clicked.connect(self._choose_pdfconform)
-        row = QHBoxLayout()
-        row.addWidget(self.pdfconform, 1)
-        row.addWidget(choose)
-        form.addRow(tr("pdf2iso:"), row)
-        self.pdfconform_found = QLabel()
-        self.pdfconform_found.setWordWrap(True)
-        self.pdfconform_found.setStyleSheet("color: palette(placeholder-text);")
-        form.addRow("", self.pdfconform_found)
-        self._show_pdfconform()
+        self.conform_field = Pdf2isoField(self, prefs.pdfconform)
+        self.conform_field.add_to(form)
         # Imported here, not at the top: finding the Tesseract languages runs a program, only worth it
         # when the dialog opens.
         from ..annotate import ocr
@@ -193,29 +179,6 @@ class SettingsDialog(QDialog):
         outer.addWidget(buttons)
         self.resize(560, 620)
 
-    def _show_pdfconform(self, *_):
-        """Which pdf2iso will be used (File > Save a copy > PDF/A, PDF/X)."""
-        path = self.pdfconform.text().strip()
-        # With an empty path, conform.find looks on the PATH, in ~/bin and in ~/.local/bin.
-        found = conform.find(path)
-        if found is not None:
-            self.pdfconform_found.setText(tr("It will be {path}", path=found))
-        elif path:
-            self.pdfconform_found.setText(tr("There is no such file"))
-        else:
-            self.pdfconform_found.setText(tr("Not found: PDF/A and PDF/X can't be made until it is given here"))
-
-    def _choose_pdfconform(self):
-        from pathlib import Path
-
-        from PySide6.QtWidgets import QFileDialog
-
-        # El diálogo de archivos empieza en la ruta escrita, o en ~/bin, donde suele estar el script.
-        start = self.pdfconform.text().strip() or str(Path.home() / "bin")
-        name, _ = QFileDialog.getOpenFileName(self, tr("Where is pdf2iso?"), start)
-        if name:
-            self.pdfconform.setText(name)
-
     def _usual_colours(self):
         # zip relies on the palette rows being made from the same PALETTE, in the same order.
         for (button, edit), (color, _, meaning) in zip(self.palette_rows, settings.PALETTE):
@@ -279,7 +242,7 @@ class SettingsDialog(QDialog):
             same = color == usual_color and text == (tr(usual_meaning) if usual_meaning else "")
             palette.append((color, None if same else text))
         prefs = dataclasses.replace(self.prefs, author=author, autosave=self.autosave.value(),
-                                    pdfconform=self.pdfconform.text().strip(),
+                                    pdfconform=self.conform_field.text(),
                                     ocr_language=self._ocr_language(),
                                     pen_pressure=self.pen_pressure.currentData(),
                                     pen_curve=self.pen_curve.currentData(),

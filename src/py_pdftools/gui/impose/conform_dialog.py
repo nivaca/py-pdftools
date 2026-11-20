@@ -1,16 +1,11 @@
-"""Settings ▸ pdf2iso: where the program that makes PDF/A and PDF/X is
-(kept in the configuration file; empty to look for it, see conform.find)."""
+"""Settings ▸ pdf2iso: another pdf2iso to run instead of the one of py-pdftools (kept in the
+configuration file; empty for its own, see conform.find)."""
 
 from __future__ import annotations
 
-from pathlib import Path
+from PySide6.QtWidgets import QDialog, QDialogButtonBox, QFormLayout, QVBoxLayout
 
-from PySide6.QtWidgets import (
-    QDialog, QDialogButtonBox, QFileDialog, QFormLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton, QVBoxLayout,
-)
-
-from ...core import conform
-from ...core.interface import tr
+from ..conform_field import Pdf2isoField
 
 
 # Un diálogo pequeño: solo la ruta de pdf2iso, y debajo, cuál se usará de verdad.
@@ -18,55 +13,16 @@ class ConformDialog(QDialog):
     def __init__(self, path: str, parent=None):
         super().__init__(parent)
         self.setWindowTitle("pdf2iso")
-        self.pdfconform = QLineEdit()
-        self.pdfconform.setMinimumWidth(380)
-        self.pdfconform.setPlaceholderText(tr("Look for it on the PATH, in ~/bin and in ~/.local/bin"))
-        self.pdfconform.setToolTip(tr("Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py "
-                                      "extension); empty for its own"))
-        # La etiqueta de abajo se actualiza con cada tecla: así se ve enseguida si la ruta existe.
-        self.pdfconform.textChanged.connect(self._show_pdfconform)
-        choose = QPushButton(tr("Choose…"))
-        choose.clicked.connect(self._choose_pdfconform)
-        self.pdfconform_found = QLabel()
-        self.pdfconform_found.setWordWrap(True)
-        self.pdfconform_found.setStyleSheet("color: palette(placeholder-text);")
-        row = QHBoxLayout()
-        row.addWidget(self.pdfconform, 1)
-        row.addWidget(choose)
+        self.field = Pdf2isoField(self, path)
+        self.field.edit.setMinimumWidth(380)
         form = QFormLayout()
-        form.addRow(tr("pdf2iso:"), row)
-        form.addRow("", self.pdfconform_found)
+        self.field.add_to(form)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         lay = QVBoxLayout(self)
         lay.addLayout(form)
         lay.addWidget(buttons)
-        # El texto se pone después de conectar la señal, pero se llama a _show_pdfconform igualmente por si la ruta
-        # viene vacía (entonces textChanged no se emite).
-        self.pdfconform.setText(path)
-        self._show_pdfconform()
 
     def path(self) -> str:
-        return self.pdfconform.text().strip()
-
-    def _show_pdfconform(self, *_):
-        """Which pdf2iso will be used (File > Save as > PDF/A, PDF/X)."""
-        path = self.path()
-        # conform.find aplica la misma búsqueda que al convertir: la ruta dada o, si está vacía,
-        # PATH, ~/bin y ~/.local/bin.
-        found = conform.find(path)
-        if found is not None:
-            self.pdfconform_found.setText(tr("It will be {path}", path=found))
-        elif path:
-            self.pdfconform_found.setText(tr("There is no such file"))
-        else:
-            self.pdfconform_found.setText(tr("Not found: PDF/A and PDF/X can't be made until it is given here"))
-
-    def _choose_pdfconform(self):
-        # El selector arranca en ~/bin, uno de los lugares donde se busca el programa.
-        start = self.path() or str(Path.home() / "bin")
-        name, _ = QFileDialog.getOpenFileName(self, tr("Where is pdf2iso?"), start,
-                                              tr("pdf2iso (pdf2iso pdf2iso.py);;All files (*)"))
-        if name:
-            self.pdfconform.setText(name)
+        return self.field.text()
