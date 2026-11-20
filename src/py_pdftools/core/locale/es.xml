@@ -2204,10 +2204,6 @@
     <tr>¿Abrir {name}, para marcar su texto?</tr>
   </text>
   <text>
-    <en>Stopped: the copy was not made</en>
-    <tr>Detenido: no se hizo la copia</tr>
-  </text>
-  <text>
     <en>The languages of the text of scanned pages, as Tesseract names them; several with +: lat+eng</en>
     <tr>Los idiomas del texto de las páginas escaneadas, con los nombres de Tesseract; varios con +: lat+spa</tr>
   </text>
@@ -9248,5 +9244,49 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{count} pages turned</en>
     <tr>{count} páginas giradas</tr>
+  </text>
+  <text>
+    <en>(★ better model; osd, to turn pages, is not there)</en>
+    <tr>(★ modelo mejor; falta osd, para girar las páginas)</tr>
+  </text>
+  <text>
+    <en>(★ better model; pages can be turned)</en>
+    <tr>(★ modelo mejor; se pueden girar las páginas)</tr>
+  </text>
+  <text>
+    <en>Download better models</en>
+    <tr>Descargar modelos mejores</tr>
+  </text>
+  <text>
+    <en>Download better models…</en>
+    <tr>Descargar modelos mejores…</tr>
+  </text>
+  <text>
+    <en>Downloading {name}…</en>
+    <tr>Descargando {name}…</tr>
+  </text>
+  <text>
+    <en>Downloading…</en>
+    <tr>Descargando…</tr>
+  </text>
+  <text>
+    <en>Tesseract {version}: {languages}</en>
+    <tr>Tesseract {version}: {languages}</tr>
+  </text>
+  <text>
+    <en>Tesseract's most accurate models (tessdata_best), for the languages chosen, into py-pdftools' own folder; also osd, to find how pages are turned. Needs the internet.</en>
+    <tr>Los modelos más precisos de Tesseract (tessdata_best), para los idiomas elegidos, en la carpeta propia de py-pdftools; también osd, para averiguar cómo están giradas las páginas. Necesita internet.</tr>
+  </text>
+  <text>
+    <en>The copy was not made: {error}</en>
+    <tr>No se hizo la copia: {error}</tr>
+  </text>
+  <text>
+    <en>The models to download (as tesseract names them, separated by spaces; osd finds how pages are turned):</en>
+    <tr>Los modelos que se descargarán (como los nombra tesseract, separados por espacios; osd averigua cómo están giradas las páginas):</tr>
+  </text>
+  <text>
+    <en>no language</en>
+    <tr>ningún idioma</tr>
   </text>
 </interface>

@@ -209,7 +209,7 @@ def test_ocr(tmp_path, rotation):
     seen = []
     pages, words = ocr.save_searchable(source, [note], tmp_path / "out.pdf", "", "eng",
                                        lambda done, of: seen.append((done, of)) or True)
-    assert pages == 1 and words >= 8 and seen == [(0, 1)]
+    assert pages == 1 and words >= 8 and seen[0] == (0, 1) and seen[-1] == (1, 1)
     out = annots.open_pdf(tmp_path / "out.pdf")
     assert not ocr.scanned(out[0])
     found = annots.page_text(out[0])

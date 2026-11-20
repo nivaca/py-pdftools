@@ -211,3 +211,31 @@ def test_the_dialogs(window, tmp_path, monkeypatch):
     assert window.recognise_dialog()
     assert window.doc[0].get_text().split()[0] == "FIXED" and window.doc[1].get_text().strip() == ""
     assert "zebras" in window.doc[2].get_text()
+
+
+@needs_tesseract
+def test_settings_download_better_models(window, own, monkeypatch):
+    """The settings show tesseract's languages, and download the better models asked for (osd too,
+    if it is missing), marking them."""
+    from PySide6.QtWidgets import QInputDialog
+
+    from py_pdftools.gui.prefs import SettingsDialog
+
+    asked = []
+    monkeypatch.setattr(QInputDialog, "getText", staticmethod(lambda *a, **k: (asked.append(k["text"]) or "eng", True)))
+
+    def download(names, progress=None):
+        own.mkdir(parents=True, exist_ok=True)
+        for n in names:
+            (own / f"{n}.traineddata").write_bytes(b"x")
+            progress(1, 1)
+        return []
+
+    monkeypatch.setattr(ocr, "download", download)
+    had_osd = ocr.has_osd()
+    dialog = SettingsDialog(window.prefs, window)
+    assert ocr.version() in dialog.ocr_found.text() and "eng ★" not in dialog.ocr_found.text()
+    assert dialog._download_models()
+    assert asked[0].split()[0] == "eng" and ("osd" in asked[0].split()) == (not had_osd)
+    assert "eng ★" in dialog.ocr_found.text()
+    dialog.reject()

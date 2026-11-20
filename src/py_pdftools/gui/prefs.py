@@ -88,6 +88,18 @@ class SettingsDialog(QDialog):
                                      + (tr("Installed: {languages}", languages=", ".join(found)) if found
                                         else tr("Tesseract is not installed: there is no OCR")))
         form.addRow(tr("OCR languages:"), self.ocr_language)
+        # Qué hay instalado (y qué modelos mejores se han descargado), y el botón para descargar otros.
+        self.ocr_found = QLabel()
+        self.ocr_found.setWordWrap(True)
+        self.ocr_found.setStyleSheet("color: palette(placeholder-text);")
+        better = QPushButton(tr("Download better models…"))
+        better.setToolTip(tr("Tesseract's most accurate models (tessdata_best), for the languages chosen, into "
+                             "py-pdftools' own folder; also osd, to find how pages are turned. Needs the internet."))
+        better.clicked.connect(self._download_models)
+        better.setEnabled(ocr.available())
+        form.addRow("", self.ocr_found)
+        form.addRow("", better)
+        self._show_ocr()
         self.pen_pressure = QComboBox()
         for key, name in settings.PEN_PRESSURE.items():
             self.pen_pressure.addItem(tr(name), key)
@@ -253,6 +265,55 @@ class SettingsDialog(QDialog):
             # Resetting the tools replaces only their styles; the rest of the settings stay as the dialog left them.
             prefs = dataclasses.replace(prefs, styles=settings.DEFAULTS.styles)
         return prefs
+
+    def _show_ocr(self):
+        """Tesseract's version, and its languages (the better models marked)."""
+        from ..core import ocr
+
+        if not ocr.available():
+            self.ocr_found.setText(tr("Tesseract is not installed: there is no OCR"))
+            return
+        names = [f"{n}{' ★' if ocr.better(n) else ''}" for n in ocr.languages()]
+        self.ocr_found.setText(tr("Tesseract {version}: {languages}", version=ocr.version(),
+                                  languages=", ".join(names) or tr("no language")) + "  "
+                               + (tr("(★ better model; pages can be turned)") if ocr.has_osd()
+                                  else tr("(★ better model; osd, to turn pages, is not there)")))
+
+    def _download_models(self) -> bool:
+        """Ask which models to download (the languages of the setting, and osd if it is missing), and download
+        them, showing how far it has got."""
+        from PySide6.QtWidgets import QApplication, QInputDialog, QProgressDialog
+
+        from ..core import ocr
+
+        wanted = self._ocr_language().split("+") + ([] if ocr.has_osd() else ["osd"])
+        text, ok = QInputDialog.getText(self, tr("Download better models"),
+                                        tr("The models to download (as tesseract names them, separated by "
+                                           "spaces; osd finds how pages are turned):"), text=" ".join(wanted))
+        names = [n for n in text.replace("+", " ").replace(",", " ").split() if n]
+        if not ok or not names:
+            return False
+        progress = QProgressDialog(tr("Downloading…"), tr("Stop"), 0, 0, self)
+        progress.setWindowModality(Qt.WindowModality.WindowModal)
+        progress.setMinimumDuration(300)
+
+        def step(done: int, total: int) -> bool:
+            progress.setMaximum(total)
+            progress.setValue(min(done, total) if total else 0)
+            QApplication.processEvents()
+            return not progress.wasCanceled()
+
+        try:
+            for name in names:
+                progress.setLabelText(tr("Downloading {name}…", name=name))
+                ocr.download([name], step)
+        except ocr.OcrError as e:
+            QMessageBox.warning(self, tr("Download better models"), str(e))
+            return False
+        finally:
+            progress.close()
+            self._show_ocr()
+        return True
 
     def _ocr_language(self) -> str:
         # Commas and spaces are accepted as separators and turned into Tesseract's +; an invalid result
