@@ -33,6 +33,7 @@ from PySide6.QtWidgets import (
 from ..annotate import annots
 from . import reading
 from .links import FOLLOWED_BY, LinksMixin
+from .scrolling import ScrollingMixin
 from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
     CARET_SIZE, DRAWN, MARKUP, NOTE_SIZE, RESIZABLE, TEXTUAL, VERTICES, Annotation, Rect, nearest_word, text_rects,
@@ -419,7 +420,7 @@ class TextEditor(QGraphicsTextItem):
         self.textCursor().insertText(QApplication.clipboard().text())
 
 
-class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
+class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     """The pages and their annotations. The annotations are identified by their
     index in the window's list; what the user does is reported with the signals."""
 
@@ -476,6 +477,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         self._words: dict[int, list] = {}
         self._init_text_select()
         self._init_links()
+        self._init_scrolling()
         self._drag: dict | None = None
         self._poly: dict | None = None  # (a polygon being made: its page, its points, and its picture)
         self._editor: dict | None = None  # (a text being written: its item, frame, index and annotation)
@@ -1037,10 +1039,11 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         elif not self.continuous and self.doc is not None:  # (one page at a time: past its end, the next)
             bar = self.verticalScrollBar()
             down = event.angleDelta().y() < 0
-            if down and bar.value() >= bar.maximum() and self.page < self.doc.page_count - 1:
-                self.go_to(self.page + 1)
-            elif not down and bar.value() <= bar.minimum() and self.page > 0:
-                self.go_to(self.page - 1)
+            # (a pair at a time, with two pages side by side)
+            if down and bar.value() >= bar.maximum() and self.neighbour(self.page, 1) != self.row_of(self.page)[0]:
+                self.go_to(self.neighbour(self.page, 1))
+            elif not down and bar.value() <= bar.minimum() and self.row_of(self.page)[0] > 0:
+                self.go_to(self.neighbour(self.page, -1))
                 bar.setValue(bar.maximum())
             else:
                 super().wheelEvent(event)
@@ -1430,6 +1433,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         if self._editor is not None:
             super().keyPressEvent(event)
             return
+        if self.space_pressed(event):  # (Space held: Hand, for a moment: see scrolling.py)
+            event.accept()
+            return
         key = event.key()
         # Con un polígono a medias, Enter y Escape son suyos; si no, las flechas mueven la selección.
         if self._poly is not None and key in (Qt.Key.Key_Return, Qt.Key.Key_Enter):
@@ -1447,6 +1453,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
             super().keyPressEvent(event)
             return
         event.accept()
+
+    def keyReleaseEvent(self, event):
+        if self.space_released(event):
+            event.accept()
+            return
+        super().keyReleaseEvent(event)
 
     def mouseDoubleClickEvent(self, event):
         if self._editor is not None:
@@ -1481,6 +1493,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         # A press on a link, with a tool that follows it (or Ctrl with Select): followed on the release, if the
         # mouse hasn't moved (see mouseReleaseEvent); otherwise the press does what the tool does.
         self._link_press = None
+        if self._editor is None and self.autoscroll_press(event):  # (the middle button: see scrolling.py)
+            event.accept()
+            return
         if self.doc is not None and event.button() == Qt.MouseButton.LeftButton and self._editor is None:
             ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
             if self.mode in FOLLOWED_BY or (self.mode == "select" and ctrl):
@@ -1658,6 +1673,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
                 item.setOpacity(0.2)  # (to go, once the button is let go)
 
     def mouseMoveEvent(self, event):
+        if self.autoscroll_move(event):
+            return
         drag = self._drag
         pos = event.position().toPoint()
         if self._poly is not None:
@@ -1864,6 +1881,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         return annots.fitted(a, rect)
 
     def mouseReleaseEvent(self, event):
+        if self.autoscroll_release(event):
+            return
         pressed, self._link_press = self._link_press, None
         if pressed is not None and (event.position() - pressed[0]).manhattanLength() < 4:
             self._drag = None

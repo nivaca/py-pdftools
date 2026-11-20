@@ -608,3 +608,49 @@ def test_the_details_of_a_page_on_hover(window, tmp_path, monkeypatch):
     event = QHelpEvent(QEvent.Type.ToolTip, rect.center(), window.pages.viewport().mapToGlobal(rect.center()))
     QApplication.sendEvent(window.pages.viewport(), event)
     assert shown and "Page 2 of 2" in shown[0]
+
+
+def test_scrolling_with_space_the_middle_button_and_the_wheel(window):
+    from PySide6.QtCore import QEvent, QPoint, QPointF, Qt
+    from PySide6.QtGui import QKeyEvent, QMouseEvent, QWheelEvent
+    from PySide6.QtWidgets import QGraphicsView
+
+    canvas = window.canvas
+    window.set_tool("select")
+    # Space held: Hand for a moment.
+    canvas.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Space, Qt.KeyboardModifier.NoModifier))
+    assert canvas.mode == "hand" and canvas.dragMode() == QGraphicsView.DragMode.ScrollHandDrag
+    canvas.keyReleaseEvent(QKeyEvent(QEvent.Type.KeyRelease, Qt.Key.Key_Space, Qt.KeyboardModifier.NoModifier))
+    assert canvas.mode == "select" and canvas.dragMode() == QGraphicsView.DragMode.NoDrag
+    # The middle button: the pages run towards the pointer until the next click.
+    window._fit("width")
+    bar = canvas.verticalScrollBar()
+    bar.setValue(0)
+
+    def mouse(kind, x, y, button, buttons):
+        pos = QPointF(x, y)
+        return QMouseEvent(kind, pos, canvas.viewport().mapToGlobal(pos), button, buttons,
+                           Qt.KeyboardModifier.NoModifier)
+
+    canvas.mousePressEvent(mouse(QEvent.Type.MouseButtonPress, 300, 200, Qt.MouseButton.MiddleButton,
+                                 Qt.MouseButton.MiddleButton))
+    canvas.mouseReleaseEvent(mouse(QEvent.Type.MouseButtonRelease, 300, 200, Qt.MouseButton.MiddleButton,
+                                   Qt.MouseButton.NoButton))
+    canvas.mouseMoveEvent(mouse(QEvent.Type.MouseMove, 300, 320, Qt.MouseButton.NoButton, Qt.MouseButton.NoButton))
+    for _ in range(5):
+        canvas._auto_step()
+    assert bar.value() > 50
+    canvas.mousePressEvent(mouse(QEvent.Type.MouseButtonPress, 300, 320, Qt.MouseButton.LeftButton,
+                                 Qt.MouseButton.LeftButton))
+    assert canvas._auto_origin is None and not canvas._auto_timer.isActive()
+    # One page at a time, two side by side: the wheel past the end goes on a pair.
+    window.a_spread.setChecked(True)
+    window.a_continuous.setChecked(False)
+    window.show_page(0)
+    bar.setValue(bar.maximum())
+    wheel = QWheelEvent(QPointF(300, 300), QPointF(300, 300), QPoint(), QPoint(0, -120), Qt.MouseButton.NoButton,
+                        Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False)
+    canvas.wheelEvent(wheel)
+    assert window.page == 2
+    window.a_continuous.setChecked(True)
+    window.a_spread.setChecked(False)
