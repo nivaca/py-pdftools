@@ -82,6 +82,12 @@ class SettingsDialog(QDialog):
                                       "icon in the tray, where there is one), and opens the next document at "
                                       "once. File > Quit ends it."))
         form.addRow("", self.background)
+        self.reopen = QCheckBox(tr("Open again the documents that were open when py-pdftools was ended"))
+        try:
+            self.reopen.setChecked(bool(config.get("reopen")))
+        except config.ConfigError:
+            pass
+        form.addRow("", self.reopen)
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.conform_field = Pdf2isoField(self, prefs.pdfconform)
         self.conform_field.add_to(form)
@@ -287,6 +293,11 @@ class SettingsDialog(QDialog):
             except OSError as e:
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
             performance.apply(values)
+        try:
+            if self.reopen.isChecked() != bool(config.get("reopen")):
+                config.set("reopen", self.reopen.isChecked())
+        except (OSError, config.ConfigError) as e:
+            QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         # (running in the background: kept in the configuration file, and in effect at once)
         from . import background, instance
 

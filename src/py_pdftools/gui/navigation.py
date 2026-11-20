@@ -5,7 +5,10 @@ bookmarks, the page box and Find), gone through back and forth with Previous vie
 
 from __future__ import annotations
 
+import hashlib
+import json
 from pathlib import Path
+from urllib.parse import parse_qs, unquote
 
 import pymupdf
 from PySide6.QtCore import QUrl
@@ -17,6 +20,20 @@ from ..core.interface import tr
 # named actions a link may have: (where it goes from the page shown)
 NAMED_ACTIONS = {"NextPage": 1, "PrevPage": -1, "FirstPage": "first", "LastPage": "last"}
 HISTORY = 100  # (places kept to go back to)
+PLACES = 300  # (files whose last place is remembered)
+
+
+def split_place(arg: str) -> tuple[str, dict]:
+    """'book.pdf#page=12' as ('book.pdf', {'page': 12}); '#nameddest=intro' or '#intro' as {'name': 'intro'};
+    without '#', (ARG, {}). (Only if what comes before '#' is a file: a name may have a '#' of its own.)"""
+    head, sep, fragment = arg.rpartition("#")
+    if not sep or not head or Path(arg).is_file() or not Path(head).is_file():
+        return arg, {}
+    params = {k.lower(): v[-1] for k, v in parse_qs(fragment).items()}
+    if "page" in params and params["page"].isdigit():
+        return head, {"page": int(params["page"])}
+    name = params.get("nameddest") or (unquote(fragment) if "=" not in fragment else "")
+    return head, ({"name": name} if name else {})
 
 
 class NavigationMixin:
@@ -72,6 +89,79 @@ class NavigationMixin:
         if hasattr(self, "a_back"):
             self.a_back.setEnabled(bool(self.__dict__.get("_back")))
             self.a_forward.setEnabled(bool(self.__dict__.get("_forward")))
+
+    # ----------------------------------------------------------------- the place a document opens at
+
+    @staticmethod
+    def _file_key(path: Path) -> str:
+        return hashlib.sha1(str(path.resolve()).encode()).hexdigest()[:20]
+
+    def _places(self) -> dict:
+        try:
+            places = json.loads(str(self.settings.value("places", "{}")))
+        except (ValueError, TypeError):
+            return {}
+        return places if isinstance(places, dict) else {}
+
+    def remember_file_place(self):
+        """Keep the place shown of the document (its page, the height at the top of the view, the zoom), to
+        open it there the next time (the last PLACES files)."""
+        if self.doc is None or self.path is None:
+            return
+        places = self._places()
+        key = self._file_key(self.path)
+        places.pop(key, None)
+        places[key] = [self.page, round(self._view_top(), 1), round(self.canvas.zoom(), 4), self.canvas.fit]
+        while len(places) > PLACES:
+            places.pop(next(iter(places)))
+        self.settings.setValue("places", json.dumps(places))
+
+    def open_at_start(self, place: dict | None = None):
+        """Where a document just opened is shown: PLACE, if given (a page, or a named place: see split_place);
+        else where it was left the last time; else where it asks to be opened (its page and zoom, and the panel
+        it wants: its bookmarks or its thumbnails)."""
+        if place:
+            if "page" in place:
+                self.go_place(max(0, min(place["page"] - 1, self.count - 1)), remember=False)
+            elif "name" in place:
+                self._follow_named({"name": place["name"]})
+                self.reset_history()
+            return
+        last = self._places().get(self._file_key(self.path)) if self.path is not None else None
+        if isinstance(last, list) and len(last) == 4:
+            page, top, zoom, fit = last
+            if fit in ("page", "width"):
+                self._fit(fit)
+            elif isinstance(zoom, (int, float)) and zoom > 0:
+                self.canvas.set_zoom(zoom)
+            self.go_place(max(0, min(int(page), self.count - 1)), top, remember=False)
+            return
+        self._open_as_asked()
+
+    def _open_as_asked(self):
+        """The document's own view on opening: its page, its zoom, and the panel it asks for."""
+        try:
+            kind, mode = self.doc.xref_get_key(self.doc.pdf_catalog(), "PageMode")
+        except (RuntimeError, ValueError):
+            kind, mode = "null", ""
+        if kind == "name" and mode == "/UseOutlines" and self.outline_tree.topLevelItemCount():
+            self.outline_dock.show()
+        elif kind == "name" and mode == "/UseThumbs":
+            self.a_thumbs.setChecked(True)
+        try:
+            opening = self.pages_state().opening
+        except Exception:  # (a document whose catalog can't be read as pikepdf reads it: shown at its start)
+            self.show_page(0)
+            return
+        zoom = opening.zoom or ""
+        if zoom in ("Fit", "FitB"):
+            self._fit("page")
+        elif zoom in ("FitH", "FitBH"):
+            self._fit("width")
+        elif zoom.replace(".", "", 1).isdigit():
+            self.canvas.set_zoom(float(zoom) / 100)
+        page = (opening.page or 1) - 1
+        self.go_place(max(0, min(page, self.count - 1)), remember=False)
 
     def follow_link(self, page: int, link: dict) -> bool:
         """Follow LINK (clicked on PAGE): to a place of the document, to another PDF, or (asked first) to a

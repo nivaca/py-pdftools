@@ -258,3 +258,67 @@ def test_find_leaves_places_in_the_history(window):
     window.a_back.trigger()
     assert window.page == 0
     finder.close()
+
+
+def test_places_in_the_arguments(book):
+    from py_pdftools.gui.navigation import split_place
+
+    assert split_place(f"{book}#page=3") == (str(book), {"page": 3})
+    assert split_place(f"{book}#nameddest=intro") == (str(book), {"name": "intro"})
+    assert split_place(f"{book}#intro") == (str(book), {"name": "intro"})
+    assert split_place(str(book)) == (str(book), {})
+    assert split_place("missing.pdf#page=3") == ("missing.pdf#page=3", {})
+
+
+def test_opening_where_it_was_left(window, book, tmp_path):
+    other = tmp_path / "other.pdf"
+    o = pymupdf.open()
+    o.new_page()
+    o.save(other)
+    assert window.open_path(book, {"page": 3})
+    assert window.page == 2
+    window.canvas.set_zoom(1.5)
+    window.go_place(4, 300)
+    assert window.open_path(other)  # (the place of book.pdf, remembered)
+    assert window.open_path(book)
+    assert window.page == 4 and abs(window.canvas.zoom() - 1.5) < 0.01
+    assert window._view_top() > 250
+
+
+def test_opening_as_the_document_asks(window, tmp_path):
+    path = tmp_path / "asks.pdf"
+    doc = pymupdf.open()
+    for _ in range(5):
+        doc.new_page()
+    doc.set_toc([[1, "One", 1], [1, "Three", 3]])
+    catalog = doc.pdf_catalog()
+    doc.xref_set_key(catalog, "PageMode", "/UseOutlines")
+    doc.xref_set_key(catalog, "OpenAction", f"[{doc[2].xref} 0 R /FitH 842]")
+    doc.save(path)
+    window.outline_dock.hide()
+    assert window.open_path(path)
+    assert window.page == 2 and window.canvas.fit == "width" and window.outline_dock.isVisibleTo(window)
+
+
+def test_the_last_session_opened_again(book, tmp_path, monkeypatch):
+    from py_pdftools import gui
+    from py_pdftools.core import config
+    from py_pdftools.gui.window import _WINDOWS
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    gui.save_session([book])
+    monkeypatch.setattr(QApplication.instance(), "exec", lambda: 0)
+    before = list(_WINDOWS)
+    assert gui.main([]) == 0
+    new = [w for w in _WINDOWS if w not in before]
+    assert new and new[0].path is None  # (the setting is off)
+    config.set("reopen", True)
+    assert gui.main([]) == 0
+    newer = [w for w in _WINDOWS if w not in before and w not in new]
+    assert newer and newer[0].path == book
+    for w in [w for w in _WINDOWS if w is not newer[0]]:
+        w.close()
+    gui.save_session([])
+    newer[0].close()  # (the last window closed: its document is the session now)
+    assert gui.session() == [str(book)]

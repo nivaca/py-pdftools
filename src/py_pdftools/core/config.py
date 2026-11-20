@@ -24,7 +24,8 @@ ENV = "PY_PDFTOOLS_CONFIG"
 SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name: default (show_document: Impose)
             "background": False,  # (background: keep running after the last window, see gui/instance.py)
             # (Settings > Performance: see gui/performance.py)
-            "memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True}
+            "memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True,
+            "reopen": False}  # (reopen: the documents of the last session, at the start: see gui/__init__.py)
 
 
 class ConfigError(Exception):

@@ -854,6 +854,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             recovery.discard(self.path)
         if self.finder is not None:
             self.finder.close()
+        self.remember_file_place()  # (where it was left, to open it there again)
+        from . import _QUITTING, save_session
+
+        # The last window closed (not by Quit, which saved them all): its document is the session to reopen.
+        if not _QUITTING and not any(w is not self and w.isVisible() for w in _WINDOWS):
+            save_session([self.path])
         # Removes the temporary folder of the working copies; unsaved changes of the document itself go with it.
         self.drop_work()
         self.workspace.close_down()
@@ -928,7 +934,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         if name:
             self.open_path(Path(name))
 
-    def open_path(self, path: Path) -> bool:
+    def open_path(self, path: Path, place: dict | None = None) -> bool:
+        """Open the document at PATH (shown at PLACE, if given: see navigation.open_at_start)."""
         self.canvas.commit_text()
         self.keep_comment()
         self.reset_history()  # (the places of another document)
@@ -955,6 +962,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 self.status(str(e), error=True)
                 return False
         # From here on the old document is gone: its working copies are removed (the history is cleared below).
+        self.remember_file_place()  # (where it was left, to open it there again)
         self.drop_work()
         found = self._load(path, password)
         if found is None:
@@ -969,7 +977,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.undo_stack, self.redo_stack, self.selected = [], [], []
         self.search.clear()
         self.refresh()
-        self.show_page(0)
+        self.open_at_start(place)
         self.status(tr("Opened {path}", path=path) + " (" + ntr("{count} page", "{count} pages", self.count) + ", "
                     + ntr("{count} annotation", "{count} annotations", len(found)) + ")")
         # Una copia de recuperación igual a lo que tiene el archivo no se ofrece: se guardó después.

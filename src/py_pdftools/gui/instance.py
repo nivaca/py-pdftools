@@ -57,7 +57,14 @@ def send(files: list[str]) -> bool:
     socket.connectToServer(server_name())
     if not socket.waitForConnected(TIMEOUT_MS):
         return False
-    message = json.dumps({"open": [str(Path(f).resolve()) for f in files]}).encode() + b"\n"
+    from .navigation import split_place
+
+    def absolute(arg: str) -> str:  # (the file made absolute, its place kept: book.pdf#page=3)
+        path, place = split_place(arg)
+        rest = arg[len(path):] if place else ""
+        return str(Path(path).resolve()) + rest
+
+    message = json.dumps({"open": [absolute(f) for f in files]}).encode() + b"\n"
     socket.write(message)
     if not socket.waitForBytesWritten(TIMEOUT_MS):
         return False
@@ -128,7 +135,7 @@ class Instance(QObject):
         socket.waitForBytesWritten(TIMEOUT_MS)
         socket.disconnectFromServer()
         for path in files or [None]:
-            self.open_window(Path(path) if path else None)
+            self.open_window(path or None)
 
     def _show_tray(self):
         from PySide6.QtWidgets import QMenu, QSystemTrayIcon

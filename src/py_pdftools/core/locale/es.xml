@@ -10269,4 +10269,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Previous view</en>
     <tr>Vista anterior</tr>
   </text>
+  <text>
+    <en>Open again the documents that were open when py-pdftools was ended</en>
+    <tr>Abrir otra vez los documentos que estaban abiertos al terminar py-pdftools</tr>
+  </text>
 </interface>

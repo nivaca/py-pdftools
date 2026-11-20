@@ -28,7 +28,10 @@ def main(argv: list[str] | None = None) -> int:
     if argv and argv[0] in ("--help", "-h"):
         print("Usage: py-pdftools-gui [file.pdf]   (the command line: py-pdftools --help)")
         return 0
-    files = [a for a in argv if a.lower().endswith(".pdf")]
+    from .navigation import split_place
+
+    # (a file may come with a place: book.pdf#page=12, book.pdf#nameddest=intro)
+    files = [a for a in argv if split_place(a)[0].lower().endswith(".pdf")]
     # In the background (the setting): if the program runs already, it opens the files, at once, and this
     # start ends here, before Qt's widgets and the window are loaded.
     from . import instance
@@ -58,12 +61,16 @@ def main(argv: list[str] | None = None) -> int:
     # La ventana entra en _WINDOWS como las que se reconstruyen al cambiar de idioma; change_language la saca
     # de ahí.
     _WINDOWS.append(win)
+    # Without files, those open when the program was last ended, if the settings say so.
+    if not files and _reopen():
+        files = [f for f in session() if Path(f).is_file()]
     # Only the first PDF among the arguments is opened here (the others, each in a window of its own).
     if files:
-        win.open_path(Path(files[0]))
+        path, place = split_place(files[0])
+        win.open_path(Path(path), place)
     win.show()
     for other in files[1:]:
-        open_window(Path(other))
+        open_window(other)
     if instance.enabled():
         background(True)
     return app.exec()
@@ -72,8 +79,36 @@ def main(argv: list[str] | None = None) -> int:
 _INSTANCE = None  # (the program in the background, if it is: see instance.py)
 
 
-def open_window(path: Path | None = None):
-    """A window (with the document at PATH): an empty one shown already takes it, else a new one."""
+def _reopen() -> bool:
+    from ..core import config
+
+    try:
+        return bool(config.get("reopen"))
+    except config.ConfigError:
+        return False
+
+
+def session() -> list[str]:
+    """The documents open when the program was last ended (see save_session)."""
+    from PySide6.QtCore import QSettings
+
+    value = QSettings("py-pdftools", "py-pdftools").value("session", [])
+    return [str(v) for v in (value if isinstance(value, list) else [value] if value else [])]
+
+
+def save_session(paths: list) -> None:
+    from PySide6.QtCore import QSettings
+
+    QSettings("py-pdftools", "py-pdftools").setValue("session", [str(p) for p in paths if p])
+
+
+_QUITTING = False  # (while Quit closes the windows: the session was saved before, with all of them)
+
+
+def open_window(path=None):
+    """A window (with the document at PATH, a path or 'book.pdf#page=3'): an empty one shown already takes
+    it, else a new one."""
+    from .navigation import split_place
     from .window import _WINDOWS, MainWindow
 
     empty = next((w for w in _WINDOWS if w.isVisible() and w.path is None), None)
@@ -82,7 +117,8 @@ def open_window(path: Path | None = None):
         win = MainWindow()
         _WINDOWS.append(win)
     if path is not None:
-        win.open_path(path)
+        file, place = split_place(str(path))
+        win.open_path(Path(file), place)
     win.show()
     win.raise_()
     win.activateWindow()
@@ -95,9 +131,16 @@ def quit_all() -> bool:
 
     from .window import _WINDOWS
 
-    for win in list(_WINDOWS):
-        if win.isVisible() and not win.close():
-            return False
+    global _QUITTING
+    # (the documents open now are those to open again next time, if the settings say so)
+    save_session([w.path for w in _WINDOWS if w.isVisible() and w.path is not None])
+    _QUITTING = True
+    try:
+        for win in list(_WINDOWS):
+            if win.isVisible() and not win.close():
+                return False
+    finally:
+        _QUITTING = False
     if _INSTANCE is not None:
         _INSTANCE.stop()
     QApplication.instance().quit()
