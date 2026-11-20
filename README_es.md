@@ -52,6 +52,50 @@ El modo Imponer: un folleto:
 
 ![Imponer](docs/img/impose_es.png)
 
+De dónde viene
+--------------
+
+py-pdftools nació de cuatro programas que escribí antes, cada uno para un
+tipo de trabajo con documentos PDF. Tras un tiempo de crecer uno al lado
+del otro, era claro que compartían mucho (la manera de traducir la
+interfaz, la configuración, el paso a PDF/A y PDF/X, el empaquetado) y que
+un mismo documento solía pasar por más de uno: se anotaba, luego se
+censuraba, luego recibía sus etiquetas de página y por último se imponía
+para imprenta. Así que los reuní. Su código se copió en py-pdftools, no se
+usa desde ellos: py-pdftools no necesita que estén instalados, y ellos
+quedan como estaban, cada uno con su repositorio y sus versiones.
+
+    py-annotate 1.1.0      el modo Anotar; la ventana misma (sus páginas,
+                           miniaturas y paneles) es la de py-annotate
+    py-redact 1.0.9        el modo Censurar
+    py-foliation 1.0.1     el modo Páginas, y las órdenes labels, view,
+                           header-footer, watermark y pages
+    py-imposition 0.10.3   el modo Imponer, y las órdenes de impose
+
+Lo que cambió al reunirlos:
+
+* Una sola ventana, con una barra de modos, en lugar de cuatro; y un solo
+  historial, de modo que Deshacer recorre todo lo que se hizo al documento.
+* Los recuadros de py-redact son ahora las marcas de redacción del propio
+  PDF: se guardan en el documento, sin aplicar, hasta que se escribe la
+  copia censurada.
+* Los cambios del modo Páginas se hacen en el acto, y se ven, en lugar de
+  esperar, como en py-foliation, a que se guarde el archivo.
+* Una sola línea de órdenes, con grupos: las etiquetas de py-foliation están
+  en `labels`, y todas las órdenes de py-imposition en `impose`.
+* Una sola carpeta de configuración. La configuración de los programas
+  anteriores no se lee; los códigos de censura de py-redact (`codes.xml`) y
+  los perfiles de encabezados, pies y marcas de agua de py-foliation
+  (`header-footer.json`, `watermark.json`) pueden copiarse de sus carpetas
+  a la de py-pdftools (véase «Configuración»).
+
+Los documentos que hicieron los programas anteriores se leen como antes:
+las claves que escribían en un PDF (etiquetas y categorías de las
+anotaciones, capas de encabezados, pies y marcas de agua, la historia de una
+imposición) conservan su nombre, y los archivos JSON de anotaciones que
+exporta py-annotate pueden importarse. Cómo se reunieron los cuatro, y qué
+apareció por el camino, está en [docs/DESCRIPCIÓN_es.md](docs/DESCRIPCIÓN_es.md).
+
 Instalación
 -----------
 

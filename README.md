@@ -49,6 +49,49 @@ The mode Impose: a booklet:
 
 ![Impose](docs/img/impose_en.png)
 
+Where it comes from
+-------------------
+
+py-pdftools grew out of four programs I wrote earlier, each for one kind of
+work on PDF documents. When the four had grown side by side for a while, it
+was clear that they shared much (the way the interface is translated, the
+configuration, the conversion to PDF/A and PDF/X, the packaging) and that
+the same document often went through more than one of them: annotated,
+then redacted, then given its page labels, then imposed for printing. So I
+brought them together. Their code was copied into py-pdftools, not used
+from them: py-pdftools doesn't need them installed, and they stay as they
+were, each with its own repository and releases.
+
+    py-annotate 1.1.0      the mode Annotate; the window itself (its pages,
+                           thumbnails and panels) is py-annotate's
+    py-redact 1.0.9        the mode Redact
+    py-foliation 1.0.1     the mode Pages, and the commands labels, view,
+                           header-footer, watermark and pages
+    py-imposition 0.10.3   the mode Impose, and the commands under impose
+
+What changed when they were brought together:
+
+* One window, with a bar of modes, instead of four windows; and one
+  history, so that Undo goes back through everything done to the document.
+* The boxes of py-redact are now the PDF's own redaction marks: they are
+  saved in the document, not applied, until the redacted copy is written.
+* The changes of the mode Pages are made at once, and shown, instead of
+  waiting, as in py-foliation, until the file is saved.
+* One command line, with groups: the labels of py-foliation are under
+  `labels`, and every command of py-imposition under `impose`.
+* One configuration folder. The settings of the old programs are not read;
+  the redaction codes of py-redact (`codes.xml`) and the profiles of
+  headers, footers and watermarks of py-foliation (`header-footer.json`,
+  `watermark.json`) can be copied from their folders into that of
+  py-pdftools (see "Settings").
+
+The documents the old programs made are read as before: the keys they wrote
+in a PDF (tags and categories of annotations, layers of headers, footers
+and watermarks, the history of an imposition) kept their names, and the
+JSON files of annotations exported by py-annotate can be imported. How the
+four were brought together, and what was found on the way, is told in
+[docs/DESCRIPTION.md](docs/DESCRIPTION.md).
+
 Installation
 ------------
 
