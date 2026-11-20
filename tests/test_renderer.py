@@ -106,3 +106,36 @@ def test_the_canvas_shows_a_skipped_page(app, slow_pdf, tmp_path, monkeypatch):
     assert shown.width() == round(595 * 0.5) and shown.pixelColor(2, 2).lightness() < 240  # (grey, not white)
     w.annotations = w.saved = []
     w.close()
+
+
+def test_thumbnails_only_near_those_in_view(app, tmp_path, monkeypatch):
+    """With many pages, only the thumbnails near those in view are made; scrolling the list makes the
+    others, and those far away are forgotten beyond MAX_THUMBS."""
+    from py_pdftools.gui import window as window_module
+    from py_pdftools.gui.window import MainWindow
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setattr(window_module, "MAX_THUMBS", 12)  # (about ten are wanted at each place of the list)
+    path = tmp_path / "long.pdf"
+    doc = pymupdf.open()
+    for i in range(300):
+        doc.new_page().insert_text((72, 72), f"Page {i + 1}", fontsize=14)
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(1000, 700)
+    w.show()
+    assert w.open_path(path)
+
+    def settle():  # (until no thumbnail is left to make: they wait, 50 ms at a time, for the pages)
+        wait(app, lambda: not w.thumb_timer.isActive() and not w.canvas._here, seconds=20)
+
+    settle()
+    made = set(w._thumbs)
+    assert 0 in made and 3 < len(made) <= 12 and 299 not in made
+    bar = w.pages.verticalScrollBar()
+    bar.setValue(bar.maximum())
+    settle()
+    assert 299 in w._thumbs and len(w._thumbs) <= 12 and 0 not in w._thumbs
+    w.annotations = w.saved = []
+    w.close()

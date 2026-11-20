@@ -50,6 +50,9 @@ from .stamps import text_stamp
 RECENT = 10  # documents in File ▸ Open recent
 AUTHOR = '<a href="https://nicolasvaughan.org">Nicolas Vaughan</a>'
 THUMB_SIZES = (60, 300, 112)  # the height of the thumbnails: smallest, largest, usual
+# thumbnails kept at most (those farthest from the ones in view are forgotten, and made again if the list
+# comes back to them): about 40 MB, whatever the length of the document
+MAX_THUMBS = 400
 # the tools: (name, freedesktop icon, tooltip), in groups; besides select, hand and eraser, they are the
 # kinds of annotations they make (annots.KINDS)
 TOOLS = [
@@ -176,6 +179,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self._have_conform = conform.available(self.prefs.pdfconform)  # (pdf2iso, for PDF/A and PDF/X)
         self._thumbs: dict[int, QImage] = {}  # page -> its picture, without the annotations
         self._thumb_shown: dict[int, tuple] = {}  # page -> the annotations its thumbnail shows
+        self._thumb_asked: set[int] = set()  # pages whose thumbnail is being made in the other processes
         self._by_page: list[list[Annotation]] = []
         self._marked: dict[tuple, str] = {}  # (page, quads) -> the text marked there
         self._words: dict[int, list] = {}  # page -> its words (see annots.page_text)
@@ -221,6 +225,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         # Intervalo 0: una miniatura por vuelta del bucle de eventos, para que la ventana siga respondiendo.
         self.thumb_timer = QTimer(self, interval=0)
         self.thumb_timer.timeout.connect(self._draw_thumbnails)
+        # Solo se hacen las miniaturas cerca de las que se ven: al recorrer la lista se piden las nuevas.
+        self.pages.verticalScrollBar().valueChanged.connect(lambda _: self.thumb_timer.start(0))
         self.thumb_slider = QSlider(Qt.Orientation.Horizontal)
         self.thumb_slider.setRange(*THUMB_SIZES[:2])
         self.thumb_slider.setValue(self.thumb.height())
@@ -955,6 +961,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.page = min(page, self.count - 1)
         # Las cachés (miniaturas, texto marcado, palabras) eran de las páginas del archivo anterior.
         self._thumbs, self._thumb_shown, self._marked, self._words = {}, {}, {}, {}
+        self._thumb_asked = set()
         self.redact_texts, self.redact_meta = {}, None
         self._by_page = [[] for _ in range(self.count)]
         # Bare only if there are annotations to take out: else the renderers can use the file as it is.
@@ -1832,7 +1839,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.settings.setValue("thumb_height", height)
         self._size_thumbnails()
         # Las miniaturas hechas tienen el tamaño anterior: se descartan y se dibujan otra vez.
-        self._thumbs, self._thumb_shown = {}, {}
+        self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
         if self.doc is not None:
             self._fill_pages()
             self._label_pages()
@@ -2362,8 +2369,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         # Iconos transparentes del tamaño final, para que la lista no cambie de alto cuando lleguen las miniaturas.
         blank = QPixmap(self.thumb)
         blank.fill(QColor(0, 0, 0, 0))
+        self._blank_icon = QIcon(blank)  # (also for a thumbnail forgotten: see _forget_far_thumbnails)
         for n in range(self.count):
-            item = QListWidgetItem(QIcon(blank), str(n + 1))
+            item = QListWidgetItem(self._blank_icon, str(n + 1))
             item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
             self.pages.addItem(item)
         self.page_spin.blockSignals(True)
@@ -2380,37 +2388,77 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         if on and self.doc is not None:
             self.thumb_timer.start()
 
+    def _thumb_rows(self) -> list[int]:
+        """The pages whose thumbnails are wanted now: those in view, then a screenful below and above."""
+        if not self.count:
+            return []
+        top = max(self.pages.indexAt(QPoint(10, 10)).row(), 0)
+        bottom = self.pages.indexAt(QPoint(10, self.pages.viewport().height() - 10)).row()
+        if bottom < top:  # (the list is taller than its rows, or not laid out yet)
+            bottom = min(self.count - 1, top + 20)
+        span = bottom - top + 1
+        return [*range(top, bottom + 1), *range(bottom + 1, min(self.count, bottom + 1 + span)),
+                *range(top - 1, max(-1, top - 1 - span), -1)]
+
+    def _forget_far_thumbnails(self, rows: list[int]):
+        """Keep at most MAX_THUMBS thumbnails: those farthest from ROWS (the ones wanted) are forgotten."""
+        if len(self._thumbs) <= MAX_THUMBS:
+            return
+        middle, wanted = rows[0] if rows else 0, set(rows)
+        far = sorted((n for n in self._thumbs if n not in wanted), key=lambda n: -abs(n - middle))
+        for n in far[:len(self._thumbs) - MAX_THUMBS]:
+            del self._thumbs[n]
+            self._thumb_shown.pop(n, None)
+            if n < self.pages.count():
+                self.pages.item(n).setIcon(self._blank_icon)
+
     def _draw_thumbnails(self):
-        """Draw one thumbnail at each turn of the event loop, those in view first,
-        so that the window answers between them."""
+        """Make the thumbnails near those in view (see _thumb_rows), the visible ones first: in the other
+        processes, all at once, once the pages in view are drawn; or here, one at each turn of the event
+        loop, so that the window answers between them."""
         if self.doc is None or self.thumbs_box.isHidden():  # (hidden: drawn when they are shown again)
             self.thumb_timer.stop()
             return
-        # Se empieza por la primera miniatura a la vista y luego se da la vuelta hasta las de arriba.
-        top = self.pages.indexAt(QPoint(10, 10)).row()
-        start = max(top, 0)
-        n = next((m for m in [*range(start, self.count), *range(start)] if m not in self._thumbs), None)
-        if n is None:
+        remote = renderer()
+        remote = remote if self.canvas.source is not None and remote.available() else None
+        # Primero las páginas: mientras se dibujan las que se ven, las miniaturas esperan.
+        if (remote is not None and remote.busy("view")) or self.canvas._here:
+            self.thumb_timer.start(50)
+            return
+        rows = self._thumb_rows()
+        self._forget_far_thumbnails(rows)
+        missing = [n for n in rows if n not in self._thumbs]
+        if remote is not None:
+            wanted = set(rows)
+            # Las que ya no se ven dejan la cola; las que se están haciendo llegan igual.
+            remote.drop("thumbs", keep=lambda path, number: number in wanted)
+            self._thumb_asked &= wanted
+            source = self.canvas.source
+            for n in missing:
+                if n in self._thumb_asked:
+                    continue
+                self._thumb_asked.add(n)
+                page = self.doc[n]
+                scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
+                remote.request("thumbs", source, n, round(scale, 4),
+                               lambda image, n=n, scale=scale: self._thumb_arrived(source, n, scale, image))
+            # (each one that arrives starts the timer again, for those still missing)
             self.thumb_timer.stop()
             return
+        if not missing:
+            self.thumb_timer.stop()
+            return
+        n = missing[0]
         page = self.doc[n]
         scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
-        remote = renderer()
-        # Si hay procesos de render, la miniatura se pide a uno de ellos; si no, se hace aquí, en el hilo de la
-        # interfaz.
-        if self.canvas.source is not None and remote.available():
-            # (in another process: the timer waits until it is drawn, then goes on with the next)
-            self.thumb_timer.stop()
-            source = self.canvas.source
-            remote.request("thumbs", source, n, round(scale, 4),
-                           lambda image: self._thumb_arrived(source, n, scale, image))
-            return
+        self.thumb_timer.setInterval(0)
         self._thumbs[n] = page_image(page, scale)
         self._thumb(n)
 
     def _thumb_arrived(self, source, n: int, scale: float, image):
         from .renderer import Skipped, skipped_image
 
+        self._thumb_asked.discard(n)
         if self.doc is None or source != self.canvas.source:
             return  # (of a document no longer open)
         if isinstance(image, Skipped):  # (a page skipped: grey, without words, at the thumbnail's size)
