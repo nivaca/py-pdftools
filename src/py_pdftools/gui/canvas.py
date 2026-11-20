@@ -42,6 +42,12 @@ MIN_SIZE = 3.0  # points: a smaller drag is a click
 GRIP = 6  # pixels from an edge, or from a point of a line, where dragging resizes or reshapes
 ERASER = 7  # pixels: the radius of the eraser
 MAX_PIXELS = 40_000_000  # the largest rendering of a page
+# Deep zoom, in tiles: a page whose rendering would be longer than TILE_ABOVE pixels is drawn whole at most
+# BACKDROP_SIDE pixels long, and over it, only its part in view, in tiles of TILE pixels at the full scale
+TILE_ABOVE = 4096
+BACKDROP_SIDE = 2048
+TILE = 1024
+MAX_TILES = 48  # tiles kept (about 150 MB): those of the pages in view, and a few of before
 CACHED_PAGES = 16  # renderings kept, so that a page scrolled back to needn't render again
 SELECTED = QColor(42, 127, 255)
 NEAR_TEXT = 3.0  # points: a drag that starts this close to a word selects text
@@ -57,8 +63,10 @@ MARK_SIZE = 12.0  # points: of a check mark, a cross...
 
 # Sin canal alfa: la página siempre se pinta sobre blanco. El .copy() hace falta porque QImage
 # no copia los bytes de pix.samples, que desaparecen con el Pixmap de PyMuPDF.
-def page_image(page: pymupdf.Page, scale: float) -> QImage:
-    pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False)
+def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None) -> QImage:
+    """PAGE rendered at SCALE (only CLIP of it, in points, if given)."""
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
+                          clip=pymupdf.Rect(clip) if clip is not None else None)
     return QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
 
 
@@ -269,6 +277,29 @@ class PageItem(QGraphicsRectItem):
         self.pixmap.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         self.scale_shown = 0.0  # (of the rendering it shows; 0: none, or a stand-in)
         self.wanted: tuple | None = None  # (the key of the rendering asked for)
+        # Las teselas de un zoom profundo van en una capa propia: encima de la imagen entera, debajo de las
+        # anotaciones (que se añaden después, con un z mayor).
+        self.tiles_layer = QGraphicsRectItem(self)
+        self.tiles_layer.setPen(QPen(Qt.PenStyle.NoPen))
+        self.tiles: dict[tuple, QGraphicsPixmapItem] = {}  # (scale, column, row) -> its picture
+
+    def show_tile(self, key: tuple, pixmap: QPixmap, clip: tuple, scale: float):
+        """Show the tile KEY ((scale, column, row)): PIXMAP, of the part CLIP of the page at SCALE."""
+        tile = self.tiles.get(key)
+        if tile is None:
+            tile = self.tiles[key] = QGraphicsPixmapItem(self.tiles_layer)
+            tile.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        tile.setPixmap(pixmap)
+        tile.setPos(clip[0], clip[1])
+        tile.setScale(1 / scale)
+
+    def clear_tiles(self, keep=lambda key: False):
+        """Take away the tiles, but those whose key KEEP wants."""
+        for key in [k for k in self.tiles if not keep(k)]:
+            tile = self.tiles.pop(key)
+            tile.setParentItem(None)
+            if tile.scene() is not None:
+                tile.scene().removeItem(tile)
 
     def show(self, pixmap: QPixmap, scale: float, final: bool = True):
         self.pixmap.setPixmap(pixmap)
@@ -445,7 +476,9 @@ class PageCanvas(QGraphicsView):
         # Interval 0: one page rendered here per turn of the event loop, so the window stays responsive.
         self.local_timer = QTimer(self, singleShot=True, interval=0)
         self.local_timer.timeout.connect(self._render_next_here)
-        self._here: list[tuple[int, float]] = []  # (pages to render in this process, one at each turn)
+        self._here: list[tuple] = []  # (pages, or tiles, to render in this process, one at each turn)
+        self._tile_cache: OrderedDict = OrderedDict()  # (document, page, scale, clip, column, row) -> QPixmap
+        self._tiles_asked: set[tuple] = set()  # (the tiles asked for and not yet arrived)
         self._cache: OrderedDict = OrderedDict()  # (document, page number, scale) -> QPixmap
         # (path, password, stamp) of the document on disk, if the pages can be rendered in
         # another process (see renderer.py)
@@ -464,6 +497,8 @@ class PageCanvas(QGraphicsView):
         # id(doc) forma parte de la clave de la caché, pero un documento nuevo puede heredar el id del viejo:
         # por eso se vacía.
         self._cache.clear()
+        self._tile_cache.clear()
+        self._tiles_asked.clear()
         self._shown_items, self._selected = [], []
         self.layout()
         self.go_to(page)
@@ -581,11 +616,23 @@ class PageCanvas(QGraphicsView):
     def zoom(self) -> float:
         return self.transform().m11()
 
+    def _full_scale(self) -> float:
+        """The scale of the zoom on this screen (on HiDPI screens, in physical pixels)."""
+        return round(self.zoom() * self.devicePixelRatioF(), 3)
+
+    def _tiled(self, number: int) -> bool:
+        """Whether page NUMBER is drawn in tiles at this zoom (see TILE_ABOVE)."""
+        r = self.doc[number].rect
+        return max(r.width, r.height) * self._full_scale() > TILE_ABOVE
+
     def _scale_for(self, number: int) -> float:
-        """The scale to render page NUMBER at, for the zoom and the screen."""
+        """The scale to render page NUMBER at, whole, for the zoom and the screen (for a page drawn in
+        tiles, that of its backdrop, at most BACKDROP_SIDE pixels long)."""
         # En pantallas HiDPI se renderiza a la resolución física (devicePixelRatio), no a la lógica.
         scale = self.zoom() * self.devicePixelRatioF()
         r = self.doc[number].rect
+        if max(r.width, r.height) * scale > TILE_ABOVE:
+            return round(min(scale, BACKDROP_SIDE / max(r.width, r.height)), 3)
         # Huge pages at a high zoom are capped at MAX_PIXELS, keeping the proportions; Qt scales the rest up.
         if r.width * scale * r.height * scale > MAX_PIXELS:
             scale *= (MAX_PIXELS / (r.width * scale * r.height * scale)) ** 0.5
@@ -594,8 +641,11 @@ class PageCanvas(QGraphicsView):
     def clear_cache(self):
         """Forget the renderings (another document was opened, or this one changed on disk)."""
         self._cache.clear()
+        self._tile_cache.clear()
+        self._tiles_asked.clear()
         for item in self.pages.values():
             item.scale_shown = 0.0
+            item.clear_tiles()
 
     def _keep(self, key: tuple, image: QImage) -> QPixmap:
         pixmap = QPixmap.fromImage(image)
@@ -631,6 +681,8 @@ class PageCanvas(QGraphicsView):
         if remote is not None:
             # Las peticiones de páginas que salieron de la vista se cancelan en los otros procesos.
             remote.drop("view", keep=lambda path, number: number in wanted)
+        # (the tiles asked for pages no longer in view are dropped too: asked again if they come back)
+        self._tiles_asked = {k for k in self._tiles_asked if k[1] in wanted}
         self._here = []
         for n in wanted:
             item = self.pages[n]
@@ -662,15 +714,83 @@ class PageCanvas(QGraphicsView):
                 remote.request("view", self.source, n, scale, lambda image, key=key: self._arrived(key, image),
                                first=n == self.page)
             else:
-                self._here.append((n, scale))
+                self._here.append((n, scale, None))
+        self._render_tiles(wanted, remote)
         if self._here:
             self.local_timer.start()
 
+    def _render_tiles(self, wanted: list[int], remote):
+        """For the pages in view drawn in tiles (see TILE_ABOVE), ask for the tiles of the part in view
+        that are missing; take away those of other zooms, and those of pages no longer in view."""
+        view = self.mapToScene(self.viewport().rect()).boundingRect()
+        full = self._full_scale()
+        for n, item in self.pages.items():
+            try:
+                tiled = n in wanted and self._tiled(n)
+            except (RuntimeError, ValueError):  # (the document was closed meanwhile)
+                return
+            area = item.mapFromScene(view).boundingRect() & item.rect() if tiled else QRectF()
+            if area.isEmpty():
+                item.clear_tiles()
+                continue
+            item.clear_tiles(keep=lambda key: key[0] == full)
+            step, (w, h) = TILE / full, (item.rect().width(), item.rect().height())
+            for row in range(int(area.top() // step), int(area.bottom() // step) + 1):
+                for column in range(int(area.left() // step), int(area.right() // step) + 1):
+                    clip = (round(column * step, 3), round(row * step, 3),
+                            round(min((column + 1) * step, w), 3), round(min((row + 1) * step, h), 3))
+                    if clip[2] <= clip[0] or clip[3] <= clip[1] or (full, column, row) in item.tiles:
+                        continue
+                    key = (id(self.doc), n, full, clip, column, row)
+                    if key in self._tile_cache:
+                        self._tile_cache.move_to_end(key)
+                        item.show_tile((full, column, row), self._tile_cache[key], clip, full)
+                        continue
+                    if key in self._tiles_asked:
+                        continue
+                    self._tiles_asked.add(key)
+                    if remote is not None:
+                        remote.request("view", self.source, n, full,
+                                       lambda image, key=key: self._tile_arrived(key, image), clip=clip)
+                    else:
+                        self._here.append((n, full, (clip, column, row)))
+
+    def _tile_arrived(self, key: tuple, image):
+        """A tile (None: render it here; a Skipped: grey)."""
+        from .renderer import Skipped, skipped_image
+
+        self._tiles_asked.discard(key)
+        if self.doc is None or key[0] != id(self.doc):
+            return
+        _, n, scale, clip, column, row = key
+        if isinstance(image, Skipped):
+            image = skipped_image(round((clip[2] - clip[0]) * scale), round((clip[3] - clip[1]) * scale), image,
+                                  words=False)
+        if image is None:
+            try:
+                image = page_image(self.doc[n], scale, clip)
+            except (RuntimeError, ValueError):
+                return
+        pixmap = QPixmap.fromImage(image)
+        self._tile_cache[key] = pixmap
+        while len(self._tile_cache) > MAX_TILES:
+            self._tile_cache.popitem(last=False)
+        item = self.pages.get(n)
+        # Solo si sigue haciendo falta: la página puede haber salido de la vista, o el zoom cambiado.
+        if item is not None and scale == self._full_scale() and n in self.visible_pages():
+            item.show_tile((scale, column, row), pixmap, clip, scale)
+
     def _render_next_here(self):
-        """Render one page in this process (the window answers between them)."""
+        """Render one page (or one tile) in this process (the window answers between them)."""
         if not self._here or self.doc is None:
             return
-        n, scale = self._here.pop(0)
+        n, scale, tile = self._here.pop(0)
+        if tile is not None:
+            clip, column, row = tile
+            self._tile_arrived((id(self.doc), n, scale, clip, column, row), None)
+            if self._here:
+                self.local_timer.start()
+            return
         try:
             image = page_image(self.doc[n], scale)
         # El documento se cerró o cambió entre dos turnos: se abandonan las páginas pendientes.

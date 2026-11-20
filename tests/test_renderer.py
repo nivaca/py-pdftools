@@ -139,3 +139,48 @@ def test_thumbnails_only_near_those_in_view(app, tmp_path, monkeypatch):
     assert 299 in w._thumbs and len(w._thumbs) <= 12 and 0 not in w._thumbs
     w.annotations = w.saved = []
     w.close()
+
+
+def test_deep_zoom_in_tiles(app, tmp_path, monkeypatch):
+    """At a zoom where a page would be longer than TILE_ABOVE pixels, it is drawn whole at most
+    BACKDROP_SIDE pixels long, and the part in view in tiles at the full scale; back at a low zoom, no
+    tiles are left."""
+    from PySide6.QtCore import QRectF
+
+    from py_pdftools.gui import canvas as canvas_module
+    from py_pdftools.gui.window import MainWindow
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "one.pdf"
+    doc = pymupdf.open()
+    doc.new_page().insert_text((72, 72), "Deep", fontsize=14)
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(1000, 700)
+    w.show()
+    assert w.open_path(path)
+    canvas = w.canvas
+
+    def settle():
+        canvas.render_timer.start(0)
+        wait(app, lambda: not canvas.render_timer.isActive() and not canvas._here and not canvas._tiles_asked,
+             seconds=20)
+
+    canvas.set_zoom(8)
+    settle()
+    item = canvas.pages[0]
+    assert item.scale_shown <= canvas_module.BACKDROP_SIDE / 842 + 0.01
+    full = canvas._full_scale()
+    assert item.tiles and all(key[0] == full for key in item.tiles)
+    assert all(t.pixmap().width() <= canvas_module.TILE for t in item.tiles.values())
+    covered = QRectF()
+    for t in item.tiles.values():
+        covered = covered.united(t.mapRectToParent(QRectF(t.pixmap().rect())))
+    view = item.mapFromScene(canvas.mapToScene(canvas.viewport().rect()).boundingRect()).boundingRect() & item.rect()
+    assert covered.adjusted(-0.5, -0.5, 0.5, 0.5).contains(view)
+    canvas.set_zoom(1)
+    settle()
+    assert not item.tiles and item.scale_shown == canvas._full_scale()
+    w.annotations = w.saved = []
+    w.close()
