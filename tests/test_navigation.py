@@ -654,3 +654,18 @@ def test_scrolling_with_space_the_middle_button_and_the_wheel(window):
     assert window.page == 2
     window.a_continuous.setChecked(True)
     window.a_spread.setChecked(False)
+
+
+def test_hiding_the_gaps_between_pages(window):
+    canvas = window.canvas
+    p = canvas.pages
+    assert p[1].sceneBoundingRect().top() - p[0].sceneBoundingRect().bottom() == 12
+    window.a_gaps.setChecked(False)
+    p = canvas.pages
+    assert p[1].sceneBoundingRect().top() == p[0].sceneBoundingRect().bottom()
+    assert window.settings.value("gaps") == "false"
+    other = MainWindow()  # (the next time, as it was left)
+    assert other.canvas.gap == 0 and not other.a_gaps.isChecked()
+    other.close()
+    window.a_gaps.setChecked(True)
+    assert canvas.pages[1].sceneBoundingRect().top() - canvas.pages[0].sceneBoundingRect().bottom() == 12

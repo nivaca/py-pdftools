@@ -31,7 +31,7 @@ from ..annotate.annots import (
 )
 from ..core.interface import N_, ntr, tr
 from . import colors
-from .canvas import PageCanvas, page_image
+from .canvas import GAP, PageCanvas, page_image
 from .colors import color_name, colors_menu, swatch, swatches
 from .files import FilesMixin, ask_save
 from .hint import HintOverlay
@@ -272,6 +272,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.continuous = self.settings.value("continuous", "true") != "false"
         self.canvas.spread = self.settings.value("spread", "false") == "true"
         self.canvas.cover = self.settings.value("cover", "false") == "true"
+        self.canvas.gap = GAP if self.settings.value("gaps", "true") != "false" else 0
         self.canvas.factory = self.new_annotation
         # Mientras una página se renderiza, el lienzo muestra en su lugar la miniatura que ya esté hecha.
         self.canvas.placeholder_for = lambda n: self._thumbs.get(n)
@@ -574,6 +575,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
         self.a_cover.setEnabled(self.canvas.spread)
         m.addAction(self.a_cover)
+        self.a_gaps = QAction(tr("Gaps between the pages"), self, checkable=True, checked=bool(self.canvas.gap))
+        self.a_gaps.setToolTip(tr("Unticked, the pages follow one another without a gap, as one long sheet"))
+        self.a_gaps.toggled.connect(self.set_gaps)
+        m.addAction(self.a_gaps)
         self.a_split = self._action(m, tr("Split the view"), self.split_tab, "Ctrl+\\",
                                     tip=tr("This tab beside the others, on the other side of the window, to read two "
                                            "documents side by side; again, to bring it back"))
@@ -2066,6 +2071,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.presentation.ended.connect(lambda n: self.show_page(n))
         self.presentation.start()
         return self.presentation
+
+    def set_gaps(self, on: bool):
+        """The gaps between the pages shown or hidden: kept for the next time."""
+        self.settings.setValue("gaps", "true" if on else "false")
+        page = self.page
+        self.canvas.set_gaps(on)
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        self.show_page(page)
 
     def turn_view(self, degrees: int):
         """Turn the view DEGREES more (the file stays as it is); the page shown stays in view."""

@@ -459,6 +459,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._ink: dict = {}  # (document, page) -> the inked area of the page (see ink_rect)
         self.spread = False  # (two pages side by side: see rows)
         self.cover = False  # (with spread: the first page alone, as the cover of a book)
+        self.gap = GAP  # (between the pages and around them: 0 to hide the gaps, see set_gaps)
         self.turn = 0  # degrees (clockwise) the view turns every page: not the file (see set_turn)
         # 'select': selects, moves and resizes; 'hand': dragging scrolls; 'eraser': dragging erases;
         # else the kind of annotation that the tool makes: see annots.KINDS
@@ -549,14 +550,14 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         sizes = {n: self.page_rect(n) for row in rows for n in row}
         shown = {n: self.shown_rect(n) for n in sizes}  # (as the view turns them)
         widest = max(self._row_width(row, shown) for row in rows)
-        y = GAP
+        y = self.gap
         for row in rows:
             # A row is centred on x = 0 in the scene, so pages of different widths line up along their middle;
             # two pages side by side meet there (the left one ends at GAP / 2 before it).
             if len(row) == 1:
                 xs = [-shown[row[0]].width() / 2]
             else:
-                xs = [-shown[row[0]].width() - GAP / 2, GAP / 2]
+                xs = [-shown[row[0]].width() - self.gap / 2, self.gap / 2]
             for n, x in zip(row, xs):
                 item = PageItem(n, sizes[n])
                 scene.addItem(item)
@@ -568,8 +569,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 else:
                     item.setPos(x, y)
                 self.pages[n] = item
-            y += max(shown[n].height() for n in row) + GAP
-        scene.setSceneRect(QRectF(-widest / 2 - GAP, 0, widest + 2 * GAP, y))
+            y += max(shown[n].height() for n in row) + self.gap
+        scene.setSceneRect(QRectF(-widest / 2 - self.gap, 0, widest + 2 * self.gap, y))
         self._place_annotations()
         self.render_timer.start()
 
@@ -577,6 +578,14 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         """Page NUMBER's rectangle as the view shows it (width and height swapped if turned 90° or 270°)."""
         r = self.page_rect(number)
         return QRectF(0, 0, r.height(), r.width()) if self.turn in (90, 270) else r
+
+    def set_gaps(self, on: bool):
+        """The gaps between the pages shown (ON) or hidden: the pages one against the other, as a scroll."""
+        self.gap = GAP if on else 0
+        if self.doc is not None:
+            self.layout()
+            self.apply_fit()
+            self.go_to(self.page)
 
     def set_turn(self, degrees: int):
         """Turn the view of every page DEGREES (a multiple of 90, clockwise); the file stays as it is."""
@@ -605,11 +614,10 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         i = next((k for k, row in enumerate(rows) if page in row), 0)
         return rows[max(0, min(i + step, len(rows) - 1))][0]
 
-    @staticmethod
-    def _row_width(row: list[int], sizes: dict) -> float:
+    def _row_width(self, row: list[int], sizes: dict) -> float:
         if len(row) == 1:
             return sizes[row[0]].width()
-        return 2 * max(sizes[row[0]].width(), sizes[row[1]].width()) + GAP
+        return 2 * max(sizes[row[0]].width(), sizes[row[1]].width()) + self.gap
 
     def set_spread(self, on: bool, cover: bool | None = None):
         """Two pages side by side (ON), the first alone if COVER; then the page shown stays in view."""
@@ -680,7 +688,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             top = item.sceneBoundingRect().topLeft()  # (the top of the page as it shows, turned or not)
             bar = self.verticalScrollBar()
             # Deja el borde superior de la página GAP puntos por debajo del borde de la vista.
-            bar.setValue(round(self.mapFromScene(QPointF(0, top.y() - GAP)).y() + bar.value()))
+            bar.setValue(round(self.mapFromScene(QPointF(0, top.y() - self.gap)).y() + bar.value()))
         self._quiet = False
         self.render_timer.start()
         if changed:
@@ -696,7 +704,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         point = item.mapToScene(QPointF(0, max(0.0, min(y, item.rect().height())))) if self.turn in (0, 180) \
             else item.sceneBoundingRect().topLeft()
         bar = self.verticalScrollBar()
-        bar.setValue(round(self.mapFromScene(QPointF(0, point.y() - GAP)).y() + bar.value()))
+        bar.setValue(round(self.mapFromScene(QPointF(0, point.y() - self.gap)).y() + bar.value()))
         self._quiet = False
         self.render_timer.start()
 
@@ -971,13 +979,13 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         widest = max((self._row_width(list(r), sizes) for r in rows), default=max(s.width() for s in sizes.values()))
         size = QRectF(0, 0, 0, max(self.shown_rect(n).height() for n in self.row_of(self.page)))
         # Los 4 píxeles dejan sitio al borde de la vista, para que el ajuste no haga aparecer barras.
-        by_width = (room.width() - 4) / (widest + 2 * GAP)
-        by_height = (room.height() - 4) / (size.height() + 2 * GAP)
+        by_width = (room.width() - 4) / (widest + 2 * self.gap)
+        by_height = (room.height() - 4) / (size.height() + 2 * self.gap)
         if self.fit == "visible":  # (the inked area of the page shown, as wide as the view, and centred)
             ink = self.ink_rect(self.page)
             fit = self.fit
             across = ink.height() if self.turn in (90, 270) else ink.width()  # (as it shows, turned or not)
-            self.set_zoom((room.width() - 4) / (across + 2 * GAP), fit)
+            self.set_zoom((room.width() - 4) / (across + 2 * self.gap), fit)
             centre = self.pages[self.page].mapToScene(ink.center())
             self.centerOn(centre.x(), self.mapToScene(self.viewport().rect().center()).y())
             return

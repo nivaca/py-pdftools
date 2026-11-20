@@ -10485,4 +10485,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{width} × {height} mm ({inches_w} × {inches_h} in)</en>
     <tr>{width} × {height} mm ({inches_w} × {inches_h} pulg.)</tr>
   </text>
+  <text>
+    <en>Gaps between the pages</en>
+    <tr>Espacio entre las páginas</tr>
+  </text>
+  <text>
+    <en>Unticked, the pages follow one another without a gap, as one long sheet</en>
+    <tr>Sin marcar, las páginas se siguen sin espacio entre ellas, como una sola hoja larga</tr>
+  </text>
 </interface>
