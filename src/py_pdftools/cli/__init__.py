@@ -1,0 +1,117 @@
+"""The command line of py-pdftools.
+
+    py-pdftools labels show | set | clear | copy   the page labels ('labels FILE.pdf': show)
+    py-pdftools view                               how a PDF opens in a viewer
+    py-pdftools header-footer | watermark          headers, footers and watermarks
+    py-pdftools pages                              move, delete, rotate, insert or split pages
+    py-pdftools impose COMMAND                     imposition (booklet, nup, step-repeat ...)
+    py-pdftools completion | interface
+
+The commands come from py-foliation (pages/cli.py) and py-imposition
+(impose/), and each runs there, as it did in those programs. Here their
+parsers are put together into one tree, which gives the help of the whole
+and its completion scripts (completion.py).
+
+The commands of imposition stay together under ``impose``, although some of
+them also move, delete or rotate pages: the sequences of ``impose run`` and
+the history ``impose replay`` reads name them as they are. ``pages`` arranges
+the pages of a document keeping its labels, bookmarks and links;
+``impose delete`` and the like are steps of an imposition.
+"""
+
+from __future__ import annotations
+
+import argparse
+import sys
+
+from ..core import interface
+from ..core.interface import tr
+
+TOP = ("view", "header-footer", "watermark", "pages")  # commands of pages/cli.py at the top
+LABELS = ("show", "set", "clear", "copy")  # and those under 'labels'
+OWN = ("completion", "interface")
+PROG = "py-pdftools"
+
+
+def _subparsers(parser: argparse.ArgumentParser) -> argparse._SubParsersAction:
+    return next(a for a in parser._actions if isinstance(a, argparse._SubParsersAction))
+
+
+def _graft(dst: argparse._SubParsersAction, src: argparse._SubParsersAction, names) -> None:
+    """Put the commands NAMES of SRC under DST, as they are."""
+    for name in names:
+        dst._name_parser_map[name] = src.choices[name]
+        dst._choices_actions.append(next(c for c in src._choices_actions if c.dest == name))
+
+
+def build_parser() -> argparse.ArgumentParser:
+    from .. import __version__
+    from ..impose.runner import build_parser as impose_parser
+    from ..pages.cli import build_parser as pages_parser
+
+    pages = _subparsers(pages_parser(PROG))
+    impose = impose_parser(f"{PROG} impose")
+    isub = _subparsers(impose)  # (its 'interface' is the one here)
+    isub._name_parser_map.pop("interface", None)
+    isub._choices_actions[:] = [c for c in isub._choices_actions if c.dest != "interface"]
+
+    parser = argparse.ArgumentParser(
+        prog=PROG,
+        description=tr("Edit PDF documents from the command line: their page labels, how they open, "
+                       "headers, footers and watermarks, the order of their pages, and their imposition "
+                       "for printing. The window (py-pdftools-gui) also annotates and redacts them."),
+        epilog=tr("Run '%(prog)s COMMAND -h' for help on a command."),
+    )
+    parser.add_argument("--interface", choices=sorted(interface.names()), default=argparse.SUPPRESS,
+                        help=tr("the language of the interface, for this run only (to keep a choice, use the "
+                                "'interface' command)"))
+    parser.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
+    sub = parser.add_subparsers(dest="group", metavar=tr("COMMAND"))
+    labels = sub.add_parser("labels", help=tr("show, set, clear or copy the page labels of PDFs"),
+                            description=tr("Change the page labels of a PDF: the numbering a PDF viewer shows "
+                                           "for its pages (i, ii, iii ... 1, 2, 3 ... A-1, A-2 ...)."))
+    _graft(_subparsers_of(labels, tr("COMMAND")), pages, LABELS)
+    _graft(sub, pages, TOP)
+    sub._name_parser_map["impose"] = impose
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "impose", (), tr("impose pages for printing: booklets, n-up, step and repeat, bleeds, stamps, "
+                         "sequences and hot folders")))
+    _graft(sub, pages, OWN)
+    return parser
+
+
+def _subparsers_of(parser: argparse.ArgumentParser, metavar: str) -> argparse._SubParsersAction:
+    return parser.add_subparsers(dest="command", metavar=metavar)
+
+
+def _words(argv: list[str]) -> list[tuple[int, str]]:
+    """The words of ARGV that are not options (with their places), leaving out the value of --interface."""
+    return [(i, t) for i, t in enumerate(argv)
+            if not t.startswith("-") and (i == 0 or argv[i - 1] != "--interface")]
+
+
+def main(argv: list[str] | None = None) -> int:
+    from ..pages import cli as pages_cli
+
+    argv = list(sys.argv[1:] if argv is None else argv)
+    interface.use_configured(pages_cli.interface_option(argv))
+    interface.translate_argparse()
+    words = _words(argv)
+    first = words[0] if words else None
+    if first and first[1] == "impose":
+        from ..impose import main as impose_main
+
+        return impose_main(argv[:first[0]] + argv[first[0] + 1:])
+    if first and first[1] == "labels":
+        second = words[1][1] if len(words) > 1 else None
+        if second in LABELS or (second or "").lower().endswith(".pdf"):  # ('labels FILE.pdf': show)
+            return pages_cli.main(argv[:first[0]] + argv[first[0] + 1:])
+    elif first and first[1] in TOP + OWN:
+        return pages_cli.main(argv)
+    parser = build_parser()
+    a = parser.parse_args(argv)  # (the help, the version, or a command that does not exist)
+    if a.group == "labels":
+        _subparsers(parser).choices["labels"].print_help()
+    else:
+        parser.print_help()
+    return 1

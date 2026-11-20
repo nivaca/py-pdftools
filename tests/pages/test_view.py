@@ -1,4 +1,4 @@
-"""Tests of the view of a document when it is opened (view.py, and 'py-foliation view')."""
+"""Tests of the view of a document when it is opened (view.py, and 'py-pdftools view')."""
 
 from __future__ import annotations
 
@@ -11,7 +11,7 @@ from pikepdf import Array, Dictionary, Name
 
 from py_pdftools.core import config, interface
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.labels import LabelError
 from py_pdftools.pages.view import View, changed, describe, parse_layout, parse_zoom, read_view, write_view
 
@@ -65,7 +65,7 @@ def test_what_it_does_not_know_is_kept(book):
         pdf.Root.PageLayout = Name.TwoColumnLeft
         write_view(pdf, View(layout="SinglePage"))  # (only the layout changes)
         assert pdf.Root.OpenAction.S == Name.JavaScript
-        assert pdf.Root.PageMode == Name.UseNone  # (the example's panel: py-foliation leaves it alone)
+        assert pdf.Root.PageMode == Name.UseNone  # (the example's panel: py-pdftools leaves it alone)
         write_view(pdf, View(layout="SinglePage", page=3))  # (a page replaces the action)
         assert isinstance(pdf.Root.OpenAction, Array)
         assert read_view(pdf) == View("SinglePage", "", 3)

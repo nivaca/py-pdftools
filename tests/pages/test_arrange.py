@@ -1,4 +1,4 @@
-"""Tests of arranging pages (arrange.py, files.apply_all with operations, 'py-foliation pages' and the
+"""Tests of arranging pages (arrange.py, files.apply_all with operations, 'py-pdftools pages' and the
 window)."""
 
 from __future__ import annotations
@@ -17,7 +17,7 @@ from py_pdftools.core import config, interface
 
 from py_pdftools.pages import arrange, files, headfoot, labels, stamps
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.changes import Change
 from py_pdftools.pages.labels import LabelError, Range
 

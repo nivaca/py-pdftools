@@ -35,7 +35,7 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     interface.use_configured(interface_option(argv))
     interface.translate_argparse()
-    # "py-imposition file.pdf [options]" -> booklet with the default settings
+    # "py-pdftools impose file.pdf [options]" -> booklet with the default settings
     first = next((t for t in argv if not t.startswith("-")), None)
     if first and first not in COMMANDS and first.lower().endswith(".pdf"):
         argv.insert(argv.index(first), "booklet")

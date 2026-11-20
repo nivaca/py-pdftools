@@ -8,11 +8,17 @@ from pathlib import Path
 import pikepdf
 import pytest
 
-from py_pdftools.impose import main
+from py_pdftools.cli import main as pdftools_main
+
 from py_pdftools.impose.impose import booklet_order
 from py_pdftools.core.pagesel import parse_pages
 from py_pdftools.impose.shuffle import parse_rule, shuffle_order
 from py_pdftools.impose.units import parse_length, parse_paper
+
+
+def main(argv: list[str]) -> int:
+    """py-imposition's command line, as 'py-pdftools impose'."""
+    return pdftools_main(["impose", *argv])
 
 
 def fmt(order):

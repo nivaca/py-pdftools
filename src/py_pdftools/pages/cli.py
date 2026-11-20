@@ -1,4 +1,5 @@
-"""The command line: py-foliation show / set / clear / copy / completion / interface."""
+"""The commands of page labels, the view, headers and footers, watermarks and pages
+(from py-foliation); py_pdftools.cli puts them in the command line of py-pdftools."""
 
 from __future__ import annotations
 
@@ -19,6 +20,7 @@ from .files import open_pdf, read_list, save_pdf
 from ..core.interface import N_, ntr, tr
 from .labels import LabelError, pages_text, set_command
 
+LABEL_COMMANDS = ("show", "set", "clear", "copy")
 COMMANDS = ("show", "set", "clear", "copy", "view", "header-footer", "watermark", "pages", "completion",
             "interface")
 
@@ -44,7 +46,7 @@ III), a or letters (a, b, c), A or LETTERS (A, B, C), f or folio (1r, 1v,
 2r: the recto and verso of each leaf; START is a leaf and its side, as
 12v), - or none (the prefix only).
 
-Folios and suffixes are not page label styles of PDF: py-foliation writes
+Folios and suffixes are not page label styles of PDF: py-pdftools writes
 them as one label for each page, and recognises them when it reads the
 file.
 
@@ -61,7 +63,7 @@ first page alone, as the cover of a book), cover-continuous.
 Page views: actual-size (the size it would be printed), fit-width, fit-page,
 or a percentage (150%).
 
-For instance: py-foliation view book.pdf --layout cover --page-view fit-page
+For instance: py-pdftools view book.pdf --layout cover --page-view fit-page
 --open-at 9 -i""")
 
 
@@ -79,7 +81,7 @@ Margins are the distances from the edges of the page to the header, the
 footer and the text at the sides. --shrink scales the content of the pages
 down so that the header and footer don't cover it.
 
-A header and footer added to a page replaces those py-foliation added
+A header and footer added to a page replaces those py-pdftools added
 before, unless --add keeps them; --update replaces the last one added, with
 its settings and the options given; --remove takes them away (--remove-bates
 only those with Bates numbers), putting the pages back as they were. With
@@ -87,7 +89,7 @@ several files, the Bates numbers go on from one file to the next, in the
 order given. Profiles keep settings to use again (--save-profile NAME, then
 --profile NAME); the options given are laid over those of the profile.
 
-For instance: py-foliation header-footer book.pdf --footer-center 'Page
+For instance: py-pdftools header-footer book.pdf --footer-center 'Page
 $pagelabel of $totalpages' --header-right '$date' --pages 9- -i""")
 
 
@@ -103,11 +105,11 @@ behind the content of the pages (where a page painted white would hide it).
 --no-print or --no-screen shows it only on the screen or only when
 printing, in viewers that follow such settings.
 
-A watermark added to a page replaces those py-foliation added before,
+A watermark added to a page replaces those py-pdftools added before,
 unless --add keeps them; --update replaces the last one added; --remove
 takes them away, putting the pages back as they were.
 
-For instance: py-foliation watermark book.pdf --text DRAFT --opacity 30%
+For instance: py-pdftools watermark book.pdf --text DRAFT --opacity 30%
 --scale 60 -i""")
 
 
@@ -126,7 +128,7 @@ deleted go to the page after it.
 --split-every and --split-at save the result as several files, named as the
 input with -1, -2 ... (in --output-dir, if given).
 
-For instance: py-foliation pages book.pdf --move 201-214 9 --delete LAST
+For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST
 --rotate even 90 -i""")
 
 
@@ -144,7 +146,7 @@ def translate_paragraphs(text: str) -> str:
     return "\n\n".join(tr(par) for par in text.split("\n\n"))
 
 
-def build_parser(prog: str = "py-foliation") -> argparse.ArgumentParser:
+def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
     from .. import __version__
 
     common = argparse.ArgumentParser(add_help=False)
@@ -206,12 +208,12 @@ def build_parser(prog: str = "py-foliation") -> argparse.ArgumentParser:
                                formats=", ".join(stamps.DATE_FORMATS)))
         g = sp.add_argument_group(tr("adding, updating and removing"))
         g.add_argument("--add", action="store_true",
-                       help=tr("keep the {what} py-foliation added to the pages before (else they are replaced)",
+                       help=tr("keep the {what} py-pdftools added to the pages before (else they are replaced)",
                                what=what))
         g.add_argument("--update", action="store_true",
                        help=tr("replace the last {what} added, with its settings and the options given", what=what))
         g.add_argument("--remove", action="store_true",
-                       help=tr("take away the {what} py-foliation added (on --pages, or all)", what=what))
+                       help=tr("take away the {what} py-pdftools added (on --pages, or all)", what=what))
         g = sp.add_argument_group(tr("profiles"))
         g.add_argument("--profile", metavar=tr("NAME"), help=tr("start from the settings of this profile"))
         g.add_argument("--save-profile", metavar=tr("NAME"), help=tr("keep these settings as a profile"))
@@ -395,9 +397,9 @@ def build_parser(prog: str = "py-foliation") -> argparse.ArgumentParser:
     output_options(sp, tr("show what the pages would be, without writing anything"))
 
     sp = sub.add_parser("completion", parents=[common], help=tr("print the completion script of a shell"),
-                        description=tr("Print the script that completes py-foliation's commands, options and "
-                                       "files in SHELL. For instance: py-foliation completion fish > "
-                                       "~/.config/fish/completions/py-foliation.fish"))
+                        description=tr("Print the script that completes py-pdftools's commands, options and "
+                                       "files in SHELL. For instance: py-pdftools completion fish > "
+                                       "~/.config/fish/completions/py-pdftools.fish"))
     sp.add_argument("shell", choices=["bash", "fish", "zsh"], metavar=tr("SHELL"),
                     help=tr("bash, fish or zsh"))
 
@@ -408,6 +410,8 @@ def build_parser(prog: str = "py-foliation") -> argparse.ArgumentParser:
     sp.add_argument("language", nargs="?", choices=sorted(interface.names()),
                     help=tr("the language to use from now on; without it, the languages are listed and the "
                             "one in use is marked"))
+    for name in LABEL_COMMANDS:  # (in the command line of py-pdftools, they are 'labels show' ...)
+        sub.choices[name].prog = f"{prog} labels {name}"
     return parser
 
 
@@ -471,10 +475,10 @@ def print_ranges(path: Path, ranges: list[labels.Range], n: int, shown: view.Vie
 
 
 def print_additions(added: list[stamps.Addition]) -> None:
-    """What py-foliation added to the pages of a file (its headers and footers, and watermarks)."""
+    """What py-pdftools added to the pages of a file (its headers and footers, and watermarks)."""
     if not added:
         return
-    print(tr("Added to the pages by py-foliation:"))
+    print(tr("Added to the pages by py-pdftools:"))
     for a in added:
         what = tr("header and footer") if a.kind == stamps.HEADER_FOOTER else tr("watermark")
         if a.bates:
@@ -586,7 +590,7 @@ def set_labels(a) -> int:
     if not inputs:
         raise LabelError(tr("no PDF given (the files must end in .pdf)"))
     if not (compact or named or a.remove or a.from_file):
-        raise LabelError(tr("no ranges given (see py-foliation set -h)"))
+        raise LabelError(tr("no ranges given (see py-pdftools labels set -h)"))
     listed = read_list(a.from_file) if a.from_file else None
 
     def make(pdf, n):
@@ -903,7 +907,7 @@ def stamp_command(a, kind: str) -> int:
         elif a.update:
             last = module.last(pdf)
             if last is None:
-                raise LabelError(tr("{path} has no {what} added by this version of py-foliation to update",
+                raise LabelError(tr("{path} has no {what} added by this version of py-pdftools to update",
                                     path=pdf.filename, what=tr("header and footer") if kind == stamps.HEADER_FOOTER
                                     else tr("watermark")))
             change = Change(stamp_settings(a, kind, module, last[1]), replaces=last[0])
@@ -934,8 +938,10 @@ def watermark_command(a) -> int:
 
 
 def completion(a) -> int:
-    from .completion import script
-    print(script(a.shell, build_parser()), end="")
+    from ..cli import build_parser as whole
+    from ..cli.completion import script
+
+    print(script(a.shell, whole()), end="")
     return 0
 
 
@@ -963,7 +969,7 @@ def main(argv: list[str] | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     interface.use_configured(interface_option(argv))
     interface.translate_argparse()
-    # "py-foliation file.pdf ..." -> show
+    # "py-pdftools file.pdf ..." -> show
     words = [t for i, t in enumerate(argv) if not t.startswith("-") and (i == 0 or argv[i - 1] != "--interface")]
     first = words[0] if words else None
     if first and first not in COMMANDS and first.lower().endswith(".pdf"):

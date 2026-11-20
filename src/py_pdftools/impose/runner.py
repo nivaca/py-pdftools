@@ -39,7 +39,7 @@ def global_parent() -> argparse.ArgumentParser:
     return p
 
 
-def build_parser(prog: str = "py-imposition") -> argparse.ArgumentParser:
+def build_parser(prog: str = "py-pdftools impose") -> argparse.ArgumentParser:
     parent = global_parent()
     parser = argparse.ArgumentParser(
         prog=prog,

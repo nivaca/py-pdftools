@@ -3672,8 +3672,8 @@ siguiente.</tr>
     <tr>la salida es el archivo de entrada; use --in-place para cambiarlo</tr>
   </text>
   <text>
-    <en>no ranges given (see py-pdftools set -h)</en>
-    <tr>no se indicó ningún intervalo (vea py-pdftools set -h)</tr>
+    <en>no ranges given (see py-pdftools labels set -h)</en>
+    <tr>no se indicó ningún intervalo (vea py-pdftools labels set -h)</tr>
   </text>
   <text>
     <en>pages {first}-{last}</en>
@@ -9188,5 +9188,21 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>the gutters push the pages off the sheet: make them or the margins smaller</en>
     <tr>los medianiles empujan las páginas fuera del pliego: redúzcalos, o reduzca los márgenes</tr>
+  </text>
+  <text>
+    <en>Edit PDF documents from the command line: their page labels, how they open, headers, footers and watermarks, the order of their pages, and their imposition for printing. The window (py-pdftools-gui) also annotates and redacts them.</en>
+    <tr>Edita documentos PDF desde la línea de órdenes: sus etiquetas de página, cómo se abren, los encabezados, los pies de página y las marcas de agua, el orden de sus páginas y su imposición para imprenta. La ventana (py-pdftools-gui) además los anota y los censura.</tr>
+  </text>
+  <text>
+    <en>Run '%(prog)s COMMAND -h' for help on a command.</en>
+    <tr>Ejecute '%(prog)s ORDEN -h' para ver la ayuda de una orden.</tr>
+  </text>
+  <text>
+    <en>show, set, clear or copy the page labels of PDFs</en>
+    <tr>mostrar, poner, quitar o copiar las etiquetas de página de los PDF</tr>
+  </text>
+  <text>
+    <en>impose pages for printing: booklets, n-up, step and repeat, bleeds, stamps, sequences and hot folders</en>
+    <tr>imponer páginas para imprimir: folletos, n-up, paso y repetición, sangrados, sellos, secuencias y carpetas vigiladas</tr>
   </text>
 </interface>

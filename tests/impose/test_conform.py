@@ -10,9 +10,15 @@ import pytest
 
 from py_pdftools.core import config, conform
 
-from py_pdftools.impose import main
+from py_pdftools.cli import main as pdftools_main
+
 from py_pdftools.impose import pdfutil
 from py_pdftools.impose.runner import build_parser, strip_io
+
+
+def main(argv: list[str]) -> int:
+    """py-imposition's command line, as 'py-pdftools impose'."""
+    return pdftools_main(["impose", *argv])
 
 HAVE_PDFCONFORM = shutil.which("pdf2iso") is not None
 

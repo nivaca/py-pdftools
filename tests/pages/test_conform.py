@@ -13,7 +13,7 @@ from py_pdftools.core import config, conform, interface
 
 from py_pdftools.pages import labels
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.labels import Range
 
 HAVE = shutil.which("pdf2iso") is not None

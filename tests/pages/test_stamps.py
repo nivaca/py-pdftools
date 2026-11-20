@@ -17,7 +17,7 @@ from py_pdftools.core import config, interface
 
 from py_pdftools.pages import files, headfoot, labels, stamps, watermark
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.changes import Change
 from py_pdftools.pages.headfoot import HeaderFooter
 from py_pdftools.pages.labels import LabelError, Range

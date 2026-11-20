@@ -12,7 +12,7 @@ from py_pdftools.core import config, interface
 
 from py_pdftools.pages import labels
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.labels import Range
 
 EXAMPLE = Path(__file__).resolve().parents[2] / "docs" / "example" / "numbers-100.pdf"
@@ -63,9 +63,9 @@ def test_set_replaces_or_keeps(book):
 def test_show(book, capsys):
     main(["set", str(book), "1:r", "9:D", "-i"])
     capsys.readouterr()
-    assert main([str(book)]) == 0  # ("py-foliation file.pdf": show)
+    assert main([str(book)]) == 0  # ("py-pdftools labels file.pdf": show)
     out = capsys.readouterr().out
-    assert "pages 1-8" in out and "i … viii" in out and "py-foliation set FILE.pdf 1:r 9:D" in out
+    assert "pages 1-8" in out and "i … viii" in out and "py-pdftools labels set FILE.pdf 1:r 9:D" in out
     assert main(["show", "--all", str(book)]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert len(lines) == 100 and lines[8].split() == ["9", "1"]

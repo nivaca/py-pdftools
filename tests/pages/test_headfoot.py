@@ -1,4 +1,4 @@
-"""Tests of headers and footers (headfoot.py, and 'py-foliation header-footer')."""
+"""Tests of headers and footers (headfoot.py, and 'py-pdftools header-footer')."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from py_pdftools.core import config, interface
 
 from py_pdftools.pages import headfoot, labels, stamps
 
-from py_pdftools.pages.cli import main
+from foliation_argv import main
 from py_pdftools.pages.headfoot import HeaderFooter
 from py_pdftools.pages.labels import LabelError, Range
 
