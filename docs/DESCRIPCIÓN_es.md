@@ -22,7 +22,7 @@ La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-fo
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 103 archivos de Python, unas 31 000 líneas (una décima parte, comentarios), y 2228 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 103 archivos de Python, unas 31 300 líneas (una décima parte, comentarios), y 2231 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -36,6 +36,8 @@ Los dos analizadores de argumentos no se reescribieron: sus órdenes se injertar
 
 Cada cambio del documento escribe primero el documento con sus anotaciones, hace el cambio con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página, de modo que Deshacer recorre por igual los cambios de las anotaciones y los del documento.
 
+Las copias de trabajo están en la carpeta de caché (`~/.cache/py-pdftools/work`), en el disco, y no en la carpeta temporal: en Fedora, /tmp está en la memoria, y cada cambio de un documento de 1 GB ocupaba otro gigabyte de RAM. El historial guarda los diez últimos cambios del documento.
+
 ### Documentos con miles de anotaciones
 
 Con un libro de 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos, porque las anotaciones se leían dos veces. Ahora la ventana guarda las anotaciones tal como las tiene el archivo que muestra, y las etiquetas, que son solo una entrada del catálogo, las escribe PyMuPDF al escribir las anotaciones, sin renumerar los objetos: el cambio tarda 0,3 segundos, y deshacer, menos de una décima. Quitar las anotaciones de la copia que se dibuja y leerlas se hace por los números de sus objetos, sin cargar las que ya se conocen.
@@ -48,13 +50,17 @@ pdf2iso, el programa del autor que hace las copias PDF/A y PDF/X, era un program
 
 El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su prefijo, y mostraba «ageLabeli». La ventana y las exportaciones leen ahora las etiquetas con el motor de py-foliation.
 
+### Documentos grandes
+
+Para los documentos grandes se estudió el código de PDFCraft, un editor escrito en Rust, y se tomaron cuatro ideas. Los procesos que dibujan las páginas son varios por carril, y una página que tarda más de 20 segundos, o que hace caer su proceso, se muestra en gris con la causa y no se vuelve a intentar. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom, la página se dibuja entera a 2048 píxeles como máximo, y la parte que se ve, en teselas de 1024 píxeles a la escala completa.
+
 ### Una sola copia de cada cosa
 
 Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y colores, las palabras bajo el ratón, las matrices de PDF (tres veces), la orden `interface`, los campos comunes de encabezados y marcas de agua, el campo de pdf2iso en tres diálogos de ajustes, un botón y un menú de colores. Se buscaron con pylint y comparando la sintaxis de cada función, y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`, `stamps.StampSettings`, `gui/conform_field.py`, entre otros).
 
 ## Validación
 
-Hay 407 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 415 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

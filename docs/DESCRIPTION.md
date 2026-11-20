@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in thirteen stages.
+py-imposition. Here I explain how it was made, in fourteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -275,10 +275,46 @@ the tests that need them are skipped where they are missing, the text of
 headers and watermarks is read with PyMuPDF, and the temporary folders are
 removed even with a file still open.
 
+14. Large documents
+-------------------
+
+I was told that large documents gave trouble, and could not see it at
+first: a document of 5,000 pages opened in half a second, and one of 1 GB of
+scanned pages in two hundredths, since PyMuPDF reads the pages only when it
+needs them. What was slow came after. The thumbnails of 200 scanned pages
+took 30 seconds, one at a time, each decoding the whole picture of its page.
+At a deep zoom a page was drawn whole, up to 40 million pixels, and enlarged
+beyond that, so it went blurred. A page that took too long held its process,
+and one that made the process die sent every later page to be drawn in the
+window itself, which could die with the next. And, the worst of it, the
+working copies were in /tmp, which on Fedora is in memory: each change of a
+1 GB document kept another gigabyte of RAM, for undo.
+
+To see how another editor does it I read the code of PDFCraft, an editor
+written in Rust, with four agents, one for each part. It holds the whole
+file in memory (two or three copies while it edits), which py-pdftools
+needn't do; but it orders its work better, and I took four things from it.
+Each lane of the rendering processes now has several, and a page that takes
+more than 20 seconds, or makes its process die, is shown grey with the
+reason, its process replaced, and is not tried again. Only the thumbnails
+near those in view are made, after the pages in view, and those far away
+are forgotten beyond 400: the ones in view are ready in less than a second.
+A page that would be longer than 4,096 pixels is drawn whole at most 2,048
+pixels long, and the part in view in tiles of 1,024 pixels at the full
+scale. The working copies went to the cache folder, on disk; a change made
+with pikepdf starts from the file shown when it has the annotations already,
+one write of the whole document less; and the history keeps the last ten
+changes of the document.
+
+On the way I found that the scripts of the virtual environment still named
+the folder where the project was before, so `pytest` ran with the system's
+Python and the installed package, not this one; `uv sync --reinstall`
+wrote them again.
+
 Testing
 -------
 
-The program has 407 tests (`uv run pytest`): those of the four programs,
+The program has 415 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -290,6 +326,6 @@ written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 103 files of Python, around 31,000
-lines (about a tenth of them comments), and 2,228 texts of the interface
+made for the test. The program has 103 files of Python, around 31,300
+lines (about a tenth of them comments), and 2,231 texts of the interface
 in Spanish.
