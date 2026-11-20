@@ -10381,4 +10381,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Yellow on black</en>
     <tr>Amarillo sobre negro</tr>
   </text>
+  <text>
+    <en>Full screen</en>
+    <tr>Pantalla completa</tr>
+  </text>
+  <text>
+    <en>The pages one at a time, full screen, as a presentation: arrows or a click turn them, Escape ends it</en>
+    <tr>Las páginas de una en una, a pantalla completa, como una presentación: las flechas o un clic las pasan, Escape termina</tr>
+  </text>
+  <text>
+    <en>This document asks to be shown full screen, as a presentation. Show it so?</en>
+    <tr>Este documento pide mostrarse a pantalla completa, como una presentación. ¿Mostrarlo así?</tr>
+  </text>
 </interface>

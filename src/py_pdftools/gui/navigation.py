@@ -11,7 +11,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote
 
 import pymupdf
-from PySide6.QtCore import QUrl
+from PySide6.QtCore import QTimer, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox
 
@@ -148,6 +148,8 @@ class NavigationMixin:
             self.outline_dock.show()
         elif kind == "name" and mode == "/UseThumbs":
             self.a_thumbs.setChecked(True)
+        elif kind == "name" and mode == "/FullScreen" and self.ask_full_screen():
+            QTimer.singleShot(0, self.present)  # (once the window shows the document)
         try:
             opening = self.pages_state().opening
         except Exception:  # (a document whose catalog can't be read as pikepdf reads it: shown at its start)
@@ -165,6 +167,11 @@ class NavigationMixin:
             self.canvas.set_zoom(float(zoom) / 100)
         page = (opening.page or 1) - 1
         self.go_place(max(0, min(page, self.count - 1)), remember=False)
+
+    def ask_full_screen(self) -> bool:
+        return QMessageBox.question(self, tr("Full screen"), tr("This document asks to be shown full screen, as a "
+                                                                "presentation. Show it so?")) \
+            == QMessageBox.StandardButton.Yes
 
     def follow_link(self, page: int, link: dict) -> bool:
         """Follow LINK (clicked on PAGE): to a place of the document, to another PDF, or (asked first) to a

@@ -565,6 +565,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
         self.a_cover.setEnabled(self.canvas.spread)
         m.addAction(self.a_cover)
+        self.a_present = self._action(m, tr("Full screen"), self.present, "F11",
+                                      tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
+                                             "click turn them, Escape ends it"))
         # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
         colours = m.addMenu(tr("Reading colours"))
         colours.setToolTipsVisible(True)
@@ -2004,6 +2007,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         name = str(self.settings.value("reading", ""))
         for key, act in self.reading_actions.items():
             act.setChecked(key == name)
+
+    def present(self, page: int | None = None):
+        """Full screen, as a presentation, from PAGE (else the page shown): see presentation.py."""
+        from .presentation import Presentation
+
+        if self.doc is None:
+            return None
+        self.presentation = Presentation(self, self.page if page is None else page, self.canvas.spread)
+        # Al salir, la ventana muestra la página a la que se llegó.
+        self.presentation.ended.connect(lambda n: self.show_page(n))
+        self.presentation.start()
+        return self.presentation
 
     def turn_view(self, degrees: int):
         """Turn the view DEGREES more (the file stays as it is); the page shown stays in view."""

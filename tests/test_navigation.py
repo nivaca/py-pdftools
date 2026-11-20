@@ -458,3 +458,45 @@ def test_reading_colours(window, monkeypatch):
     other.close()
     window.reading_actions[""].trigger()
     assert reading.TINT is None and corner().lightness() > 240
+
+
+def test_full_screen_presentation(window, book):
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QKeyEvent
+
+    window.show_page(1)
+    show = window.present()
+    assert show.isFullScreen() and show.page == 1 and show.image is not None
+
+    def key(k):
+        show.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, k, Qt.KeyboardModifier.NoModifier))
+
+    key(Qt.Key.Key_Right)
+    key(Qt.Key.Key_Space)
+    assert show.page == 3
+    key(Qt.Key.Key_Left)
+    assert show.page == 2
+    key(Qt.Key.Key_End)
+    assert show.page == window.count - 1
+    key(Qt.Key.Key_Home)
+    key(Qt.Key.Key_Down)
+    key(Qt.Key.Key_Escape)
+    assert not show.isVisible() and window.page == 1  # (the window, at the page reached)
+
+
+def test_a_presentation_with_timed_pages(window, tmp_path):
+    path = tmp_path / "slides.pdf"
+    doc = pymupdf.open()
+    for _ in range(3):
+        page = doc.new_page()
+        doc.xref_set_key(page.xref, "Dur", "2")
+        doc.xref_set_key(page.xref, "Trans", "<</S/Fade/D 0.3>>")
+    doc.save(path)
+    assert window.open_path(path)
+    show = window.present(0)
+    assert show.timed.isActive() and show.timed.interval() == 2000
+    show.timed.timeout.emit()  # (the time is up: the next page, fading in)
+    assert show.page == 1 and show.previous is not None and show.fader.isActive()
+    show.show_page(2)
+    assert not show.timed.isActive()  # (the last page stays)
+    show.close()
