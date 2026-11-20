@@ -803,18 +803,23 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         """What a new window needs to carry on with the same document."""
         self.canvas.commit_text()
         self.keep_comment()
-        # TODO: el estado no lleva la copia de trabajo (self.work): la ventana nueva abre el archivo original, se
-        # pierden los cambios del modo Páginas sin guardar, y los DocState del historial apuntan a la carpeta
-        # temporal de la ventana vieja.
-        return {"path": self.path, "password": self.password, "annotations": self.annotations,
-                "saved": self.saved, "undo": self.undo_stack, "redo": self.redo_stack, "page": self.page,
-                "tool": self.canvas.mode}
+        # La copia de trabajo y su carpeta pasan a la ventana nueva (los DocState del historial están en ella);
+        # la vieja la suelta, para no borrarla al irse.
+        state = {"path": self.path, "password": self.password, "annotations": self.annotations,
+                 "saved": self.saved, "undo": self.undo_stack, "redo": self.redo_stack, "page": self.page,
+                 "tool": self.canvas.mode, "work": self.work, "work_dir": self._work_dir, "works": self._works}
+        self.work, self._work_dir = None, None
+        return state
 
     def adopt_state(self, state: dict):
         self.set_tool(state["tool"])
         if state["path"] is None or self._load(state["path"], state["password"]) is None:
             self.refresh()
             return
+        if state.get("work") is not None:  # (shown from the working copy, as the old window showed it)
+            self._work_dir, self._works = state["work_dir"], state["works"]
+            if self._load_work(state["work"], state["page"]) is None:
+                self.drop_work()
         # The annotations of the old window replace those just read: they include the changes not yet saved.
         self.annotations, self.saved = list(state["annotations"]), list(state["saved"])
         self.undo_stack, self.redo_stack = list(state["undo"]), list(state["redo"])

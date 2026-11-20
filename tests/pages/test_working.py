@@ -138,3 +138,28 @@ def test_save_as_after_undoing_a_change_of_the_document(window, tmp_path):
     out = tmp_path / "copy.pdf"
     assert window.save_to(out)
     assert [a.type[1] for a in pymupdf.open(out)[2].annots()] == ["Square"]
+
+
+def test_change_of_language_keeps_the_working_copy(window, sample):
+    """The window built again in another language carries on from the working copy, with its history."""
+    from py_pdftools.core import interface
+    from py_pdftools.gui import window as window_module
+
+    window.add(Annotation("rect", 2, (100, 200, 200, 300), "#ff0000"))
+    assert window.transform(labels.write_labels, [Range(1, "r")])
+    work = window.work
+    before = interface.code()
+    window.change_language("es" if before != "es" else "en")
+    new = window_module._WINDOWS[-1]
+    try:
+        assert new is not window and new.work == work and work.is_file()
+        assert new.path == sample and new.page_labels()[:3] == ["i", "ii", "iii"]
+        assert len(new.annotations) == 1
+        new.undo()  # (the change of labels, undone from the new window)
+        assert new.work is None and new.page_labels()[0] == "1"
+    finally:
+        new.change_language(before) if interface.code() != before else None
+        last = window_module._WINDOWS[-1]
+        last.annotations = last.saved = []
+        last.drop_work()
+        last.close()
