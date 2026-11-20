@@ -10,8 +10,8 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        0.1.0
-Release:        2%{?dist}
+Version:        0.2.0
+Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
 License:        GPL-3.0-or-later
@@ -96,6 +96,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Fri Nov 20 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.2.0-1
+- Modes Read, Redact, Annotate, Foliate and Impose, each with its own
+  arrangement of the window; pdf2iso included (only Ghostscript is needed for
+  PDF/A and PDF/X); fixes, and the duplicated code joined
+
 * Fri Nov 20 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 0.1.0-2
 - The tests need qpdf and pdftotext to build (Copr)
 
