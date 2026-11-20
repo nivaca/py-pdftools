@@ -30,7 +30,9 @@ class ImposeMixin:
         self._impose_key = None  # (what the source given to the workspace was made from)
         self.menuBar().insertMenu(self.m_layers.menuAction(), self.workspace.menu)
         self.hints[KIND] = ""
+        # (the pages are not shown: nothing to find, to move through or to zoom)
         return Mode(KIND, lambda a: False, menus=[self.workspace.menu.menuAction()],
+                    without=("find", "navigation", "zoom"),
                     entered=self._impose_entered, left=self._impose_left)
 
     def _impose_entered(self):

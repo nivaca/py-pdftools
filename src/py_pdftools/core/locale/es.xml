@@ -448,10 +448,6 @@
     <tr>La configuración se guarda en {path}</tr>
   </text>
   <text>
-    <en>Tools</en>
-    <tr>Herramientas</tr>
-  </text>
-  <text>
     <en>Underline</en>
     <tr>Subrayado</tr>
   </text>
@@ -9024,5 +9020,41 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Right side</en>
     <tr>Derecho</tr>
+  </text>
+  <text>
+    <en>Drawing</en>
+    <tr>Dibujo</tr>
+  </text>
+  <text>
+    <en>File</en>
+    <tr>Archivo</tr>
+  </text>
+  <text>
+    <en>Headers and watermarks</en>
+    <tr>Encabezados y marcas de agua</tr>
+  </text>
+  <text>
+    <en>Navigation</en>
+    <tr>Navegación</tr>
+  </text>
+  <text>
+    <en>Notes and text</en>
+    <tr>Notas y texto</tr>
+  </text>
+  <text>
+    <en>Redacted copy</en>
+    <tr>Copia censurada</tr>
+  </text>
+  <text>
+    <en>Selection</en>
+    <tr>Selección</tr>
+  </text>
+  <text>
+    <en>Shapes</en>
+    <tr>Formas</tr>
+  </text>
+  <text>
+    <en>Text markup</en>
+    <tr>Marcas de texto</tr>
   </text>
 </interface>

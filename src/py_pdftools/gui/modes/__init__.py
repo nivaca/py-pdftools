@@ -37,5 +37,6 @@ class Mode:
     docks: list = dataclasses.field(default_factory=list)  # QDockWidget
     menus: list = dataclasses.field(default_factory=list)  # QAction of a menu of the menu bar
     actions: list = dataclasses.field(default_factory=list)  # QAction: enabled only in the mode
+    without: tuple = ()  # the object names of toolbars of every mode it has no use for (hidden while it is on)
     entered: Callable[[], None] = lambda: None  # (called when the mode is turned on)
     left: Callable[[], None] = lambda: None  # (and off)

@@ -81,10 +81,13 @@ TOOLS = [
      ("cloud", "draw-cloud", N_("Drag on the page to draw a cloud")),
      ("line", "draw-line", N_("Drag on the page to draw a line")),
      ("arrow", "draw-arrow", N_("Drag on the page to draw an arrow")),
-     ("polyline", "draw-polyline", N_("Click each point; double-click, or press Enter, to end")),
-     ("ink", "draw-freehand", N_("Draw on the page by hand (with a tablet's pen, pressing harder draws wider)")),
+     ("polyline", "draw-polyline", N_("Click each point; double-click, or press Enter, to end"))],
+    [("ink", "draw-freehand", N_("Draw on the page by hand (with a tablet's pen, pressing harder draws wider)")),
      ("marker", "draw-marker", N_("Highlight by hand, where there is no text to drag over"))],
 ]
+# the toolbar of each group of TOOLS (object name, title)
+TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
+             ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
 TOOL_NAMES = {"select": N_("Select"), "hand": N_("Hand"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
               "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature")}
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
@@ -510,35 +513,57 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
                           (self.a_zoom_in, "zoom-in"), (self.a_copy, "edit-copy"), (self.a_paste, "edit-paste"),
                           (self.a_find, "edit-find"), (self.a_print, "document-print")):
             act.setIcon(icon(name))
-        bar = QToolBar(tr("Document"))
-        self.toolbar = bar
-        bar.setObjectName("document")
-        bar.setIconSize(QSize(22, 22))
-        for act in (self.a_open, self.a_save, self.a_print, None, self.a_undo, self.a_redo, self.a_delete, None,
-                    self.a_find, None, self.a_prev, self.a_next, None, self.a_fit, self.a_fit_width, self.a_zoom_out,
-                    self.a_zoom_in):
-            if act is None:
-                bar.addSeparator()
-            else:
-                bar.addAction(act)
-        self.addToolBar(bar)
-        tools = QToolBar(tr("Tools"))
-        self.tools_bar = tools
-        tools.setObjectName("tools")
-        tools.setIconSize(QSize(22, 22))
-        for i, group_ in enumerate(TOOLS):
-            if i:
-                tools.addSeparator()
-            for tool, _, _ in group_:
-                tools.addAction(self.tool_actions[tool])
-                button = tools.widgetForAction(self.tool_actions[tool])
+        # the toolbars of every mode, one for each kind of work: the file, editing, finding, moving through
+        # the pages, and zooming (each mode adds its own, on the row below)
+        self.common_bars = [
+            self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
+            self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
+            self.toolbar_of("find", tr("Find"), [self.a_find]),
+            self.toolbar_of("navigation", tr("Navigation"), [self.a_prev, self.a_next, self.tool_actions["hand"]]),
+            self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
+        ]
+        self.addToolBarBreak()
+        # those of the mode Annotate: a toolbar for each group of tools (the hand is in Navigation)
+        self.tool_bars = []
+        for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
+            tools = [tool for tool, _, _ in group_ if tool != "hand"]
+            bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
+            for tool in tools:
+                button = bar.widgetForAction(self.tool_actions[tool])
                 button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
                 button.customContextMenuRequested.connect(
                     lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
-        self.addToolBarBreak()
-        self.addToolBar(tools)
+            self.tool_bars.append(bar)
         self.apply_shortcuts()
         self.show_labels(self.settings.value("toolbar_labels", "false") == "true")
+
+    def toolbar_of(self, name: str, title: str, actions: list) -> QToolBar:
+        """A new toolbar NAME (its object name, which keeps its place between sessions), with ACTIONS."""
+        bar = QToolBar(title, self)
+        bar.setObjectName(name)
+        bar.setIconSize(QSize(22, 22))
+        for act in actions:
+            bar.addAction(act)
+        self.addToolBar(bar)
+        return bar
+
+    def toolbars(self) -> list[QToolBar]:
+        """The toolbars of the window (not those of the workspace of Impose, inside it)."""
+        return [bar for bar in self.findChildren(QToolBar) if bar.parent() is self]
+
+    def createPopupMenu(self) -> QMenu:
+        """The menu of the toolbars and panels (a right click on them): only those of the mode on, and of all."""
+        menu = QMenu(self)
+        mode = self.modes.get(self.mode) if hasattr(self, "modes") else None
+        others = {id(b) for m in getattr(self, "modes", {}).values() if m is not mode for b in m.bars + m.docks}
+        for bar in self.toolbars():
+            if id(bar) not in others and bar is not getattr(self, "modes_bar", None):
+                menu.addAction(bar.toggleViewAction())
+        if mode is not None and mode.docks:
+            menu.addSeparator()
+            for dock in mode.docks:
+                menu.addAction(dock.toggleViewAction())
+        return menu
 
     def apply_shortcuts(self):
         """The keys of the settings, given to the actions."""
@@ -555,7 +580,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
     def _build_modes(self):
         """The modes (see modes/), and the bar that chooses one (Ctrl+1, Ctrl+2 ...)."""
         self.modes: dict[str, Mode] = {
-            "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=[self.tools_bar], docks=[self.panel],
+            "annotate": Mode("annotate", lambda a: a.kind != "redact", bars=list(self.tool_bars), docks=[self.panel],
                              menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
                              actions=[act for tool, act in self.tool_actions.items()
                                       if tool not in ("select", "hand")]),
@@ -564,6 +589,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
         self.modes["pages"] = self._build_pages()
         self.modes["impose"] = self._build_impose()
         self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
+        self._bars_shown: dict[str, set] = {}  # mode -> its toolbars that were shown when it was left
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
         bar.setObjectName("modes")
@@ -578,7 +604,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             group.addAction(act)
             bar.addAction(act)
             self.mode_actions[key] = act
-        self.insertToolBar(self.toolbar, bar)
+        self.insertToolBar(self.common_bars[0], bar)
 
     def unmarked(self) -> list[Annotation]:
         """The annotations without the redaction boxes: for copies that make the annotations part of the
@@ -616,13 +642,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
             self.canvas.commit_text()
             self.canvas.cancel_polygon()
             self._docks_shown[old.key] = {id(d) for d in old.docks if d.isVisible()}
+            self._bars_shown[old.key] = {id(b) for b in old.bars if b.isVisible()}
             old.left()
         self.mode = key
         mode = self.modes[key]
+        if old is None or old.without != mode.without:
+            for bar in self.common_bars:
+                bar.setVisible(bar.objectName() not in mode.without)
+        shown_bars = self._bars_shown.get(key)
         for other in self.modes.values():
             on = other is mode
             for bar in other.bars:
-                bar.setVisible(on)
+                bar.setVisible(on and (shown_bars is None or id(bar) in shown_bars))
             for act in other.menus:
                 act.setVisible(on)
             for act in other.actions:
@@ -949,7 +980,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def show_labels(self, on: bool):
         """Icons with their names under them in the toolbars, or (by default) only icons."""
-        for bar in (self.toolbar, self.tools_bar):
+        for bar in self.toolbars():
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon if on
                                    else Qt.ToolButtonStyle.ToolButtonIconOnly)
         self.a_labels.blockSignals(True)
@@ -959,9 +990,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, WorkingMixin, FilesMixin,
 
     def _toolbar_tips(self):
         """The tooltip of each button of the toolbars: what it does, and its shortcut."""
-        for bar in (getattr(self, "toolbar", None), getattr(self, "tools_bar", None)):
-            if bar is None:
-                continue
+        for bar in self.toolbars():
             for act in bar.actions():
                 if act.isSeparator():
                     continue

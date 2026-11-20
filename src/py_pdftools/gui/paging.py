@@ -16,11 +16,11 @@ import dataclasses
 from pathlib import Path
 
 import pikepdf
-from PySide6.QtCore import QSize, Qt, QTimer
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QKeySequence
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QDialog, QDockWidget, QFileDialog, QHBoxLayout, QHeaderView, QInputDialog,
-    QLabel, QLineEdit, QListWidgetItem, QMenu, QPushButton, QTableWidget, QToolBar, QVBoxLayout, QWidget,
+    QLabel, QLineEdit, QListWidgetItem, QMenu, QPushButton, QTableWidget, QVBoxLayout, QWidget,
 )
 
 from ..annotate import annots
@@ -139,16 +139,8 @@ class PagesMixin:
                             "once, the Bates numbers going on from one file to the next"))
         self.menuBar().insertMenu(self.m_layers.menuAction(), m)
 
-        bar = QToolBar(tr("Pages"))
-        bar.setObjectName("pages")
-        bar.setIconSize(QSize(22, 22))
-        for a in (self.tool_actions["select"], self.tool_actions["hand"], None, *self.page_actions, None,
-                  self.a_headfoot, self.a_watermark):
-            if a is None:
-                bar.addSeparator()
-            else:
-                bar.addAction(a)
-        self.addToolBar(bar)
+        bars = [self.toolbar_of("arrange-pages", tr("Arrange pages"), self.page_actions),
+                self.toolbar_of("layers", tr("Headers and watermarks"), [self.a_headfoot, self.a_watermark])]
 
         dock = QDockWidget(tr("Pages and their labels"), self)
         dock.setObjectName("labels")
@@ -159,7 +151,7 @@ class PagesMixin:
                               "move them (with Ctrl, to copy them), or drop PDFs to insert their pages. Double-click "
                               "a page to start a range of labels at it; change a range in the table above.")
         # (the page actions: always in the toolbar, and only while the mode is on)
-        return Mode(KIND, lambda a: False, bars=[bar], docks=[dock], menus=[m.menuAction()],
+        return Mode(KIND, lambda a: False, bars=bars, docks=[dock], menus=[m.menuAction()],
                     actions=[*self.page_actions, self.a_headfoot, self.a_watermark], entered=self._pages_entered)
 
     def _pages_panel(self) -> QWidget:

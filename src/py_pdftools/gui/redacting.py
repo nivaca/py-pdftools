@@ -17,12 +17,11 @@ from __future__ import annotations
 import dataclasses
 from pathlib import Path
 
-from PySide6.QtCore import QItemSelection, QItemSelectionModel, Qt, QSize
+from PySide6.QtCore import QItemSelection, QItemSelectionModel, Qt
 from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QKeySequence
 from PySide6.QtWidgets import (
     QAbstractItemView, QColorDialog, QComboBox, QDialog, QDockWidget, QFileDialog, QFormLayout, QHeaderView,
-    QInputDialog, QLabel, QLineEdit, QMenu, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QToolBar,
-    QToolButton, QVBoxLayout, QWidget,
+    QInputDialog, QLabel, QLineEdit, QMenu, QMessageBox, QPushButton, QTableWidget, QTableWidgetItem, QToolButton, QVBoxLayout, QWidget,
 )
 
 from ..annotate.annots import Annotation, Rect, nearest_word, text_rects
@@ -133,17 +132,8 @@ class RedactMixin:
         self._action(m, tr("Settings of redaction…"), self.redact_settings_dialog)
         self.menuBar().insertMenu(self.m_layers.menuAction(), m)
 
-        bar = QToolBar(tr("Redaction"))
-        bar.setObjectName("redaction")
-        bar.setIconSize(QSize(22, 22))
-        for a in (self.tool_actions["select"], self.tool_actions["hand"], act, None, self.a_redact_result, None,
-                  self.a_redact_save):
-            if a is None:
-                bar.addSeparator()
-            else:
-                bar.addAction(a)
-        self.addToolBar(bar)
-        self.redact_bar = bar
+        bars = [self.toolbar_of("redaction", tr("Redaction"), [self.tool_actions["select"], act]),
+                self.toolbar_of("redacted-copy", tr("Redacted copy"), [self.a_redact_result, self.a_redact_save])]
 
         dock = QDockWidget(tr("Boxes"), self)
         dock.setObjectName("boxes")
@@ -154,7 +144,7 @@ class RedactMixin:
         self.hints[KIND] = tr("Drag over text to mark it, or elsewhere to draw a box (Ctrl+drag: always a box); "
                               "double-click a word or an image to mark it. Drag a box to move or resize it; "
                               "double-click it for its properties, right-click it for more.")
-        return Mode(KIND, lambda a: a.kind == KIND, bars=[bar], docks=[dock], menus=[m.menuAction()],
+        return Mode(KIND, lambda a: a.kind == KIND, bars=bars, docks=[dock], menus=[m.menuAction()],
                     actions=[act, self.a_redact_result], entered=self._redact_entered, left=self._redact_left)
 
     def _redact_panel(self) -> QWidget:
