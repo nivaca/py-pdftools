@@ -10437,4 +10437,32 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>This tab beside the others, on the other side of the window, to read two documents side by side; again, to bring it back</en>
     <tr>Esta pestaña junto a las otras, al otro lado de la ventana, para leer dos documentos lado a lado; otra vez, para devolverla</tr>
   </text>
+  <text>
+    <en>At once if nothing is unsaved here; else py-pdftools asks first</en>
+    <tr>Enseguida si aquí no hay nada sin guardar; si no, py-pdftools pregunta antes</tr>
+  </text>
+  <text>
+    <en>Open a document again when another program changes it</en>
+    <tr>Abrir de nuevo un documento cuando otro programa lo cambie</tr>
+  </text>
+  <text>
+    <en>The file has changed</en>
+    <tr>El archivo ha cambiado</tr>
+  </text>
+  <text>
+    <en>What has not been saved here will be lost.</en>
+    <tr>Lo que no se haya guardado aquí se perderá.</tr>
+  </text>
+  <text>
+    <en>{file} has been changed by another program. Open it again as it is now?</en>
+    <tr>Otro programa ha cambiado {file}. ¿Abrirlo de nuevo tal como está ahora?</tr>
+  </text>
+  <text>
+    <en>{file} is no longer on disk</en>
+    <tr>{file} ya no está en el disco</tr>
+  </text>
+  <text>
+    <en>{file} was opened again: another program changed it</en>
+    <tr>{file} se abrió de nuevo: otro programa lo cambió</tr>
+  </text>
 </interface>

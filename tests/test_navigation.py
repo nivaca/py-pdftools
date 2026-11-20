@@ -544,3 +544,43 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     window.annotations = window.saved = []
     window.close()
     assert not host.isVisible()  # (the last tab closed: its window too)
+
+
+def test_reloading_a_file_changed_on_disk(window, book, monkeypatch):
+    import time
+
+    from pathlib import Path
+
+    from py_pdftools.annotate.annots import Annotation
+
+    def change(pages: int):
+        doc = pymupdf.open(book)
+        for _ in range(pages):
+            doc.new_page()
+        doc.save(str(book) + ".new")
+        doc.close()
+        time.sleep(0.01)
+        Path(str(book) + ".new").replace(book)  # (as many programs save: a new file in its place)
+
+    window.show_page(3)
+    change(1)
+    # (the watcher tells the window; then, once the file has settled, it is read again)
+    end = time.time() + 5
+    while window.count != 7 and time.time() < end:
+        QApplication.processEvents()
+        time.sleep(0.02)
+    assert window.count == 7 and window.page == 3  # (at the same place)
+    # Its own saving is no change.
+    window.annotations = [*window.annotations, Annotation("rect", 0, (50, 50, 100, 100))]
+    assert window.save()
+    assert not window.file_changed()
+    # With something unsaved, it asks; said no, the change is not asked about again.
+    window.annotations = [*window.annotations, Annotation("rect", 0, (150, 50, 200, 100))]
+    asked = []
+    monkeypatch.setattr(window, "ask_reload", lambda: asked.append(1) or False)
+    change(1)
+    assert not window.file_changed() and asked == [1] and window.count == 7
+    assert not window.file_changed() and asked == [1]
+    monkeypatch.setattr(window, "ask_reload", lambda: True)
+    change(1)
+    assert window.file_changed() and window.count == 9 and not window.is_modified()

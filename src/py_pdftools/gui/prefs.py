@@ -95,6 +95,13 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.tabs)
+        self.reload = QCheckBox(tr("Open a document again when another program changes it"))
+        self.reload.setToolTip(tr("At once if nothing is unsaved here; else py-pdftools asks first"))
+        try:
+            self.reload.setChecked(bool(config.get("reload")))
+        except config.ConfigError:
+            self.reload.setChecked(True)
+        form.addRow("", self.reload)
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.conform_field = Pdf2isoField(self, prefs.pdfconform)
         self.conform_field.add_to(form)
@@ -305,6 +312,8 @@ class SettingsDialog(QDialog):
                 config.set("reopen", self.reopen.isChecked())
             if self.tabs.isChecked() != bool(config.get("tabs")):
                 config.set("tabs", self.tabs.isChecked())
+            if self.reload.isChecked() != bool(config.get("reload")):
+                config.set("reload", self.reload.isChecked())
         except (OSError, config.ConfigError) as e:
             QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         # (running in the background: kept in the configuration file, and in effect at once)

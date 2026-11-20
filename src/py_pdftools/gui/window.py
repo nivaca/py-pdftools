@@ -39,6 +39,7 @@ from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin
+from .watching import WatchMixin
 from .outline import OutlineMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
@@ -164,8 +165,8 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WorkingMixin,
-                 FilesMixin, QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
+                 WorkingMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -174,6 +175,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.settings = QSettings("py-pdftools", "py-pdftools")
         self.path: Path | None = None
         self.host = None  # (the window of tabs this one is a tab of: see tabs.py)
+        self._init_watch()  # (the file, changed by another program: see watching.py)
         self.password = ""
         self.doc: pymupdf.Document | None = None  # (its pages without the annotations of the list: those are drawn)
         self.count = 0
@@ -1144,6 +1146,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.set_document(doc, self.page)
         self._fill_pages()
         self.outline_refresh()
+        self.watch_file()
         return found
 
     @staticmethod
