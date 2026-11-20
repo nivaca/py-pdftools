@@ -30,6 +30,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..annotate import annots
+from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
     CARET_SIZE, DRAWN, MARKUP, NOTE_SIZE, RESIZABLE, TEXTUAL, VERTICES, Annotation, Rect, nearest_word, text_rects,
     words,
@@ -408,7 +409,7 @@ class TextEditor(QGraphicsTextItem):
         self.textCursor().insertText(QApplication.clipboard().text())
 
 
-class PageCanvas(QGraphicsView):
+class PageCanvas(TextSelectMixin, QGraphicsView):
     """The pages and their annotations. The annotations are identified by their
     index in the window's list; what the user does is reported with the signals."""
 
@@ -421,6 +422,8 @@ class PageCanvas(QGraphicsView):
     zoom_changed = Signal(float)
     page_changed = Signal(int)  # the page in view is another (scrolling)
     text_chosen = Signal(int, list)  # page, [Rect]: the lines of the text selected (with a markup tool)
+    text_selected = Signal()  # the text selected with the tool Select text changed (see textselect.py)
+    text_menu = Signal(object)  # QPoint (global): a right click on the text selected
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
     menu_asked = Signal(int, object, int, object)  # index (-1: none), place on the screen, page, place on it
     text_done = Signal(int, object)  # index (-1: a new one), the annotation with the text written
@@ -456,6 +459,7 @@ class PageCanvas(QGraphicsView):
         self._shown_items: list[tuple[int, Annotation]] = []
         self._selected: list[int] = []
         self._words: dict[int, list] = {}
+        self._init_text_select()
         self._drag: dict | None = None
         self._poly: dict | None = None  # (a polygon being made: its page, its points, and its picture)
         self._editor: dict | None = None  # (a text being written: its item, frame, index and annotation)
@@ -494,6 +498,8 @@ class PageCanvas(QGraphicsView):
         self.doc = doc
         self.page = page
         self._words = {}
+        self._word_texts = {}
+        self.text_sel, self._sel_marks = None, []
         # id(doc) forma parte de la clave de la caché, pero un documento nuevo puede heredar el id del viejo:
         # por eso se vacía.
         self._cache.clear()
@@ -952,6 +958,10 @@ class PageCanvas(QGraphicsView):
         return QPointF(min(max(point.x(), r.left()), r.right()), min(max(point.y(), r.top()), r.bottom()))
 
     def contextMenuEvent(self, event):
+        if self.mode == TEXT_SELECT and self.text_sel:  # (the menu of the text selected: see the window)
+            self.text_menu.emit(event.globalPos())
+            event.accept()
+            return
         page, point = self.locate(event.pos())
         if page is None:
             return
@@ -1001,6 +1011,8 @@ class PageCanvas(QGraphicsView):
 
     def set_mode(self, mode: str):
         self.cancel_polygon()
+        if mode != TEXT_SELECT:
+            self.clear_text_selection()
         self.mode = mode
         # The hand tool uses QGraphicsView's own scroll drag; mousePressEvent hands those clicks to Qt.
         self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag if mode == "hand"
@@ -1273,6 +1285,10 @@ class PageCanvas(QGraphicsView):
     # ----------------------------------------------------------------- the keys and the mouse
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape and self.text_sel:  # (the text selected, unselected)
+            self.clear_text_selection()
+            event.accept()
+            return
         if self._editor is not None:
             super().keyPressEvent(event)
             return
@@ -1297,6 +1313,13 @@ class PageCanvas(QGraphicsView):
     def mouseDoubleClickEvent(self, event):
         if self._editor is not None:
             super().mouseDoubleClickEvent(event)
+            return
+        if self.mode == TEXT_SELECT and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+            page, point = self.locate(event.position().toPoint())
+            if page is not None:
+                self._drag = None
+                self.text_select_double(page, point)
+            event.accept()
             return
         if self.doc is None or self.mode == "hand" or event.button() != Qt.MouseButton.LeftButton:
             super().mouseDoubleClickEvent(event)
@@ -1323,6 +1346,16 @@ class PageCanvas(QGraphicsView):
                 super().mousePressEvent(event)
                 return
             self.commit_text()
+        if self.mode == TEXT_SELECT and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+            # (text is selected also in a document that can't be changed)
+            self.setFocus()
+            page, point = self.locate(event.position().toPoint())
+            if page is None:
+                self.clear_text_selection()
+            else:
+                self.text_select_press(event, page, point)
+            event.accept()
+            return
         if self.mode == "hand" or self.doc is None or event.button() != Qt.MouseButton.LeftButton \
                 or not self.editable:
             super().mousePressEvent(event)
@@ -1467,6 +1500,15 @@ class PageCanvas(QGraphicsView):
             # Con un polígono a medias, el lado elástico sigue al ratón aunque no haya arrastre.
             p = self._clamp(self._poly["page"], self._poly["page"].mapFromScene(self.mapToScene(pos)))
             self._show_polygon((round(p.x(), 2), round(p.y(), 2)))
+        if drag is not None and drag["kind"] == "select-text":
+            self.text_select_move(pos)
+            return
+        if drag is None and self.mode == TEXT_SELECT and self.doc is not None:
+            page, point = self.locate(pos)
+            over = page is not None and self.near_text(page.number, point)
+            self.viewport().setCursor(QCursor(Qt.CursorShape.IBeamCursor if over else Qt.CursorShape.ArrowCursor))
+            super().mouseMoveEvent(event)
+            return
         if drag is None:
             if self.doc is not None and self.mode != "hand" and self.editable and self._editor is None:
                 # Sin arrastre, solo se elige el cursor según lo que hay bajo el ratón.
@@ -1653,6 +1695,9 @@ class PageCanvas(QGraphicsView):
         moved = (point - drag["start"]).manhattanLength() * self.zoom() > 3
         kind = drag["kind"]
         n = page.number
+        if kind == "select-text":
+            self.text_select_release(drag, moved)
+            return
         if kind == "text":
             rects = self._text_selection(n, drag["start"], point) if moved else []
             for item in drag["marks"]:

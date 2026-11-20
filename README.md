@@ -192,6 +192,13 @@ pages beside them. Arrange a mode once (drag its toolbars and panels,
 hide them with a right click on them) and choosing it again brings that
 arrangement back, also the next time the program is opened.
 
+The tool Select text (X), beside Hand in every mode, selects text as in a
+text editor: drag over it (across pages too), Alt+drag for a column,
+double-click a word, triple-click a line, Shift+click to extend. Ctrl+C
+copies it, Ctrl+A selects the text of the page, and a right click offers
+to highlight, underline or strike it out, to mark it for redaction, or to
+find it.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.

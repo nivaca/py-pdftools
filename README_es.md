@@ -199,6 +199,13 @@ Basta con disponer un modo una vez (arrastrar sus barras y paneles,
 ocultarlos con el botón derecho sobre ellos) para que, al elegirlo de
 nuevo, vuelva así, también la próxima vez que se abra el programa.
 
+La herramienta Seleccionar texto (X), junto a la Mano en todos los modos,
+selecciona texto como en un editor: arrastrando sobre él (también entre
+páginas), Alt+arrastrar para una columna, doble clic en una palabra,
+triple clic en una línea, Mayús+clic para extender. Ctrl+C lo copia,
+Ctrl+A selecciona el texto de la página, y el botón derecho ofrece
+resaltarlo, subrayarlo o tacharlo, marcarlo para censurar, o buscarlo.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.

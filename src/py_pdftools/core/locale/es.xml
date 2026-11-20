@@ -9985,4 +9985,28 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} pages are scans without text.</en>
     <tr>{count} páginas son escaneos sin texto.</tr>
   </text>
+  <text>
+    <en>Find “{text}”</en>
+    <tr>Buscar «{text}»</tr>
+  </text>
+  <text>
+    <en>Mark for redaction</en>
+    <tr>Marcar para censurar</tr>
+  </text>
+  <text>
+    <en>Select text</en>
+    <tr>Seleccionar texto</tr>
+  </text>
+  <text>
+    <en>Select text: drag over it (Alt+drag: a column; across pages too), double-click a word, triple-click a line, Shift+click to extend; Ctrl+C copies it, right-click for more</en>
+    <tr>Seleccionar texto: arrastre sobre él (Alt+arrastrar: una columna; también entre páginas), doble clic en una palabra, triple clic en una línea, Mayús+clic para extender; Ctrl+C lo copia, el botón derecho ofrece más</tr>
+  </text>
+  <text>
+    <en>{count} character copied</en>
+    <tr>{count} carácter copiado</tr>
+  </text>
+  <text>
+    <en>{count} characters copied</en>
+    <tr>{count} caracteres copiados</tr>
+  </text>
 </interface>

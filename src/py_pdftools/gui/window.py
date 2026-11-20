@@ -35,6 +35,7 @@ from .canvas import PageCanvas, page_image
 from .colors import color_name, colors_menu, swatch, swatches
 from .files import FilesMixin, ask_save
 from .hint import HintOverlay
+from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
@@ -59,6 +60,9 @@ MAX_THUMBS = 400
 # kinds of annotations they make (annots.KINDS)
 TOOLS = [
     [("select", "edit-select", N_("Select, move and resize annotations; drag around them to select several")),
+     ("selecttext", "edit-select-text", N_("Select text: drag over it (Alt+drag: a column; across pages too), "
+                                           "double-click a word, triple-click a line, Shift+click to extend; "
+                                           "Ctrl+C copies it, right-click for more")),
      ("hand", "transform-browse", N_("Dragging moves the pages in the window")),
      ("eraser", "draw-eraser", N_("Drag over annotations to erase them (over a drawing, only what is touched)"))],
     [("highlight", "draw-highlight", N_("Drag over text to highlight it")),
@@ -94,7 +98,7 @@ DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one i
 # the toolbar of each group of TOOLS (object name, title)
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
-TOOL_NAMES = {"select": N_("Select"), "hand": N_("Hand"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
+TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
               "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature")}
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
 MARKS = {"check": (N_("Check mark ✓"), (((0.1, 0.55), (0.4, 0.85), (0.9, 0.15)),)),
@@ -267,6 +271,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.canvas.nudged.connect(self.nudge)
         self.canvas.picked.connect(self.pick)
         self.canvas.text_chosen.connect(self.add_markup)
+        self.canvas.text_menu.connect(self.text_menu)
+        self.canvas.text_selected.connect(self._text_selection_changed)
         self.canvas.double_clicked.connect(self.double_clicked)
         self.canvas.menu_asked.connect(self.annotation_menu)
         self.canvas.page_changed.connect(self._page_shown)
@@ -572,14 +578,16 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
             self.toolbar_of("find", tr("Find"), [self.a_find]),
-            self.toolbar_of("navigation", tr("Navigation"), [self.a_prev, self.a_next, self.tool_actions["hand"]]),
+            # (Select text and Hand: in every mode, Read too)
+            self.toolbar_of("navigation", tr("Navigation"), [self.a_prev, self.a_next, self.tool_actions["selecttext"],
+                                                             self.tool_actions["hand"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
         ]
         self.addToolBarBreak()
-        # those of the mode Annotate: a toolbar for each group of tools (the hand is in Navigation)
+        # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
         self.tool_bars = []
         for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
-            tools = [tool for tool, _, _ in group_ if tool != "hand"]
+            tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext")]
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
             # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
             for tool in tools:
@@ -642,7 +650,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         annotate = Mode("annotate", lambda a: a.kind != "redact", bars=list(self.tool_bars), docks=[self.panel],
                         menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
                         # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
-                        actions=[act for tool, act in self.tool_actions.items() if tool not in ("select", "hand")])
+                        actions=[act for tool, act in self.tool_actions.items()
+                                 if tool not in ("select", "hand", "selecttext")])
         # Leer: solo las páginas y sus miniaturas; nada es suyo, y el ratón mueve las páginas (la mano).
         read = Mode("read", lambda a: False, without=("edit",), entered=lambda: self.set_tool("hand"))
         self.hints["read"] = tr("Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel "
@@ -1650,6 +1659,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
             self._remove(lambda a: False)
 
     def copy_selected(self):
+        # (with the tool Select text, the text selected, to the clipboard)
+        if self.canvas.mode == TEXT_SELECT and self.canvas.text_sel:
+            self.copy_selected_text()
+            return
         if not self.selected:
             return
         self.keep_comment()
@@ -2202,7 +2215,57 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
                     list(self.selected))
 
     def select_page(self):
+        if self.canvas.mode == TEXT_SELECT:  # (Ctrl+A with the tool Select text: the text of the page)
+            self.canvas.select_all_text(self.page)
+            return
         self.pick([i for i, a in enumerate(self.annotations) if a.page == self.page], False)
+
+    # ----------------------------------------------------------------- the text selected (tool Select text)
+
+    def _text_selection_changed(self):
+        self.a_copy.setEnabled(bool(self.canvas.text_sel) or bool(self.selected))
+
+    def copy_selected_text(self) -> str:
+        text = self.canvas.selected_text()
+        if text:
+            QApplication.clipboard().setText(text)
+            self.status(ntr("{count} character copied", "{count} characters copied", len(text)))
+        return text
+
+    def text_menu(self, where):
+        """The menu of the text selected: copy it, mark it (highlight, underline, strike out, squiggle),
+        mark it for redaction, or find it."""
+        menu = QMenu(self)
+        menu.addAction(icon("edit-copy"), tr("Copy"), self.copy_selected_text)
+        menu.addSeparator()
+        for kind, name in (("highlight", "draw-highlight"), ("underline", "format-text-underline"),
+                           ("strikeout", "format-text-strikethrough"), ("squiggly", "format-text-underline-squiggle")):
+            menu.addAction(icon(name), tool_name(kind), lambda k=kind: self.mark_selected_text(k))
+        menu.addAction(tr("Mark for redaction"), self.redact_selected_text)
+        menu.addSeparator()
+        text = self.canvas.selected_text()
+        short = text if len(text) <= 30 else text[:29] + "…"
+        menu.addAction(icon("edit-find"), tr("Find “{text}”", text=" ".join(short.split())),
+                       lambda: self.find_dialog(" ".join(text.split())))
+        self.show_menu(menu, where)
+
+    def mark_selected_text(self, kind: str) -> bool:
+        """The text selected, marked (KIND: highlight...), one mark for each page it is on."""
+        if not self.canvas.editable:
+            return False
+        for page, rects in self.canvas.selection_rects().items():
+            self.add_markup(page, rects, kind)
+        self.canvas.clear_text_selection()
+        return True
+
+    def redact_selected_text(self) -> bool:
+        """Boxes of redaction over the text selected."""
+        if not self.canvas.editable:
+            return False
+        for page, rects in self.canvas.selection_rects().items():
+            self.add_redact_text(page, rects)
+        self.canvas.clear_text_selection()
+        return True
 
     def select_kind(self):
         kinds = {self.annotations[i].kind for i in self.selected}
