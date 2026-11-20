@@ -355,6 +355,9 @@ downloads or removes its better models. A tool to select text, beside Hand
 in every mode, selects as in a text editor: by dragging, across pages too, a
 column with Alt, a word or a line with two or three clicks, and offers to
 copy, mark, redact or find what it selected.
+The menu of the pages, long by then, went into groups: the actions used most
+at its top, and submenus for moving, inserting, labels, headers and
+watermarks, and the view on opening, under a heading that names the pages.
 
 Two settings came from the help of other programs. One keeps py-pdftools
 running when its last window closes, with an icon in the tray, so that the
@@ -375,7 +378,7 @@ its tests.
 Testing
 -------
 
-The program has 442 tests (`uv run pytest`): those of the four programs,
+The program has 443 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
