@@ -173,6 +173,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.setAcceptDrops(True)
         self.settings = QSettings("py-pdftools", "py-pdftools")
         self.path: Path | None = None
+        self.host = None  # (the window of tabs this one is a tab of: see tabs.py)
         self.password = ""
         self.doc: pymupdf.Document | None = None  # (its pages without the annotations of the list: those are drawn)
         self.count = 0
@@ -454,6 +455,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                              "edition, a draft): its words, in reading order"))
         m.addSeparator()
         self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
+        m.insertAction(self.m_recent.menuAction(), self._action(
+            None, tr("Open in a new tab…"), self.open_tab_dialog, "Ctrl+T",
+            tip=tr("Another document in a tab of this window (Settings: open every document so)")))
         # Quit ends the program, also when it keeps running in the background (see instance.py).
         self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
 
@@ -565,6 +569,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
         self.a_cover.setEnabled(self.canvas.spread)
         m.addAction(self.a_cover)
+        self.a_split = self._action(m, tr("Split the view"), self.split_tab, "Ctrl+\\",
+                                    tip=tr("This tab beside the others, on the other side of the window, to read two "
+                                           "documents side by side; again, to bring it back"))
+        self.a_detach = self._action(m, tr("Move the tab to a window of its own"), self.detach_tab)
         self.a_present = self._action(m, tr("Full screen"), self.present, "F11",
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
@@ -905,7 +913,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.restoreState(bars)
 
     def save_settings(self):
-        self.settings.setValue("geometry", self.saveGeometry())
+        if self.host is None:  # (a tab's size is its window's)
+            self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("splitter2", self.splitter.saveState())
         self.settings.setValue("thumbnails", self.a_thumbs.isChecked())
         self.settings.setValue("toolbars", self.saveState())
@@ -927,13 +936,37 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         from . import _QUITTING, save_session
 
         # The last window closed (not by Quit, which saved them all): its document is the session to reopen.
-        if not _QUITTING and not any(w is not self and w.isVisible() for w in _WINDOWS):
+        if not _QUITTING and not any(w is not self and w.is_open() for w in _WINDOWS):
             save_session([self.path])
         # Removes the temporary folder of the working copies; unsaved changes of the document itself go with it.
         self.drop_work()
         self.workspace.close_down()
         self.save_settings()
         super().closeEvent(event)
+        if self.host is not None:  # (its tab goes: see tabs.py)
+            self.host.window_closed(self)
+
+    def is_open(self) -> bool:
+        """Shown, by itself or as a tab (a tab behind another is not visible, but open)."""
+        if self.host is not None:
+            return self.host.isVisible() and self in self.host.windows()
+        return self.isVisible()
+
+    def open_tab_dialog(self):
+        name, _ = QFileDialog.getOpenFileName(self, tr("Open PDF"), self.last_dir(), tr("PDF files (*.pdf)"))
+        if name:
+            from .tabs import open_in_tab
+
+            open_in_tab(Path(name), near=self)
+
+    def split_tab(self):
+        """This tab to the other side of its window (the split view), or back."""
+        if self.host is None or not self.host.move_to_other_side(self):
+            self.status(tr("Open another document in a tab first (File > Open in a new tab)"), error=True)
+
+    def detach_tab(self):
+        if self.host is not None:
+            self.host.detach(self)
 
     def export_state(self) -> dict:
         """What a new window needs to carry on with the same document."""
@@ -983,9 +1016,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.status(tr("Could not keep the setting: {error}", error=e), error=True)
         install_qt_translations()
         self.save_settings()
+        host = self.host
+        if host is not None:  # (the new window takes this one's tab; the window of tabs stays meanwhile)
+            host.closing = True
+            host.take(self)
+            host.closing = False
         new = MainWindow(self.export_state())
-        new.restoreGeometry(self.saveGeometry())
-        new.show()
+        if host is not None:
+            host.add(new)
+        else:
+            new.restoreGeometry(self.saveGeometry())
+            new.show()
         _WINDOWS.append(new)
         self.annotations = self.saved = []  # (nothing to ask about: the new window has it)
         self.path = None  # (nor a recovery copy to remove: it is the new window's)

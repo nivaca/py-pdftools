@@ -500,3 +500,47 @@ def test_a_presentation_with_timed_pages(window, tmp_path):
     show.show_page(2)
     assert not show.timed.isActive()  # (the last page stays)
     show.close()
+
+
+def test_tabs_and_a_split_view(window, book, tmp_path):
+    from py_pdftools.gui import open_window
+    from py_pdftools.gui.tabs import open_in_tab
+
+    other = tmp_path / "other.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(other)
+    window.show()
+    second = open_in_tab(other, near=window)
+    host = window.host
+    assert host is not None and second.host is host and host.windows() == [window, second]
+    assert window.is_open() and second.is_open()  # (open, though one tab is behind the other)
+    assert host.sides[0].tabText(1) == "other.pdf" and host.windowTitle() == second.windowTitle()
+    # The split view: the second document beside the first; again, back.
+    second.a_split.trigger()
+    assert host.sides[1].isVisibleTo(host) and host.side_of(second) is host.sides[1]
+    assert window.isVisible() and second.isVisible()  # (both in view)
+    # Each window's shortcuts act only in it (no two actions take the same keys).
+    from PySide6.QtCore import Qt
+    assert second.a_next.shortcutContext() == Qt.ShortcutContext.WidgetWithChildrenShortcut
+    second.a_split.trigger()
+    assert not host.sides[1].isVisibleTo(host)
+    # With the setting, documents opened go into tabs.
+    from py_pdftools.core import config
+
+    config.set("tabs", True)
+    try:
+        third = open_window(book)
+    finally:
+        config.set("tabs", False)
+    assert third.host is host and len(host.windows()) == 3
+    # A tab to a window of its own; one closed takes its tab with it.
+    third.a_detach.trigger()
+    assert third.host is None and third.isWindow() and third.isVisible() and len(host.windows()) == 2
+    assert third.a_next.shortcutContext() == Qt.ShortcutContext.WindowShortcut
+    third.close()
+    second.close()
+    assert host.windows() == [window] and host.isVisible()
+    window.annotations = window.saved = []
+    window.close()
+    assert not host.isVisible()  # (the last tab closed: its window too)

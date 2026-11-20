@@ -10393,4 +10393,48 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>This document asks to be shown full screen, as a presentation. Show it so?</en>
     <tr>Este documento pide mostrarse a pantalla completa, como una presentación. ¿Mostrarlo así?</tr>
   </text>
+  <text>
+    <en>Another document in a tab of this window (Settings: open every document so)</en>
+    <tr>Otro documento en una pestaña de esta ventana (Configuración: abrir así todos los documentos)</tr>
+  </text>
+  <text>
+    <en>Each document opened goes into a tab of the window, not into a window of its own</en>
+    <tr>Cada documento que se abre va a una pestaña de la ventana, no a una ventana propia</tr>
+  </text>
+  <text>
+    <en>Move the tab to a window of its own</en>
+    <tr>Llevar la pestaña a una ventana propia</tr>
+  </text>
+  <text>
+    <en>Move to a window of its own</en>
+    <tr>Llevar a una ventana propia</tr>
+  </text>
+  <text>
+    <en>Move to the other side</en>
+    <tr>Pasar al otro lado</tr>
+  </text>
+  <text>
+    <en>No document</en>
+    <tr>Sin documento</tr>
+  </text>
+  <text>
+    <en>Open another document in a tab first (File &gt; Open in a new tab)</en>
+    <tr>Abra antes otro documento en una pestaña (Archivo &gt; Abrir en una pestaña nueva)</tr>
+  </text>
+  <text>
+    <en>Open documents in tabs of one window</en>
+    <tr>Abrir los documentos en pestañas de una sola ventana</tr>
+  </text>
+  <text>
+    <en>Open in a new tab…</en>
+    <tr>Abrir en una pestaña nueva…</tr>
+  </text>
+  <text>
+    <en>Split the view</en>
+    <tr>Dividir la vista</tr>
+  </text>
+  <text>
+    <en>This tab beside the others, on the other side of the window, to read two documents side by side; again, to bring it back</en>
+    <tr>Esta pestaña junto a las otras, al otro lado de la ventana, para leer dos documentos lado a lado; otra vez, para devolverla</tr>
+  </text>
 </interface>

@@ -25,7 +25,8 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             "background": False,  # (background: keep running after the last window, see gui/instance.py)
             # (Settings > Performance: see gui/performance.py)
             "memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True,
-            "reopen": False}  # (reopen: the documents of the last session, at the start: see gui/__init__.py)
+            "reopen": False,  # (reopen: the documents of the last session, at the start: see gui/__init__.py)
+            "tabs": False}  # (tabs: the documents opened go into tabs of one window: see gui/tabs.py)
 
 
 class ConfigError(Exception):

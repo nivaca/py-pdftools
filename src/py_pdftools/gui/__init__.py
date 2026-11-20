@@ -68,7 +68,12 @@ def main(argv: list[str] | None = None) -> int:
     if files:
         path, place = split_place(files[0])
         win.open_path(Path(path), place)
-    win.show()
+    if _setting("tabs"):  # (the window as the first tab of a window of tabs: the others go there too)
+        from .tabs import host_for_new_tab
+
+        host_for_new_tab(win).show()
+    else:
+        win.show()
     for other in files[1:]:
         open_window(other)
     if instance.enabled():
@@ -80,10 +85,14 @@ _INSTANCE = None  # (the program in the background, if it is: see instance.py)
 
 
 def _reopen() -> bool:
+    return _setting("reopen")
+
+
+def _setting(name: str) -> bool:
     from ..core import config
 
     try:
-        return bool(config.get("reopen"))
+        return bool(config.get(name))
     except config.ConfigError:
         return False
 
@@ -111,7 +120,11 @@ def open_window(path=None):
     from .navigation import split_place
     from .window import _WINDOWS, MainWindow
 
-    empty = next((w for w in _WINDOWS if w.isVisible() and w.path is None), None)
+    if _setting("tabs"):  # (in a tab of the last window of tabs: see tabs.py)
+        from .tabs import open_in_tab
+
+        return open_in_tab(path)
+    empty = next((w for w in _WINDOWS if w.is_open() and w.host is None and w.path is None), None)
     win = empty
     if win is None:
         win = MainWindow()
@@ -133,11 +146,11 @@ def quit_all() -> bool:
 
     global _QUITTING
     # (the documents open now are those to open again next time, if the settings say so)
-    save_session([w.path for w in _WINDOWS if w.isVisible() and w.path is not None])
+    save_session([w.path for w in _WINDOWS if w.is_open() and w.path is not None])
     _QUITTING = True
     try:
         for win in list(_WINDOWS):
-            if win.isVisible() and not win.close():
+            if win.is_open() and not win.close():
                 return False
     finally:
         _QUITTING = False

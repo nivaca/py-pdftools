@@ -88,6 +88,13 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.reopen)
+        self.tabs = QCheckBox(tr("Open documents in tabs of one window"))
+        self.tabs.setToolTip(tr("Each document opened goes into a tab of the window, not into a window of its own"))
+        try:
+            self.tabs.setChecked(bool(config.get("tabs")))
+        except config.ConfigError:
+            pass
+        form.addRow("", self.tabs)
         # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
         self.conform_field = Pdf2isoField(self, prefs.pdfconform)
         self.conform_field.add_to(form)
@@ -296,6 +303,8 @@ class SettingsDialog(QDialog):
         try:
             if self.reopen.isChecked() != bool(config.get("reopen")):
                 config.set("reopen", self.reopen.isChecked())
+            if self.tabs.isChecked() != bool(config.get("tabs")):
+                config.set("tabs", self.tabs.isChecked())
         except (OSError, config.ConfigError) as e:
             QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         # (running in the background: kept in the configuration file, and in effect at once)
