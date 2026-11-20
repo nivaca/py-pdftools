@@ -1,151 +1,172 @@
 #!/usr/bin/env python3
-"""Make the screenshots of the README, in English and in Spanish:
+"""Make the screenshots of the READMEs, in English and Spanish:
 
     uv run python tools/screenshots.py [-o FOLDER]
 
-It writes, in docs/img/ (or FOLDER), for each language (en, es):
-
-* window_LANG.png: the window, with an essay annotated in several ways (a
-  highlight with replies and a review status, notes, a text box, a callout,
-  shapes, a stamp);
-* find_LANG.png: Find and highlight;
-* properties_LANG.png: the properties of an annotation;
-* summary_LANG.png: a page of the summary of the comments.
-
-The window is drawn off the screen (Qt's offscreen platform), with
-configuration folders of its own, so the user's settings are not touched.
-The essay is made each time.
+It writes docs/img/MODE_LANG.png (MODE: annotate, redact, pages, impose;
+LANG: en, es): the window in each mode, on a sample document made here (a
+short essay of five pages), drawn offscreen with a configuration of its own
+(the user's is not read).
 """
 
 from __future__ import annotations
 
 import argparse
-import dataclasses
 import os
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
+SIZE = (1500, 900)
 
-ESSAY = {
-    "en": ("On reading slowly",
-           "A careful reader does not hurry. The first reading of a difficult page gives its outline; the second "
-           "gives its argument; only the third shows where the argument is weak. Marking the text is part of this "
-           "work: a highlight keeps what matters, a note in the margin keeps the question it raised, and a mark "
-           "where a word is missing keeps the correction for later. The annotations of a book are a second text, "
-           "written by its reader, and they deserve the same care as the first. ",
-           "Is this the edition the author revised?", "Yes: the second, of 1874.", "reading"),
-    "es": ("Sobre la lectura lenta",
-           "Un lector cuidadoso no tiene prisa. La primera lectura de una página difícil da su contorno; la segunda, "
-           "su argumento; solo la tercera muestra dónde flaquea el argumento. Marcar el texto es parte de ese "
-           "trabajo: un resaltado guarda lo que importa, una nota al margen guarda la pregunta que surgió, y una "
-           "marca donde falta una palabra guarda la corrección para después. Las anotaciones de un libro son un "
-           "segundo texto, escrito por su lector, y merecen el mismo cuidado que el primero. ",
-           "¿Es esta la edición que revisó el autor?", "Sí: la segunda, de 1874.", "lectura"),
+TEXT = {
+    "en": ["On the copying of manuscripts",
+           "Every copy of a text is also a reading of it. The scribe who copies a page decides, line by line, "
+           "what the page says: where a word ends, which abbreviation stands for which word, whether a letter "
+           "that looks like an i is an i at all. Those decisions are not always visible in the copy, but they "
+           "are always there.",
+           "Contact: Juan Pérez, phone 555-1234, juan.perez@example.org",
+           "The editor who compares several copies of the same text sees those decisions side by side. "
+           "Where the copies agree, the text is probably what the author wrote; where they disagree, the "
+           "editor has to choose, and to say why. The critical apparatus records those choices."],
+    "es": ["Sobre la copia de manuscritos",
+           "Toda copia de un texto es también una lectura de él. El copista que copia una página decide, "
+           "renglón a renglón, qué dice la página: dónde termina una palabra, qué abreviatura vale por qué "
+           "palabra, si una letra que parece una i es de veras una i. Esas decisiones no siempre se ven en la "
+           "copia, pero siempre están ahí.",
+           "Contacto: Juan Pérez, teléfono 555-1234, juan.perez@example.org",
+           "El editor que compara varias copias del mismo texto ve esas decisiones lado a lado. Donde las "
+           "copias coinciden, el texto es probablemente lo que escribió el autor; donde difieren, el editor "
+           "tiene que elegir, y decir por qué. El aparato crítico registra esas elecciones."],
 }
 
 
-def make_essay(path: Path, language: str):
+def sample(path: Path, lang: str) -> Path:
+    """A short essay: a title page, then four pages of text."""
     import pymupdf
 
-    title, text, *_ = ESSAY[language]
+    title, *paragraphs = TEXT[lang]
     doc = pymupdf.open()
-    for n in range(3):
+    page = doc.new_page()
+    page.insert_textbox(pymupdf.Rect(72, 300, 523, 400), title, fontsize=24, fontname="tiro", align=1)
+    for n in range(4):
         page = doc.new_page()
-        page.insert_text((72, 80), title if n == 0 else f"{title} ({n + 1})", fontsize=20, fontname="tiro")
-        page.insert_textbox(pymupdf.Rect(72, 105, 523, 470), text * 2, fontsize=11.5, fontname="tiro")
+        y = 80
+        for paragraph in paragraphs:
+            rect = pymupdf.Rect(72, y, 523, y + 200)
+            left = page.insert_textbox(rect, paragraph, fontsize=12, fontname="tiro", lineheight=1.4)
+            y += 200 - left + 18
     doc.save(path)
+    return path
 
 
-def shoot(folder: Path, language: str):
-    import pymupdf
+def settle(app, seconds: float = 1.5):
+    end = time.time() + seconds
+    while time.time() < end:
+        app.processEvents()
+        time.sleep(0.02)
+
+
+def shoot(lang: str, out: Path, work: Path):
+    from py_pdftools.core import interface
+
+    interface.use(lang)
+    interface.translate_argparse()
     from PySide6.QtWidgets import QApplication
 
-    from py_annotate import annots, interface
-    from py_annotate.annots import Reply
-
-    interface.use(language)
-    from py_annotate.gui import renderer
-    from py_annotate.gui.props import PropertiesDialog
-    from py_annotate.gui.window import MainWindow, install_qt_translations
-
-    renderer.ENABLED = False  # (each page drawn at once, here)
     app = QApplication.instance() or QApplication([])
-    install_qt_translations()
-    title, _text, question, answer, word = ESSAY[language]
-    with tempfile.TemporaryDirectory() as tmp:
-        essay = Path(tmp) / ("essay.pdf" if language == "en" else "ensayo.pdf")
-        make_essay(essay, language)
-        w = MainWindow()
-        w.ask_recover = lambda when: False
-        w.resize(1500, 950)
-        w.show()
-        w.open_path(essay)
-        w.prefs = dataclasses.replace(w.prefs, author="N. V.")
-        found = annots.words(w.doc[0])
-        doc = pymupdf.open(essay)
-        lines = annots.text_rects(found, 4, 20)
-        first = annots.text_rects(found, 30, 41)
-        a = w.new_annotation("highlight", 0, annots.union(lines), quads=tuple(lines))
-        a = dataclasses.replace(a, contents="", tags=("method",), replies=(
-            Reply("B. R.", question, created=annots.now()),
-            Reply("N. V.", answer, created=annots.now()),
-            Reply("N. V.", "", "Accepted", annots.now())))
-        under = w.new_annotation("underline", 0, annots.union(first), quads=tuple(first))
-        spot = doc[0].search_for(word)[-1]  # (in the text, not in the title)
-        note = dataclasses.replace(w.new_annotation("note", 0, (530, 120, 546, 136)),
-                                   contents=question, author="B. R.")
-        box = dataclasses.replace(w.new_annotation("freetext", 0, (72, 500, 280, 545)),
-                                  contents="Compare chapter 3" if language == "en" else "Compárese el capítulo 3")
-        callout = dataclasses.replace(w.new_annotation("callout", 0, (330, 520, 520, 556),
-                                                       (((spot.x0 + spot.width / 2, spot.y1),),)),
-                                      contents="The key word" if language == "en" else "La palabra clave")
-        ring = w.new_annotation("ellipse", 0, (66, 600, 260, 680))
-        stamp = w.new_annotation("stamp", 0, (420, 640, 420, 640))
-        w.change([a, under, note, box, callout, ring, stamp], [0])
-        w.canvas.render_page_now()
-        while w.thumb_timer.isActive():  # (all the thumbnails drawn)
-            app.processEvents()
-        app.processEvents()
-        w.grab().save(str(folder / f"window_{language}.png"))
-        w.find_dialog(word)
-        f = w.finder
-        f.search()
-        f.results.setCurrentRow(-1)
-        f.move(0, 0)
-        app.processEvents()
-        f.grab().save(str(folder / f"find_{language}.png"))
-        f.close()
-        d = PropertiesDialog([w.annotations[4]], w, categories=w.prefs.category_list())
-        d.show()
-        app.processEvents()
-        d.grab().save(str(folder / f"properties_{language}.png"))
-        d.close()
-        from py_annotate import exchange
-        from py_annotate.gui.colors import color_name
+    from py_pdftools.annotate.annots import Annotation
+    from py_pdftools.gui import renderer
+    from py_pdftools.gui.window import MainWindow, install_qt_translations
+    from py_pdftools.pages.headfoot import HeaderFooter
+    from py_pdftools.pages.labels import Range
 
-        summary = Path(tmp) / "summary.pdf"
-        exchange.save_summary(essay, w.annotations, summary, color_name=color_name)
-        pymupdf.open(summary)[0].get_pixmap(dpi=70).save(str(folder / f"summary_{language}.png"))
-        w.annotations = w.saved = []
-        w.close()
+    install_qt_translations()
+    renderer.ENABLED = False
+    doc = sample(work / f"essay-{lang}.pdf", lang)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(*SIZE)
+    w.show()
+    w.open_path(doc)
+    words = w.canvas.page_words(1)
+
+    # Annotate: a highlight, a note, a text box, a rectangle and a stamp, on page 2
+    w.set_mode("annotate")
+    w.show_page(1)
+    first = [r for r, _, line in words if line == 0][:6]
+    if first:
+        x0, y0 = min(r[0] for r in first), min(r[1] for r in first)
+        x1, y1 = max(r[2] for r in first), max(r[3] for r in first)
+        w.add(w.new_annotation("highlight", 1, (x0, y0, x1, y1), quads=((x0, y0, x1, y1),)))
+    w.add(Annotation("note", 1, (530, 90, 546, 106), "#ffd54f", contents="?", author="NV"))
+    w.add(Annotation("freetext", 1, (300, 420, 520, 470), "#000000", fill="#fffde7", width=0,
+                     contents="scribe = copista" if lang == "es" else "scribe = copyist"))
+    w.add(Annotation("rect", 1, (66, 300, 530, 400), "#e53935"))
+    w.add(Annotation("stamp", 1, (360, 520, 520, 580), "#c62828", stamp="Approved"))
+    w.pick([], False)
+    settle(app)
+    w.grab().save(str(out / f"annotate_{lang}.png"))
+
+    # Redact: the line with the name, the phone and the address
+    w.set_mode("redact")
+    contact = [r for r, block, line in words if block == 1] or [r for r, _, _ in words[40:48]]
+    if contact:
+        x0, y0 = min(r[0] for r in contact), min(r[1] for r in contact)
+        x1, y1 = max(r[2] for r in contact), max(r[3] for r in contact)
+        w.add_redact_text(1, [(x0, y0, x1, y1)])
+        w.set_redact_repeat("2-")
+    w.pick([], False)
+    settle(app)
+    w.grab().save(str(out / f"redact_{lang}.png"))
+    w.change([a for a in w.annotations if a.kind != "redact"])
+
+    # Pages: labels (the title page with none, then 1, 2...) and a footer
+    w.set_mode("pages")
+    w.set_ranges([Range(1, ""), Range(2, "D")])
+    w.add_stamp(HeaderFooter(footer_center="$pagelabel", pages="2-"))
+    w.show_page(1)
+    settle(app)
+    w.grab().save(str(out / f"pages_{lang}.png"))
+
+    # Impose: a booklet, in the basic form
+    w.set_mode("impose")
+    ws = w.workspace
+    ws.set_mode("basic")
+    ws.preview()
+    end = time.time() + 60
+    while (ws.runner.busy() or not ws.result_files) and time.time() < end:
+        app.processEvents()
+        time.sleep(0.05)
+    ws.res_pane.page.setValue(3)  # (a sheet with text on both halves)
+    settle(app)
+    w.grab().save(str(out / f"impose_{lang}.png"))
+
+    w.annotations = w.saved = []
+    w.drop_work()
+    w.workspace.close_down()
+    w.hide()
+    w.deleteLater()
+    settle(app, 0.2)
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(prog="tools/screenshots.py", description="Make the README's screenshots.")
-    parser.add_argument("-o", "--output", type=Path, default=ROOT / "docs" / "img")
+    parser = argparse.ArgumentParser(description="Make the screenshots of the READMEs.")
+    parser.add_argument("-o", "--output", type=Path, default=ROOT / "docs" / "img", help="the folder (docs/img)")
     args = parser.parse_args(argv)
-    os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    with tempfile.TemporaryDirectory() as config:
-        os.environ["PY_ANNOTATE_CONFIG"] = config
-        os.environ["XDG_CONFIG_HOME"] = config  # (Qt's settings of the window, too)
-        args.output.mkdir(parents=True, exist_ok=True)
-        for language in ("en", "es"):
-            shoot(args.output, language)
-    for p in sorted(args.output.glob("*.png")):
-        print(p.relative_to(ROOT) if p.is_relative_to(ROOT) else p)
+    args.output.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        work = Path(tmp)
+        os.environ["QT_QPA_PLATFORM"] = os.environ.get("QT_QPA_PLATFORM", "offscreen")
+        os.environ["PY_PDFTOOLS_CONFIG"] = str(work / "config")
+        os.environ["XDG_CONFIG_HOME"] = str(work / "xdg")
+        os.environ["HOME"] = str(work)  # (QSettings, and pdf2iso not found: the same shots everywhere)
+        for lang in ("en", "es"):
+            shoot(lang, args.output, work)
+            print(f"Wrote {args.output}/*_{lang}.png")
 
 
 if __name__ == "__main__":

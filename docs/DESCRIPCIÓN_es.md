@@ -1,0 +1,61 @@
+# py-pdftools 0.1.0: descripción
+
+## Análisis
+
+py-pdftools edita documentos PDF: los anota, los censura, cambia sus etiquetas de página, sus encabezados, pies de página y marcas de agua y el orden de sus páginas, y los impone para imprenta. Fue desarrollado en noviembre de 2026 por Nicolas Vaughan, que reunió en él cuatro programas suyos, cada uno de los cuales hacía una de esas cosas: py-annotate (las anotaciones), py-redact (la censura), py-foliation (las etiquetas de página, los encabezados y pies, las marcas de agua y el orden de las páginas) y py-imposition (la imposición).
+
+El requisito central era no perder nada de lo que cada programa ya hacía bien. Los cuatro tenían sus pruebas, sus casos raros resueltos y sus decisiones tomadas; el programa nuevo debía conservarlos, no reescribirlos. Además, tenía que haber una sola ventana y una sola línea de órdenes, y el documento abierto tenía que ser uno, con sus anotaciones, su censura y sus cambios a la vista al mismo tiempo, y con un solo historial para deshacer.
+
+Lo demás vino de las diferencias entre los cuatro. py-annotate guarda en el mismo documento; py-redact escribe siempre una copia nueva, porque censurar no tiene vuelta atrás; py-foliation guardaba sus cambios en memoria hasta guardar el archivo. Se decidió guardar en el documento todo menos la censura, que sigue escribiendo una copia, comprobada, como en py-redact. La ventana y la línea de órdenes tenían que estar en español y en inglés, y el programa debía instalarse en Linux, Windows y macOS.
+
+## Diseño
+
+El código de los cuatro programas se copió en un paquete nuevo, que no depende de ellos; los programas antiguos quedan como estaban. Sus motores están en cuatro subpaquetes, `annotate`, `redact`, `pages` e `impose`, y lo que compartían está en `core`: la traducción de la interfaz (`interface.py`, `locale/es.xml`), la configuración, el paso a PDF/A y PDF/X con pdf2iso, el dibujo de páginas en procesos propios y la lectura de listas de páginas. `cli/` reúne las dos líneas de órdenes, y `gui/` la ventana.
+
+Se conservaron las dos bibliotecas. PyMuPDF dibuja las páginas, lee y escribe las anotaciones y censura; pikepdf cambia las etiquetas, los encabezados y pies (como capas que pueden quitarse), el orden de las páginas y la imposición. Cada una hace lo que ya hacía en su programa.
+
+La ventana es la de py-annotate, con las páginas una debajo de otra, y una barra de modos encima: Anotar, Censurar, Páginas e Imponer. Cada modo trae sus barras de herramientas, sus paneles y sus menús, y dice qué anotaciones son suyas: las de los otros modos se ven, pero el ratón las atraviesa. En el modo Imponer, el espacio de trabajo de py-imposition ocupa el lugar de las páginas.
+
+Los recuadros de censura son anotaciones de redacción del propio PDF (`/Redact`), que marcan lo que debe quitarse sin quitarlo: se dibujan, se mueven y se deshacen como cualquier anotación, se guardan en el documento sin aplicar, y solo la copia censurada elimina lo que hay debajo. Los cambios del documento mismo (etiquetas, orden de las páginas, capas, el resultado de una imposición) se hacen en el acto sobre una copia de trabajo, y Guardar la escribe como el documento.
+
+La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-footer`, `watermark`, `pages` e `impose`, este con las treinta órdenes de py-imposition, que siguen juntas porque sus secuencias y su `replay` las nombran tal como son.
+
+## Implementación
+
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 99 archivos de Python, unas 27 700 líneas, y 2214 textos de la interfaz traducidos al español.
+
+### Del código antiguo al paquete nuevo
+
+Un script copió los módulos de cada programa y reescribió sus importaciones. Dos módulos con el mismo nombre hacían cosas distintas: las listas de páginas de py-imposition rechazaban una página más allá de la última, y las de py-redact la dejaban fuera; el módulo común hace las dos cosas. Las cuatro traducciones se unieron en un archivo, y de 35 textos con dos traducciones se eligió una, salvo donde el sentido cambiaba (*izquierda* como alineación, *izquierdo* como margen). Las claves que los programas antiguos escriben en un PDF conservan su nombre, para que sus documentos se sigan leyendo.
+
+### La línea de órdenes
+
+Los dos analizadores de argumentos no se reescribieron: sus órdenes se injertaron en un árbol, que da la ayuda, el manual y los scripts de completado de bash, fish y zsh, ahora de dos niveles, y cada orden sigue ejecutándose donde lo hacía.
+
+### Las copias de trabajo
+
+Cada cambio del documento escribe primero el documento con sus anotaciones, hace el cambio con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página, de modo que Deshacer recorre por igual los cambios de las anotaciones y los del documento.
+
+### Las etiquetas de página
+
+El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su prefijo, y mostraba «ageLabeli». La ventana y las exportaciones leen ahora las etiquetas con el motor de py-foliation.
+
+## Validación
+
+Hay 398 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+
+La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
+
+Las ventanas se revisaron además a ojo, con capturas de cada modo en los dos idiomas. El RPM vuelve a correr todas las pruebas con los paquetes de Fedora; así apareció el fallo de las etiquetas de PyMuPDF 1.28. El instalador de Linux se probó en una carpeta personal hecha para la prueba.
+
+## Plataforma
+
+Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta pdf2iso, con Ghostscript; para las copias con texto buscable de páginas escaneadas, Tesseract.
+
+Es una aplicación de escritorio y no necesita internet. Nada sale del equipo.
+
+## Ambiente
+
+Fue desarrollado en Fedora Linux 45 con KDE Plasma, con Python 3.14 y uv, y con git. El código está en repositorios de GitHub (https://github.com/nivaca/py-pdftools) y de Codeberg (https://codeberg.org/nivaca/py-pdftools), privados por ahora. Un script (`tools/release.py`) corre las pruebas, hace la rueda, el paquete fuente, el ZIP, la AppImage y el RPM firmado, pone la etiqueta y publica en los dos sitios.
+
+Desde el código fuente, `uv sync` lo prepara; `uv run py-pdftools-gui` abre la ventana y `uv run py-pdftools` es la línea de órdenes. En Linux y macOS, `install/install.sh` lo instala para el usuario, con su entrada en el menú; en Windows, `install\install.bat`. La configuración queda en la carpeta de configuración del usuario (`~/.config/py-pdftools/config.toml` en Linux, o `$PY_PDFTOOLS_CONFIG`); en macOS, en `~/Library/Application Support/py-pdftools/`, y en Windows, en `%APPDATA%\py-pdftools\`.
