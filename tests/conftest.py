@@ -46,3 +46,12 @@ def own_window_settings():
     for app in ("py-pdftools", "py-pdftools-impose"):
         QSettings("py-pdftools", app).clear()
     yield
+
+
+@pytest.fixture(autouse=True)
+def own_cache(tmp_path_factory, monkeypatch):
+    """The cache folder (where the working copies go: see gui/working.work_root) in a folder of the
+    tests, never the user's own."""
+    cache = tmp_path_factory.mktemp("cache")
+    monkeypatch.setenv("XDG_CACHE_HOME", str(cache))
+    monkeypatch.setenv("LOCALAPPDATA", str(cache))

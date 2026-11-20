@@ -3,6 +3,8 @@ with the annotations, undone and redone with them, and saved as the document."""
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pymupdf
 import pytest
 from PySide6.QtWidgets import QApplication
@@ -163,3 +165,47 @@ def test_change_of_language_keeps_the_working_copy(window, sample):
         last.annotations = last.saved = []
         last.drop_work()
         last.close()
+
+
+def test_working_copies_on_disk_not_in_the_temporary_folder(window, tmp_path):
+    """The working copies go to the cache folder: the temporary folder may be in memory (tmpfs)."""
+    import os
+    import tempfile
+
+    assert window.transform(labels.write_labels, [Range(1, "r")])
+    cache = os.environ["XDG_CACHE_HOME"]
+    assert str(window.work).startswith(os.path.join(cache, "py-pdftools", "work"))
+    assert not str(window.work).startswith(tempfile.gettempdir() + os.sep) or cache.startswith(tempfile.gettempdir())
+
+
+def test_a_change_writes_the_annotations_only_when_needed(window, monkeypatch):
+    """With the annotations of the window already in the file shown, pikepdf starts from that file:
+    the whole document isn't written once more first."""
+    from py_pdftools.annotate import annots as annots_module
+
+    calls = []
+    real = annots_module.write
+    monkeypatch.setattr(annots_module, "write", lambda *a, **k: calls.append(1) or real(*a, **k))
+    assert window.transform(labels.write_labels, [Range(1, "r")])
+    assert calls == []
+    window.add(Annotation("rect", 2, (100, 200, 200, 300), "#ff0000"))
+    assert window.transform(labels.write_labels, [Range(1, "D")])
+    assert calls == [1]
+    assert [a.type[1] for a in pymupdf.open(window.work)[2].annots()] == ["Square"]
+
+
+def test_the_history_keeps_ten_changes_of_the_document(window):
+    """Only the last MAX_DOC_STEPS changes of the document stay in the history; the working copies of
+    the older ones are removed."""
+    from py_pdftools.gui import working
+
+    styles = ["r", "D", "R", "a", "A"]
+    for n in range(working.MAX_DOC_STEPS + 3):
+        assert window.transform(labels.write_labels, [Range(1, styles[n % 5], prefix=str(n))])
+    states = [s for s in window.undo_stack if isinstance(s, working.DocState)]
+    assert len(states) == working.MAX_DOC_STEPS
+    files = list(Path(window._work_dir.name).glob("work-*.pdf"))
+    assert len(files) <= working.MAX_DOC_STEPS + 1
+    for _ in range(working.MAX_DOC_STEPS):
+        window.undo()
+    assert not window.undo_stack and window.page_labels()[0] == "2I"  # (as after the third change)

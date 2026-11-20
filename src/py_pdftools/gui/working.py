@@ -14,12 +14,21 @@ back through it as through the changes of the annotations.
 Whatever reads the document (saving, the copies, the redacted copy, the
 exports) reads ``file``: the working copy, if there is one, else the
 document's file. ``path`` stays the document's own.
+
+The working copies are on disk, in the cache folder (see work_root), not in
+the temporary folder: on many systems (Fedora's /tmp) that is in memory,
+where each copy of a large document would take as much RAM. The history keeps
+at most MAX_DOC_STEPS of them; older steps are forgotten, and their files
+removed.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import os
+import shutil
 import tempfile
+import time
 from pathlib import Path
 
 import pikepdf
@@ -27,6 +36,38 @@ import pikepdf
 from ..annotate import annots
 from ..annotate.annots import AnnotateError, Annotation
 from ..core.interface import tr
+
+
+MAX_DOC_STEPS = 10  # changes of the document itself kept in the history (each with a copy of the file)
+STALE_DAYS = 2  # folders of working copies older than this, left by a program that stopped, are removed
+_cleaned = False
+
+
+def work_root() -> Path | None:
+    """The folder of the working copies, on disk: the cache folder (LOCALAPPDATA on Windows, else
+    XDG_CACHE_HOME or ~/.cache), py-pdftools/work. None if it can't be made (then the temporary folder is
+    used). The first time, folders left there by a program that stopped are removed."""
+    global _cleaned
+    if os.name == "nt" and os.environ.get("LOCALAPPDATA"):
+        base = Path(os.environ["LOCALAPPDATA"])
+    else:
+        base = Path(os.environ.get("XDG_CACHE_HOME") or Path.home() / ".cache")
+    root = base / "py-pdftools" / "work"
+    try:
+        root.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+    if not _cleaned:
+        _cleaned = True
+        # Solo las carpetas viejas: las de otra ventana abierta ahora, en otro proceso, son recientes.
+        limit = time.time() - STALE_DAYS * 86400
+        for folder in root.iterdir():
+            try:
+                if folder.is_dir() and folder.stat().st_mtime < limit:
+                    shutil.rmtree(folder, ignore_errors=True)
+            except OSError:
+                pass
+    return root
 
 
 @dataclasses.dataclass(frozen=True)
@@ -76,7 +117,8 @@ class WorkingMixin:
         # One temporary folder per window, made on the first change and removed by drop_work (save, open, close).
         if self._work_dir is None:
             # (on Windows a file still open, by a rendering process, can't be removed: it is left, not an error)
-            self._work_dir = tempfile.TemporaryDirectory(prefix="py-pdftools-", ignore_cleanup_errors=True)
+            self._work_dir = tempfile.TemporaryDirectory(prefix="py-pdftools-", dir=work_root(),
+                                                         ignore_cleanup_errors=True)
         self._works += 1
         return Path(self._work_dir.name) / f"work-{self._works}{suffix}.pdf"
 
@@ -112,6 +154,7 @@ class WorkingMixin:
         # Un cambio nuevo invalida lo que había para rehacer, como en change().
         self.undo_stack.append(before)
         self.redo_stack.clear()
+        self._limit_doc_steps()
         self.annotations = found
         self.selected = []
         # document_changed lets the mode Impose take the new file as its source.
@@ -133,12 +176,15 @@ class WorkingMixin:
         self.keep_comment()
         before = self._state()
         # Two files: the annotations are written into the first, pikepdf changes it and saves the second; the
-        # first is removed in finally.
-        written = self._new_work("-annotated")
+        # first is removed in finally. (If the file shown has them as they are, it is the first: one write
+        # less, of the whole document.)
+        same = self._annotations_in_file()
+        written = self.file if same else self._new_work("-annotated")
         target = self._new_work()
         try:  # (the annotations of the window go into the document first: the change may move their pages)
-            annots.write(self.file, self.annotations, written, self.password, shown=self.layers,
-                         original=self.known_in_file())
+            if not same:
+                annots.write(self.file, self.annotations, written, self.password, shown=self.layers,
+                             original=self.known_in_file())
             with pikepdf.open(written, password=self.password) as pdf:
                 change(pdf, *args)
                 # Si el documento estaba cifrado, la copia conserva el mismo cifrado (encryption=True).
@@ -147,7 +193,8 @@ class WorkingMixin:
             self.status(str(e), error=True)
             return False
         finally:
-            written.unlink(missing_ok=True)
+            if not same:
+                written.unlink(missing_ok=True)
         # (pikepdf numbers the objects anew: the annotations are read again)
         found = self._load_work(target, self.page if page is None else page)
         if found is None:
@@ -198,6 +245,30 @@ class WorkingMixin:
             return False
         self._step(before, found, message)
         return True
+
+    def _limit_doc_steps(self):
+        """Keep at most MAX_DOC_STEPS changes of the document in the history: the oldest steps go, up to
+        and with the oldest of those changes, and the working copies no step needs any more are removed."""
+        states = [i for i, s in enumerate(self.undo_stack) if isinstance(s, DocState)]
+        if len(states) <= MAX_DOC_STEPS:
+            return
+        # (the steps before a change of the document are of its file then: they go with it)
+        del self.undo_stack[:states[len(states) - MAX_DOC_STEPS - 1] + 1]
+        if self._work_dir is None:
+            return
+        needed = {self.work} | {s.work for s in self.undo_stack + self.redo_stack if isinstance(s, DocState)}
+        for file in Path(self._work_dir.name).glob("work-*.pdf"):
+            if file not in needed:
+                file.unlink(missing_ok=True)
+
+    def _annotations_in_file(self) -> bool:
+        """Whether the file shown has the annotations (and layers) of the window, as they are: then a change
+        made with pikepdf can start from it, without writing them first."""
+        known = self.known_in_file()
+        if known is None or list(self.annotations) != list(known):
+            return False
+        in_file = annots.layers(self.doc) if self.doc is not None else {}
+        return all(in_file.get(name) == on for name, on in self.layers.items())
 
     def restore(self, state: DocState) -> bool:
         """Show the document as it was in STATE (undo, redo)."""
