@@ -10465,4 +10465,24 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{file} was opened again: another program changed it</en>
     <tr>{file} se abrió de nuevo: otro programa lo cambió</tr>
   </text>
+  <text>
+    <en>Turned {degrees}° in the file</en>
+    <tr>Girada {degrees}° en el archivo</tr>
+  </text>
+  <text>
+    <en>landscape</en>
+    <tr>apaisada</tr>
+  </text>
+  <text>
+    <en>portrait</en>
+    <tr>vertical</tr>
+  </text>
+  <text>
+    <en>square</en>
+    <tr>cuadrada</tr>
+  </text>
+  <text>
+    <en>{width} × {height} mm ({inches_w} × {inches_h} in)</en>
+    <tr>{width} × {height} mm ({inches_w} × {inches_h} pulg.)</tr>
+  </text>
 </interface>

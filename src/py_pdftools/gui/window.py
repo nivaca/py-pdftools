@@ -232,6 +232,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
     def _build(self):
         self.pages = QListWidget()
+        from .navigation import PageTips
+
+        self.pages.viewport().installEventFilter(PageTips(self))  # (each page's details, as its tip)
         self.pages.setViewMode(QListView.ViewMode.IconMode)
         self.pages.setFlow(QListView.Flow.TopToBottom)
         self.pages.setWrapping(False)
@@ -2735,7 +2738,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.page_box.setText(label or str(page + 1))
         number = str(page + 1)
         self.page_label.setText(f"{number}/{self.count}" if label and label != number else str(self.count))
-        self.page_label.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count))
+        self.page_label.setToolTip(self.page_details(page) if self.doc is not None else "")
         self.page_box.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count) + "\n"
                                  + tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
         self.pages.blockSignals(True)

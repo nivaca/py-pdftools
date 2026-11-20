@@ -11,16 +11,36 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote
 
 import pymupdf
-from PySide6.QtCore import QTimer, QUrl
+from PySide6.QtCore import QEvent, QObject, QTimer, QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QMessageBox
+from PySide6.QtWidgets import QMessageBox, QToolTip
 
-from ..core.interface import tr
+from ..core.interface import ntr, tr
 
 # named actions a link may have: (where it goes from the page shown)
 NAMED_ACTIONS = {"NextPage": 1, "PrevPage": -1, "FirstPage": "first", "LastPage": "last"}
 HISTORY = 100  # (places kept to go back to)
 PLACES = 300  # (files whose last place is remembered)
+# (paper sizes, in millimetres, named in a page's details when it has one of them, within 2 mm)
+PAPERS = {"A3": (297, 420), "A4": (210, 297), "A5": (148, 210), "A6": (105, 148), "B4": (250, 353),
+          "B5": (176, 250), "Letter": (215.9, 279.4), "Legal": (215.9, 355.6), "Tabloid": (279.4, 431.8)}
+
+
+class PageTips(QObject):
+    """The details of a page (see page_details) as the tip of its thumbnail, worked out when asked for."""
+
+    def __init__(self, window):
+        super().__init__(window)
+        self.window = window
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.ToolTip and self.window.doc is not None:
+            item = self.window.pages.itemAt(event.pos())
+            if item is not None:
+                n = self.window.pages.row(item)
+                QToolTip.showText(event.globalPos(), self.window.page_details(n), self.window.pages.viewport())
+                return True
+        return False
 
 
 def split_place(arg: str) -> tuple[str, dict]:
@@ -49,6 +69,29 @@ class NavigationMixin:
         self.show_page(page)
         if y is not None:
             self.canvas.scroll_to(page, y)
+
+    def page_details(self, n: int) -> str:
+        """What there is to know of page N at a glance: its label, its size (and paper), how it is turned,
+        its annotations."""
+        page = self.doc[n]
+        r = page.rect  # (as it shows, with its rotation)
+        w, h = r.width * 25.4 / 72, r.height * 25.4 / 72
+        labels = self.page_labels()
+        label = labels[n] if n < len(labels) else ""
+        head = tr("Page {page} of {count}", page=n + 1, count=self.count)
+        lines = [f"<b>{label}</b> — {head}" if label and label != str(n + 1) else f"<b>{head}</b>"]
+        paper = next((name for name, (a, b) in PAPERS.items()
+                      if abs(min(w, h) - a) < 2 and abs(max(w, h) - b) < 2), "")
+        size = tr("{width} × {height} mm ({inches_w} × {inches_h} in)", width=f"{w:.0f}", height=f"{h:.0f}",
+                  inches_w=f"{r.width / 72:.2f}", inches_h=f"{r.height / 72:.2f}")
+        shape = tr("landscape") if w > h + 0.5 else tr("portrait") if h > w + 0.5 else tr("square")
+        lines.append(f"{size}, {paper + ', ' if paper else ''}{shape}")
+        if page.rotation:
+            lines.append(tr("Turned {degrees}° in the file", degrees=page.rotation))
+        count = len(self._by_page[n]) if n < len(self._by_page) else 0
+        if count:
+            lines.append(ntr("{count} annotation", "{count} annotations", count))
+        return "<br>".join(lines)
 
     # ----------------------------------------------------------------- the history of the places
 

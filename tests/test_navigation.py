@@ -584,3 +584,27 @@ def test_reloading_a_file_changed_on_disk(window, book, monkeypatch):
     monkeypatch.setattr(window, "ask_reload", lambda: True)
     change(1)
     assert window.file_changed() and window.count == 9 and not window.is_modified()
+
+
+def test_the_details_of_a_page_on_hover(window, tmp_path, monkeypatch):
+    from PySide6.QtCore import QEvent
+    from PySide6.QtGui import QHelpEvent
+    from PySide6.QtWidgets import QToolTip
+
+    path = tmp_path / "sizes.pdf"
+    doc = pymupdf.open()
+    doc.new_page(width=595, height=842)  # (A4)
+    doc.new_page(width=792, height=612).set_rotation(90)  # (Letter, lying, turned in the file)
+    doc.save(path)
+    assert window.open_path(path)
+    text = window.page_details(0)
+    assert "Page 1 of 2" in text and "210 × 297 mm" in text and "A4" in text and "portrait" in text
+    text = window.page_details(1)
+    assert "Letter" in text and "portrait" in text and "Turned 90°" in text  # (as it shows: upright)
+    assert "A4" in window.page_label.toolTip()
+    shown = []
+    monkeypatch.setattr(QToolTip, "showText", staticmethod(lambda pos, text, *a: shown.append(text)))
+    rect = window.pages.visualItemRect(window.pages.item(1))
+    event = QHelpEvent(QEvent.Type.ToolTip, rect.center(), window.pages.viewport().mapToGlobal(rect.center()))
+    QApplication.sendEvent(window.pages.viewport(), event)
+    assert shown and "Page 2 of 2" in shown[0]
