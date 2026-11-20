@@ -547,6 +547,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                    [QKeySequence("PgDown")])
         self.a_first = self._action(m, tr("First page"), lambda: self.show_page(0), "Ctrl+Home")
         self.a_last = self._action(m, tr("Last page"), lambda: self.show_page(self.count - 1), "Ctrl+End")
+        # La historia de los saltos (enlaces, marcadores, la casilla de la página, Buscar), como en un navegador.
+        self.a_back = self._action(m, tr("Previous view"), lambda: self.history_step(True),
+                                   [QKeySequence("Alt+Left"), QKeySequence(QKeySequence.StandardKey.Back)],
+                                   tip=tr("Back to the place before the last jump (a link, a bookmark, a page "
+                                          "typed, a search)"))
+        self.a_forward = self._action(m, tr("Next view"), lambda: self.history_step(False),
+                                      [QKeySequence("Alt+Right"), QKeySequence(QKeySequence.StandardKey.Forward)],
+                                      tip=tr("Forward again, to the place left with Previous view"))
+        self.a_back.setIcon(icon("go-previous-view"))
+        self.a_forward.setIcon(icon("go-next-view"))
+        self._update_history()
         m.addSeparator()
         self.a_fit = self._action(m, tr("Fit the page"), lambda: self._fit("page"), "Ctrl+0")
         self.a_fit_width = self._action(m, tr("Fit the width"), lambda: self._fit("width"), "Ctrl+9")
@@ -588,7 +599,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
             self.toolbar_of("find", tr("Find"), [self.a_find]),
             # (Select text and Hand: in every mode, Read too)
-            self.toolbar_of("navigation", tr("Navigation"), [self.a_prev, self.a_next, self.tool_actions["selecttext"],
+            self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward, self.a_prev, self.a_next,
+                                                             self.tool_actions["selecttext"],
                                                              self.tool_actions["hand"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
         ]
@@ -919,6 +931,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def open_path(self, path: Path) -> bool:
         self.canvas.commit_text()
         self.keep_comment()
+        self.reset_history()  # (the places of another document)
         if not path.is_file():
             self.status(tr("{path} not found", path=path), error=True)
             return False
@@ -2094,7 +2107,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.finder = FindDialog(self)
             # El diálogo se crea una vez y se reutiliza: show_match hace destellar un resultado en el lienzo, y mark
             # marca los elegidos.
-            self.finder.show_match.connect(lambda m: self.canvas.flash(m.page, annots.union(m.rects)))
+            self.finder.show_match.connect(lambda m: (self.remember_place(), self.canvas.flash(m.page, annots.union(m.rects))))
             self.finder.mark.connect(self.mark_matches)
         self.finder.start(text)
 
@@ -2504,11 +2517,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         same = [n for n, label in enumerate(found) if label and label.casefold() == text.casefold()]
         if same:
             after = [n for n in same if n > self.page]
-            self.show_page((after or same)[0])
+            self.go_place((after or same)[0])
             return True
         digits = text[1:-1] if text.startswith("(") and text.endswith(")") else text
         if digits.isdigit() and 1 <= int(digits) <= self.count:
-            self.show_page(int(digits) - 1)
+            self.go_place(int(digits) - 1)
             return True
         self.status(tr("No page is labelled {label}", label=text), error=True)
         self._page_shown(self.page)

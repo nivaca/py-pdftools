@@ -1,5 +1,7 @@
 """Moving through the document (mixed into MainWindow): following the links the canvas reports (see
-links.py), and going to a place of it (a page, a height on it)."""
+links.py); going to a place of it (a page, a height on it); and the history of those jumps (from links,
+bookmarks, the page box and Find), gone through back and forth with Previous view and Next view
+(Alt+Left, Alt+Right), as in a web browser."""
 
 from __future__ import annotations
 
@@ -14,18 +16,62 @@ from ..core.interface import tr
 
 # named actions a link may have: (where it goes from the page shown)
 NAMED_ACTIONS = {"NextPage": 1, "PrevPage": -1, "FirstPage": "first", "LastPage": "last"}
+HISTORY = 100  # (places kept to go back to)
 
 
 class NavigationMixin:
     """(Mixed into MainWindow: it uses its attributes.)"""
 
-    def go_place(self, page: int, y: float | None = None):
-        """Show PAGE (0-based), with the height Y of it (in points, from its top) at the top of the view."""
+    def go_place(self, page: int, y: float | None = None, remember: bool = True):
+        """Show PAGE (0-based), with the height Y of it (in points, from its top) at the top of the view; the place
+        left is remembered (REMEMBER), to come back to it with Previous view."""
         if self.doc is None or not 0 <= page < self.count:
             return
+        if remember:
+            self.remember_place()
         self.show_page(page)
         if y is not None:
             self.canvas.scroll_to(page, y)
+
+    # ----------------------------------------------------------------- the history of the places
+
+    def _place(self) -> tuple[int, float] | None:
+        return (self.page, round(self._view_top(), 1)) if self.doc is not None else None
+
+    def remember_place(self):
+        """Keep the place shown, to come back to it (Previous view); what was ahead is forgotten."""
+        place = self._place()
+        if place is None:
+            return
+        back = self.__dict__.setdefault("_back", [])
+        if not back or back[-1] != place:
+            back.append(place)
+            del back[:-HISTORY]
+        self.__dict__.setdefault("_forward", []).clear()
+        self._update_history()
+
+    def history_step(self, back: bool = True) -> bool:
+        """Go to the place before (BACK) or after the one shown, in the history of the jumps."""
+        source = self.__dict__.setdefault("_back" if back else "_forward", [])
+        other = self.__dict__.setdefault("_forward" if back else "_back", [])
+        if not source or self.doc is None:
+            return False
+        here = self._place()
+        if here is not None:
+            other.append(here)
+        page, y = source.pop()
+        self.go_place(min(page, self.count - 1), y, remember=False)
+        self._update_history()
+        return True
+
+    def reset_history(self):
+        self._back, self._forward = [], []
+        self._update_history()
+
+    def _update_history(self):
+        if hasattr(self, "a_back"):
+            self.a_back.setEnabled(bool(self.__dict__.get("_back")))
+            self.a_forward.setEnabled(bool(self.__dict__.get("_forward")))
 
     def follow_link(self, page: int, link: dict) -> bool:
         """Follow LINK (clicked on PAGE): to a place of the document, to another PDF, or (asked first) to a

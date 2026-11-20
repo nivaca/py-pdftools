@@ -10253,4 +10253,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{target} (Ctrl+click to follow)</en>
     <tr>{target} (Ctrl+clic para seguirlo)</tr>
   </text>
+  <text>
+    <en>Back to the place before the last jump (a link, a bookmark, a page typed, a search)</en>
+    <tr>Volver al lugar anterior al último salto (un enlace, un marcador, una página escrita, una búsqueda)</tr>
+  </text>
+  <text>
+    <en>Forward again, to the place left with Previous view</en>
+    <tr>Avanzar otra vez, al lugar que se dejó con Vista anterior</tr>
+  </text>
+  <text>
+    <en>Next view</en>
+    <tr>Vista siguiente</tr>
+  </text>
+  <text>
+    <en>Previous view</en>
+    <tr>Vista anterior</tr>
+  </text>
 </interface>

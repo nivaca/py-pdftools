@@ -220,3 +220,41 @@ def test_following_links(window, linked, monkeypatch):
     assert new and new[0].path.name == "other.pdf" and new[0].page == 3
     for w in new:
         w.close()
+
+
+def test_the_history_of_jumps(window, book):
+    """Bookmarks, the page box and links leave the place they leave in the history; Previous view and Next
+    view go through it; a jump forgets what was ahead; another document starts afresh."""
+    assert not window.a_back.isEnabled() and not window.a_forward.isEnabled()
+    window._outline_go(window.outline_tree.topLevelItem(1))  # (Chapter 2: page 4)
+    assert window.page == 3 and window.a_back.isEnabled()
+    window.page_box.setText("6")
+    window.page_box.returnPressed.emit()
+    assert window.page == 5
+    window.a_back.trigger()
+    assert window.page == 3 and window.a_forward.isEnabled()
+    window.a_back.trigger()
+    assert window.page == 0 and not window.a_back.isEnabled()
+    window.a_forward.trigger()
+    assert window.page == 3
+    window.go_place(1)  # (a new jump: what was ahead is forgotten)
+    assert not window.a_forward.isEnabled()
+    window.a_back.trigger()
+    assert window.page == 3
+    window.show_page(2)  # (moving page by page is not a jump)
+    window.a_back.trigger()
+    assert window.page == 0
+    assert window.open_path(book)
+    assert not window.a_back.isEnabled() and not window.a_forward.isEnabled()
+
+
+def test_find_leaves_places_in_the_history(window):
+    window.find_dialog("Page 5")
+    finder = window.finder
+    finder.search()
+    finder.step(1)  # (to the first place found)
+    QApplication.processEvents()
+    assert finder.matches and window.page == 4
+    window.a_back.trigger()
+    assert window.page == 0
+    finder.close()
