@@ -134,3 +134,54 @@ def test_the_page_actions_belong_to_the_mode(window):
     window.a_rotate_right.trigger()
     assert [window.doc[i].rotation for i in range(window.count)].count(90) == 1
     assert window.doc[page - 1].rotation == 90
+
+
+def test_the_page_box_shows_and_takes_labels(window, app):
+    """The page box shows the label of the page shown, and goes to a page by its label, by (n) or by a
+    number; beside it, how many pages there are, or n/N where the label isn't the place of the page."""
+    window.set_ranges([Range(1, "r"), Range(5, "D")])
+    window.show_page(2)
+    assert window.page_box.text() == "iii" and window.page_label.text() == "3/100"
+    assert "Page 3 of 100" in window.page_box.toolTip()
+    for typed, page in (("IV", 3), ("1", 4), ("(2)", 1), ("100", 99)):  # (no page is labelled 100)
+        window.page_box.setText(typed)
+        window.page_box.returnPressed.emit()
+        assert window.page == page, typed
+    window.show_page(6)
+    assert window.page_box.text() == "3" and window.page_label.text() == "7/100"
+    window.page_box.setText("nothing")
+    assert not window.go_to_typed("nothing") and window.page == 6 and window.page_box.text() == "3"
+
+
+def test_several_thumbnails_chosen_in_any_mode(window, app, monkeypatch):
+    """Ctrl+click chooses several thumbnails without moving; they are Foliate's pages chosen too; the page
+    shown follows the view without losing them; their menu is the menu of pages, in any mode."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QApplication
+
+    window.set_mode("annotate")
+    window.show_page(1)
+    thumbs = window.pages
+    monkeypatch.setattr(QApplication, "keyboardModifiers", staticmethod(lambda: Qt.KeyboardModifier.ControlModifier))
+    for row in (4, 6):
+        thumbs.item(row).setSelected(True)
+        thumbs.setCurrentRow(row, __import__("PySide6.QtCore", fromlist=["QItemSelectionModel"])
+                             .QItemSelectionModel.SelectionFlag.NoUpdate)
+    assert window.page == 1 and window.selected_pages() == [2, 5, 7]
+    assert sorted(window.page_list.row(i) for i in window.page_list.selectedItems()) == [1, 4, 6]
+    monkeypatch.setattr(QApplication, "keyboardModifiers", staticmethod(lambda: Qt.KeyboardModifier.NoModifier))
+    window.show_page(9)  # (the view moves: the pages chosen stay chosen)
+    assert window.selected_pages() == [2, 5, 7] and thumbs.currentRow() == 9
+    shown = []
+    monkeypatch.setattr(window, "show_menu", lambda menu, where: shown.append(
+        [a.text() for a in menu.actions() if a.text()]))
+    window.thumbs_menu(thumbs.visualItemRect(thumbs.item(4)).center())
+    assert any("Delete" in t for t in shown[0]) and any("OCR" in t for t in shown[0])
+    # (a page right-clicked outside them becomes the one chosen)
+    window.thumbs_menu(thumbs.visualItemRect(thumbs.item(9)).center())
+    assert window.selected_pages() == [10]
+    # (Foliate's list chooses for the thumbnails too)
+    window.page_list.clearSelection()
+    for row in (0, 1):
+        window.page_list.item(row).setSelected(True)
+    assert window.selected_pages() == [1, 2] and {i.row() for i in thumbs.selectedIndexes()} == {0, 1}

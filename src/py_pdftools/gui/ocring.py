@@ -14,9 +14,9 @@ from ..core.interface import ntr, tr
 class OcrMixin:
     """(Mixed into MainWindow: it uses its attributes.)"""
 
-    def recognise_dialog(self) -> bool:
-        """Ask what to read and how (OcrDialog), read it, let the doubtful words be checked (ReviewDialog),
-        and write the text."""
+    def recognise_dialog(self, chosen: bool = False) -> bool:
+        """Ask what to read and how (OcrDialog: with CHOSEN, the pages chosen are what it offers first), read
+        it, let the doubtful words be checked (ReviewDialog), and write the text."""
         from .ocr_dialog import OcrDialog, ReviewDialog
 
         if self.path is None:
@@ -25,8 +25,13 @@ class OcrMixin:
             self.warn(tr("Recognise text (OCR)"), tr("tesseract is not installed: there is no OCR"))
             return False
         scanned = [page.number for page in self.doc if ocr.scanned(page)]
-        selected = [n - 1 for n in self.selected_pages()] if self.page_list.selectedItems() else []
+        # (the pages chosen in the thumbnails, or in Foliate's list: several, or one asked for with CHOSEN)
+        selected = [n - 1 for n in self.selected_pages()]
+        if len(selected) < 2 and not chosen:
+            selected = []
         dialog = OcrDialog(self, self.count, scanned, selected, self.page, self.prefs.ocr_language)
+        if chosen and selected:
+            dialog.chosen.setChecked(True)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
         results = self.recognise(dialog.page_list(), dialog.language.currentText(), dialog.rotate.isChecked())

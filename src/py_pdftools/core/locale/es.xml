@@ -440,10 +440,6 @@
     <tr>No se pudo cambiar el idioma de la interfaz: {error}</tr>
   </text>
   <text>
-    <en>The pages; the number after ● is how many annotations a page has</en>
-    <tr>Las páginas; el número después de ● es cuántas anotaciones tiene cada una</tr>
-  </text>
-  <text>
     <en>The settings are kept in {path}</en>
     <tr>La configuración se guarda en {path}</tr>
   </text>
@@ -9388,5 +9384,25 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{count} doubtful words</en>
     <tr>{count} palabras dudosas</tr>
+  </text>
+  <text>
+    <en>Page {page} of {count}</en>
+    <tr>Página {page} de {count}</tr>
+  </text>
+  <text>
+    <en>Recognise the text of these pages (OCR)…</en>
+    <tr>Reconocer el texto de estas páginas (OCR)…</tr>
+  </text>
+  <text>
+    <en>Recognise the text of this page (OCR)…</en>
+    <tr>Reconocer el texto de esta página (OCR)…</tr>
+  </text>
+  <text>
+    <en>The page shown: type a page label (such as iv) or a number, and press Enter</en>
+    <tr>La página a la vista: escriba la etiqueta de una página (como iv) o un número, y pulse Intro</tr>
+  </text>
+  <text>
+    <en>The pages; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several; right-click for what can be done with them</en>
+    <tr>Las páginas; el número después de ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic eligen varias; el botón derecho, lo que se puede hacer con ellas</tr>
   </text>
 </interface>

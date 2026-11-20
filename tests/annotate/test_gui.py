@@ -550,7 +550,7 @@ def test_continuous_and_one_page(window):
     canvas = window.canvas
     assert canvas.continuous and sorted(canvas.pages) == [0, 1, 2]
     window.show_page(2)
-    assert window.page == 2 and window.page_spin.value() == 3
+    assert window.page == 2 and window.page_box.text() == "3"
     window.a_continuous.setChecked(False)
     assert list(canvas.pages) == [2]
     window.show_page(0)

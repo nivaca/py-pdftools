@@ -219,7 +219,7 @@ class PagesMixin:
         pl.itemDoubleClicked.connect(lambda item: self.start_range_at(pl.row(item) + 1))
         pl.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
         pl.customContextMenuRequested.connect(self.pages_menu)
-        pl.itemSelectionChanged.connect(self._update_page_actions)
+        pl.itemSelectionChanged.connect(self._page_list_selection_changed)
         self.go_to_field = QLineEdit()
         self.go_to_field.setPlaceholderText(tr("Go to the page labelled…"))
         self.go_to_field.setToolTip(tr("Type a label (xii, 12v, A-3) and press Enter; Enter again goes to the "
@@ -285,11 +285,28 @@ class PagesMixin:
         return self.page + 1
 
     def selected_pages(self) -> list[int]:
-        """The pages chosen in the list (1-based, in order), or else the page shown."""
-        rows = sorted(self.page_list.row(item) for item in self.page_list.selectedItems())
+        """The pages chosen (1-based, in order): in the thumbnails, or in Foliate's list (the two are kept
+        the same); or else the page shown."""
+        rows = sorted({i.row() for i in self.pages.selectedIndexes()}) \
+            or sorted(self.page_list.row(item) for item in self.page_list.selectedItems())
         if rows:
             return [r + 1 for r in rows]
         return [self.current_page()] if self.count else []
+
+    def _page_list_selection_changed(self):
+        """The pages chosen in Foliate's list are those of the thumbnails too."""
+        if getattr(self, "_syncing_selection", False):
+            return
+        self._syncing_selection = True
+        try:
+            rows = {self.page_list.row(item) for item in self.page_list.selectedItems()}
+            self.pages.blockSignals(True)
+            for n in range(self.pages.count()):
+                self.pages.item(n).setSelected(n in rows)
+            self.pages.blockSignals(False)
+            self._update_page_actions()
+        finally:
+            self._syncing_selection = False
 
     # ----------------------------------------------------------------- the labels
 

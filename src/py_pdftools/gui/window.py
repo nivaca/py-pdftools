@@ -15,9 +15,9 @@ import pymupdf
 from PySide6.QtCore import QByteArray, QItemSelection, QItemSelectionModel, QPoint, QSettings, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QKeySequence, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
-    QApplication, QColorDialog, QDialog, QDockWidget, QFileDialog, QHBoxLayout, QInputDialog, QLabel, QLineEdit,
-    QListView, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox, QSlider, QSpinBox, QSplitter,
-    QStackedWidget, QToolBar, QToolButton, QVBoxLayout, QWidget,
+    QAbstractItemView, QApplication, QColorDialog, QDialog, QDockWidget, QFileDialog, QHBoxLayout, QInputDialog,
+    QLabel, QLineEdit, QListView, QListWidget, QListWidgetItem, QMainWindow, QMenu, QMessageBox, QSlider,
+    QSplitter, QStackedWidget, QToolBar, QToolButton, QVBoxLayout, QWidget,
 )
 
 from .. import __version__
@@ -221,9 +221,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.pages.setWrapping(False)
         self.pages.setMovement(QListView.Movement.Static)
         self.pages.setUniformItemSizes(True)
-        self.pages.setToolTip(tr("The pages; the number after ● is how many annotations a page has"))
+        self.pages.setToolTip(tr("The pages; the number after ● is how many annotations a page has. Ctrl+click "
+                                 "or Shift+click chooses several; right-click for what can be done with them"))
+        # Varias a la vez: Ctrl y Mayúsculas eligen páginas sin moverse a ellas; un clic solo va a la página.
+        self.pages.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         # La fila -1 llega cuando se vacía la lista (se abre otro documento): no hay nada que mostrar.
-        self.pages.currentRowChanged.connect(lambda row: self.show_page(row) if row >= 0 else None)
+        self.pages.currentRowChanged.connect(self._thumb_row_changed)
+        self.pages.itemSelectionChanged.connect(self._thumbs_selection_changed)
+        self.pages.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+        self.pages.customContextMenuRequested.connect(self.thumbs_menu)
         # Intervalo 0: una miniatura por vuelta del bucle de eventos, para que la ventana siga respondiendo.
         self.thumb_timer = QTimer(self, interval=0)
         self.thumb_timer.timeout.connect(self._draw_thumbnails)
@@ -266,15 +272,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.canvas.page_changed.connect(self._page_shown)
         self.canvas.text_done.connect(self.text_done)
         self.canvas.zoom_changed.connect(lambda z: self.zoom_label.setText(f"{z * 100:.0f} %"))
-        self.page_spin = QSpinBox()
-        self.page_spin.setMinimum(1)
-        self.page_spin.setPrefix(tr("Page "))
-        self.page_spin.valueChanged.connect(lambda v: self.show_page(v - 1))
+        # La casilla de la página muestra su etiqueta (iv, 12v, 12) y acepta una etiqueta o un número.
+        self.page_box = QLineEdit()
+        self.page_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.page_box.setMaximumWidth(90)
+        self.page_box.setToolTip(tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
+        self.page_box.returnPressed.connect(lambda: self.go_to_typed(self.page_box.text()))
+        self.page_box.editingFinished.connect(lambda: self._page_shown(self.page) if self.doc is not None else None)
+        # (beside it, how many pages there are; or 3/180, where the label is not the place of the page)
         self.page_label = QLabel("")
         self.page_label.setStyleSheet("color: palette(placeholder-text);")
         self.zoom_label = QLabel("")
         top = QHBoxLayout()
-        top.addWidget(self.page_spin)
+        top.addWidget(self.page_box)
         top.addWidget(self.page_label)
         top.addStretch(1)
         top.addWidget(self.zoom_label)
@@ -2353,19 +2363,95 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
         self.canvas.go_to(page)
         self._page_shown(page)
 
+    def _thumb_row_changed(self, row: int):
+        """A thumbnail made the current one: go to its page, unless it was chosen with Ctrl or Shift (then it
+        joins the pages chosen, and the page shown stays)."""
+        held = QApplication.keyboardModifiers() & (Qt.KeyboardModifier.ControlModifier
+                                                   | Qt.KeyboardModifier.ShiftModifier)
+        if row >= 0 and not held:
+            self.show_page(row)
+
+    def _thumbs_selection_changed(self):
+        """The pages chosen in the thumbnails are those of Foliate's list too (see selected_pages)."""
+        if getattr(self, "_syncing_selection", False):
+            return
+        self._syncing_selection = True
+        try:
+            rows = {i.row() for i in self.pages.selectedIndexes()}
+            pl = self.page_list
+            pl.blockSignals(True)
+            for n in range(pl.count()):
+                pl.item(n).setSelected(n in rows)
+            pl.blockSignals(False)
+            self._update_page_actions()
+        finally:
+            self._syncing_selection = False
+
+    def thumbs_menu(self, pos):
+        """The menu of the pages chosen in the thumbnails (in any mode): a page right-clicked outside them
+        becomes the one chosen."""
+        item = self.pages.itemAt(pos)
+        if item is None or self.doc is None:
+            return
+        if not item.isSelected():
+            self.pages.blockSignals(True)
+            self.pages.clearSelection()
+            item.setSelected(True)
+            self.pages.blockSignals(False)
+            self._thumbs_selection_changed()
+        menu = self.build_pages_menu()
+        if menu is None:
+            return
+        pages = self.selected_pages()
+        menu.addSeparator()
+        a = menu.addAction(tr("Recognise the text of these pages (OCR)…") if len(pages) > 1
+                           else tr("Recognise the text of this page (OCR)…"),
+                           lambda: self.recognise_dialog(chosen=True))
+        a.setEnabled(self.a_recognise.isEnabled())
+        self.show_menu(menu, self.pages.viewport().mapToGlobal(pos))
+
+    def go_to_typed(self, typed: str) -> bool:
+        """Go to the page TYPED names: the page shown, if it is its label; else a page with that label (any
+        case; Enter again goes to the next one with it); else '(3)', the third page; else a page number."""
+        text = typed.strip()
+        if self.doc is None or not text:
+            return False
+        found = self.page_labels()
+        if self.page < len(found) and (found[self.page] or str(self.page + 1)) == text:
+            return True
+        same = [n for n, label in enumerate(found) if label and label.casefold() == text.casefold()]
+        if same:
+            after = [n for n in same if n > self.page]
+            self.show_page((after or same)[0])
+            return True
+        digits = text[1:-1] if text.startswith("(") and text.endswith(")") else text
+        if digits.isdigit() and 1 <= int(digits) <= self.count:
+            self.show_page(int(digits) - 1)
+            return True
+        self.status(tr("No page is labelled {label}", label=text), error=True)
+        self._page_shown(self.page)
+        return False
+
     def _page_shown(self, page: int):
         """PAGE is the one in view now (turned to, or scrolled to)."""
         self.page = page
-        # Signals blocked: the spin box and the list of thumbnails would call show_page again.
-        self.page_spin.blockSignals(True)
-        self.page_spin.setValue(page + 1)
-        self.page_spin.blockSignals(False)
         found = self.page_labels() if self.doc is not None else []
         label = found[page] if page < len(found) else ""
-        # La etiqueta de la página (ii, A-3...) se muestra solo si no es el número mismo.
-        self.page_label.setText(f"({label})" if label and label != str(page + 1) else "")
+        # La casilla muestra la etiqueta (o el número, sin etiqueta), salvo mientras se escribe en ella.
+        if not self.page_box.hasFocus():
+            self.page_box.setText(label or str(page + 1))
+        number = str(page + 1)
+        self.page_label.setText(f"{number}/{self.count}" if label and label != number else str(self.count))
+        self.page_label.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count))
+        self.page_box.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count) + "\n"
+                                 + tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
         self.pages.blockSignals(True)
-        self.pages.setCurrentRow(page)
+        if len(self.pages.selectedIndexes()) > 1:
+            # (several pages chosen: they stay chosen, and only the current one follows the page shown)
+            self.pages.selectionModel().setCurrentIndex(self.pages.model().index(page, 0),
+                                                        QItemSelectionModel.SelectionFlag.NoUpdate)
+        else:
+            self.pages.setCurrentRow(page)
         self.pages.blockSignals(False)
         self._show_panel()
         self._enable()
@@ -2387,10 +2473,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
             item = QListWidgetItem(self._blank_icon, str(n + 1))
             item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
             self.pages.addItem(item)
-        self.page_spin.blockSignals(True)
-        self.page_spin.setMaximum(max(self.count, 1))
-        self.page_spin.setSuffix(f" / {self.count}")
-        self.page_spin.blockSignals(False)
         self.thumb_timer.start()
 
     def show_thumbnails(self, on: bool):
@@ -2668,7 +2750,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, WorkingMixin, F
     def _enable(self):
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
-                  self.a_zoom_out, self.page_spin, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
+                  self.a_zoom_out, self.page_box, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
                   self.a_import_xfdf, self.a_print, self.a_find, self.a_compare, *self.tool_actions.values()):
             w.setEnabled(has)
         # ocr.available() se calcula una sola vez (functools.cache): si se instala Tesseract con la ventana
