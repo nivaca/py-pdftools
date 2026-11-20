@@ -176,46 +176,51 @@ def test_pages_command(book, tmp_path, capsys):
 
 
 @pytest.mark.skipif(importlib.util.find_spec("PySide6") is None, reason="needs PySide6")
-@pytest.mark.skip(reason="the Pages mode of the window comes in stage 6")
 def test_window(book, tmp_path, monkeypatch):
+    """The pages arranged in the mode Pages of the window: moved, their labels following them (as the
+    user says), deleted, undone, dropped on the list, saved, and some saved as a new file."""
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
-    from PySide6.QtCore import QMimeData, QPointF, QSettings, Qt
+    from PySide6.QtCore import QMimeData, QPointF, Qt
     from PySide6.QtGui import QDropEvent
-    from PySide6.QtWidgets import QApplication, QMessageBox
+    from PySide6.QtWidgets import QApplication
 
-    from py_pdftools.pages.gui.window import MainWindow
-    from py_pdftools.pages.view import View
+    from py_pdftools.gui import paging
+    from py_pdftools.gui.window import MainWindow
     app = QApplication.instance() or QApplication(sys.argv[:1])
-    QSettings.setPath(QSettings.Format.NativeFormat, QSettings.Scope.UserScope, str(tmp_path / "settings"))
+    monkeypatch.setenv("HOME", str(tmp_path))
     w = MainWindow()
-    w.ask_unsaved = lambda: QMessageBox.StandardButton.Discard
+    w.ask_recover = lambda when: False
     asked = []
-    w.ask_labels = lambda: (asked.append(1), (arrange.FOLLOW, False))[1]
-    w.open_path(book)
-    w.set_view(View(page=95))
+    monkeypatch.setattr(paging, "ask_labels", lambda parent: (asked.append(1), (arrange.FOLLOW, False))[1])
+    w.set_labels_rule("ask")
+    assert w.open_path(book)
+    w.set_mode("pages")
+    assert w.set_view_part("page", 95)
     assert w.move_pages(list(range(91, 101)), 9) and asked == [1]
-    assert w.count == 100 and w.labels_of([9, 19]) == ["A", "1"] and w.opening.page == 13
-    w.settings.setValue("labels_when_moving", arrange.POSITION)  # (not asked: as Pages ▸ The labels says)
-    assert w.arrange_pages(arrange.Delete((1,))) and asked == [1] and w.count == 99 and w.labels_of([1]) == ["i"]
+    assert w.count == 100 and [w.page_labels()[i - 1] for i in (9, 19)] == ["A", "1"]
+    assert w.pages_state().opening.page == 13
+    w.set_labels_rule(arrange.POSITION)  # (not asked: as Pages ▸ Labels says)
+    assert w.arrange_pages(arrange.Delete((1,))) and asked == [1] and w.count == 99 and w.page_labels()[0] == "i"
     w.undo()
     assert w.count == 100
     # a drop on the list: the pages chosen go where they are dropped
-    w.pages.clearSelection()
-    w.pages.item(0).setSelected(True)
-    rect = w.pages.visualItemRect(w.pages.item(4))
+    pl = w.page_list
+    pl.clearSelection()
+    pl.item(0).setSelected(True)
+    rect = pl.visualItemRect(pl.item(4))
     dropped = []
-    w.pages.moved.disconnect()
-    w.pages.moved.connect(lambda pages, before, copied: dropped.append((pages, before, copied)))
+    pl.moved.disconnect()
+    pl.moved.connect(lambda pages, before, copied: dropped.append((pages, before, copied)))
     mime = QMimeData()  # (kept: the event holds no reference to it)
     event = QDropEvent(QPointF(rect.center().x(), rect.top() + 1), Qt.DropAction.MoveAction, mime,
                        Qt.MouseButton.LeftButton, Qt.KeyboardModifier.ControlModifier)
-    w.pages.dropEvent(event)
+    pl.dropEvent(event)
     assert dropped == []  # (the move waits for the drag to be over)
     QApplication.processEvents()
     assert dropped == [([1], 5, True)]
     menu = w.build_pages_menu()
     assert "Move to the end" in [a.text() for a in menu.actions()]
-    assert w.save() and w.file_count == 100 and labels_of(book)[8] == "A"
+    assert w.save() and w.count == 100 and labels_of(book)[8] == "A" and w.work is None
     assert w.write_parts([(tmp_path / "part.pdf", [9, 10])]) and labels_of(tmp_path / "part.pdf") == ["A", "B"]
     w.close()
     app.processEvents()

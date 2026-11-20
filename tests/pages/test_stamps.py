@@ -255,14 +255,13 @@ def test_output_paths(book, tmp_path):
 
 
 @pytest.mark.skipif(importlib.util.find_spec("PySide6") is None, reason="needs PySide6")
-@pytest.mark.skip(reason="the Pages mode of the window comes in stage 6")
 def test_window_dialogs(book, tmp_path, monkeypatch):
     import os
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PySide6.QtWidgets import QApplication
 
-    from py_pdftools.pages.gui.batch_dialog import BatchDialog
-    from py_pdftools.pages.gui.watermark_dialog import WatermarkDialog
+    from py_pdftools.gui.pages.batch_dialog import BatchDialog
+    from py_pdftools.gui.pages.watermark_dialog import WatermarkDialog
     app = QApplication.instance() or QApplication(sys.argv[:1])
     dlg = WatermarkDialog(None, Watermark(text="DRAFT"), book, "", None, 3, existing=True)
     dlg.update_preview()
@@ -294,14 +293,13 @@ def test_window_dialogs(book, tmp_path, monkeypatch):
     app.processEvents()
 
 
-@pytest.mark.skip(reason="the Pages mode of the window comes in stage 6")
 def test_batch_dialog_greys_out_pdfa_without_pdfconform(book, tmp_path, monkeypatch):
     pytest.importorskip("PySide6.QtWidgets")
     import os
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     from PySide6.QtWidgets import QApplication
     from py_pdftools.core import conform
-    from py_pdftools.pages.gui.batch_dialog import BatchDialog
+    from py_pdftools.gui.pages.batch_dialog import BatchDialog
     QApplication.instance() or QApplication([])
     monkeypatch.setattr(conform, "command", lambda path=None: None)
     batch = BatchDialog(None, [book], tmp_path)

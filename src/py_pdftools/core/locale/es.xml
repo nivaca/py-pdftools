@@ -9285,4 +9285,52 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Write a copy of the document with what is under the boxes removed, as a plain PDF (or PDF/A, PDF/X: Save the redacted copy as)</en>
     <tr>Escribir una copia del documento sin lo que hay debajo de los recuadros, como PDF corriente (o PDF/A, PDF/X: Guardar la copia censurada como)</tr>
   </text>
+  <text>
+    <en>Delete the pages chosen</en>
+    <tr>Borrar las páginas elegidas</tr>
+  </text>
+  <text>
+    <en>Duplicate the pages chosen</en>
+    <tr>Duplicar las páginas elegidas</tr>
+  </text>
+  <text>
+    <en>Header and footer added</en>
+    <tr>Encabezado y pie añadidos</tr>
+  </text>
+  <text>
+    <en>Header and footer…</en>
+    <tr>Encabezado y pie de página…</tr>
+  </text>
+  <text>
+    <en>Labels changed</en>
+    <tr>Etiquetas cambiadas</tr>
+  </text>
+  <text>
+    <en>Select pages in the list (Shift, Ctrl) and right-click them for more; drag them to move them (with Ctrl, to copy them), or drop PDFs to insert their pages. Double-click a page to start a range of labels at it; change a range in the table above.</en>
+    <tr>Seleccione páginas en la lista (Mayús, Ctrl) y haga clic derecho sobre ellas para más; arrástrelas para moverlas (con Ctrl, para copiarlas), o suelte PDF para insertar sus páginas. Doble clic en una página para empezar en ella un intervalo de etiquetas; cambie un intervalo en la tabla de arriba.</tr>
+  </text>
+  <text>
+    <en>Taken away</en>
+    <tr>Quitados</tr>
+  </text>
+  <text>
+    <en>The labels of their new places</en>
+    <tr>Las etiquetas de sus nuevos lugares</tr>
+  </text>
+  <text>
+    <en>The view when the document is opened changed</en>
+    <tr>Cambió la vista al abrir el documento</tr>
+  </text>
+  <text>
+    <en>Watermark added</en>
+    <tr>Marca de agua añadida</tr>
+  </text>
+  <text>
+    <en>Watermark…</en>
+    <tr>Marca de agua…</tr>
+  </text>
+  <text>
+    <en>it is gone</en>
+    <tr>ya no existe</tr>
+  </text>
 </interface>

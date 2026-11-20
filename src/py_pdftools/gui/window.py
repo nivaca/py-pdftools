@@ -34,6 +34,7 @@ from . import colors
 from .canvas import PageCanvas, page_image
 from .colors import color_name, swatch, swatches
 from .files import FilesMixin
+from .paging import PagesMixin
 from .redacting import RedactMixin
 from .working import DocState, WorkingMixin
 from .finder import FindDialog
@@ -134,7 +135,7 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
+class MainWindow(PagesMixin, RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -557,6 +558,7 @@ class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
                                       if tool not in ("select", "hand")]),
         }
         self.modes["redact"] = self._build_redact()
+        self.modes["pages"] = self._build_pages()
         self._docks_shown: dict[str, set] = {}  # mode -> its docks that were shown when it was left
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
@@ -2075,6 +2077,8 @@ class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
             self._label_pages()
         self.canvas.editable = self.a_show.isChecked()
         self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        if self.mode == "pages" and table:
+            self.fill_pages_panel()
         if self.mode == "redact":
             if table:
                 self.fill_redact_panel()
@@ -2114,6 +2118,8 @@ class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
         self.pages.blockSignals(False)
         self._show_panel()
         self._enable()
+        if hasattr(self, "modes"):
+            self.pages_page_shown()
 
     def _fit(self, how: str):
         self.canvas.fit = how
@@ -2208,10 +2214,15 @@ class MainWindow(RedactMixin, WorkingMixin, FilesMixin, QMainWindow):
         for i, a in enumerate(self.annotations):
             if 0 <= a.page < self.count and i in shown and self.owns(a):
                 self._by_page[a.page].append(a)
+        shown_labels = self.page_labels() if self.mode == "pages" else None
         for n in range(min(self.count, self.pages.count())):
             item = self.pages.item(n)
             count = len(self._by_page[n])
-            text = f"{n + 1}  ● {count}" if count else str(n + 1)
+            if shown_labels is not None:  # (in the mode Pages, each page with its label)
+                text = f"{n + 1}  {shown_labels[n]}" if shown_labels[n] and shown_labels[n] != str(n + 1) \
+                    else str(n + 1)
+            else:
+                text = f"{n + 1}  ● {count}" if count else str(n + 1)
             if item.text() != text:
                 item.setText(text)
             self._thumb(n)
