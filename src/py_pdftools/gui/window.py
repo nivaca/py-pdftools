@@ -260,6 +260,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.pen_pressure, self.canvas.pen_curve, self.canvas.pen_button = (
             self.prefs.pen_pressure, self.prefs.pen_curve, self.prefs.pen_button)
         self.canvas.continuous = self.settings.value("continuous", "true") != "false"
+        self.canvas.spread = self.settings.value("spread", "false") == "true"
+        self.canvas.cover = self.settings.value("cover", "false") == "true"
         self.canvas.factory = self.new_annotation
         # Mientras una página se renderiza, el lienzo muestra en su lugar la miniatura que ya esté hecha.
         self.canvas.placeholder_for = lambda n: self._thumbs.get(n)
@@ -537,13 +539,25 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_continuous.setToolTip(tr("The pages one under the other; otherwise, one page at a time"))
         self.a_continuous.toggled.connect(self.set_continuous)
         m.addAction(self.a_continuous)
+        self.a_spread = QAction(tr("Two pages side by side"), self, checkable=True, checked=self.canvas.spread)
+        self.a_spread.setShortcut(QKeySequence("Ctrl+Shift+2"))
+        self.a_spread.setToolTip(tr("The pages in pairs, as an open book; next and previous move a pair at a time"))
+        self.a_spread.toggled.connect(lambda on: self.set_spread(on))
+        m.addAction(self.a_spread)
+        self.a_cover = QAction(tr("The first page alone, as a cover"), self, checkable=True, checked=self.canvas.cover)
+        self.a_cover.setToolTip(tr("With two pages side by side: the first page by itself, so that the even pages "
+                                   "are on the left"))
+        self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
+        self.a_cover.setEnabled(self.canvas.spread)
+        m.addAction(self.a_cover)
         m.addSeparator()
         self.a_next_annot = self._action(m, tr("Next annotation"), lambda: self.go_annotation(1))
         self.a_prev_annot = self._action(m, tr("Previous annotation"), lambda: self.go_annotation(-1))
         m.addSeparator()
-        self.a_prev = self._action(m, tr("Previous page"), lambda: self.show_page(self.page - 1),
+        # (with two pages side by side, a pair at a time)
+        self.a_prev = self._action(m, tr("Previous page"), lambda: self.show_page(self.canvas.neighbour(self.page, -1)),
                                    [QKeySequence("PgUp")])
-        self.a_next = self._action(m, tr("Next page"), lambda: self.show_page(self.page + 1),
+        self.a_next = self._action(m, tr("Next page"), lambda: self.show_page(self.canvas.neighbour(self.page, 1)),
                                    [QKeySequence("PgDown")])
         self.a_first = self._action(m, tr("First page"), lambda: self.show_page(0), "Ctrl+Home")
         self.a_last = self._action(m, tr("Last page"), lambda: self.show_page(self.count - 1), "Ctrl+End")
@@ -1899,6 +1913,23 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 self.canvas.render_timer.start()
                 self.thumb_timer.start()
             self.refresh()
+
+    def set_spread(self, on: bool, cover: bool | None = None, keep: bool = True):
+        """Two pages side by side (ON), the first alone if COVER: kept for the next time (KEEP; not when a
+        document asks for it, on opening)."""
+        cover = self.a_cover.isChecked() if cover is None else cover
+        if keep:
+            self.settings.setValue("spread", "true" if on else "false")
+            self.settings.setValue("cover", "true" if cover else "false")
+        for act, value in ((self.a_spread, on), (self.a_cover, cover)):
+            act.blockSignals(True)
+            act.setChecked(value)
+            act.blockSignals(False)
+        self.a_cover.setEnabled(on)
+        page = self.page
+        self.canvas.set_spread(on, cover)
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        self.show_page(page)
 
     def set_continuous(self, on: bool):
         self.settings.setValue("continuous", "true" if on else "false")

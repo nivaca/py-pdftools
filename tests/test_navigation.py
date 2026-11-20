@@ -322,3 +322,39 @@ def test_the_last_session_opened_again(book, tmp_path, monkeypatch):
     gui.save_session([])
     newer[0].close()  # (the last window closed: its document is the session now)
     assert gui.session() == [str(book)]
+
+
+def test_two_pages_side_by_side(window):
+    canvas = window.canvas
+    window.a_spread.setChecked(True)
+    p = canvas.pages
+    assert p[0].pos().y() == p[1].pos().y() and p[0].pos().x() < p[1].pos().x() < p[2].pos().x() + 1000
+    assert p[2].pos().y() > p[0].pos().y()
+    window.show_page(0)
+    window.a_next.trigger()
+    assert window.page == 2  # (a pair at a time)
+    window.a_cover.setChecked(True)  # (the first page alone: then 1 and 2 together)
+    p = canvas.pages
+    assert p[1].pos().y() == p[2].pos().y() and p[0].pos().y() < p[1].pos().y()
+    window.show_page(1)
+    window.a_next.trigger()
+    assert window.page == 3
+    window.a_continuous.setChecked(False)  # (one pair at a time)
+    assert sorted(canvas.pages) == [3, 4]
+    window.a_continuous.setChecked(True)
+    window.a_spread.setChecked(False)
+    assert not window.a_cover.isEnabled()
+    p = canvas.pages
+    assert p[0].pos().y() < p[1].pos().y()
+
+
+def test_a_document_asking_for_two_pages(window, tmp_path):
+    path = tmp_path / "two.pdf"
+    doc = pymupdf.open()
+    for _ in range(5):
+        doc.new_page()
+    doc.xref_set_key(doc.pdf_catalog(), "PageLayout", "/TwoPageRight")
+    doc.save(path)
+    assert window.open_path(path)
+    assert window.canvas.spread and window.canvas.cover
+    assert window.settings.value("spread", "false") == "false"  # (the document's choice: not kept as the user's)

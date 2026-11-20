@@ -153,6 +153,9 @@ class NavigationMixin:
         except Exception:  # (a document whose catalog can't be read as pikepdf reads it: shown at its start)
             self.show_page(0)
             return
+        # A layout of two pages (TwoPageLeft, TwoColumnRight...): side by side; ...Right puts the first page alone.
+        if opening.layout.startswith("Two"):
+            self.set_spread(True, opening.layout.endswith("Right"), keep=False)
         zoom = opening.zoom or ""
         if zoom in ("Fit", "FitB"):
             self._fit("page")

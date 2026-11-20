@@ -10273,4 +10273,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Open again the documents that were open when py-pdftools was ended</en>
     <tr>Abrir otra vez los documentos que estaban abiertos al terminar py-pdftools</tr>
   </text>
+  <text>
+    <en>The first page alone, as a cover</en>
+    <tr>La primera página sola, como portada</tr>
+  </text>
+  <text>
+    <en>The pages in pairs, as an open book; next and previous move a pair at a time</en>
+    <tr>Las páginas de dos en dos, como un libro abierto; siguiente y anterior avanzan de dos en dos</tr>
+  </text>
+  <text>
+    <en>Two pages side by side</en>
+    <tr>Dos páginas lado a lado</tr>
+  </text>
+  <text>
+    <en>With two pages side by side: the first page by itself, so that the even pages are on the left</en>
+    <tr>Con dos páginas lado a lado: la primera página sola, para que las pares queden a la izquierda</tr>
+  </text>
 </interface>

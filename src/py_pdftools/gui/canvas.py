@@ -450,6 +450,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         self.continuous = True  # all the pages one under the other; else only the page shown
         self.page = 0  # the page in view (of a continuous view: the one in the middle of the window)
         self.fit = "page"  # 'page', 'width' or '' (a zoom of its own)
+        self.spread = False  # (two pages side by side: see rows)
+        self.cover = False  # (with spread: the first page alone, as the cover of a book)
         # 'select': selects, moves and resizes; 'hand': dragging scrolls; 'eraser': dragging erases;
         # else the kind of annotation that the tool makes: see annots.KINDS
         self.mode = "select"
@@ -531,21 +533,63 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         if self.doc is None:
             scene.setSceneRect(QRectF())
             return
-        # En la vista de una página solo hay un PageItem; el min() cubre un documento que perdió páginas.
-        numbers = range(self.doc.page_count) if self.continuous else [min(self.page, self.doc.page_count - 1)]
-        sizes = {n: self.page_rect(n) for n in numbers}
-        widest = max(r.width() for r in sizes.values())
+        # En la vista de una página solo está su fila (una página, o dos lado a lado); el min() cubre un documento
+        # que perdió páginas.
+        rows = self.rows() if self.continuous else [self.row_of(min(self.page, self.doc.page_count - 1))]
+        sizes = {n: self.page_rect(n) for row in rows for n in row}
+        widest = max(self._row_width(row, sizes) for row in rows)
         y = GAP
-        for n in numbers:
-            item = PageItem(n, sizes[n])
-            # Pages are centred on x = 0 in the scene, so pages of different widths line up along their middle.
-            item.setPos(-sizes[n].width() / 2, y)
-            scene.addItem(item)
-            self.pages[n] = item
-            y += sizes[n].height() + GAP
+        for row in rows:
+            # A row is centred on x = 0 in the scene, so pages of different widths line up along their middle;
+            # two pages side by side meet there (the left one ends at GAP / 2 before it).
+            if len(row) == 1:
+                xs = [-sizes[row[0]].width() / 2]
+            else:
+                xs = [-sizes[row[0]].width() - GAP / 2, GAP / 2]
+            for n, x in zip(row, xs):
+                item = PageItem(n, sizes[n])
+                item.setPos(x, y)
+                scene.addItem(item)
+                self.pages[n] = item
+            y += max(sizes[n].height() for n in row) + GAP
         scene.setSceneRect(QRectF(-widest / 2 - GAP, 0, widest + 2 * GAP, y))
         self._place_annotations()
         self.render_timer.start()
+
+    def rows(self) -> list[list[int]]:
+        """The pages in rows: one in each, or two side by side (spread), the first alone if it is a cover."""
+        count = self.doc.page_count if self.doc is not None else 0
+        if not self.spread:
+            return [[n] for n in range(count)]
+        out = [[0]] if self.cover and count else []
+        start = 1 if self.cover else 0
+        out += [list(range(n, min(n + 2, count))) for n in range(start, count, 2)]
+        return out
+
+    def row_of(self, page: int) -> list[int]:
+        return next((row for row in self.rows() if page in row), [page])
+
+    def neighbour(self, page: int, step: int) -> int:
+        """The page STEP rows after (or before) that of PAGE: its first page (with spread, a row is two pages)."""
+        rows = self.rows()
+        i = next((k for k, row in enumerate(rows) if page in row), 0)
+        return rows[max(0, min(i + step, len(rows) - 1))][0]
+
+    @staticmethod
+    def _row_width(row: list[int], sizes: dict) -> float:
+        if len(row) == 1:
+            return sizes[row[0]].width()
+        return 2 * max(sizes[row[0]].width(), sizes[row[1]].width()) + GAP
+
+    def set_spread(self, on: bool, cover: bool | None = None):
+        """Two pages side by side (ON), the first alone if COVER; then the page shown stays in view."""
+        self.spread = on
+        if cover is not None:
+            self.cover = cover
+        if self.doc is not None:
+            self.layout()
+            self.apply_fit()
+            self.go_to(self.page)
 
     def set_continuous(self, on: bool):
         if on != self.continuous:
@@ -887,11 +931,13 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
     def apply_fit(self):
         if self.doc is None or not self.fit or self.page not in self.pages:
             return
-        size = self.page_rect(self.page)
         room = self.viewport().size()
-        # Ajustar al ancho usa la página más ancha del documento, no la actual: así el zoom no salta al pasar
-        # de una página vertical a una apaisada.
-        widest = max(self.page_rect(n).width() for n in self.pages)
+        # Ajustar al ancho usa la fila más ancha (una página, o dos lado a lado), no la actual: así el zoom no salta
+        # al pasar de una página vertical a una apaisada.
+        sizes = {n: self.page_rect(n) for n in self.pages}
+        rows = {tuple(r) for r in (self.row_of(n) for n in self.pages) if all(m in sizes for m in r)}
+        widest = max((self._row_width(list(r), sizes) for r in rows), default=max(s.width() for s in sizes.values()))
+        size = QRectF(0, 0, 0, max(self.page_rect(n).height() for n in self.row_of(self.page)))
         # Los 4 píxeles dejan sitio al borde de la vista, para que el ajuste no haga aparecer barras.
         by_width = (room.width() - 4) / (widest + 2 * GAP)
         by_height = (room.height() - 4) / (size.height() + 2 * GAP)
