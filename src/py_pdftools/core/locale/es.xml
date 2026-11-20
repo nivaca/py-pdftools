@@ -10325,4 +10325,24 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{text} is not a zoom: type a percentage, such as 150</en>
     <tr>{text} no es un zoom: escriba un porcentaje, como 150</tr>
   </text>
+  <text>
+    <en>Every page is shown turned; the file stays as it is (to turn pages for good: Foliate, Rotate)</en>
+    <tr>Todas las páginas se ven giradas; el archivo queda como está (para girar páginas de verdad: Foliar, Girar)</tr>
+  </text>
+  <text>
+    <en>Rotate the view clockwise</en>
+    <tr>Girar la vista en el sentido del reloj</tr>
+  </text>
+  <text>
+    <en>Rotate the view counterclockwise</en>
+    <tr>Girar la vista en sentido contrario al reloj</tr>
+  </text>
+  <text>
+    <en>The view is turned {degrees}°</en>
+    <tr>La vista está girada {degrees}°</tr>
+  </text>
+  <text>
+    <en>The view is upright again</en>
+    <tr>La vista vuelve a estar derecha</tr>
+  </text>
 </interface>

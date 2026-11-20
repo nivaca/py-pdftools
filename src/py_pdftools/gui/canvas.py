@@ -453,6 +453,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         self._ink: dict = {}  # (document, page) -> the inked area of the page (see ink_rect)
         self.spread = False  # (two pages side by side: see rows)
         self.cover = False  # (with spread: the first page alone, as the cover of a book)
+        self.turn = 0  # degrees (clockwise) the view turns every page: not the file (see set_turn)
         # 'select': selects, moves and resizes; 'hand': dragging scrolls; 'eraser': dragging erases;
         # else the kind of annotation that the tool makes: see annots.KINDS
         self.mode = "select"
@@ -539,24 +540,44 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         # que perdió páginas.
         rows = self.rows() if self.continuous else [self.row_of(min(self.page, self.doc.page_count - 1))]
         sizes = {n: self.page_rect(n) for row in rows for n in row}
-        widest = max(self._row_width(row, sizes) for row in rows)
+        shown = {n: self.shown_rect(n) for n in sizes}  # (as the view turns them)
+        widest = max(self._row_width(row, shown) for row in rows)
         y = GAP
         for row in rows:
             # A row is centred on x = 0 in the scene, so pages of different widths line up along their middle;
             # two pages side by side meet there (the left one ends at GAP / 2 before it).
             if len(row) == 1:
-                xs = [-sizes[row[0]].width() / 2]
+                xs = [-shown[row[0]].width() / 2]
             else:
-                xs = [-sizes[row[0]].width() - GAP / 2, GAP / 2]
+                xs = [-shown[row[0]].width() - GAP / 2, GAP / 2]
             for n, x in zip(row, xs):
                 item = PageItem(n, sizes[n])
-                item.setPos(x, y)
                 scene.addItem(item)
+                if self.turn:
+                    # (turned about its corner: then moved so that what shows starts at (x, y))
+                    item.setRotation(self.turn)
+                    corner = item.mapRectToScene(item.rect()).topLeft()
+                    item.setPos(x - corner.x(), y - corner.y())
+                else:
+                    item.setPos(x, y)
                 self.pages[n] = item
-            y += max(sizes[n].height() for n in row) + GAP
+            y += max(shown[n].height() for n in row) + GAP
         scene.setSceneRect(QRectF(-widest / 2 - GAP, 0, widest + 2 * GAP, y))
         self._place_annotations()
         self.render_timer.start()
+
+    def shown_rect(self, number: int) -> QRectF:
+        """Page NUMBER's rectangle as the view shows it (width and height swapped if turned 90° or 270°)."""
+        r = self.page_rect(number)
+        return QRectF(0, 0, r.height(), r.width()) if self.turn in (90, 270) else r
+
+    def set_turn(self, degrees: int):
+        """Turn the view of every page DEGREES (a multiple of 90, clockwise); the file stays as it is."""
+        self.turn = degrees % 360
+        if self.doc is not None:
+            self.layout()
+            self.apply_fit()
+            self.go_to(self.page)
 
     def rows(self) -> list[list[int]]:
         """The pages in rows: one in each, or two side by side (spread), the first alone if it is a cover."""
@@ -649,7 +670,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         if rect is not None:
             self.ensureVisible(item.mapRectToScene(qrect(rect)), 60, 60)
         else:
-            top = item.mapToScene(QPointF(0, 0))
+            top = item.sceneBoundingRect().topLeft()  # (the top of the page as it shows, turned or not)
             bar = self.verticalScrollBar()
             # Deja el borde superior de la página GAP puntos por debajo del borde de la vista.
             bar.setValue(round(self.mapFromScene(QPointF(0, top.y() - GAP)).y() + bar.value()))
@@ -664,7 +685,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         if item is None:
             return
         self._quiet = True
-        point = item.mapToScene(QPointF(0, max(0.0, min(y, item.rect().height()))))
+        # (a page turned sideways: its height runs across the view, so its top is gone to)
+        point = item.mapToScene(QPointF(0, max(0.0, min(y, item.rect().height())))) if self.turn in (0, 180) \
+            else item.sceneBoundingRect().topLeft()
         bar = self.verticalScrollBar()
         bar.setValue(round(self.mapFromScene(QPointF(0, point.y() - GAP)).y() + bar.value()))
         self._quiet = False
@@ -936,17 +959,18 @@ class PageCanvas(TextSelectMixin, LinksMixin, QGraphicsView):
         room = self.viewport().size()
         # Ajustar al ancho usa la fila más ancha (una página, o dos lado a lado), no la actual: así el zoom no salta
         # al pasar de una página vertical a una apaisada.
-        sizes = {n: self.page_rect(n) for n in self.pages}
+        sizes = {n: self.shown_rect(n) for n in self.pages}
         rows = {tuple(r) for r in (self.row_of(n) for n in self.pages) if all(m in sizes for m in r)}
         widest = max((self._row_width(list(r), sizes) for r in rows), default=max(s.width() for s in sizes.values()))
-        size = QRectF(0, 0, 0, max(self.page_rect(n).height() for n in self.row_of(self.page)))
+        size = QRectF(0, 0, 0, max(self.shown_rect(n).height() for n in self.row_of(self.page)))
         # Los 4 píxeles dejan sitio al borde de la vista, para que el ajuste no haga aparecer barras.
         by_width = (room.width() - 4) / (widest + 2 * GAP)
         by_height = (room.height() - 4) / (size.height() + 2 * GAP)
         if self.fit == "visible":  # (the inked area of the page shown, as wide as the view, and centred)
             ink = self.ink_rect(self.page)
             fit = self.fit
-            self.set_zoom((room.width() - 4) / (ink.width() + 2 * GAP), fit)
+            across = ink.height() if self.turn in (90, 270) else ink.width()  # (as it shows, turned or not)
+            self.set_zoom((room.width() - 4) / (across + 2 * GAP), fit)
             centre = self.pages[self.page].mapToScene(ink.center())
             self.centerOn(centre.x(), self.mapToScene(self.viewport().rect().center()).y())
             return

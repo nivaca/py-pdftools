@@ -404,3 +404,25 @@ def test_more_zooms(window, tmp_path):
     assert abs(centre.x() - 290) < 10 and abs(centre.y() - 395) < 10
     window.set_mode("read")
     assert window.tool_actions["zoomarea"].isEnabled()
+
+
+def test_rotating_the_view(window, book):
+    canvas = window.canvas
+    item = canvas.pages[0]
+    w, h = item.rect().width(), item.rect().height()
+    window.a_turn_right.trigger()
+    item = canvas.pages[0]
+    shown = item.sceneBoundingRect()
+    assert canvas.turn == 90 and abs(shown.width() - h) < 1 and abs(shown.height() - w) < 1
+    assert canvas.pages[1].sceneBoundingRect().top() > shown.bottom()  # (one under the other, as before)
+    # (a point of the page is still found where it shows: the canvas works on the page's own coordinates)
+    from PySide6.QtCore import QPointF
+    corner = item.mapToScene(QPointF(10, 10))
+    page, point = canvas.locate(canvas.mapFromScene(corner))
+    assert page.number == 0 and abs(point.x() - 10) < 2 and abs(point.y() - 10) < 2
+    assert pymupdf.open(book)[0].rotation == 0  # (the file as it was)
+    window.a_turn_left.trigger()
+    window.a_turn_left.trigger()
+    assert canvas.turn == 270
+    assert window.open_path(book)
+    assert canvas.turn == 0

@@ -595,6 +595,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                                  "as the window"))
         self.a_actual = self._action(m, tr("Actual size"), self.canvas.actual_size, "Ctrl+Shift+0",
                                      tip=tr("The page at its printed size on this screen"))
+        m.addSeparator()
+        # Girar la vista, no el archivo: las páginas se ven giradas hasta abrir otro documento.
+        self.a_turn_right = self._action(m, tr("Rotate the view clockwise"), lambda: self.turn_view(90), "Ctrl+]",
+                                         tip=tr("Every page is shown turned; the file stays as it is (to turn pages "
+                                                "for good: Foliate, Rotate)"))
+        self.a_turn_left = self._action(m, tr("Rotate the view counterclockwise"), lambda: self.turn_view(-90),
+                                        "Ctrl+[")
         self.a_zoom_in = self._action(m, tr("Zoom in"), lambda: self.canvas.zoom_by(1.25),
                                       [QKeySequence(QKeySequence.StandardKey.ZoomIn), QKeySequence("Ctrl+=")])
         self.a_zoom_out = self._action(m, tr("Zoom out"), lambda: self.canvas.zoom_by(1 / 1.25),
@@ -997,6 +1004,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 return False
         # From here on the old document is gone: its working copies are removed (the history is cleared below).
         self.remember_file_place()  # (where it was left, to open it there again)
+        self.canvas.turn = 0  # (a view turned is of the document left)
         self.drop_work()
         found = self._load(path, password)
         if found is None:
@@ -1933,6 +1941,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 self.canvas.render_timer.start()
                 self.thumb_timer.start()
             self.refresh()
+
+    def turn_view(self, degrees: int):
+        """Turn the view DEGREES more (the file stays as it is); the page shown stays in view."""
+        page = self.page
+        self.canvas.set_turn(self.canvas.turn + degrees)
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        self.show_page(page)
+        self.status(tr("The view is turned {degrees}°", degrees=self.canvas.turn) if self.canvas.turn
+                    else tr("The view is upright again"))
 
     def set_spread(self, on: bool, cover: bool | None = None, keep: bool = True):
         """Two pages side by side (ON), the first alone if COVER: kept for the next time (KEEP; not when a
