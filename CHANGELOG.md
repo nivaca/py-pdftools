@@ -9,6 +9,9 @@ Debian package, the RPM, the wheel and the source, are on
 
 - **Thumbnails**: in the middle of their panel, however wide it is made,
   not on its left side.
+- **Impose**: F5 runs Preview again. It was also the key of the bookmarks
+  panel, and with two actions on one key Qt ran neither; the bookmarks are
+  put away while Impose is on (it shows no pages), and come back after.
 
 ## 1.8.5 — 2026-11-21
 

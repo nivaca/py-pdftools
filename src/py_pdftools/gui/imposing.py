@@ -40,10 +40,17 @@ class ImposeMixin:
     def _impose_entered(self):
         # El área central pasa de las páginas al espacio de trabajo de Imponer, y vuelve al salir.
         self.central.setCurrentWidget(self.workspace)
+        # Bookmarks lead to pages, which Impose doesn't show; and F5 is its Preview here (two actions with one
+        # key: Qt would run neither). Their panel comes back, as it was, on leaving.
+        self._outline_before_impose = self.outline_dock.isVisibleTo(self)
+        self.outline_dock.hide()
+        self.a_outline.setEnabled(False)
         self.give_impose_source()
 
     def _impose_left(self):
         self.central.setCurrentWidget(self.splitter)
+        self.a_outline.setEnabled(True)
+        self.outline_dock.setVisible(getattr(self, "_outline_before_impose", False))
 
     def impose_source(self) -> Path | None:
         """The file to impose: the document's own, or, if it has changes not yet saved, a copy with them."""

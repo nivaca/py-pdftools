@@ -815,7 +815,10 @@ bookmarks shown, and the window obeyed; and each mode kept its own
 arrangement of panels, so a panel opened once came back in the next
 session. Now the panel is hidden when the program starts, a document's
 request no longer opens it, and changing modes leaves it as it was. Only
-F5, or View > Panels > Bookmarks, opens it.
+F5, or View > Panels > Bookmarks, opens it. Later, the check of the
+configuration (stage 34) found that F5 was also Preview in Impose, where
+both actions were on at once, so Qt ran neither; in Impose, which shows no
+pages, the bookmarks panel is now put away, and comes back on leaving it.
 
 31. Tooltips on the toolbars
 ----------------------------

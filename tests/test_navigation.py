@@ -312,9 +312,12 @@ def test_the_bookmarks_start_hidden_and_stay_as_the_user_leaves_them(window, boo
     for _ in range(2):  # (the second time, each mode has an arrangement of its own to give back)
         for key in window.modes:
             window.set_mode(key)
-            assert window.outline_dock.isVisibleTo(window), key
-    window.a_outline.trigger()
+            # (Impose shows no pages: there the panel is away, and back after it)
+            assert window.outline_dock.isVisibleTo(window) == (key != "impose"), key
     window.set_mode(first)
+    window.a_outline.trigger()
+    assert not window.outline_dock.isVisibleTo(window)
+    window.set_mode("annotate")
     assert not window.outline_dock.isVisibleTo(window)
 
 
@@ -787,3 +790,12 @@ def test_the_thumbnails_are_in_the_middle_of_their_panel(window):
     cell = window.pages.visualItemRect(window.pages.item(1))
     assert view > window.thumb.width() + 28  # (wider than a thumbnail: there is something to center)
     assert cell.width() == view and abs(cell.center().x() - view / 2) <= 1
+
+
+def test_f5_is_preview_in_impose_and_the_bookmarks_elsewhere(window):
+    window.a_outline.trigger()
+    assert window.outline_dock.isVisibleTo(window)
+    window.set_mode("impose")
+    assert not window.a_outline.isEnabled() and not window.outline_dock.isVisibleTo(window)
+    window.set_mode("read")
+    assert window.a_outline.isEnabled() and window.outline_dock.isVisibleTo(window)
