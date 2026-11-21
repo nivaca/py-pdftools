@@ -865,6 +865,32 @@ label ("2  1"), and the count by the box of the page stopped showing it
 its label, or by its number if it has none. Only Foliate's list of pages,
 which is for setting the labels, keeps both.
 
+34. A check of the configuration
+--------------------------------
+
+Settings > General has now a button, Check the configuration, that lists
+what py-pdftools needs and whether it has it, each item with its status and
+what to do. The checks that need no window are in `core/health.py`: the
+version of Python and of the libraries, pyHanko, the configuration file
+(whether it can be read, whether its folder can be written to, and which of
+its values aren't valid or known to this version), tesseract and the OCR
+languages chosen, Ghostscript, and the free space of the temporary folder.
+Two details needed care. PySide6 is installed as `PySide6_Essentials`, so
+asking the package metadata for "PySide6" said it was missing; the
+versions are now read from the modules. And the values of the file are
+checked by the same rules the program uses when it reads them (those of
+`annotate/settings.py`), so the check never disagrees with what the
+program does.
+
+The window adds the keyboard shortcuts (`gui/health_dialog.py`). A first
+version guessed, for each action, the mode it works in, and found clashes
+that didn't exist; Qt doesn't count an action whose menu is hidden. The
+check now follows Qt's own rule: an action counts when it is enabled and
+reachable, in a menu shown in the menu bar, a toolbar shown or the window.
+It also looks at the shortcuts changed in Settings, against every other
+action. On its first run it found a real clash, F5 in Impose (see stage
+30).
+
 Testing
 -------
 

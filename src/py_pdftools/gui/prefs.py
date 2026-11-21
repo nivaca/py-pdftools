@@ -181,6 +181,12 @@ class SettingsDialog(QDialog):
         where.setWordWrap(True)
         where.setStyleSheet("color: palette(placeholder-text);")
         form.addRow(where)
+        # Revisar la configuración: lo que el programa necesita, y si los ajustes guardados valen
+        self.check = QPushButton(tr("Check the configuration…"))
+        self.check.setToolTip(tr("Whether py-pdftools has what it needs (Python, its libraries, tesseract, "
+                                 "Ghostscript), and whether its settings are right"))
+        self.check.clicked.connect(lambda: self.check_configuration(parent))
+        form.addRow("", self.check)
         tabs.addTab(_scrolled(general), tr("General"))
         tabs.addTab(_scrolled(self._appearance_tab(parent)), tr("Appearance"))
         tabs.addTab(_scrolled(self._documents_tab()), tr("Documents"))
@@ -436,6 +442,12 @@ class SettingsDialog(QDialog):
     def _usual_keys(self):
         for action, key in settings.SHORTCUTS.items():
             self.key_edits[action].setKeySequence(QKeySequence(key))
+
+    def check_configuration(self, window=None):
+        """The check of the configuration (gui/health_dialog.py), with the shortcuts of WINDOW."""
+        from .health_dialog import HealthDialog
+
+        HealthDialog(window, self).exec()
 
     def shortcuts(self) -> dict[str, str]:
         # PortableText: the same text on every system and language, as it is saved.

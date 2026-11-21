@@ -14,6 +14,12 @@ Debian package, the RPM, the wheel and the source, are on
   beside the box of the page says only how many pages there are ("5", not
   "2/5"). Foliate's list of pages still shows both, as it is for setting
   the labels.
+- **Check the configuration** (Settings > General): a list of what
+  py-pdftools needs and whether it has it (Python and its libraries,
+  pyHanko, tesseract and the OCR languages chosen, Ghostscript, the space
+  of the temporary folder), whether the configuration file can be read and
+  written, which of its values aren't valid or known, and shortcuts used
+  twice, each with what to do; the report can be copied as text.
 - **Impose**: F5 runs Preview again. It was also the key of the bookmarks
   panel, and with two actions on one key Qt ran neither; the bookmarks are
   put away while Impose is on (it shows no pages), and come back after.

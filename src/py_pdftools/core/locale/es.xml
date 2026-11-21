@@ -12680,4 +12680,232 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Put the cursor in the quick find box, on the toolbar Find</en>
     <tr>Poner el cursor en la casilla de búsqueda rápida, en la barra Buscar</tr>
   </text>
+  <text>
+    <en>Add them in the mode OCR, with Languages…</en>
+    <tr>Añádalos en el modo OCR, con Idiomas…</tr>
+  </text>
+  <text>
+    <en>Also the shortcut of another action: {keys}</en>
+    <tr>También es el atajo de otra acción: {keys}</tr>
+  </text>
+  <text>
+    <en>As plain text, to paste into a message asking for help</en>
+    <tr>Como texto simple, para pegarlo en un mensaje en el que se pida ayuda</tr>
+  </text>
+  <text>
+    <en>Check again</en>
+    <tr>Revisar de nuevo</tr>
+  </text>
+  <text>
+    <en>Check the configuration</en>
+    <tr>Revisar la configuración</tr>
+  </text>
+  <text>
+    <en>Check the configuration…</en>
+    <tr>Revisar la configuración…</tr>
+  </text>
+  <text>
+    <en>Choose it again in Settings, or leave the field empty to use the one of py-pdftools</en>
+    <tr>Elíjalo de nuevo en la Configuración, o deje el campo vacío para usar el de py-pdftools</tr>
+  </text>
+  <text>
+    <en>Chosen but not installed: {names}</en>
+    <tr>Elegidos pero no instalados: {names}</tr>
+  </text>
+  <text>
+    <en>Configuration file</en>
+    <tr>Archivo de configuración</tr>
+  </text>
+  <text>
+    <en>Copy the report</en>
+    <tr>Copiar el informe</tr>
+  </text>
+  <text>
+    <en>Correct the file, or delete it</en>
+    <tr>Corrija el archivo, o bórrelo</tr>
+  </text>
+  <text>
+    <en>Everything is in order.</en>
+    <tr>Todo está en orden.</tr>
+  </text>
+  <text>
+    <en>Fine</en>
+    <tr>Bien</tr>
+  </text>
+  <text>
+    <en>Found</en>
+    <tr>Hallado</tr>
+  </text>
+  <text>
+    <en>Ghostscript (PDF/A and PDF/X)</en>
+    <tr>Ghostscript (PDF/A y PDF/X)</tr>
+  </text>
+  <text>
+    <en>Give one of them another shortcut, in Settings &gt; Shortcuts</en>
+    <tr>Dé a una de ellas otro atajo, en Configuración &gt; Atajos</tr>
+  </text>
+  <text>
+    <en>Give your user permission to write in that folder</en>
+    <tr>Dé a su usuario permiso para escribir en esa carpeta</tr>
+  </text>
+  <text>
+    <en>Install Ghostscript (9.5 or later)</en>
+    <tr>Instale Ghostscript (9.5 o posterior)</tr>
+  </text>
+  <text>
+    <en>Install py-pdftools again</en>
+    <tr>Instale py-pdftools de nuevo</tr>
+  </text>
+  <text>
+    <en>Install tesseract (tesseract on Fedora, tesseract-ocr on Debian and Ubuntu)</en>
+    <tr>Instale tesseract (tesseract en Fedora, tesseract-ocr en Debian y Ubuntu)</tr>
+  </text>
+  <text>
+    <en>Installed</en>
+    <tr>Instalado</tr>
+  </text>
+  <text>
+    <en>It can't be loaded: {error}</en>
+    <tr>No se puede cargar: {error}</tr>
+  </text>
+  <text>
+    <en>It can't be read: {error}</en>
+    <tr>No se puede leer: {error}</tr>
+  </text>
+  <text>
+    <en>Keyboard shortcuts</en>
+    <tr>Atajos de teclado</tr>
+  </text>
+  <text>
+    <en>Languages of OCR</en>
+    <tr>Idiomas del OCR</tr>
+  </text>
+  <text>
+    <en>Large documents may not fit while they are edited; free some space</en>
+    <tr>Puede que los documentos grandes no quepan mientras se editan; libere espacio</tr>
+  </text>
+  <text>
+    <en>No shortcut is used twice</en>
+    <tr>Ningún atajo se usa dos veces</tr>
+  </text>
+  <text>
+    <en>Not found: the text of scanned pages can't be read</en>
+    <tr>No se encontró: el texto de las páginas escaneadas no se puede leer</tr>
+  </text>
+  <text>
+    <en>Not installed</en>
+    <tr>No instalado</tr>
+  </text>
+  <text>
+    <en>Not installed: documents can't be signed, nor their signatures checked</en>
+    <tr>No instalado: no se pueden firmar documentos ni comprobar sus firmas</tr>
+  </text>
+  <text>
+    <en>Problem</en>
+    <tr>Problema</tr>
+  </text>
+  <text>
+    <en>Python</en>
+    <tr>Python</tr>
+  </text>
+  <text>
+    <en>Set them again in Settings, or correct them in the file</en>
+    <tr>Vuelva a fijarlos en la Configuración, o corríjalos en el archivo</tr>
+  </text>
+  <text>
+    <en>Settings this version doesn't know, left alone: {names}</en>
+    <tr>Ajustes que esta versión no conoce, que se dejan como están: {names}</tr>
+  </text>
+  <text>
+    <en>Shortcuts changed in Settings</en>
+    <tr>Atajos cambiados en la Configuración</tr>
+  </text>
+  <text>
+    <en>Temporary folder</en>
+    <tr>Carpeta temporal</tr>
+  </text>
+  <text>
+    <en>The same shortcut for several actions, so none of them responds to it: {keys}</en>
+    <tr>El mismo atajo para varias acciones, así que ninguna responde a él: {keys}</tr>
+  </text>
+  <text>
+    <en>The usual values are used meanwhile. Correct the file, or delete it to start afresh</en>
+    <tr>Mientras tanto se usan los valores usuales. Corrija el archivo, o bórrelo para empezar de cero</tr>
+  </text>
+  <text>
+    <en>They may come from another version; they do no harm</en>
+    <tr>Pueden venir de otra versión; no hacen daño</tr>
+  </text>
+  <text>
+    <en>Values that aren't valid, replaced by the usual ones: {names}</en>
+    <tr>Valores que no son válidos, reemplazados por los usuales: {names}</tr>
+  </text>
+  <text>
+    <en>Warning</en>
+    <tr>Advertencia</tr>
+  </text>
+  <text>
+    <en>What</en>
+    <tr>Qué</tr>
+  </text>
+  <text>
+    <en>Whether py-pdftools has what it needs (Python, its libraries, tesseract, Ghostscript), and whether its settings are right</en>
+    <tr>Si py-pdftools tiene lo que necesita (Python, sus bibliotecas, tesseract, Ghostscript) y si sus ajustes están bien</tr>
+  </text>
+  <text>
+    <en>[parameters] is not a table: every setting has its usual value</en>
+    <tr>[parameters] no es una tabla: cada ajuste tiene su valor usual</tr>
+  </text>
+  <text>
+    <en>pdf2iso</en>
+    <tr>pdf2iso</tr>
+  </text>
+  <text>
+    <en>py-pdftools needs Python {version} or later</en>
+    <tr>py-pdftools necesita Python {version} o posterior</tr>
+  </text>
+  <text>
+    <en>pyHanko (digital signatures)</en>
+    <tr>pyHanko (firmas digitales)</tr>
+  </text>
+  <text>
+    <en>tesseract (OCR)</en>
+    <tr>tesseract (OCR)</tr>
+  </text>
+  <text>
+    <en>{chosen} (installed: {count})</en>
+    <tr>{chosen} (instalados: {count})</tr>
+  </text>
+  <text>
+    <en>{count} settings changed, all valid</en>
+    <tr>{count} ajustes cambiados, todos válidos</tr>
+  </text>
+  <text>
+    <en>{count} thing to look at, marked below.</en>
+    <tr>{count} cosa que revisar, marcada abajo.</tr>
+  </text>
+  <text>
+    <en>{count} things to look at, marked below.</en>
+    <tr>{count} cosas que revisar, marcadas abajo.</tr>
+  </text>
+  <text>
+    <en>{folder} can't be used: {error}</en>
+    <tr>{folder} no se puede usar: {error}</tr>
+  </text>
+  <text>
+    <en>{folder} can't be written to: no setting will be kept</en>
+    <tr>En {folder} no se puede escribir: no se guardará ningún ajuste</tr>
+  </text>
+  <text>
+    <en>{folder}: {gb} GB free</en>
+    <tr>{folder}: {gb} GB libres</tr>
+  </text>
+  <text>
+    <en>{path} (not made yet: every setting has its usual value)</en>
+    <tr>{path} (aún no existe: cada ajuste tiene su valor usual)</tr>
+  </text>
+  <text>
+    <en>{path} is not there</en>
+    <tr>{path} no existe</tr>
+  </text>
 </interface>

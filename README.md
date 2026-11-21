@@ -407,6 +407,11 @@ in the user's configuration folder: `~/.config/py-pdftools/` on Linux,
 `~/Library/Application Support/py-pdftools/` on macOS, `%APPDATA%\py-pdftools\`
 on Windows (or the folder `$PY_PDFTOOLS_CONFIG` names). Each setting is
 checked when it is read, so a file edited by hand can't stop the program.
+Settings > General > Check the configuration lists what py-pdftools needs
+and whether it has it (Python and its libraries, pyHanko, tesseract and the
+OCR languages chosen, Ghostscript, the space of the temporary folder),
+which settings in the file aren't valid or known, and shortcuts used twice;
+each with what to do, and a report that can be copied.
 
 Tests
 -----
