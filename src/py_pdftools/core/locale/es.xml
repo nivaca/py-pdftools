@@ -12300,4 +12300,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The edges of letters and lines are drawn soft (they are not snapped to the pixels of the screen, as the desktop's own fonts are); sharper darkens them and makes them steeper, and pictures a little too</en>
     <tr>Los bordes de las letras y las líneas se dibujan suaves (no se ajustan a los píxeles de la pantalla, como las fuentes del escritorio); más nítido los oscurece y los hace más marcados, y también un poco las imágenes</tr>
   </text>
+  <text>
+    <en>Page navigation</en>
+    <tr>Navegación de páginas</tr>
+  </text>
+  <text>
+    <en>of {count}</en>
+    <tr>de {count}</tr>
+  </text>
 </interface>

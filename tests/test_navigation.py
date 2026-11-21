@@ -669,3 +669,40 @@ def test_hiding_the_gaps_between_pages(window):
     other.close()
     window.a_gaps.setChecked(True)
     assert canvas.pages[1].sceneBoundingRect().top() - canvas.pages[0].sceneBoundingRect().bottom() == 12
+
+
+def test_the_page_navigation_bar(window):
+    """The toolbar Page navigation (gui/pagebar.py): First, Previous, the box of the page, Next, Last, at the
+    bottom of the window; the box takes a number, shows the page in view and how many there are; the bar can
+    be customized as the others; Impose, which has no pages to move through, hides it."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QLabel, QLineEdit, QToolBar
+
+    bar = window.findChild(QToolBar, "pagenav")
+    assert bar is not None and bar.isVisible()
+    assert window.toolBarArea(bar) == Qt.ToolBarArea.BottomToolBarArea
+    assert window.bar_ids(bar) == ["a_first", "a_prev", "a_page_number", "a_next", "a_last"]
+    box, count = bar.findChild(QLineEdit, "page"), bar.findChild(QLabel, "count")
+    assert box.text() == "1" and count.text() == "of 6"
+    window.a_last.trigger()
+    QApplication.processEvents()
+    assert window.page == 5 and box.text() == "6"
+    box.setText("3")
+    box.returnPressed.emit()
+    QApplication.processEvents()
+    assert window.page == 2 and box.text() == "3"
+    window.a_first.trigger()
+    QApplication.processEvents()
+    assert window.page == 0 and box.text() == "1"
+    # Editable: the box can go on another toolbar too, with a box of its own that follows the page
+    window.apply_toolbar_layout({"bars": {"zoom": ["a_fit", "a_page_number"]}, "custom": []}, keep=False)
+    other = window.findChild(QToolBar, "zoom").findChild(QLineEdit, "page")
+    assert other is not None and other is not box and other.text() == "1"
+    window.a_next.trigger()
+    QApplication.processEvents()
+    assert other.text() == box.text() == "2"
+    window.apply_toolbar_layout({"bars": {}, "custom": []}, keep=False)
+    window.set_mode("impose")
+    assert not bar.isVisible()
+    window.set_mode("read")
+    assert bar.isVisible()

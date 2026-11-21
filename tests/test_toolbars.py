@@ -5,7 +5,7 @@ button of the toolbars has an icon, those of the modes too."""
 from __future__ import annotations
 
 import pytest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidgetAction
 
 from py_pdftools.gui.toolbars import SEPARATOR, ToolbarsDialog
 from py_pdftools.gui.window import MainWindow
@@ -31,7 +31,9 @@ def bar(w, name):
 def test_every_button_has_an_icon(window):
     for b in window.toolbars():
         for act in b.actions():
-            assert act.isSeparator() or not act.icon().isNull(), (b.objectName(), act.text())
+            # (the box of the page, a widget, is no button)
+            assert act.isSeparator() or isinstance(act, QWidgetAction) or not act.icon().isNull(), (
+                b.objectName(), act.text())
     assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"  # (de entrada)
 
 

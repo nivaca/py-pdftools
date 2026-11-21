@@ -676,6 +676,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                       tip=tr("Forward again, to the place left with Previous view"))
         self.a_back.setIcon(icon("go-previous-view"))
         self.a_forward.setIcon(icon("go-next-view"))
+        self.a_first.setIcon(icon("go-first"))
+        self.a_last.setIcon(icon("go-last"))
+        from .pagebar import PageNumberAction
+
+        # (la casilla de la página como acción, para la barra Navegación de páginas y cualquier otra)
+        self.a_page_number = PageNumberAction(self)
         self._update_history()
         m.addSeparator()
         self.a_fit = self._action(m, tr("Fit the page"), lambda: self._fit("page"), "Ctrl+0")
@@ -739,6 +745,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                                              self.tool_actions["selecttext"],
                                                              self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
+            self.page_bar(),
         ]
         self.addToolBarBreak()
         # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
@@ -767,6 +774,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def page_bar(self) -> QToolBar:
+        """The toolbar Page navigation (see pagebar.py), at the bottom of the window."""
+        from .pagebar import NAME
+
+        bar = self.toolbar_of(NAME, tr("Page navigation"), [self.a_first, self.a_prev, self.a_page_number,
+                                                             self.a_next, self.a_last])
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, bar)
+        return bar
 
     def toolbar_of(self, name: str, title: str, actions: list) -> QToolBar:
         """A new toolbar NAME (its object name, which keeps its place between sessions), with ACTIONS."""
@@ -2850,6 +2866,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # La casilla muestra la etiqueta (o el número, sin etiqueta), salvo mientras se escribe en ella.
         if not self.page_box.hasFocus():
             self.page_box.setText(label or str(page + 1))
+        self.a_page_number.show_page(label or str(page + 1), self.count)
         number = str(page + 1)
         self.page_label.setText(f"{number}/{self.count}" if label and label != number else str(self.count))
         self.page_label.setToolTip(self.page_details(page) if self.doc is not None else "")
@@ -3196,9 +3213,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def _enable(self):
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
-                  self.a_zoom_out, self.page_box, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
+                  self.a_zoom_out, self.page_box, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
                   self.a_import_xfdf, self.a_print, self.a_find, self.a_compare, *self.tool_actions.values()):
             w.setEnabled(has)
+        if not has:
+            self.a_page_number.show_page("", 0)
         # ocr.available() se calcula una sola vez (functools.cache): si se instala Tesseract con la ventana
         # abierta, no se nota hasta reiniciar.
         from ..annotate import ocr
