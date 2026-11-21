@@ -41,6 +41,7 @@ from .ocring import OcrMixin
 from .navigation import NavigationMixin
 from .forming import FormMixin
 from .linking import LinkEditMixin
+from .signing import SignMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
 from .outline import OutlineMixin
@@ -174,7 +175,8 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
-                 WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, ToolbarsMixin, QMainWindow):
+                 WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin, ToolbarsMixin,
+                 QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -454,6 +456,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_protect = self._action(m, tr("Protect with passwords…"), self.protection_dialog,
                                       tip=tr("A password to open the document, and one for what may be done with "
                                              "it (printing, copying, changing it); or its protection removed"))
+        self._build_sign_menu(m)
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
         m.addSeparator()

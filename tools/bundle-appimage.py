@@ -155,7 +155,8 @@ def make_appdir(appdir: Path, whl: Path):
     # site-packages (or another environment) as already installed.
     env = clean_env()
     subprocess.run([str(python), "-s", "-m", "pip", "install", "--isolated", "--no-cache-dir",
-                    "--no-warn-script-location", "--disable-pip-version-check", "--quiet", str(whl)],
+                    "--no-warn-script-location", "--disable-pip-version-check", "--quiet",
+                    f"{whl}[signatures]"],  # (with pyHanko: the AppImage signs and checks signatures)
                    check=True, env=env)
     site = next(appdir.glob("opt/python3*/lib/python3.*/site-packages"))
     for rel in PRUNE:

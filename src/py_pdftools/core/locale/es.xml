@@ -11413,4 +11413,96 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} cannot be read as the data of a form: {error}</en>
     <tr>{path} no se puede leer como datos de un formulario: {error}</tr>
   </text>
+  <text>
+    <en>(no name)</en>
+    <tr>(sin nombre)</tr>
+  </text>
+  <text>
+    <en>A digital ID needs a name</en>
+    <tr>Un ID digital necesita un nombre</tr>
+  </text>
+  <text>
+    <en>A self-signed ID: enough to sign your documents, and for others to check that nothing changed after you signed. They trust it when you give them its certificate (the .cer file saved beside it). Keep the ID file and its password to yourself.</en>
+    <tr>Un ID autofirmado: basta para firmar sus documentos, y para que otros comprueben que nada cambió después de que usted firmó. Lo reconocen cuando usted les da su certificado (el archivo .cer guardado a su lado). Guarde para usted el archivo del ID y su contraseña.</tr>
+  </text>
+  <text>
+    <en>A self-signed digital ID (a .p12 file), to sign documents with</en>
+    <tr>Un ID digital autofirmado (un archivo .p12), para firmar documentos</tr>
+  </text>
+  <text>
+    <en>Country:</en>
+    <tr>País:</tr>
+  </text>
+  <text>
+    <en>Create a digital ID</en>
+    <tr>Crear un ID digital</tr>
+  </text>
+  <text>
+    <en>Create a digital ID…</en>
+    <tr>Crear un ID digital…</tr>
+  </text>
+  <text>
+    <en>Digital IDs (*.p12 *.pfx)</en>
+    <tr>IDs digitales (*.p12 *.pfx)</tr>
+  </text>
+  <text>
+    <en>Digital signatures</en>
+    <tr>Firmas digitales</tr>
+  </text>
+  <text>
+    <en>E-mail:</en>
+    <tr>Correo:</tr>
+  </text>
+  <text>
+    <en>Name:</en>
+    <tr>Nombre:</tr>
+  </text>
+  <text>
+    <en>Needs pyHanko: {command}</en>
+    <tr>Necesita pyHanko: {command}</tr>
+  </text>
+  <text>
+    <en>Organisation:</en>
+    <tr>Organización:</tr>
+  </text>
+  <text>
+    <en>Save the ID…</en>
+    <tr>Guardar el ID…</tr>
+  </text>
+  <text>
+    <en>Save the digital ID</en>
+    <tr>Guardar el ID digital</tr>
+  </text>
+  <text>
+    <en>Saved {path}, and its certificate {cer}, to give to those who check your signatures</en>
+    <tr>Se guardó {path}, y su certificado {cer}, para dárselo a quienes comprueben sus firmas</tr>
+  </text>
+  <text>
+    <en>The country is written with two letters (CO, ES, US…)</en>
+    <tr>El país se escribe con dos letras (CO, ES, US…)</tr>
+  </text>
+  <text>
+    <en>The password must have six characters or more</en>
+    <tr>La contraseña debe tener seis caracteres o más</tr>
+  </text>
+  <text>
+    <en>The password of {file} is not right, or it is not a digital ID</en>
+    <tr>La contraseña de {file} no es correcta, o no es un ID digital</tr>
+  </text>
+  <text>
+    <en>The two passwords are not the same</en>
+    <tr>Las dos contraseñas no son iguales</tr>
+  </text>
+  <text>
+    <en>Valid for:</en>
+    <tr>Válido por:</tr>
+  </text>
+  <text>
+    <en>years</en>
+    <tr>años</tr>
+  </text>
+  <text>
+    <en>{file} has no key to sign with</en>
+    <tr>{file} no tiene clave con la que firmar</tr>
+  </text>
 </interface>

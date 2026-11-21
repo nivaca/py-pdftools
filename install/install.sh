@@ -199,7 +199,7 @@ install() {
     "$python" -m venv --clear "$VENV"
     say "Installing py-pdftools, PyMuPDF, pikepdf, reportlab and PySide6 in it (this takes a while the first time)"
     "$VENV/bin/python" -m pip install --quiet --upgrade pip
-    "$VENV/bin/python" -m pip install --quiet "$ROOT"
+    "$VENV/bin/python" -m pip install --quiet "$ROOT[signatures]"  # (with pyHanko, for digital signatures)
     say "Checking that it starts"
     "$VENV/bin/$NAME" --version
     say "Installed:"

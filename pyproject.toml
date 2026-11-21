@@ -39,6 +39,11 @@ py-pdftools = "py_pdftools.cli:main"
 [project.gui-scripts]
 py-pdftools-gui = "py_pdftools.gui:main"
 
+[project.optional-dependencies]
+signatures = [
+    "pyhanko>=0.29",
+]
+
 [build-system]
 requires = ["uv_build>=0.10,<0.14"]
 build-backend = "uv_build"
