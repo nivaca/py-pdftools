@@ -28,7 +28,7 @@ from ..annotate.annots import Annotation, Rect, nearest_word, text_rects
 from ..core import conform
 from ..core.interface import ntr, tr
 from ..core.pagesel import check
-from ..redact import codes, hidden, metadata
+from ..redact import codes, covered, hidden, metadata
 from ..redact import settings as rsettings
 from ..redact.redact import (
     Match, RedactError, bookmark_leaks, box_of, check_redacted, find_text, image_at, open_pdf, remove_bookmarks,
@@ -39,6 +39,7 @@ from .paint import set_redaction_look
 from .redact import background
 from .redact.background import Cancelled
 from .redact.codes_dialog import CodesDialog
+from .redact.covered_dialog import CoveredDialog
 from .colors import colors_menu
 from .redact.common import REPEATS, SWATCHES, color_name, mm, swatch
 from .redact.find import FindDialog
@@ -86,6 +87,10 @@ class RedactMixin:
         self.a_redact_find = self._action(m, tr("Find and redact…"), lambda: self.redact_find_dialog(),
                                           tip=tr("Find a text, or a regular expression, on some or all pages, and "
                                                  "put boxes over it"))
+        self.a_redact_covered = self._action(
+            m, tr("Find text only covered…"), self.find_covered,
+            tip=tr("Find text that seems redacted but is still in the file, under a box, a picture or an "
+                   "annotation drawn over it (it can be copied or found), and put boxes over it"))
         self.a_redact_result = QAction(icon("view-preview"), tr("Show the result"), self, checkable=True)
         self.a_redact_result.setShortcut(QKeySequence("Ctrl+R"))
         self.a_redact_result.setToolTip(tr("The boxes as they will look once applied: opaque, with their text "
@@ -433,6 +438,30 @@ class RedactMixin:
             self.redact_finder.show_match.connect(self.show_redact_match)
             self.redact_finder.mark.connect(self.mark_redact_matches)
         self.redact_finder.start(text)
+
+    def find_covered(self) -> list[covered.Covered] | None:
+        """Look for text only covered (see redact/covered.py) in the file, as last saved, and show what is found."""
+        if self.path is None:
+            return None
+        try:
+            found = background.run(self, tr("Looking for text only covered…"), covered.find, self.file,
+                                   self.password)
+        except RedactError as e:
+            self.status(str(e), error=True)
+            return None
+        if not found:
+            self.status(tr("No text is hidden under boxes, pictures or annotations"))
+            return found
+        dialog = CoveredDialog(found, self.page_labels(), self)
+        dialog.setAttribute(Qt.WidgetAttribute.WA_DeleteOnClose)
+        dialog.show_place.connect(lambda c: self.show_redact_match(Match(c.page, (c.rect,), c.text, c.text)))
+        dialog.mark.connect(lambda places: self.mark_redact_matches(
+            [Match(c.page, (c.rect,), c.text, c.text) for c in places]))
+        self.covered_dialog = dialog
+        dialog.show()
+        self.status(ntr("Text only covered was found in {count} place", "Text only covered was found in {count} "
+                        "places", len(found)), error=True)
+        return found
 
     def show_redact_match(self, match: Match):
         self.show_page(match.page)

@@ -10493,4 +10493,80 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Unticked, the pages follow one another without a gap, as one long sheet</en>
     <tr>Sin marcar, las páginas se siguen sin espacio entre ellas, como una sola hoja larga</tr>
   </text>
+  <text>
+    <en>, on {count} page.</en>
+    <tr>, en {count} página.</tr>
+  </text>
+  <text>
+    <en>, on {count} pages.</en>
+    <tr>, en {count} páginas.</tr>
+  </text>
+  <text>
+    <en>A filled shape</en>
+    <tr>Una figura rellena</tr>
+  </text>
+  <text>
+    <en>A picture</en>
+    <tr>Una imagen</tr>
+  </text>
+  <text>
+    <en>An annotation</en>
+    <tr>Una anotación</tr>
+  </text>
+  <text>
+    <en>Covered by</en>
+    <tr>Lo cubre</tr>
+  </text>
+  <text>
+    <en>Find text only covered…</en>
+    <tr>Buscar texto solo cubierto…</tr>
+  </text>
+  <text>
+    <en>Find text that seems redacted but is still in the file, under a box, a picture or an annotation drawn over it (it can be copied or found), and put boxes over it</en>
+    <tr>Buscar texto que parece censurado pero sigue en el archivo, bajo un recuadro, una imagen o una anotación dibujados encima (se puede copiar o encontrar), y ponerle recuadros</tr>
+  </text>
+  <text>
+    <en>Looking for text only covered…</en>
+    <tr>Buscando texto solo cubierto…</tr>
+  </text>
+  <text>
+    <en>No text is hidden under boxes, pictures or annotations</en>
+    <tr>No hay texto escondido bajo recuadros, imágenes ni anotaciones</tr>
+  </text>
+  <text>
+    <en>Put boxes over all</en>
+    <tr>Poner recuadros sobre todo</tr>
+  </text>
+  <text>
+    <en>Put boxes over it to take it out in the redacted copy.</en>
+    <tr>Póngale recuadros para quitarlo en la copia censurada.</tr>
+  </text>
+  <text>
+    <en>Put boxes over those selected</en>
+    <tr>Poner recuadros sobre lo seleccionado</tr>
+  </text>
+  <text>
+    <en>Text only covered</en>
+    <tr>Texto solo cubierto</tr>
+  </text>
+  <text>
+    <en>Text only covered was found in {count} place</en>
+    <tr>Se encontró texto solo cubierto en {count} lugar</tr>
+  </text>
+  <text>
+    <en>Text only covered was found in {count} places</en>
+    <tr>Se encontró texto solo cubierto en {count} lugares</tr>
+  </text>
+  <text>
+    <en>Text under it</en>
+    <tr>Texto debajo</tr>
+  </text>
+  <text>
+    <en>This text is covered by something drawn over it, but it is still in the file: it can be selected, copied or found. It was found in {count} place</en>
+    <tr>Este texto está cubierto por algo dibujado encima, pero sigue en el archivo: se puede seleccionar, copiar o encontrar. Se encontró en {count} lugar</tr>
+  </text>
+  <text>
+    <en>This text is covered by something drawn over it, but it is still in the file: it can be selected, copied or found. It was found in {count} places</en>
+    <tr>Este texto está cubierto por algo dibujado encima, pero sigue en el archivo: se puede seleccionar, copiar o encontrar. Se encontró en {count} lugares</tr>
+  </text>
 </interface>
