@@ -5,6 +5,19 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.6.2 — 2026-11-21
+
+- **The user manual**, in English and Spanish:
+  [docs/MANUAL_en.pdf](docs/MANUAL_en.pdf) and
+  [docs/MANUAL_es.pdf](docs/MANUAL_es.pdf), made with LaTeX from
+  `docs/MANUAL_en.tex` and `docs/MANUAL_es.tex`. It explains how to install
+  and start the program, the window, each mode, the work on whole files,
+  the settings, the command line and the keys, with 34 pictures of the
+  window and its dialogs in each language, which `tools/manual_images.py`
+  makes again whenever the window changes.
+- The READMEs said that the right click on a toolbar sets how that toolbar
+  looks; since 1.6.0 it sets all of them.
+
 ## 1.6.1 — 2026-11-21
 
 - **Sharper text on the pages**: Settings > Appearance > Text on the pages
