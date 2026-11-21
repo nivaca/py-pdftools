@@ -12280,4 +12280,24 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>none</en>
     <tr>ninguno</tr>
   </text>
+  <text>
+    <en>As drawn</en>
+    <tr>Como se dibuja</tr>
+  </text>
+  <text>
+    <en>Sharper</en>
+    <tr>Más nítido</tr>
+  </text>
+  <text>
+    <en>Sharpest</en>
+    <tr>Lo más nítido</tr>
+  </text>
+  <text>
+    <en>Text on the pages:</en>
+    <tr>Texto de las páginas:</tr>
+  </text>
+  <text>
+    <en>The edges of letters and lines are drawn soft (they are not snapped to the pixels of the screen, as the desktop's own fonts are); sharper darkens them, and pictures a little too</en>
+    <tr>Los bordes de las letras y las líneas se dibujan suaves (no se ajustan a los píxeles de la pantalla, como las fuentes del escritorio); más nítido los oscurece, y también un poco las imágenes</tr>
+  </text>
 </interface>

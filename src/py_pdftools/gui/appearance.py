@@ -67,7 +67,20 @@ def apply_scale(percent: int | None = None):
     app.setFont(font)
 
 
+def apply_sharpness(name: str | None = None) -> bool:
+    """The sharpness of the text of the pages (see reading.SHARPNESS). Whether it changed (the pages are then
+    to be drawn again)."""
+    from . import reading
+
+    gamma = reading.SHARPNESS.get(name or value("sharpness"), 1.0)
+    changed = gamma != reading.GAMMA
+    reading.GAMMA = gamma
+    return changed
+
+
 def apply():
-    """The theme and the size, as the settings say (at the start, and when they change)."""
+    """The theme, the size and the sharpness of the text, as the settings say (at the start, and when they
+    change)."""
     apply_theme()
     apply_scale()
+    apply_sharpness()

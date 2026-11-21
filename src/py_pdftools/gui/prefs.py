@@ -281,6 +281,14 @@ class SettingsDialog(QDialog):
         self.scale.setCurrentIndex(max(0, self.scale.findData(int(appearance.value("scale") or 100))))
         self.scale.setToolTip(tr("The size of the letters of the menus, panels and dialogs"))
         form.addRow(tr("Size of the interface:"), self.scale)
+        self.sharpness = QComboBox()
+        for key, name in (("drawn", N_("As drawn")), ("sharper", N_("Sharper")), ("sharpest", N_("Sharpest"))):
+            self.sharpness.addItem(tr(name), key)
+        self.sharpness.setCurrentIndex(max(0, self.sharpness.findData(appearance.value("sharpness"))))
+        self.sharpness.setToolTip(tr("The edges of letters and lines are drawn soft (they are not snapped to the "
+                                     "pixels of the screen, as the desktop's own fonts are); sharper darkens them, "
+                                     "and pictures a little too"))
+        form.addRow(tr("Text on the pages:"), self.sharpness)
         self.language = QComboBox()
         for code, name in interface.names().items():
             self.language.addItem(name, code)
@@ -355,6 +363,7 @@ class SettingsDialog(QDialog):
         from .window import _WINDOWS
 
         values = {"theme": self.theme.currentData(), "scale": self.scale.currentData(),
+                  "sharpness": self.sharpness.currentData(),
                   "hints": self.hints.isChecked(), "opening": self.opening.currentData(),
                   "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
                   "recent": self.recent.value(), "dialogs": self.dialogs.currentData()}
@@ -368,6 +377,9 @@ class SettingsDialog(QDialog):
             appearance.apply_theme()
         if "scale" in changed:
             appearance.apply_scale()
+        if "sharpness" in changed and appearance.apply_sharpness():
+            for win in _WINDOWS:  # (drawn again, with the text as sharp as chosen)
+                win.redraw_pages()
         if "recent" in changed:
             for win in _WINDOWS:
                 win._recent_menu()

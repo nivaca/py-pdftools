@@ -16,6 +16,11 @@ SCHEMES = [
     ("dim", N_("Light on dark grey"), 0xDDDDDD, 0x2B2B2B),
 ]
 TINT: tuple[int, int] | None = None  # (colour of the text, colour of the page) of the pages in view; None: as they are
+# The sharpness of the text of the pages in view (Settings > Appearance): a gamma that darkens the soft grey
+# edges MuPDF draws letters and lines with (it doesn't snap them to the pixels, as the desktop's fonts are);
+# 1.0 leaves them as drawn. Pictures get a little darker too.
+SHARPNESS = {"drawn": 1.0, "sharper": 1.4, "sharpest": 1.8}
+GAMMA = 1.0
 
 
 def tint_of(name: str, custom: tuple[int, int] | None = None) -> tuple[int, int] | None:

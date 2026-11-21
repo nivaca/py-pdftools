@@ -2137,6 +2137,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.show_page(page)
         return True
 
+    def redraw_pages(self):
+        """The pages drawn again (the reading colours or the sharpness of the text changed)."""
+        if self.doc is None:
+            return
+        page = self.page
+        self.canvas.clear_cache()
+        self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+        self.canvas.layout()
+        self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
+        self.show_page(page)
+        self.thumb_timer.start()
+
     def _check_reading(self):
         name = str(self.settings.value("reading", ""))
         for key, act in self.reading_actions.items():

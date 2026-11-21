@@ -99,3 +99,36 @@ def test_language_from_settings(window, monkeypatch):
     for _ in range(5):
         QApplication.processEvents()
     assert changed == ["es"]
+
+
+def test_text_sharpness(window, tmp_path):
+    """Settings > Appearance > Text on the pages: the grey edges of the letters darkened, in the pages drawn
+    by the processes of rendering and by the window itself; As drawn leaves them as MuPDF draws them."""
+    from py_pdftools.core import rendering
+    from py_pdftools.gui import reading
+    from py_pdftools.gui.canvas import page_image
+
+    d = pymupdf.open()
+    d.new_page().insert_text((40, 60), "Sharp text, or soft", fontsize=11)
+    d.save(tmp_path / "t.pdf")
+    path = str(tmp_path / "t.pdf")
+    stamp = ((tmp_path / "t.pdf").stat().st_mtime_ns, (tmp_path / "t.pdf").stat().st_size)
+
+    def ink(gamma):  # (the darkness of the text: the sum of how far each pixel is from white)
+        w, h, stride, data = rendering.render(path, "", stamp, 0, 1.0, gamma=gamma)
+        return sum(255 - b for b in data)
+
+    assert ink(1.4) > ink(1.0) * 1.1 and ink(1.8) > ink(1.4)
+    assert config.get("sharpness") == "sharper"  # (the default)
+    before = reading.GAMMA
+    try:
+        assert window.open_path(tmp_path / "t.pdf")
+        d2 = SettingsDialog(window.prefs, window)
+        d2.sharpness.setCurrentIndex(d2.sharpness.findData("sharpest"))
+        d2.accept()
+        assert reading.GAMMA == 1.8 and config.get("sharpness") == "sharpest"
+        darker = page_image(window.doc[0], 1.0)
+        plain = page_image(window.doc[0], 1.0, gamma=1.0)
+        assert darker != plain
+    finally:
+        reading.GAMMA = before
