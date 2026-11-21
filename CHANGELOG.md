@@ -5,6 +5,23 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **A quicker start**: Settings > General > Start with the session puts
+  py-pdftools in the desktop's autostart, in the tray and without a
+  window (`py-pdftools-gui --background`); in the background a window is
+  kept ready for the next document, which opens in about 20 ms instead of
+  half a second.
+- **Settings > Appearance**: the colours of the interface (system, light,
+  dark), its size, its language, the hints of the modes, the toolbars.
+- **Settings > Documents**: how a document opened for the first time is
+  shown, whether it opens where it was left, asking before web addresses,
+  how many recent documents are shown (and clearing them), where the file
+  dialogs start.
+- Fixed: a toolbar's right click sets all the toolbars, not only that one.
+- Fixed: the AppImage opened the window for the newer commands of the
+  command line (combine, export, form...).
+
 ## 1.5.0 — 2026-11-21
 
 - **The menus in groups**: File, Edit and View have submenus (File > New,

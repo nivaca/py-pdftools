@@ -217,7 +217,12 @@ Configuración > General > Seguir funcionando en segundo plano hace que los
 documentos se abran antes: al cerrar la última ventana, py-pdftools sigue
 funcionando, con sus procesos de dibujo listos y un icono en la bandeja
 (donde el escritorio la tiene), y py-pdftools-gui, iniciado otra vez, abre
-allí sus archivos al instante. Archivo > Salir lo termina.
+allí sus archivos al instante. Archivo > Salir lo termina. Una ventana
+queda lista, oculta, para el siguiente documento, que entonces se abre en
+unas centésimas de segundo. Con Configuración > General > Empezar con la
+sesión, py-pdftools arranca al iniciar la sesión, en la bandeja y sin
+ventana (`py-pdftools-gui --background`), de modo que también el primer
+documento del día se abre al instante.
 
 Configuración > Rendimiento fija cuánta memoria puede usar la ventana
 (Baja, Normal, Alta, o Todas las páginas, que guarda dibujadas todas las
@@ -368,8 +373,15 @@ las de py-foliation y py-imposition, que sus README explican con detalle;
 Configuración
 -------------
 
-El idioma de la interfaz se elige en Configuración > Idioma, o con
-`py-pdftools interface es`. La configuración se guarda en un archivo,
+El idioma de la interfaz se elige en Configuración > Idioma (o en
+Configuración > Apariencia), o con `py-pdftools interface es`.
+Configuración > Apariencia fija además los colores de la interfaz (como el
+sistema, claros u oscuros), su tamaño, los consejos que aparecen al elegir
+un modo y cómo se ven las barras de herramientas; Configuración >
+Documentos, cómo se muestra un documento abierto por primera vez, si cada
+uno se abre donde se dejó, si se pregunta antes de abrir una dirección web,
+cuántos documentos recientes muestra Archivo > Abrir reciente y dónde
+empiezan los diálogos de archivos. La configuración se guarda en un archivo,
 `config.toml`, en la carpeta de configuración del usuario:
 `~/.config/py-pdftools/` en Linux, `~/Library/Application Support/py-pdftools/`
 en macOS y `%APPDATA%\py-pdftools\` en Windows (o la carpeta que diga
@@ -381,7 +393,7 @@ Pruebas
 
     $ uv run pytest
 
-Hay 580 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 590 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, los menús y las
 barras de herramientas, la combinación de archivos, los PDF de imágenes,

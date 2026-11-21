@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, imposes them for printing, and reads the text of
 their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
 together five programs of his, each of which did one of those things:
-py-annotate, py-redact, py-foliation, py-imposition and py-pdfocr. Here I explain how it was made, in twenty-one stages.
+py-annotate, py-redact, py-foliation, py-imposition and py-pdfocr. Here I explain how it was made, in twenty-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -570,10 +570,43 @@ names what the document uses that is newer than the version asked;
 object streams, which came with 1.5, are written plainly below it, and a
 document encrypted with AES-256 can't go below 1.7.
 
+22. A quicker start, and more settings
+--------------------------------------
+
+The program could already wait in the background after its last window
+closed, and a second start then handed its files to it through a local
+socket. Two things were left. The first start of the day was still a cold
+one, so a setting now puts py-pdftools in the desktop's own autostart (a
+.desktop file on Linux, the folder Startup on Windows, a launch agent on
+macOS), which starts it at login in the tray, without a window. And each
+document opened from outside still built a window, about half a second;
+now the program keeps one ready, hidden, and the document takes it in
+about two hundredths of a second, after which another is made. A window
+made before a setting changed would show it as it was, so one made with
+other settings is not used. A start that only needs to know whether the
+program runs asks it with a message of its own, which opens nothing.
+
+The settings got two pages, Appearance and Documents: the colours of the
+interface (Qt's own scheme where it has one, a palette of Fusion where it
+is older), its size, its language, the hints of the modes, the toolbars,
+and how documents open, what is remembered of them, links, the recent
+ones and where the file dialogs start. A toolbar's right click now sets
+all of them, as the user expected, and not only the one clicked.
+
+Two faults were found on the way. The launcher of the AppImage had a list
+of the commands of the command line, written before eight new ones, so
+those opened the window; it now gives the window only what it can open, a
+file, and the rest to the command line. And while trying these changes
+by hand I found that my scripts, which gave the window a home folder of
+its own, still wrote the user's settings: the desktop sets
+XDG_CONFIG_HOME, which Qt reads first. The tests had always set it; the
+scripts now do too, and what they had left in the user's list of recent
+documents was taken out.
+
 Testing
 -------
 
-The program has 580 tests (`uv run pytest`): those of the four programs,
+The program has 590 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -583,14 +616,14 @@ the moving through a document (bookmarks, links, the history, the views,
 tabs, reloading), the security of documents (text only covered, hidden
 layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
-exports, splitting and the PDF version, the Spanish interface (every text
-translated, and none left over) and the packaging. The windows of the four
-modes are tested as a user would use them, with mouse events on the pages;
-the redacted copy is also written in a process of its own, as the window
-does it, and imposition runs its commands in one. The window was checked by
-eye as well, with screenshots of each mode in both languages. The RPM runs
-all the tests again with Fedora's packages (without pyHanko, so the tests
-of the signatures are skipped there). The Linux installer was run in a home
-folder made for the test. The program has 149 files of Python, around
-41,200 lines (about a tenth of them comments), and 2,995 texts of the
-interface in Spanish.
+exports, splitting and the PDF version, the start in the background and the
+settings, the Spanish interface (every text translated, and none left over)
+and the packaging. The windows of the four modes are tested as a user would
+use them, with mouse events on the pages; the redacted copy is also written
+in a process of its own, as the window does it, and imposition runs its
+commands in one. The window was checked by eye as well, with screenshots of
+each mode in both languages. The RPM runs all the tests again with Fedora's
+packages (without pyHanko, so the tests of the signatures are skipped
+there). The Linux installer was run in a home folder made for the test. The
+program has 151 files of Python, around 41,700 lines (about a tenth of them
+comments), and 3,028 texts of the interface in Spanish.

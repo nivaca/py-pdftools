@@ -212,7 +212,11 @@ Settings > General > Keep running in the background makes documents open
 faster: when the last window is closed, py-pdftools goes on running, with
 its pages ready to be drawn and an icon in the tray (where the desktop has
 one), and py-pdftools-gui started again opens its files in it, at once.
-File > Quit ends it.
+File > Quit ends it. A window is kept ready, hidden, for the next document,
+which then opens in a few hundredths of a second. With Settings > General >
+Start with the session, py-pdftools starts when you log in, in the tray and
+without a window (`py-pdftools-gui --background`), so that the first
+document of the day opens at once too.
 
 Settings > Performance sets how much memory the window may use (Low,
 Normal, High, or All pages, which keeps every page and thumbnail drawn,
@@ -354,8 +358,14 @@ length; `labels` holds py-foliation's `show`, `set`, `clear` and `copy`.
 Settings
 --------
 
-The language of the interface is chosen in Settings > Language, or with
-`py-pdftools interface es`. The settings are kept in a file, `config.toml`,
+The language of the interface is chosen in Settings > Language (or
+Settings > Appearance), or with `py-pdftools interface es`. Settings >
+Appearance also sets the colours of the interface (as the system, light or
+dark), its size, the hints shown when a mode is chosen, and how the
+toolbars look; Settings > Documents, how a document opened for the first
+time is shown, whether each opens where it was left, whether to ask before
+opening a web address, how many recent documents File > Open recent shows,
+and where the file dialogs start. The settings are kept in a file, `config.toml`,
 in the user's configuration folder: `~/.config/py-pdftools/` on Linux,
 `~/Library/Application Support/py-pdftools/` on macOS, `%APPDATA%\py-pdftools\`
 on Windows (or the folder `$PY_PDFTOOLS_CONFIG` names). Each setting is
@@ -366,7 +376,7 @@ Tests
 
     $ uv run pytest
 
-There are 580 tests: those of the four programs, and those of what is new
+There are 590 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, OCR, navigation, security, the menus and toolbars,
 combining files and PDFs of pictures, smaller copies, links, forms,

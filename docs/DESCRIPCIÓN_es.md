@@ -1,4 +1,4 @@
-# py-pdftools 1.5.0: descripción
+# py-pdftools 1.6.0: descripción
 
 ## Análisis
 
@@ -34,7 +34,7 @@ Censurar busca texto solo cubierto (que sigue en el archivo bajo un recuadro, un
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 149 archivos de Python, unas 41 200 líneas (una décima parte, comentarios), y 2995 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 151 archivos de Python, unas 41 700 líneas (una décima parte, comentarios), y 3028 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -76,7 +76,7 @@ El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios 
 
 ## Validación
 
-Hay 580 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 590 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
@@ -92,6 +92,6 @@ Es una aplicación de escritorio y no necesita internet, salvo para descargar, s
 
 ## Ambiente
 
-Fue desarrollado en Fedora Linux 45 con KDE Plasma, con Python 3.14 y uv, y con git. El código está en repositorios de GitHub (https://github.com/nivaca/py-pdftools) y de Codeberg (https://codeberg.org/nivaca/py-pdftools), privados por ahora. Un script (`tools/release.py`) corre las pruebas, hace la rueda, el paquete fuente, el ZIP, la AppImage y el RPM firmado, pone la etiqueta, publica en los dos sitios y manda el RPM fuente a Copr (https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/), que lo construye para Fedora 45 y Rawhide.
+Fue desarrollado en Fedora Linux 45 con KDE Plasma, con Python 3.14 y uv, y con git. El código está en repositorios de GitHub (https://github.com/nivaca/py-pdftools) y de Codeberg (https://codeberg.org/nivaca/py-pdftools), públicos. Un script (`tools/release.py`) corre las pruebas, hace la rueda, el paquete fuente, el ZIP, la AppImage y el RPM firmado, pone la etiqueta, publica en los dos sitios y manda el RPM fuente a Copr (https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/), que lo construye para Fedora 45 y Rawhide.
 
-En Fedora, `sudo dnf copr enable nivaca/py-pdftools` y `sudo dnf install py-pdftools` lo instalan con su entrada en el menú y su manual. Desde el código fuente, `uv sync` lo prepara; `uv run py-pdftools-gui` abre la ventana y `uv run py-pdftools` es la línea de órdenes. En Linux y macOS, `install/install.sh` lo instala para el usuario, con su entrada en el menú; en Windows, `install\install.bat`. La configuración queda en la carpeta de configuración del usuario (`~/.config/py-pdftools/config.toml` en Linux, o `$PY_PDFTOOLS_CONFIG`); en macOS, en `~/Library/Application Support/py-pdftools/`, y en Windows, en `%APPDATA%\py-pdftools\`.
+En Fedora, `sudo dnf copr enable nivaca/py-pdftools` y `sudo dnf install py-pdftools` lo instalan con su entrada en el menú y su manual. Desde el código fuente, `uv sync` lo prepara; `uv run py-pdftools-gui` abre la ventana y `uv run py-pdftools` es la línea de órdenes. En Linux y macOS, `install/install.sh` lo instala para el usuario, con su entrada en el menú; en Windows, `install\install.bat`. Configuración tiene páginas para lo general, la apariencia (colores, tamaño, idioma, barras), los documentos (cómo se abren, los recientes), los colores, los atajos, las categorías y el rendimiento; con «Empezar con la sesión», arranca en la bandeja al iniciar la sesión. Queda en la carpeta de configuración del usuario (`~/.config/py-pdftools/config.toml` en Linux, o `$PY_PDFTOOLS_CONFIG`); en macOS, en `~/Library/Application Support/py-pdftools/`, y en Windows, en `%APPDATA%\py-pdftools\`.
