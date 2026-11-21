@@ -110,8 +110,9 @@ class Renderer(QObject):
         # y el recorte. Si el archivo cambia en disco, el sello cambia y la clave también.
         # (reading colours: only for the pages in view, not the thumbnails)
         tint = reading.TINT if lane == "view" else None
-        gamma = reading.GAMMA if lane == "view" else 1.0  # (the sharpness of the text: also only in view)
-        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, gamma)
+        # (the sharpness of the text: also only in view)
+        sharpness = reading.SHARPEN if lane == "view" else reading.SHARPNESS["drawn"]
+        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, sharpness)
         ln.callbacks.setdefault(key, []).append(callback)
         # Already being rendered: the callback is added and will get the same image.
         if ln.rendering(key):
@@ -122,7 +123,7 @@ class Renderer(QObject):
             ln.waiting.remove(entry)
         else:
             entry = (key, (source[0], source[1], source[2], number, scale, source[3], clip, performance.ANTIALIAS,
-                           tint, gamma))
+                           tint, sharpness))
         if first:
             ln.waiting.insert(0, entry)
         else:

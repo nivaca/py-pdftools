@@ -286,8 +286,8 @@ class SettingsDialog(QDialog):
             self.sharpness.addItem(tr(name), key)
         self.sharpness.setCurrentIndex(max(0, self.sharpness.findData(appearance.value("sharpness"))))
         self.sharpness.setToolTip(tr("The edges of letters and lines are drawn soft (they are not snapped to the "
-                                     "pixels of the screen, as the desktop's own fonts are); sharper darkens them, "
-                                     "and pictures a little too"))
+                                     "pixels of the screen, as the desktop's own fonts are); sharper darkens them "
+                                     "and makes them steeper, and pictures a little too"))
         form.addRow(tr("Text on the pages:"), self.sharpness)
         self.language = QComboBox()
         for code, name in interface.names().items():

@@ -72,17 +72,22 @@ MARK_SIZE = 12.0  # points: of a check mark, a cross...
 # Sin canal alfa: la página siempre se pinta sobre blanco. El .copy() hace falta porque QImage
 # no copia los bytes de pix.samples, que desaparecen con el Pixmap de PyMuPDF.
 def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint: tuple | None = None,
-               gamma: float | None = None) -> QImage:
+               sharpness: tuple | None = None) -> QImage:
     """PAGE rendered at SCALE (only CLIP of it, in points, if given; in the colours TINT, if given, and with the
-    sharpness of the text GAMMA, by default that of the settings: see reading.py)."""
+    sharpness of the text SHARPNESS, by default that of the settings: see reading.py)."""
+    from ..core import rendering
+
     pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
                           clip=pymupdf.Rect(clip) if clip is not None else None)
-    gamma = reading.GAMMA if gamma is None else gamma
-    if gamma != 1.0:
-        pix.gamma_with(gamma)
+    sharpness = reading.SHARPEN if sharpness is None else sharpness
+    if sharpness == rendering.AS_DRAWN:
+        if tint is not None:
+            pix.tint_with(tint[0], tint[1])
+        return QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
+    stride, data = rendering.sharpen(pix, sharpness)
     if tint is not None:
-        pix.tint_with(tint[0], tint[1])
-    return QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
+        data, stride = rendering.tinted(pix.width, pix.height, stride, data, tint), pix.width * 3
+    return QImage(data, pix.width, pix.height, stride, QImage.Format.Format_RGB888).copy()
 
 
 def _distance(p: QPointF, a: QPointF, b: QPointF) -> float:

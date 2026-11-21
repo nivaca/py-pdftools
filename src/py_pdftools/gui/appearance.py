@@ -72,9 +72,9 @@ def apply_sharpness(name: str | None = None) -> bool:
     to be drawn again)."""
     from . import reading
 
-    gamma = reading.SHARPNESS.get(name or value("sharpness"), 1.0)
-    changed = gamma != reading.GAMMA
-    reading.GAMMA = gamma
+    sharpness = reading.SHARPNESS.get(name or value("sharpness"), reading.SHARPNESS["drawn"])
+    changed = sharpness != reading.SHARPEN
+    reading.SHARPEN = sharpness
     return changed
 
 

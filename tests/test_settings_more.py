@@ -114,21 +114,28 @@ def test_text_sharpness(window, tmp_path):
     path = str(tmp_path / "t.pdf")
     stamp = ((tmp_path / "t.pdf").stat().st_mtime_ns, (tmp_path / "t.pdf").stat().st_size)
 
-    def ink(gamma):  # (the darkness of the text: the sum of how far each pixel is from white)
-        w, h, stride, data = rendering.render(path, "", stamp, 0, 1.0, gamma=gamma)
-        return sum(255 - b for b in data)
+    def pixels(name):
+        w, h, stride, data = rendering.render(path, "", stamp, 0, 1.0, sharpness=reading.SHARPNESS[name])
+        return [data[r * stride: r * stride + w * 3] for r in range(h)]
 
-    assert ink(1.4) > ink(1.0) * 1.1 and ink(1.8) > ink(1.4)
+    def ink(name):  # (the darkness of the text: the sum of how far each pixel is from white)
+        return sum(255 - b for row in pixels(name) for b in row)
+
+    def edges(name):  # (how steep the edges are: the sum of the differences between neighbours in a row)
+        return sum(abs(row[i] - row[i + 3]) for row in pixels(name) for i in range(len(row) - 3))
+
+    assert ink("sharper") > ink("drawn") * 1.1
+    assert edges("drawn") < edges("sharper") < edges("sharpest")
     assert config.get("sharpness") == "sharper"  # (the default)
-    before = reading.GAMMA
+    before = reading.SHARPEN
     try:
         assert window.open_path(tmp_path / "t.pdf")
         d2 = SettingsDialog(window.prefs, window)
         d2.sharpness.setCurrentIndex(d2.sharpness.findData("sharpest"))
         d2.accept()
-        assert reading.GAMMA == 1.8 and config.get("sharpness") == "sharpest"
+        assert reading.SHARPEN == reading.SHARPNESS["sharpest"] and config.get("sharpness") == "sharpest"
         darker = page_image(window.doc[0], 1.0)
-        plain = page_image(window.doc[0], 1.0, gamma=1.0)
+        plain = page_image(window.doc[0], 1.0, sharpness=reading.SHARPNESS["drawn"])
         assert darker != plain
     finally:
-        reading.GAMMA = before
+        reading.SHARPEN = before

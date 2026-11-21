@@ -51,16 +51,47 @@ def ready() -> bool:
     return True
 
 
+AS_DRAWN = (1.0, 0.0, 0)  # (gamma, radius and percent of the unsharp mask): the text as MuPDF draws it
+
+
+def sharpen(pix: pymupdf.Pixmap, sharpness: tuple = AS_DRAWN) -> tuple[int, bytes]:
+    """The RGB pixels of PIX with the sharpness of the text SHARPNESS, (gamma, radius, percent): the gamma
+    darkens the soft grey edges of letters and lines (MuPDF doesn't snap them to the pixels, as the desktop's
+    fonts are), and an unsharp mask of that radius and strength makes those edges steeper. Its stride (bytes
+    per line) and its bytes."""
+    gamma, radius, percent = sharpness
+    if gamma != 1.0:
+        pix.gamma_with(gamma)
+    if not percent:
+        return pix.stride, bytes(pix.samples)
+    try:
+        from PIL import Image, ImageFilter
+    except ImportError:  # (sin Pillow, solo la gamma)
+        return pix.stride, bytes(pix.samples)
+    # Sin umbral: la máscara afila todos los bordes, también los suaves de las letras pequeñas
+    img = Image.frombuffer("RGB", (pix.width, pix.height), pix.samples, "raw", "RGB", pix.stride, 1)
+    img = img.filter(ImageFilter.UnsharpMask(radius=radius, percent=percent, threshold=0))
+    return pix.width * 3, img.tobytes()
+
+
+def tinted(width: int, height: int, stride: int, data: bytes, tint: tuple[int, int]) -> bytes:
+    """DATA (RGB) in the colours TINT (see gui/reading.py), through a pixmap of PyMuPDF."""
+    pix = pymupdf.Pixmap(pymupdf.csRGB, width, height, data[: stride * height] if stride == width * 3 else
+                         b"".join(data[r * stride: r * stride + width * 3] for r in range(height)), False)
+    pix.tint_with(tint[0], tint[1])
+    return bytes(pix.samples)
+
+
 def render(path: str, password: str, stamp: tuple, number: int, scale: float,
            bare: bool = False, clip: tuple | None = None,
            antialias: tuple[int, int] | None = None,
-           tint: tuple[int, int] | None = None, gamma: float = 1.0) -> tuple[int, int, int, bytes]:
+           tint: tuple[int, int] | None = None, sharpness: tuple = AS_DRAWN) -> tuple[int, int, int, bytes]:
     """Page NUMBER of the document at PATH rendered at SCALE (BARE: without the annotations that
     the window draws itself): its width, height, bytes per line and RGB pixels. CLIP: only that
     part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom.
     ANTIALIAS: MuPDF's levels of antialiasing of (text, graphics), as the settings say. TINT: (the colour black
-    becomes, the colour white becomes), for reading colours (see gui/reading.py). GAMMA: above 1, the soft grey
-    edges of the letters and lines darkened, so that text looks sharper (Settings > Appearance)."""
+    becomes, the colour white becomes), for reading colours (see gui/reading.py). SHARPNESS: the text made sharper
+    (see sharpen; Settings > Appearance)."""
     if antialias is not None:
         pymupdf.mupdf.fz_set_text_aa_level(antialias[0])
         pymupdf.mupdf.fz_set_graphics_aa_level(antialias[1])
@@ -73,8 +104,12 @@ def render(path: str, password: str, stamp: tuple, number: int, scale: float,
     # alpha=False: the window wants plain RGB; the stride (bytes per line) may be more than width * 3.
     pix = doc[number].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
                                  clip=pymupdf.Rect(clip) if clip is not None else None)
-    if gamma != 1.0:  # (antes del tinte: se oscurece el texto en sus colores, que luego el tinte cambia)
-        pix.gamma_with(gamma)
+    if sharpness == AS_DRAWN:
+        if tint is not None:
+            pix.tint_with(tint[0], tint[1])
+        return pix.width, pix.height, pix.stride, bytes(pix.samples)
+    # Antes del tinte: se afila el texto en sus colores, que luego el tinte cambia
+    stride, data = sharpen(pix, sharpness)
     if tint is not None:
-        pix.tint_with(tint[0], tint[1])
-    return pix.width, pix.height, pix.stride, bytes(pix.samples)
+        data, stride = tinted(pix.width, pix.height, stride, data, tint), pix.width * 3
+    return pix.width, pix.height, stride, data

@@ -611,6 +611,17 @@ pixels, as the desktop's fonts are, so their edges are grey. Fewer levels of
 antialiasing changed almost nothing; a gamma that darkens those grey edges
 did. It is a setting, Text on the pages, sharper by default.
 
+Text still looked soft when the pages were zoomed out, where a letter is a
+few pixels tall. I measured again, at several zooms: the window showed
+MuPDF's pixels exactly, so the softness was still in the drawing. I put
+eight ways of drawing the same page side by side, at 70 and 100 per cent,
+and chose by eye on my own screen: the gamma followed by an unsharp mask
+(Pillow's, which reportlab already brings), which makes the edges of the
+letters steeper. Sharper has a light one, Sharpest a stronger one; drawing
+the page larger and reducing it, or with fewer levels of grey, did less.
+The mask adds about twenty milliseconds to a page, in the processes that
+draw them.
+
 23. A user manual
 -----------------
 
