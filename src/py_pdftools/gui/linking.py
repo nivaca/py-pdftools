@@ -151,7 +151,7 @@ class LinkEditMixin:
         self.tool_actions["select"].actionGroup().addAction(act)
         self.tool_actions["link"] = act
         tools_menu.addAction(act)
-        sub = menu.addMenu(tr("Links"))
+        sub = self.m_links = menu.addMenu(tr("Links"))
         sub.setToolTipsVisible(True)
         sub.addAction(act)
         self.a_links_from_text = self._action(

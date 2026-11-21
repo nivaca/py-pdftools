@@ -414,7 +414,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         return act
 
     def _build_menus(self):
-        m = self.menuBar().addMenu(tr("&File"))
+        m = self.m_file = self.menuBar().addMenu(tr("&File"))
         m.setToolTipsVisible(True)
         self.a_open = self._action(m, tr("Open…"), self.open_dialog, QKeySequence.StandardKey.Open)
         self.m_recent = m.addMenu(tr("Open recent"))
@@ -430,7 +430,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                       "they signed)"))
         self.a_save_as = self._action(m, tr("Save as…"), self.save_as_dialog, QKeySequence.StandardKey.SaveAs,
                                       tr("Write a copy of the document with the annotations, and go on with it"))
-        sub = m.addMenu(tr("Save a copy"))
+        sub = self.m_save_copy = m.addMenu(tr("Save a copy"))
         sub.setToolTipsVisible(True)
         self.a_flat = self._action(sub, tr("Flattened…"), self.save_flattened_dialog,
                                    tip=tr("The annotations become part of the pages: they are seen and printed "
@@ -460,7 +460,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
         m.addSeparator()
-        sub = m.addMenu(tr("Export the annotations"))
+        sub = self.m_export_annots = m.addMenu(tr("Export the annotations"))
         sub.setToolTipsVisible(True)
         self.a_export_md = self._action(sub, tr("As a report (Markdown)…"), lambda: self.export_dialog("md"))
         self.a_export_csv = self._action(sub, tr("As a table (CSV)…"), lambda: self.export_dialog("csv"))
@@ -475,7 +475,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_summary = self._action(sub, tr("A summary of the comments (PDF)…"), lambda: self.export_dialog("pdf"),
                                       tip=tr("Each page with annotations, beside a numbered list of them, with the "
                                              "text they mark, their comments and their replies"))
-        sub = m.addMenu(tr("Import annotations"))
+        sub = self.m_import_annots = m.addMenu(tr("Import annotations"))
         sub.setToolTipsVisible(True)
         self.a_import_json = self._action(sub, tr("From a file of annotations (JSON)…"),
                                           lambda: self.import_dialog("json"))
@@ -488,12 +488,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                       tip=tr("Mark here what differs from another version of this text (another "
                                              "edition, a draft): its words, in reading order"))
         m.addSeparator()
-        self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
-        m.insertAction(self.m_recent.menuAction(), self._action(
+        self.a_close = self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
+        self.a_open_tab = self._action(
             None, tr("Open in a new tab…"), self.open_tab_dialog, "Ctrl+T",
-            tip=tr("Another document in a tab of this window (Settings: open every document so)")))
+            tip=tr("Another document in a tab of this window (Settings: open every document so)"))
+        m.insertAction(self.m_recent.menuAction(), self.a_open_tab)
         # Quit ends the program, also when it keeps running in the background (see instance.py).
-        self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
+        self.a_quit = self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
 
         m = self.menuBar().addMenu(tr("&Edit"))
         self.a_undo = self._action(m, tr("Undo"), self.undo, QKeySequence.StandardKey.Undo)
@@ -521,7 +522,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                          QKeySequence.StandardKey.SelectAll)
 
         self.a_select_kind = self._action(m, tr("Select those of the same kind on this page"), self.select_kind)
-        self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
+        self.a_select_none = self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
         self.m_align = m.addMenu(tr("Align"))
         # Un par vacío marca un separador del menú.
         for key, name in (("left", N_("Left sides")), ("hcenter", N_("Centres, across")),
@@ -565,7 +566,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
         self.m_layers.setToolTipsVisible(True)
         self.m_layers.aboutToShow.connect(self.layers_menu)
-        m = self.menuBar().addMenu(tr("&View"))
+        m = self.m_view = self.menuBar().addMenu(tr("&View"))
         m.setToolTipsVisible(True)
         self.a_show = QAction(tr("Show the annotations"), self, checkable=True, checked=True)
         self.a_show.setShortcut(QKeySequence("Ctrl+Shift+A"))
@@ -619,7 +620,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
         # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
-        colours = m.addMenu(tr("Reading colours"))
+        colours = self.m_reading = m.addMenu(tr("Reading colours"))
         colours.setToolTipsVisible(True)
         group = QActionGroup(self)
         self.reading_actions: dict[str, QAction] = {}
@@ -674,14 +675,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                        QKeySequence.StandardKey.ZoomOut)
 
         m = self.menuBar().addMenu(tr("&Settings"))
-        self._action(m, tr("Settings…"), self.settings_dialog, [QKeySequence("Ctrl+,")])
+        self.a_settings = self._action(m, tr("Settings…"), self.settings_dialog, [QKeySequence("Ctrl+,")])
         self.a_labels = QAction(tr("Labels in the toolbar"), self, checkable=True)
         self.a_labels.toggled.connect(self.show_labels)
         m.addAction(self.a_labels)
         self.a_customize_bars = self._action(m, tr("Customize the toolbars…"), lambda: self.customize_toolbars(),
                                              tip=tr("Choose the buttons of each toolbar and their order, or add "
                                                     "toolbars of your own"))
-        lang = m.addMenu(tr("Language"))
+        lang = self.m_language = m.addMenu(tr("Language"))
         group = QActionGroup(self)
         for code, name in interface.names().items():
             act = QAction(name, self, checkable=True)
@@ -726,6 +727,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 bar.addAction(self.tool_actions["link"])
         self.apply_shortcuts()
         self.show_labels(self.settings.value("toolbar_labels", "false") == "true")
+
+        from .menus import regroup
+
+        regroup(self)  # (Archivo, Editar y Ver, en grupos: véase menus.py)
 
     def _tool_button_menus(self, bar: QToolBar):
         """The buttons of the tools on BAR, each with its menu (a right click: colour, stamp, properties...)."""

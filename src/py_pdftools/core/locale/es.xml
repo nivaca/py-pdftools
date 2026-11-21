@@ -11761,4 +11761,40 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{who} is now trusted</en>
     <tr>{who} es ahora de confianza</tr>
   </text>
+  <text>
+    <en>Arrange</en>
+    <tr>Organizar</tr>
+  </text>
+  <text>
+    <en>Export</en>
+    <tr>Exportar</tr>
+  </text>
+  <text>
+    <en>Go to</en>
+    <tr>Ir a</tr>
+  </text>
+  <text>
+    <en>Import</en>
+    <tr>Importar</tr>
+  </text>
+  <text>
+    <en>New</en>
+    <tr>Nuevo</tr>
+  </text>
+  <text>
+    <en>Panels</en>
+    <tr>Paneles</tr>
+  </text>
+  <text>
+    <en>Remove annotations</en>
+    <tr>Quitar anotaciones</tr>
+  </text>
+  <text>
+    <en>Security</en>
+    <tr>Seguridad</tr>
+  </text>
+  <text>
+    <en>The annotations</en>
+    <tr>Las anotaciones</tr>
+  </text>
 </interface>
