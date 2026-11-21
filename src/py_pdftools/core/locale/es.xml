@@ -5739,15 +5739,6 @@ los visores que siguen esas indicaciones.</tr>
     <tr>--replace toma PÁGINAS, un PDF y, si se quiere, su PRIMERA página</tr>
   </text>
   <text>
-    <en>--split-every and --split-at save several files: use --output-dir, not -o or -i</en>
-    <tr>--split-every y --split-at guardan varios archivos: use --output-dir, no -o ni -i</tr>
-  </text>
-  <text>
-    <en>--split-every and --split-at save the result as several files, named as the input with -1, -2 ... (in --output-dir, if given).</en>
-    <tr>--split-every y --split-at guardan el resultado en varios archivos, con el
-nombre de la entrada y -1, -2 ... (en --output-dir, si se da).</tr>
-  </text>
-  <text>
     <en>180°</en>
     <tr>180°</tr>
   </text>
@@ -6120,10 +6111,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>save the result as files that start at PAGES</en>
     <tr>guardar el resultado en archivos que empiezan en PÁGINAS</tr>
-  </text>
-  <text>
-    <en>say every how many pages, or at which pages, to split</en>
-    <tr>diga cada cuántas páginas, o en qué páginas, dividir</tr>
   </text>
   <text>
     <en>show what the pages would be, without writing anything</en>
@@ -12020,5 +12007,53 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>{count} pictures saved in {folder}</en>
     <tr>Se guardaron {count} imágenes en {folder}</tr>
+  </text>
+  <text>
+    <en>--split-every, --split-at, --split-bookmarks and --split-size save several files: use --output-dir, not -o or -i</en>
+    <tr>--split-every, --split-at, --split-bookmarks y --split-size guardan varios archivos: use --output-dir, no -o ni -i</tr>
+  </text>
+  <text>
+    <en>--split-every, --split-at, --split-bookmarks and --split-size save the result as several files, named as the input with -1, -2 ... (in --output-dir, if given); those of --split-bookmarks also take the titles of their bookmarks, and those of --split-every 1 the labels of their pages.</en>
+    <tr>--split-every, --split-at, --split-bookmarks y --split-size guardan el resultado como varios archivos, con el nombre de la entrada y -1, -2 ... (en --output-dir, si se da); los de --split-bookmarks llevan además los títulos de sus marcadores, y los de --split-every 1 las etiquetas de sus páginas.</tr>
+  </text>
+  <text>
+    <en>1: a file for each page, named after its label</en>
+    <tr>1: un archivo por página, con el nombre de su etiqueta</tr>
+  </text>
+  <text>
+    <en>Each part starts at a bookmark of this level (1: the chapters), and is named after it</en>
+    <tr>Cada parte empieza en un marcador de este nivel (1: los capítulos) y lleva su nombre</tr>
+  </text>
+  <text>
+    <en>LEVEL</en>
+    <tr>NIVEL</tr>
+  </text>
+  <text>
+    <en>No part bigger than this (to send by mail, to upload): each is measured as it is written</en>
+    <tr>Ninguna parte mayor que esto (para enviar por correo, para subir): cada una se mide tal como se escribe</tr>
+  </text>
+  <text>
+    <en>Or at most, each:</en>
+    <tr>O como mucho, cada una:</tr>
+  </text>
+  <text>
+    <en>Or at the bookmarks of level:</en>
+    <tr>O en los marcadores de nivel:</tr>
+  </text>
+  <text>
+    <en>The document has no bookmarks of level {level}</en>
+    <tr>El documento no tiene marcadores de nivel {level}</tr>
+  </text>
+  <text>
+    <en>save the result as files of at most MB megabytes each</en>
+    <tr>guardar el resultado como archivos de MB megabytes como mucho cada uno</tr>
+  </text>
+  <text>
+    <en>save the result as files that start at its bookmarks of LEVEL (1: the chapters), named after them</en>
+    <tr>guardar el resultado como archivos que empiezan en sus marcadores de NIVEL (1: los capítulos), con sus nombres</tr>
+  </text>
+  <text>
+    <en>say how to split: every so many pages, at which pages, at the bookmarks, or by size</en>
+    <tr>diga cómo partir: cada tantas páginas, en qué páginas, en los marcadores o por tamaño</tr>
   </text>
 </interface>

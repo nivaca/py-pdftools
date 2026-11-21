@@ -126,8 +126,10 @@ of labels stay where they are, and the pages take the labels of their new
 places. Bookmarks and links go with their pages; those that went to a page
 deleted go to the page after it.
 
---split-every and --split-at save the result as several files, named as the
-input with -1, -2 ... (in --output-dir, if given).
+--split-every, --split-at, --split-bookmarks and --split-size save the result
+as several files, named as the input with -1, -2 ... (in --output-dir, if
+given); those of --split-bookmarks also take the titles of their bookmarks,
+and those of --split-every 1 the labels of their pages.
 
 For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST
 --rotate even 90 -i""")
@@ -396,6 +398,11 @@ def build_parser(prog: str = "py-pdftools") -> argparse.ArgumentParser:
                    help=tr("the password of the PDFs of --insert and --replace"))
     g.add_argument("--split-every", type=int, metavar="N", help=tr("save the result as files of N pages each"))
     g.add_argument("--split-at", metavar=tr("PAGES"), help=tr("save the result as files that start at PAGES"))
+    g.add_argument("--split-bookmarks", type=int, metavar=tr("LEVEL"),
+                   help=tr("save the result as files that start at its bookmarks of LEVEL (1: the chapters), named "
+                           "after them"))
+    g.add_argument("--split-size", type=float, metavar="MB",
+                   help=tr("save the result as files of at most MB megabytes each"))
     output_options(sp, tr("show what the pages would be, without writing anything"))
 
     sp = sub.add_parser("completion", parents=[common], help=tr("print the completion script of a shell"),
@@ -733,7 +740,8 @@ def describe_arranged(made, n: int) -> None:
 
 
 def pages_command(a) -> int:
-    if not getattr(a, "operations", None) and not (a.split_every or a.split_at):
+    splitting = a.split_every or a.split_at or a.split_bookmarks or a.split_size
+    if not getattr(a, "operations", None) and not splitting:
         raise LabelError(tr("nothing to do: give an operation, as --move, --delete or --rotate"))
 
     def make(pdf, n):
@@ -748,15 +756,19 @@ def pages_command(a) -> int:
         # Las etiquetas se escriben al final, ya calculadas para la secuencia de páginas resultante.
         labels.write_labels(pdf, ranges)
 
-    if not (a.split_every or a.split_at):
+    if not splitting:
         return change(a, a.inputs, make, write=write, describe=describe_arranged)
     return split_command(a, make, write)
 
 
 def split_command(a, make, write) -> int:
-    """pages --split-every / --split-at: the result of the operations, saved as several files."""
+    """pages --split-every / --split-at / --split-bookmarks / --split-size: the result of the operations,
+    saved as several files (see split.py)."""
+    from . import split
+
     if a.output is not None or a.in_place:
-        raise LabelError(tr("--split-every and --split-at save several files: use --output-dir, not -o or -i"))
+        raise LabelError(tr("--split-every, --split-at, --split-bookmarks and --split-size save several files: use "
+                            "--output-dir, not -o or -i"))
     standard = conform_standard(a)
     failed = False
     for path in a.inputs:
@@ -765,18 +777,25 @@ def split_command(a, make, write) -> int:
                 made = make(pdf, len(pdf.pages))
                 write(pdf, made)
                 n = len(pdf.pages)
-                at = arrange.parse_page_list(a.split_at, n) if a.split_at else None
-                parts = arrange.split_parts(n, a.split_every or 0, at)
                 ranges = made[1]
                 # The arranged document is saved once in memory and reopened for every part.
                 data = io.BytesIO()
                 # (con su protección, si la tiene: cada parte la conserva, como en files.write_parts)
                 pdf.save(data, encryption=True if pdf.is_encrypted else None)
+            if a.split_every:
+                spec = {"every": a.split_every}
+            elif a.split_at:
+                spec = {"at": arrange.parse_page_list(a.split_at, n)}
+            elif a.split_bookmarks:
+                spec = {"bookmarks": a.split_bookmarks}
+            else:
+                spec = {"size": int(a.split_size * 1_000_000)}
+            parts = split.plan(spec, data.getvalue(), a.password)
+            names = split.file_names(f"{a.name_prefix}{path.stem}{a.name_suffix or ''}", parts)
             folder = a.output_dir or path.parent
-            suffix = a.name_suffix or ""
-            for k, (first, last) in enumerate(parts, 1):
-                # Las partes se numeran desde 1: libro-1.pdf, libro-2.pdf...
-                target = folder / f"{a.name_prefix}{path.stem}{suffix}-{k}.pdf"
+            for name, (first, last, _) in zip(names, parts, strict=True):
+                # Las partes se numeran desde 1: libro-1.pdf, libro-2.pdf... (o con su nombre: libro-01-Prólogo.pdf)
+                target = folder / name
                 if a.dry_run:
                     print(tr("{path} would get pages {first}-{last}", path=target, first=first, last=last))
                     continue

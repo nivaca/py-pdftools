@@ -582,7 +582,8 @@ usage: py-pdftools pages [-h] [--interface {en,es}] [--order PAGES]
                          [--replace PAGES PDF [FIRST] [PAGES PDF [FIRST] ...]]
                          [--extract PAGES] [--labels {follow,position}]
                          [--source-password PASSWORD] [--split-every N]
-                         [--split-at PAGES] [-o OUTPUT | -i |
+                         [--split-at PAGES] [--split-bookmarks LEVEL]
+                         [--split-size MB] [-o OUTPUT | -i |
                          --output-dir FOLDER] [--name-prefix TEXT]
                          [--name-suffix TEXT] [-n] [--conform STANDARD]
                          [--password PASSWORD]
@@ -646,6 +647,11 @@ the labels and the result:
                         the password of the PDFs of --insert and --replace
   --split-every N       save the result as files of N pages each
   --split-at PAGES      save the result as files that start at PAGES
+  --split-bookmarks LEVEL
+                        save the result as files that start at its bookmarks
+                        of LEVEL (1: the chapters), named after them
+  --split-size MB       save the result as files of at most MB megabytes
+                        each
 
 The operations are made in the order they are given, each on the pages as the
 ones before left them. PAGES is a list of pages, as 9-20,31 (LAST counts from
@@ -659,8 +665,10 @@ of labels stay where they are, and the pages take the labels of their new
 places. Bookmarks and links go with their pages; those that went to a page
 deleted go to the page after it.
 
---split-every and --split-at save the result as several files, named as the
-input with -1, -2 ... (in --output-dir, if given).
+--split-every, --split-at, --split-bookmarks and --split-size save the result
+as several files, named as the input with -1, -2 ... (in --output-dir, if
+given); those of --split-bookmarks also take the titles of their bookmarks,
+and those of --split-every 1 the labels of their pages.
 
 For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST
 --rotate even 90 -i

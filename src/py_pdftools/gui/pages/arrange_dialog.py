@@ -8,8 +8,8 @@ from pathlib import Path
 
 from PySide6.QtCore import QPoint, Qt, QTimer, Signal
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout, QHBoxLayout, QLabel,
-    QLineEdit, QListView, QListWidget, QMessageBox, QPushButton, QSpinBox, QVBoxLayout,
+    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog, QFormLayout,
+    QHBoxLayout, QLabel, QLineEdit, QListView, QListWidget, QMessageBox, QPushButton, QSpinBox, QVBoxLayout,
 )
 
 from ...pages import arrange
@@ -223,9 +223,24 @@ class ArrangeDialog(QDialog):
         self.at = QLineEdit()
         self.at.setPlaceholderText(tr("e.g. 9,91 (each part starts there)"))
         self.target_folder = QLineEdit(str(self.folder))
+        self.every.setToolTip(tr("1: a file for each page, named after its label"))
+        self.at_level = QSpinBox()
+        self.at_level.setRange(0, 9)
+        self.at_level.setSpecialValueText(tr("no"))
+        self.at_level.setToolTip(tr("Each part starts at a bookmark of this level (1: the chapters), and is named "
+                                    "after it"))
+        self.most = QDoubleSpinBox()
+        self.most.setRange(0, 10000)
+        self.most.setDecimals(1)
+        self.most.setSuffix(" MB")
+        self.most.setSpecialValueText(tr("no"))
+        self.most.setToolTip(tr("No part bigger than this (to send by mail, to upload): each is measured as it is "
+                                "written"))
         if mode == "split":
             form.addRow(tr("Every so many pages:"), self.every)
             form.addRow(tr("Or starting at pages:"), self.at)
+            form.addRow(tr("Or at the bookmarks of level:"), self.at_level)
+            form.addRow(tr("Or at most, each:"), self.most)
             form.addRow(tr("In the folder:"), self.target_folder)
         self.labels = QComboBox()
         for code, text in arrange.LABEL_CHOICES.items():
@@ -251,8 +266,8 @@ class ArrangeDialog(QDialog):
             self.source.setText(name)
 
     def value(self):
-        """What the dialog asks for: an arrange.Operation; for extract, the pages; for split, (parts,
-        folder). Raises LabelError if something is wrong."""
+        """What the dialog asks for: an arrange.Operation; for extract, the pages; for split, (how: see
+        split.plan, folder). Raises LabelError if something is wrong."""
         # Todas las operaciones reciben la misma elección de etiquetas (kw), aunque solo la usen las que mueven páginas.
         n, kw = self.count, {"labels": self.labels.currentData()}
 
@@ -295,9 +310,18 @@ class ArrangeDialog(QDialog):
             # Si se dan las dos cosas, "cada N páginas" tiene prioridad sobre las páginas de inicio
             # (ver arrange.split_parts).
             at = arrange.parse_page_list(self.at.text(), n) if self.at.text().strip() else None
-            if not self.every.value() and not at:
-                raise LabelError(tr("say every how many pages, or at which pages, to split"))
-            return arrange.split_parts(n, self.every.value(), at), Path(self.target_folder.text().strip() or ".")
+            folder = Path(self.target_folder.text().strip() or ".")
+            # (lo primero que se dé manda: cada N páginas, las páginas de inicio, los marcadores, el tamaño)
+            if self.every.value():
+                return {"every": self.every.value()}, folder
+            if at:
+                return {"at": at}, folder
+            if self.at_level.value():
+                return {"bookmarks": self.at_level.value()}, folder
+            if self.most.value():
+                return {"size": int(self.most.value() * 1_000_000)}, folder
+            raise LabelError(tr("say how to split: every so many pages, at which pages, at the bookmarks, or "
+                                "by size"))
         raise LabelError(mode)
 
     def try_accept(self):

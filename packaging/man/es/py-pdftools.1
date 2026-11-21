@@ -633,7 +633,8 @@ uso: py-pdftools pages [-h] [--interface {en,es}] [--order PÁGINAS]
                        [--replace PÁGINAS PDF [PRIMERA] [PÁGINAS PDF [PRIMERA] ...]]
                        [--extract PÁGINAS] [--labels {follow,position}]
                        [--source-password CONTRASEÑA] [--split-every N]
-                       [--split-at PÁGINAS] [-o OUTPUT | -i |
+                       [--split-at PÁGINAS] [--split-bookmarks NIVEL]
+                       [--split-size MB] [-o OUTPUT | -i |
                        --output-dir CARPETA] [--name-prefix TEXTO]
                        [--name-suffix TEXTO] [-n] [--conform NORMA]
                        [--password CONTRASEÑA]
@@ -705,6 +706,12 @@ las etiquetas y el resultado:
                         uno
   --split-at PÁGINAS    guardar el resultado en archivos que empiezan en
                         PÁGINAS
+  --split-bookmarks NIVEL
+                        guardar el resultado como archivos que empiezan en
+                        sus marcadores de NIVEL (1: los capítulos), con sus
+                        nombres
+  --split-size MB       guardar el resultado como archivos de MB megabytes
+                        como mucho cada uno
 
 Las operaciones se hacen en el orden en que se dan, cada una sobre las
 páginas tal como las dejaron las anteriores. PÁGINAS es una lista de páginas,
@@ -719,8 +726,7 @@ position, los intervalos de etiquetas se quedan donde están, y las páginas
 toman las etiquetas de sus nuevos lugares. Los marcadores y los enlaces van
 con sus páginas; los que iban a una página borrada van a la siguiente.
 
---split-every y --split-at guardan el resultado en varios archivos, con el
-nombre de la entrada y -1, -2 ... (en --output-dir, si se da).
+--split-every, --split-at, --split-bookmarks y --split-size guardan el resultado como varios archivos, con el nombre de la entrada y -1, -2 ... (en --output-dir, si se da); los de --split-bookmarks llevan además los títulos de sus marcadores, y los de --split-every 1 las etiquetas de sus páginas.
 
 Por ejemplo: py-pdftools pages libro.pdf --move 201-214 9 --delete LAST
 --rotate even 90 -i

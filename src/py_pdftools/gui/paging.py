@@ -779,10 +779,27 @@ class PagesMixin:
                                                   tr("PDF files (*.pdf)"))
             return bool(name) and self.write_parts([(Path(name).with_suffix(".pdf"), value)])
         if mode == "split":
-            parts, folder = value
-            return self.write_parts([(folder / f"{self.path.stem}-{k}.pdf", list(range(first, last + 1)))
-                                     for k, (first, last) in enumerate(parts, 1)])
+            spec, folder = value
+            return self.split_document(spec, folder)
         return self.arrange_pages(value, ask=False)
+
+    def split_document(self, spec: dict, folder: Path) -> bool:
+        """The document, as it is now (with its annotations), split into several files in FOLDER as SPEC says
+        (see pages/split.py: every so many pages, at pages, at its bookmarks, by size)."""
+        from ..pages import split
+
+        whole = self._new_work("-split")
+        try:
+            annots.write(self.file, self.annotations, whole, self.password, shown=self.layers)
+            parts = split.plan(spec, whole, self.password)
+        except (AnnotateError, OSError, pikepdf.PdfError, LabelError) as e:
+            whole.unlink(missing_ok=True)
+            self.status(str(e), error=True)
+            return False
+        whole.unlink(missing_ok=True)
+        names = split.file_names(self.path.stem, parts)
+        return self.write_parts([(folder / name, list(range(first, last + 1)))
+                                 for name, (first, last, _) in zip(names, parts, strict=True)])
 
     def write_parts(self, parts: list[tuple[Path, list[int]]]) -> bool:
         """Save some pages, as they are now (with their annotations), as new files: [(target, pages)]."""
