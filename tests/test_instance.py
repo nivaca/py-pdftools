@@ -165,17 +165,26 @@ def test_start_with_the_session(app, tmp_path, monkeypatch):
     from py_pdftools.gui import autostart
     from py_pdftools.gui.prefs import SettingsDialog
 
+    # Every system's place in the test's own folder, never the real one (on Windows, the folder Startup)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
+    monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
+    monkeypatch.setenv("HOME", str(tmp_path))
+    expected = {"win32": tmp_path / "appdata" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+                / "py-pdftools.cmd",
+                "darwin": tmp_path / "Library" / "LaunchAgents" / "io.github.nivaca.py-pdftools.plist"}.get(
+        sys.platform, tmp_path / "xdg" / "autostart" / "py-pdftools.desktop")
     assert not autostart.enabled()
     path = autostart.enable(True)
-    assert path == tmp_path / "xdg" / "autostart" / "py-pdftools.desktop"
-    text = path.read_text()
-    assert "Exec=" in text and text.split("Exec=")[1].split("\n")[0].endswith("--background")
+    assert path == expected and "--background" in path.read_text()
+    if sys.platform.startswith("linux"):
+        text = path.read_text()
+        assert "Exec=" in text and text.split("Exec=")[1].split("\n")[0].endswith("--background")
     autostart.enable(False)
     assert not path.exists()
-    monkeypatch.setenv("APPIMAGE", "/opt/My Apps/py-pdftools.AppImage")
-    assert "Exec='/opt/My Apps/py-pdftools.AppImage' --background" in autostart.enable(True).read_text()
-    autostart.enable(False)
+    if sys.platform.startswith("linux"):
+        monkeypatch.setenv("APPIMAGE", "/opt/My Apps/py-pdftools.AppImage")
+        assert "Exec='/opt/My Apps/py-pdftools.AppImage' --background" in autostart.enable(True).read_text()
+        autostart.enable(False)
     win = gui.open_window(pdf(tmp_path / "doc.pdf"))
     dialog = SettingsDialog(win.prefs, win)
     assert not dialog.login.isChecked() and not dialog.background.isChecked()

@@ -3,6 +3,8 @@ taken from PDFCraft as it is added."""
 
 from __future__ import annotations
 
+import sys
+
 import pymupdf
 import pytest
 from PySide6.QtWidgets import QApplication
@@ -555,6 +557,8 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     assert not host.isVisible()  # (the last tab closed: its window too)
 
 
+@pytest.mark.skipif(sys.platform == "win32",
+                    reason="Windows doesn't let another program replace a file open in the window")
 def test_reloading_a_file_changed_on_disk(window, book, monkeypatch):
     import time
 

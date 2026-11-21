@@ -59,6 +59,7 @@ def test_some_pages_in_an_order_and_labels(two, tmp_path):
     assert [p.get_label() for p in doc] == ["i", "ii", "iii", "4", "1", "2"]
     # (los marcadores de las páginas que quedan fuera se van; los otros siguen a sus páginas)
     assert [t[1:] for t in doc.get_toc()][3:] == [["B start", 5], ["B more", 6], ["B end", 4]]
+    doc.close()  # (before writing over it: Windows doesn't let a file open be replaced)
     combine.combine([Part(a), Part(b)], out, bookmarks="none")
     assert pymupdf.open(out).get_toc() == []
 
