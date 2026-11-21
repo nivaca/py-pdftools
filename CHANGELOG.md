@@ -5,6 +5,14 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.8.2 — 2026-11-21
+
+- **Toolbars**: a change of their look (text beside or under the icons,
+  icons only, text only, the size of the icons), of their lock or of their
+  buttons now reaches every window and tab open, not only the one where it
+  was made; the others went on showing the toolbars as they were, so the
+  change seemed lost. It is also written to the disk at once.
+
 ## 1.8.1 — 2026-11-21
 
 - **Recognise the text of these pages (OCR)**, in the right click on the
