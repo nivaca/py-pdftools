@@ -33,6 +33,8 @@ argumentos posicionales:
     from-images        hacer un PDF de imágenes (fotografías, escaneos)
     export             exportar las páginas como imágenes, las imágenes o el
                        texto
+    pdf-version        mostrar la versión de PDF de archivos, o guardar una
+                       copia con otra
     form               los datos de los formularios PDF: mostrar, rellenar,
                        tabla, aplanar
     reduce             hacer una copia más pequeña de un PDF
@@ -3006,6 +3008,24 @@ opciones:
   --password PASSWORD   la contraseña de los PDF, si la tienen
   -o, --output ARCHIVO  el archivo hecho (.md, .html o .txt: su extensión
                         dice el formato)
+.fi
+.SS pdf-version
+.nf
+uso: py-pdftools pdf-version [-h] [--set VERSIÓN] [-o ARCHIVO]
+                             [--password PASSWORD]
+                             ARCHIVO [ARCHIVO ...]
+
+Mostrar la versión de PDF de archivos, o guardar una copia con otra (y decir
+qué usa el documento que sea más nuevo que ella).
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --set VERSIÓN         la versión de la copia: 1.3, 1.4, 1.5, 1.6, 1.7, 2.0
+  -o, --output ARCHIVO  el PDF hecho (con --set; un archivo)
+  --password PASSWORD   la contraseña de los PDF, si la tienen
 .fi
 .SS form
 .nf

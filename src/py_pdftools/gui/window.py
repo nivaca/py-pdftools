@@ -438,6 +438,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_flat_form = self._action(sub, tr("With the form flattened…"), lambda: self.save_flat_form_dialog(),
                                         tip=tr("What the fields of the form show becomes part of the pages: it "
                                                "can no longer be changed"))
+        self.a_version = self._action(sub, tr("With another PDF version…"), lambda: self.save_version_dialog(),
+                                      tip=tr("The same document, saying it is another version of PDF (1.3 to "
+                                             "2.0), for programs that ask for one"))
         self.a_bare = self._action(sub, tr("Without annotations…"), self.save_without_dialog,
                                    tip=tr("The document as it is without any annotation (links and form fields "
                                           "stay)"))

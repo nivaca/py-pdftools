@@ -1,5 +1,5 @@
-"""py-pdftools export: the pages of a PDF as pictures, the pictures it holds, or its text. See
-pages/export.py."""
+"""py-pdftools export: the pages of a PDF as pictures, the pictures it holds, or its text (see
+pages/export.py); and py-pdftools pdf-version, the version of PDFs shown or changed (pages/version.py)."""
 
 from __future__ import annotations
 
@@ -58,6 +58,42 @@ def main(argv: list[str] | None = None, prog: str = "py-pdftools export") -> int
             export.export_text(a.input, a.output, pages=pages, password=a.password)
             print(tr("Wrote {path}", path=a.output))
     except (export.ExportError, PageError, OSError, RuntimeError) as e:
+        print(f"{prog}: {e}", file=sys.stderr)
+        return 1
+    return 0
+
+
+def build_version_parser(prog: str = "py-pdftools pdf-version") -> argparse.ArgumentParser:
+    from ..pages import version
+
+    p = argparse.ArgumentParser(prog=prog, description=tr("Show the PDF version of files, or save a copy with "
+                                                          "another (and say what the document uses that is newer "
+                                                          "than it)."))
+    p.add_argument("inputs", nargs="+", type=Path, metavar=tr("FILE"), help=tr("source PDF"))
+    p.add_argument("--set", choices=version.VERSIONS, metavar=tr("VERSION"),
+                   help=tr("the version of the copy: {versions}", versions=", ".join(version.VERSIONS)))
+    p.add_argument("-o", "--output", type=Path, metavar=tr("FILE"), help=tr("the PDF made (with --set; one file)"))
+    p.add_argument("--password", default="", help=tr("the password of the PDFs, if they have one"))
+    return p
+
+
+def main_version(argv: list[str] | None = None, prog: str = "py-pdftools pdf-version") -> int:
+    from ..pages import version
+
+    a = build_version_parser(prog).parse_args(argv)
+    try:
+        if a.set is None:
+            for path in a.inputs:
+                print(f"{path}: PDF {version.version_of(path, a.password)}")
+            return 0
+        if a.output is None or len(a.inputs) != 1:
+            print(f"{prog}: " + tr("--set saves one file: give one PDF and -o"), file=sys.stderr)
+            return 1
+        for text in version.newer_than(a.inputs[0], a.set, a.password):
+            print(tr("Note: it uses {what}", what=text), file=sys.stderr)
+        before = version.set_version(a.inputs[0], a.output, a.set, a.password)
+        print(tr("Wrote {path}, as PDF {version} (it was {before})", path=a.output, version=a.set, before=before))
+    except version.VersionError as e:
         print(f"{prog}: {e}", file=sys.stderr)
         return 1
     return 0

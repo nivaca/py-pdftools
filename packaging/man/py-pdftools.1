@@ -29,6 +29,8 @@ positional arguments:
     from-images        make a PDF of pictures (photographs, scans)
     export             export the pages as pictures, the pictures, or the
                        text
+    pdf-version        show the PDF version of files, or save a copy with
+                       another
     form               the data of PDF forms: show, fill, table, flatten
     reduce             make a smaller copy of a PDF
     completion         print the completion script of a shell
@@ -2838,6 +2840,24 @@ options:
   --password PASSWORD  the password of the PDFs, if they have one
   -o, --output FILE    the file made (.md, .html or .txt: its extension says
                        the format)
+.fi
+.SS pdf-version
+.nf
+usage: py-pdftools pdf-version [-h] [--set VERSION] [-o FILE]
+                               [--password PASSWORD]
+                               FILE [FILE ...]
+
+Show the PDF version of files, or save a copy with another (and say what the
+document uses that is newer than it).
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  --set VERSION        the version of the copy: 1.3, 1.4, 1.5, 1.6, 1.7, 2.0
+  -o, --output FILE    the PDF made (with --set; one file)
+  --password PASSWORD  the password of the PDFs, if they have one
 .fi
 .SS form
 .nf

@@ -12,6 +12,7 @@
     py-pdftools reduce                             a PDF made smaller
     py-pdftools form show | fill | table | flatten the data of forms
     py-pdftools export pages | images | text       pages as pictures, the pictures, the text
+    py-pdftools pdf-version                        the version of PDFs, shown or changed
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -111,6 +112,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["export"] = export_cli.build_parser(f"{PROG} export")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "export", (), tr("export the pages as pictures, the pictures, or the text")))
+    sub._name_parser_map["pdf-version"] = export_cli.build_version_parser(f"{PROG} pdf-version")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "pdf-version", (), tr("show the PDF version of files, or save a copy with another")))
     from . import form as form_cli
 
     sub._name_parser_map["form"] = form_cli.build_parser(f"{PROG} form")
@@ -167,6 +171,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import export as export_cli
 
         return export_cli.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} export")
+    if first and first[1] == "pdf-version":
+        from . import export as export_cli
+
+        return export_cli.main_version(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} pdf-version")
     if first and first[1] == "form":
         from . import form as form_cli
 

@@ -130,6 +130,45 @@ class FilesMixin:
             made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
         return made
 
+    # ----------------------------------------------------------------- the PDF version
+
+    def ask_version(self, current: str):
+        """The version chosen for the copy; None if cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from ..pages import version
+        from .version_dialog import VersionDialog
+
+        dialog = VersionDialog(current, lambda v: version.newer_than(self.file, v, self.password), self)
+        return dialog.chosen() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def save_version_dialog(self) -> bool:
+        """File > Save a copy > With another PDF version (from the document as last saved, or its working copy)."""
+        from ..pages import version
+
+        if self.path is None:
+            return False
+        try:
+            current = version.version_of(self.file, self.password)
+        except version.VersionError as e:
+            self.status(str(e), error=True)
+            return False
+        chosen = self.ask_version(current)
+        if chosen is None:
+            return False
+        target = self.ask_new_pdf(tr("Save a copy with another PDF version"),
+                                  f"{self.path.stem}-pdf{chosen.replace('.', '')}.pdf")
+        if target is None or self._same_file(target):
+            return False
+        try:
+            version.set_version(self.file, target, chosen, self.password)
+        except version.VersionError as e:
+            self.status(str(e), error=True)
+            return False
+        self.status(tr("Saved {path}, as PDF {version} (it was {before})", path=target, version=chosen,
+                       before=current))
+        return True
+
     # ----------------------------------------------------------------- exports
 
     def ask_export(self, kind: str):

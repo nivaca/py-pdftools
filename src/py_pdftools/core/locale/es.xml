@@ -12056,4 +12056,96 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>say how to split: every so many pages, at which pages, at the bookmarks, or by size</en>
     <tr>diga cómo partir: cada tantas páginas, en qué páginas, en los marcadores o por tamaño</tr>
   </text>
+  <text>
+    <en>--set saves one file: give one PDF and -o</en>
+    <tr>--set guarda un archivo: dé un PDF y -o</tr>
+  </text>
+  <text>
+    <en>A document encrypted with AES-256 can't be below PDF 1.7</en>
+    <tr>Un documento cifrado con AES-256 no puede estar por debajo de PDF 1.7</tr>
+  </text>
+  <text>
+    <en>Encryption with AES-128</en>
+    <tr>Cifrado con AES-128</tr>
+  </text>
+  <text>
+    <en>Encryption with AES-256 (it can't go below 1.7)</en>
+    <tr>Cifrado con AES-256 (no puede bajar de 1.7)</tr>
+  </text>
+  <text>
+    <en>It is now:</en>
+    <tr>Ahora es:</tr>
+  </text>
+  <text>
+    <en>JPEG 2000 pictures</en>
+    <tr>Imágenes JPEG 2000</tr>
+  </text>
+  <text>
+    <en>Layers (optional content)</en>
+    <tr>Capas (contenido opcional)</tr>
+  </text>
+  <text>
+    <en>Note: it uses {what}</en>
+    <tr>Nota: usa {what}</tr>
+  </text>
+  <text>
+    <en>Objects in compressed streams (written plainly below 1.5)</en>
+    <tr>Objetos en flujos comprimidos (se escriben sin ellos por debajo de 1.5)</tr>
+  </text>
+  <text>
+    <en>Save a copy with another PDF version</en>
+    <tr>Guardar una copia con otra versión de PDF</tr>
+  </text>
+  <text>
+    <en>Save it as:</en>
+    <tr>Guardarlo como:</tr>
+  </text>
+  <text>
+    <en>Saved {path}, as PDF {version} (it was {before})</en>
+    <tr>Se guardó {path}, como PDF {version} (era {before})</tr>
+  </text>
+  <text>
+    <en>Show the PDF version of files, or save a copy with another (and say what the document uses that is newer than it).</en>
+    <tr>Mostrar la versión de PDF de archivos, o guardar una copia con otra (y decir qué usa el documento que sea más nuevo que ella).</tr>
+  </text>
+  <text>
+    <en>The document uses what this version doesn't have, and a program that keeps to it may not show it right:</en>
+    <tr>El documento usa lo que esta versión no tiene, y un programa que se atenga a ella puede no mostrarlo bien:</tr>
+  </text>
+  <text>
+    <en>The same document, saying it is another version of PDF (1.3 to 2.0), for programs that ask for one</en>
+    <tr>El mismo documento, diciendo que es otra versión de PDF (de 1.3 a 2.0), para los programas que piden una</tr>
+  </text>
+  <text>
+    <en>Transparency (soft masks, transparency groups)</en>
+    <tr>Transparencia (máscaras suaves, grupos de transparencia)</tr>
+  </text>
+  <text>
+    <en>Unknown PDF version: {version}</en>
+    <tr>Versión de PDF desconocida: {version}</tr>
+  </text>
+  <text>
+    <en>VERSION</en>
+    <tr>VERSIÓN</tr>
+  </text>
+  <text>
+    <en>With another PDF version…</en>
+    <tr>Con otra versión de PDF…</tr>
+  </text>
+  <text>
+    <en>Wrote {path}, as PDF {version} (it was {before})</en>
+    <tr>Se escribió {path}, como PDF {version} (era {before})</tr>
+  </text>
+  <text>
+    <en>show the PDF version of files, or save a copy with another</en>
+    <tr>mostrar la versión de PDF de archivos, o guardar una copia con otra</tr>
+  </text>
+  <text>
+    <en>the PDF made (with --set; one file)</en>
+    <tr>el PDF hecho (con --set; un archivo)</tr>
+  </text>
+  <text>
+    <en>the version of the copy: {versions}</en>
+    <tr>la versión de la copia: {versions}</tr>
+  </text>
 </interface>
