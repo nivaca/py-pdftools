@@ -30,6 +30,10 @@ RPM, the wheel and the source, are on
 - **Ctrl+A in the thumbnails** selects every page (elsewhere it still
   selects the annotations of the page); their menu has Select all the
   pages.
+- Page labels are read through pikepdf when combining, exporting and
+  splitting: the PyMuPDF of some distributions (Fedora's) misread some of
+  them ("ageLabel2" for 2).
+- py-pdfocr is named among the programs py-pdftools comes from.
 
 ## 1.4.0 — 2026-11-20
 
