@@ -5,6 +5,25 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **The menus in groups**: File, Edit and View have submenus (File > New,
+  Export, Import and Security; Edit > Select, Arrange, Remove
+  annotations; View > Panels, Annotations, Go to, Zoom, Page layout).
+- **Toolbars as in KDE**: Settings > Toolbars (all) and the right click
+  on a toolbar (that one): the position of the text (icons only, text
+  only, alongside or under the icons), the size of the icons, locking
+  them; the Customize dialog sets them for each toolbar too.
+- **File > Export** (and `py-pdftools export`): the pages as pictures
+  (PNG, JPEG, TIFF; a resolution; grey), the pictures of the document,
+  and the text (Markdown, HTML, plain).
+- **Splitting** at the bookmarks of a level (parts named after them) and
+  by size (no part bigger than asked); one file per page named after its
+  label (`py-pdftools pages --split-bookmarks`, `--split-size`).
+- **The PDF version**: File > Save a copy > With another PDF version, and
+  `py-pdftools pdf-version`; what the document uses that the version
+  chosen doesn't have is named.
+
 ## 1.4.0 — 2026-11-20
 
 - **File > Save a copy > Smaller** (and `py-pdftools reduce`): a copy that

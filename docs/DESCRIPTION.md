@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in twenty stages.
+py-imposition. Here I explain how it was made, in twenty-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -529,10 +529,48 @@ pyHanko doesn't read), but it signs those that pikepdf encrypts, as File
 signer is trusted when their certificate is among those kept as trusted,
 and the version a signature signed can be opened.
 
+21. Menus in groups, toolbars as in KDE, exports
+-----------------------------------------------
+
+By then the menu File had grown to more than twenty entries, and View
+nearly thirty. I didn't rewrite the code that builds them, which is
+spread over the window and its parts; a module of its own takes the
+actions as they were made and puts them in submenus (New, Export, Import
+and Security in File; Select, Arrange and Remove annotations in Edit;
+Panels, Annotations, Go to, Zoom and Page layout in View). The first
+time, one menu came out with a leftover: the digital signatures, whose
+actions had moved to Security, still had their own empty submenu. Now an
+action the arrangement doesn't name goes at the end, so none is lost,
+and a submenu whose actions are all elsewhere counts as placed. I meant
+to test that a shortcut still works inside a submenu, but under a virtual
+X server keys don't reach a window that isn't active, with the old menus
+as with the new; the test checks instead that each of those actions is
+still in a menu of the bar, which is what makes Qt find its keys.
+
+The toolbars got the settings of KDE: the position of the text (icons
+only, text only, beside or under the icons), the size of the icons and
+whether they can be moved, for all of them from Settings, or for one
+from its right click. The old option of labels under the icons is read
+as one of these.
+
+Then three things to do with files. The pages are exported as pictures:
+PyMuPDF writes PNG and JPEG but not TIFF without Pillow, so the program
+writes its TIFF files itself, a small writer of the format compressed
+with Deflate, which ImageMagick reads as it should. The text is exported
+as Markdown, its headings guessed from the size of the letters. Splitting
+learned to cut a document at its bookmarks, naming each part after its
+bookmark, and by size: a part is measured as it is written, its length
+first guessed from the average size of a page and then shortened or
+lengthened until it fits. Last, a copy can say it is another version of
+PDF. Lowering the version only changes what the file says, so the program
+names what the document uses that is newer than the version asked;
+object streams, which came with 1.5, are written plainly below it, and a
+document encrypted with AES-256 can't go below 1.7.
+
 Testing
 -------
 
-The program has 554 tests (`uv run pytest`): those of the four programs,
+The program has 577 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -541,14 +579,15 @@ undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
 the moving through a document (bookmarks, links, the history, the views,
 tabs, reloading), the security of documents (text only covered, hidden
 layers, passwords), the toolbars, combining files and PDFs of pictures,
-smaller copies, links, forms and signatures, the Spanish interface (every
-text translated, and none left over) and the packaging. The windows of the
-four modes are tested as a user would use them, with mouse events on the
-pages; the redacted copy is also written in a process of its own, as the
-window does it, and imposition runs its commands in one. The window was
-checked by eye as well, with screenshots of each mode in both languages.
-The RPM runs all the tests again with Fedora's packages (without pyHanko,
-so the tests of the signatures are skipped there). The Linux installer was
-run in a home folder made for the test. The program has 142 files of
-Python, around 40,000 lines (about a tenth of them comments), and 2,898
-texts of the interface in Spanish.
+smaller copies, links, forms and signatures, the menus and toolbars, the
+exports, splitting and the PDF version, the Spanish interface (every text
+translated, and none left over) and the packaging. The windows of the four
+modes are tested as a user would use them, with mouse events on the pages;
+the redacted copy is also written in a process of its own, as the window
+does it, and imposition runs its commands in one. The window was checked by
+eye as well, with screenshots of each mode in both languages. The RPM runs
+all the tests again with Fedora's packages (without pyHanko, so the tests
+of the signatures are skipped there). The Linux installer was run in a home
+folder made for the test. The program has 149 files of Python, around
+41,200 lines (about a tenth of them comments), and 2,995 texts of the
+interface in Spanish.

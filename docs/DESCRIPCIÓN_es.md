@@ -1,4 +1,4 @@
-# py-pdftools 1.4.0: descripción
+# py-pdftools 1.5.0: descripción
 
 ## Análisis
 
@@ -22,7 +22,7 @@ La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-fo
 
 ### La ventana al trabajar
 
-Las miniaturas admiten varias páginas a la vez, en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor, también entre páginas. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante, y una página de rendimiento: la memoria que puede usar y la calidad del dibujo.
+Las miniaturas admiten varias páginas a la vez, en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor, también entre páginas. Puede seguir en segundo plano, con un icono en la bandeja, y una página de rendimiento fija la memoria y la calidad del dibujo. Archivo, Editar y Ver van en submenús, y las barras se configuran como en KDE: botones, texto, tamaño de los iconos, bloqueo.
 
 ### Moverse por el documento
 
@@ -30,11 +30,11 @@ Los marcadores son un panel común a todos los modos, y allí se editan. Los enl
 
 ### Seguridad, formularios y archivos nuevos
 
-Censurar busca texto solo cubierto (que sigue en el archivo bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Proteger con contraseñas cifra con AES-256; Firmas digitales firma con un ID digital (con pyHanko), crea uno propio y comprueba las firmas. El panel Formulario rellena los campos, con los formatos, comprobaciones y sumas de las funciones estándar hechos en Python, sin JavaScript, y lleva sus datos dentro y fuera (JSON, CSV, XFDF, FDF). Archivo combina varios PDF, hace uno de imágenes y guarda copias más pequeñas; la herramienta Enlace dibuja y cambia enlaces. Las barras de herramientas se editan.
+Censurar busca texto solo cubierto (que sigue en el archivo bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Proteger con contraseñas cifra con AES-256; Firmas digitales firma con un ID digital (con pyHanko), crea uno propio y comprueba las firmas. El panel Formulario rellena los campos, con los formatos, comprobaciones y sumas de las funciones estándar hechos en Python, sin JavaScript, y lleva sus datos dentro y fuera (JSON, CSV, XFDF, FDF). Archivo combina PDF, hace uno de imágenes, guarda copias más pequeñas o con otra versión de PDF, y exporta páginas, imágenes y texto; Foliar parte también por marcadores y por tamaño; la herramienta Enlace dibuja enlaces.
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 142 archivos de Python, unas 40 000 líneas (una décima parte, comentarios), y 2898 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 149 archivos de Python, unas 41 200 líneas (una décima parte, comentarios), y 2995 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -76,7 +76,7 @@ El OCR usa el programa tesseract (la versión del sistema), en varios procesos a
 
 ## Validación
 
-Hay 554 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios y las firmas, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 577 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

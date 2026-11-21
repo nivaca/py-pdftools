@@ -241,9 +241,13 @@ it out in the redacted copy. Remove hidden information also takes out the
 layers switched off, with what they hold. File > Protect with passwords
 sets a password to open the document, one for its permissions (printing,
 copying, changing it), or both, encrypted with AES-256; only the
-permissions password changes or removes them. Settings > Customize the
-toolbars (or a right click on a toolbar) chooses the buttons of each
-toolbar and their order, and adds toolbars of one's own.
+permissions password changes or removes them. Settings > Toolbars sets how the toolbars look, as in KDE: the
+position of their text (icons only, text only, beside or under the icons),
+the size of their icons, and whether they stay where they are; the right
+click on a toolbar sets them for that one. Customize the toolbars chooses
+the buttons of each toolbar and their order, and adds toolbars of one's
+own. The menus File, Edit and View are in submenus (File > New, Export,
+Import, Security; View > Panels, Go to, Zoom, Page layout...).
 
 File > Combine files makes one PDF of several, or of some of their pages
 in an order (`1-3, 7`), with their links, annotations, form fields and
@@ -253,6 +257,18 @@ or scans, a page for each, as big as each picture or on paper with a
 margin, and can open it in the mode OCR to read its text. From the
 command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
 `py-pdftools from-images *.jpg -o scans.pdf --paper A4`.
+
+File > Export saves the pages as pictures (PNG, JPEG or TIFF, at a
+resolution, in grey if wished), the pictures of the document, or its text
+(Markdown, with its headings guessed, HTML or plain text); File > Save a
+copy > With another PDF version makes a copy that says it is PDF 1.3 to
+2.0, naming what the document uses that the version chosen doesn't have.
+Pages > Split cuts a document every so many pages (one per page, named
+after their labels), at given pages, at its bookmarks (each part named
+after its bookmark), or so that no part is bigger than a size. From the
+command line: `py-pdftools export pages | images | text`, `py-pdftools
+pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
+`--split-size 10`.
 
 File > Save a copy > Smaller makes a copy that takes less space: its
 pictures drawn again at a lower resolution (only those shown above it),
@@ -344,11 +360,12 @@ Tests
 
     $ uv run pytest
 
-There are 554 tests: those of the four programs, and those of what is new
+There are 577 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
-the working copies, OCR, navigation, security, the toolbars, combining
-files and PDFs of pictures, smaller copies, links, forms, signatures, the
-Spanish interface, the packaging). Their
+the working copies, OCR, navigation, security, the menus and toolbars,
+combining files and PDFs of pictures, smaller copies, links, forms,
+signatures, exports, splitting, the PDF version, the Spanish interface, the
+packaging). Their
 windows are drawn on an X server of their own (Xvfb), if it is installed,
 else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See

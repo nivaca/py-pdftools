@@ -250,9 +250,13 @@ Quitar la información oculta quita también las capas apagadas, con lo que
 contienen. Archivo > Proteger con contraseñas pone una contraseña para
 abrir el documento, otra para sus permisos (imprimir, copiar, cambiarlo) o
 ambas, cifrado con AES-256; solo la contraseña de permisos las cambia o
-las quita. Configuración > Personalizar las barras de herramientas (o el clic
-derecho sobre una barra) elige los botones de cada barra y su orden, y
-añade barras propias.
+las quita. Configuración > Barras de herramientas fija cómo se ven las
+barras, como en KDE: la posición de su texto (solo iconos, solo texto, junto
+a los iconos o debajo), el tamaño de los iconos y si se quedan donde están;
+el clic derecho sobre una barra los fija para esa. Personalizar las barras
+elige los botones de cada una y su orden, y añade barras propias. Los menús
+Archivo, Editar y Ver van en submenús (Archivo > Nuevo, Exportar,
+Importar, Seguridad; Ver > Paneles, Ir a, Zoom, Disposición de página...).
 
 Archivo > Combinar archivos hace un PDF de varios, o de algunas de sus
 páginas en un orden (`1-3, 7`), con sus enlaces, anotaciones, campos de
@@ -263,6 +267,18 @@ cada imagen o en papel con un margen, y puede abrirlo en el modo OCR para
 leer su texto. Desde la línea de órdenes: `py-pdftools combine a.pdf
 b.pdf:2-5 -o todo.pdf` y `py-pdftools from-images *.jpg -o escaneos.pdf
 --paper A4`.
+
+Archivo > Exportar guarda las páginas como imágenes (PNG, JPEG o TIFF, a
+una resolución, en gris si se quiere), las imágenes del documento o su
+texto (Markdown, con sus títulos deducidos, HTML o texto simple); Archivo >
+Guardar una copia > Con otra versión de PDF hace una copia que dice ser PDF
+1.3 a 2.0, y nombra lo que el documento usa que la versión elegida no
+tiene. Foliar > Partir corta un documento cada tantas páginas (una por
+página, con el nombre de su etiqueta), en páginas dadas, en sus marcadores
+(cada parte con el nombre de su marcador) o de modo que ninguna parte pase
+de un tamaño. Desde la línea de órdenes: `py-pdftools export pages | images
+| text`, `py-pdftools pdf-version`, y `py-pdftools pages --split-bookmarks
+1` o `--split-size 10`.
 
 Archivo > Guardar una copia > Más pequeña hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
@@ -361,12 +377,13 @@ Pruebas
 
     $ uv run pytest
 
-Hay 554 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 577 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
-copias de trabajo, el OCR, la navegación, la seguridad, las barras de
-herramientas, la combinación de archivos, los PDF de imágenes, las copias
-más pequeñas, los enlaces, los formularios, las firmas, la interfaz en
-español, el empaquetado). Sus
+copias de trabajo, el OCR, la navegación, la seguridad, los menús y las
+barras de herramientas, la combinación de archivos, los PDF de imágenes,
+las copias más pequeñas, los enlaces, los formularios, las firmas, las
+exportaciones, la partición, la versión de PDF, la interfaz en español, el
+empaquetado). Sus
 ventanas se dibujan en un servidor X propio (Xvfb), si está instalado, o
 si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el
