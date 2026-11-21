@@ -27,7 +27,7 @@ earlier programs of mine did apart:
 
 The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
-version 1.5.0.
+version 1.6.0.
 
 I am Nicolas Vaughan (<nicolasvaughan@proton.me>), and I wrote it in 2026.
 It is free software, under the GNU General Public License, version 3 or

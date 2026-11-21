@@ -5,7 +5,7 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.6.0 — 2026-11-21
 
 - **A quicker start**: Settings > General > Start with the session puts
   py-pdftools in the desktop's autostart, in the tray and without a

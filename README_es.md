@@ -28,7 +28,7 @@ páginas escaneadas. Reúne, en una sola ventana y una sola línea de
 
 La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
-versión 1.5.0.
+versión 1.6.0.
 
 Soy Nicolas Vaughan (<nicolasvaughan@proton.me>) y lo escribí en 2026. Es
 software libre, bajo la Licencia Pública General de GNU, versión 3 o
