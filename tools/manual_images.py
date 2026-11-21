@@ -194,6 +194,15 @@ def shoot(lang: str, out: Path, work: Path):
     fake = covered(work / f"covered-{lang}.pdf", lang)
     dialog(CoveredDialog(covered_mod.find(fake), ["1"], w), "covered")
 
+    # Índice de palabras: tres términos en el ensayo, con sus páginas rotuladas
+    from py_pdftools.gui.wordindex_dialog import WordIndexDialog
+
+    wi = WordIndexDialog(w)
+    wi.terms.setPlainText("copy\neditor\nre:scribe\\w*\n" if lang == "en" else "copia\neditor\nre:copista\\w*\n")
+    wi.alpha.setChecked(True)
+    wi.logical.setChecked(True)
+    wi.find()
+    dialog(wi, "word_index")
     w.change([])  # (sin las anotaciones de Anotar: solo las etiquetas)
     # Foliar: las etiquetas, y los diálogos de numerar, encabezados y pies, marcas de agua y dividir
     w.set_mode("pages")

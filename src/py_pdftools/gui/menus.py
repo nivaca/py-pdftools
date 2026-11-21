@@ -78,7 +78,7 @@ def regroup(window):
         "a_props", "a_comment", "a_delete", SEP,
         (tr("Select"), ["a_select_all", "a_select_kind", "a_select_none"]),
         (tr("Arrange"), ["a_group", "a_ungroup", "a_lock", SEP, "m_align"]),
-        (tr("Remove annotations"), ["a_clear_page", "a_clear_all"]), SEP, "m_links"])
+        (tr("Remove annotations"), ["a_clear_page", "a_clear_all"]), SEP, "m_links", "a_word_index"])
     _fill(window, window.m_view, [
         (tr("Panels"), ["a_thumbs", "a_panel", "a_outline", "a_form"]),
         (tr("Annotations"), ["a_show", "a_only_listed", SEP, "a_next_annot", "a_prev_annot"]),

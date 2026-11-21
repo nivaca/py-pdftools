@@ -33,6 +33,8 @@ positional arguments:
                        another
     form               the data of PDF forms: show, fill, table, flatten
     reduce             make a smaller copy of a PDF
+    find-words         on which (labelled) pages each word, phrase or
+                       pattern appears: an index
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -2961,6 +2963,57 @@ options:
   --quality QUALITY     the JPEG quality of the pictures, 1-100
   --gray                pictures in grey
   --password PASSWORD   the password of the PDFs, if they have one
+.fi
+.SS find-words
+.nf
+usage: py-pdftools find-words [-h] [--interface {en,es}] [--words-file FILE]
+                              [--regex] [--regex-word] [--substring]
+                              [--case-sensitive] [--ignore-accents]
+                              [--no-dehyphenate] [--show-logical]
+                              [--detailed] [--context] [--context-width N]
+                              [--sort] [--txt FILE] [--csv FILE]
+                              [--password PASSWORD]
+                              FILE [TERM ...]
+
+Find words, phrases or patterns in a PDF, and give, on a line for each term,
+the labelled (printed) pages where it appears: lines ready for an index.
+
+positional arguments:
+  FILE                 the PDF
+  TERM                 the words or phrases to find; a term that begins with
+                       're:' is a regular expression
+
+options:
+  -h, --help           show this help message and exit
+  --interface {en,es}  the language of the interface, for this run only (to
+                       keep a choice, use the 'interface' command)
+  --words-file FILE    a file with a term on each line ('#' begins a
+                       comment)
+  --regex              every term is a regular expression (or put 're:'
+                       before each)
+  --regex-word         regular expressions, too, only match whole words
+  --substring          find the terms inside words too (by default, only
+                       whole words)
+  --case-sensitive     match case
+  --ignore-accents     ignore accents
+  --no-dehyphenate     don't join the words split by a hyphen at the end of
+                       a line
+  --show-logical       also give the sequential page (its place in the
+                       file), in brackets, where it differs from the label
+  --detailed           a detailed report: how many times each term appears,
+                       and a page on each line
+  --context            a fragment of text around each place (implies
+                       --detailed)
+  --context-width N    characters of context on each side (default: 60)
+  --sort               the list in alphabetical order (by default, in the
+                       order of the terms)
+  --txt FILE           also write the list, in alphabetical order, to a text
+                       file
+  --csv FILE           also write the results to a CSV file
+  --password PASSWORD  the password to open the PDF
+
+For instance: py-pdftools find-words book.pdf amor "re:virtu(s|tem|tis)"
+--ignore-accents --context
 .fi
 .SS completion
 .nf

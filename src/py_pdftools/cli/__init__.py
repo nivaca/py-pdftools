@@ -123,6 +123,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["reduce"] = combine_cli.build_reduce_parser(f"{PROG} reduce")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "reduce", (), tr("make a smaller copy of a PDF")))
+    from . import findwords as findwords_cli
+
+    sub._name_parser_map["find-words"] = findwords_cli.build_parser(f"{PROG} find-words")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "find-words", (), tr("on which (labelled) pages each word, phrase or pattern appears: an index")))
     _graft(sub, pages, OWN)
     return parser
 
@@ -167,6 +172,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import combine as combine_cli
 
         return combine_cli.main_reduce(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} reduce")
+    if first and first[1] == "find-words":
+        from . import findwords as findwords_cli
+
+        return findwords_cli.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} find-words")
     if first and first[1] == "export":
         from . import export as export_cli
 

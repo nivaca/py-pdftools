@@ -7,7 +7,7 @@ py-pdftools edita documentos PDF. Los anota, los censura, cambia sus
 etiquetas de página, sus encabezados, pies de página y marcas de agua y el
 orden de sus páginas, los impone para imprenta y lee el texto de sus
 páginas escaneadas. Reúne, en una sola ventana y una sola línea de
-órdenes, lo que hacían por separado cinco programas anteriores míos:
+órdenes, lo que hacían por separado seis programas anteriores míos:
 
 * [py-annotate](https://github.com/nivaca/py-annotate): resaltados, notas,
   cuadros de texto, formas, dibujos y sellos, escritos como anotaciones PDF
@@ -24,7 +24,11 @@ páginas escaneadas. Reúne, en una sola ventana y una sola línea de
   vigiladas;
 * [py-pdfocr](https://github.com/nivaca/py-pdfocr): el texto de las páginas
   escaneadas, leído por tesseract y escrito en el PDF, invisible, bajo sus
-  imágenes (OCR), con los idiomas de tesseract y sus modelos más precisos.
+  imágenes (OCR), con los idiomas de tesseract y sus modelos más precisos;
+* [pdf-word-finder](https://github.com/nivaca/pdf-word-finder): en qué
+  páginas aparece cada palabra, frase o patrón de una lista, según el
+  número impreso en ellas (sus etiquetas), en renglones listos para un
+  índice.
 
 La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
@@ -62,7 +66,7 @@ El modo Imponer: un folleto:
 De dónde viene
 --------------
 
-py-pdftools nació de cinco programas que escribí antes, cada uno para un
+py-pdftools nació de seis programas que escribí antes, cada uno para un
 tipo de trabajo con documentos PDF. Tras un tiempo de crecer uno al lado
 del otro, era claro que compartían mucho (la manera de traducir la
 interfaz, la configuración, el paso a PDF/A y PDF/X, el empaquetado) y que
@@ -79,6 +83,7 @@ quedan como estaban, cada uno con su repositorio y sus versiones.
                            header-footer, watermark y pages
     py-imposition 0.10.3   el modo Imponer, y las órdenes de impose
     py-pdfocr 1.0.3        el modo OCR, y la orden ocr
+    pdf-word-finder 1.6    Editar > Índice de palabras, y la orden find-words
 
 Lo que cambió al reunirlos:
 
@@ -259,9 +264,19 @@ Navegación de páginas, abajo en la ventana, va a la primera, la anterior,
 la siguiente y la última página, y su casilla acepta un número o una
 etiqueta de página; como las demás barras, se cambia en Personalizar las
 barras de herramientas. El cuadro de la página y el del zoom están en la
-barra Página y zoom, que puede moverse a cualquier lugar u ocultarse. Archivo > Propiedades del PDF muestra qué es un
-documento (sus metadatos, su archivo, sus páginas, su seguridad) y las
-fuentes que usa.
+barra Página y zoom, que puede moverse a cualquier lugar u ocultarse.
+Archivo > Propiedades del PDF muestra qué es un documento (sus metadatos,
+su archivo, sus páginas, su seguridad) y las fuentes que usa.
+
+Editar > Índice de palabras (de pdf-word-finder) busca las palabras, frases
+o expresiones regulares de una lista, escrita o leída de un archivo, e
+informa las páginas en que aparece cada una, según sus etiquetas, en
+renglones listos para el índice de un libro (`Sharahzad 3, 5, 23, 34`), o
+en detalle, con cuántas veces y un fragmento del texto en torno a cada
+aparición; el resultado se copia o se guarda como texto o CSV. Antes se
+unen las palabras partidas por un guion a final de renglón, y pueden no
+distinguirse los acentos. Desde la línea de órdenes:
+`py-pdftools find-words libro.pdf --words-file terminos.txt --txt indice.txt`.
 
 Censurar > Buscar texto solo cubierto busca texto que solo parece
 censurado: sigue en el archivo bajo un recuadro negro o blanco, una imagen
@@ -378,6 +393,8 @@ La línea de órdenes
     $ py-pdftools view libro.pdf --layout cover --open-at 9 -i
     $ py-pdftools impose booklet libro.pdf -o folleto.pdf
     $ py-pdftools impose --help                        las órdenes de la imposición
+    $ py-pdftools find-words libro.pdf amor "re:virtu(s|tem|tis)" --sort
+                                                       las páginas de cada término
 
 `py-pdftools ORDEN -h` explica cada orden. `py-pdftools completion
 bash|fish|zsh` imprime el script de completado del shell. Las órdenes son

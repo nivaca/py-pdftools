@@ -106,7 +106,8 @@ py-pdftools:
 [py-redact](https://github.com/nivaca/py-redact),
 [py-foliation](https://github.com/nivaca/py-foliation),
 [py-imposition](https://github.com/nivaca/py-imposition),
-[py-pdfocr](https://github.com/nivaca/py-pdfocr) and
+[py-pdfocr](https://github.com/nivaca/py-pdfocr),
+[pdf-word-finder](https://github.com/nivaca/pdf-word-finder) and
 [pdf2iso](https://github.com/nivaca/pdf2iso).
 
 

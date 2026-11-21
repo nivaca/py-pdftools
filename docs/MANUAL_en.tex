@@ -167,10 +167,11 @@ passwords and exports their pages, pictures and text. It has a window,
 does most of the same work without a window, on one file or on many.
 
 \index{pdf2iso}\index{annotations}\index{annotations!tags}\index{annotations!categories}\index{layers}\index{redaction}\index{ocr@OCR}\index{page labels}\index{headers and footers}\index{watermarks}\index{imposition}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
-The program brings together six earlier programs of mine:
+The program brings together seven earlier programs of mine:
 \texttt{py-annotate} (annotations), \texttt{py-redact} (redaction),
 \texttt{py-foliation} (page labels, headers, footers and watermarks),
-\texttt{py-imposition} (imposition), \texttt{py-pdfocr} (OCR) and
+\texttt{py-imposition} (imposition), \texttt{py-pdfocr} (OCR),
+\texttt{pdf-word-finder} (the pages of words, for an index) and
 \texttt{pdf2iso} (copies as PDF/A and PDF/X). Documents made with them are
 read as before: the tags and categories of annotations, the layers of
 headers, footers and watermarks, and the history of an imposition kept
@@ -1169,6 +1170,71 @@ size, fit to width, fit to page), and the page it opens at. This program obeys t
 \menu{Settings\then Documents\then A document opens showing} set to
 \menu{As the document asks}.
 
+\section{A word index}
+\label{sec:wordindex}
+\index{word index}\index{page labels}\index{command line}%
+\menu{Edit\then Word index} (figure~\ref{fig:word_index_en}) comes from my
+program \texttt{pdf-word-finder}. It finds the words, phrases or patterns of
+a list, and gives the pages where each appears: not their place in the
+file, but their labels, the numbers printed on them, which are what a reader
+needs to open the book (section~\ref{sec:labels}). The result, by default,
+is one line for each term, ready to be copied into the index of a book:
+
+\begin{verbatim}
+amor i, 1, 4
+Sharahzad 3, 5, 23, 34
+Nombre de Dios 5, 23
+\end{verbatim}
+
+\shot{word_index_en}{0.85}{The word index of three terms, the third a
+  regular expression, with the page in the file where it differs from the
+  label.}
+
+\index{word index!terms}\index{regular expressions}%
+The terms are written on the left, one on each line, or read from a text
+file with \menu{Read a list}; a \texttt{\#} begins a comment, which is left
+out. A term is a regular expression if it begins with \texttt{re:} (as
+\texttt{re:virtu(s|tem|tis)}), or all of them are, with \menu{Every term is
+a regular expression}. A phrase is found even when it is split across two
+lines.
+
+\index{word index!options}%
+Before the search, the text of the pages is made ready: ligatures are
+undone (\enquote{ﬁ} becomes \enquote{fi}), and the words split by a hyphen
+at the end of a line are joined again (\menu{Join the words split at the end
+of a line}, ticked at first). The other options:
+
+\begin{description}
+\item[Whole words only] ticked at first; unticked, \enquote{amor} is found
+  in \enquote{amoris} too.
+\item[Match case] \enquote{Amor} is not \enquote{amor}.
+\item[Ignore accents] \enquote{philologia} finds \enquote{philología}.
+\item[Regular expressions, too, as whole words] a regular expression is
+  left as it is written, unless this is ticked.
+\item[Also the page in the file] where it differs from the label, in
+  brackets: \enquote{xiv [seq.~16]}.
+\item[In alphabetical order] the terms in the order of the Spanish
+  alphabet, which serves English too (accents and capitals left aside, ñ
+  after n); otherwise, in the order they were written.
+\item[Detailed] how many times each term appears, and its pages one on
+  each line; \menu{With context} adds, under each page, a fragment of text
+  around each place, of so many characters on each side.
+\end{description}
+
+\noindent Above the result, a line says how many terms were found, how
+many times, on how many pages; and, apart, what is worth knowing: that the
+document has no page labels (then the pages are given by their place in
+the file), that some pages have no text (scanned, and not yet read with
+OCR: see section~\ref{sec:ocr}), and which terms were not found. A double
+click on a page of the result goes to it. \menu{Copy} puts the result on
+the clipboard; \menu{Save as text} writes the list, always in alphabetical
+order; \menu{Save as CSV} writes a row for each term and page, with how
+many times and the context.
+
+The search is made on the document as it is in the window, with its labels
+as the mode Foliate shows them, saved or not. From the command line, the
+same is done by \texttt{py-pdftools find-words} (section~\ref{sec:cli}).
+
 \section{Imposing}
 \label{sec:impose}
 
@@ -1491,6 +1557,7 @@ Command & What it does\\
 \texttt{pdf-version} & shows the PDF version of files, or saves a copy with another\\
 \texttt{form} & shows, fills, tabulates and flattens forms\\
 \texttt{reduce} & makes a smaller copy\\
+\texttt{find-words} & the (labelled) pages of words, phrases or patterns: an index\\
 \texttt{completion} & prints the completion script of a shell\\
 \texttt{interface} & shows or chooses the language of the interface\\
 \bottomrule
@@ -1514,6 +1581,8 @@ $ py-pdftools from-images *.jpg -o scans.pdf --paper A4
 $ py-pdftools export text book.pdf -o book.md
 $ py-pdftools form fill form.pdf data.json -o filled.pdf
 $ py-pdftools reduce scans.pdf -o smaller.pdf --level medium
+$ py-pdftools find-words book.pdf amor "re:virtu(s|tem|tis)" \
+      --words-file names.txt --sort --txt index.txt
 \end{verbatim}
 
 \noindent\index{page labels}%

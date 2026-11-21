@@ -38,6 +38,8 @@ argumentos posicionales:
     form               los datos de los formularios PDF: mostrar, rellenar,
                        tabla, aplanar
     reduce             hacer una copia más pequeña de un PDF
+    find-words         en qué páginas (rotuladas) aparece cada palabra,
+                       frase o patrón: un índice
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
 
@@ -3132,6 +3134,61 @@ opciones:
   --quality QUALITY     la calidad JPEG de las imágenes, 1-100
   --gray                imágenes en gris
   --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS find-words
+.nf
+uso: py-pdftools find-words [-h] [--interface {en,es}] [--words-file FILE]
+                            [--regex] [--regex-word] [--substring]
+                            [--case-sensitive] [--ignore-accents]
+                            [--no-dehyphenate] [--show-logical] [--detailed]
+                            [--context] [--context-width N] [--sort]
+                            [--txt FILE] [--csv FILE] [--password PASSWORD]
+                            FILE [TERM ...]
+
+Busca palabras, frases o patrones en un PDF e informa, en un renglón por
+término, las páginas rotuladas (impresas) en que aparece: renglones listos
+para un índice.
+
+argumentos posicionales:
+  FILE                 el PDF
+  TERM                 las palabras o frases que se han de buscar; un
+                       término que empieza por «re:» es una expresión
+                       regular
+
+opciones:
+  -h, --help           mostrar esta ayuda y terminar
+  --interface {en,es}  el idioma de la interfaz, solo para esta ejecución
+                       (para conservar una elección, use la orden
+                       'interface')
+  --words-file FILE    un archivo con un término por renglón («#» inicia un
+                       comentario)
+  --regex              todos los términos son expresiones regulares (o ponga
+                       «re:» antes de cada uno)
+  --regex-word         también las expresiones regulares solo encuentran
+                       palabras completas
+  --substring          busca los términos también dentro de las palabras
+                       (por omisión, solo palabras completas)
+  --case-sensitive     distingue mayúsculas
+  --ignore-accents     no distingue acentos
+  --no-dehyphenate     no vuelve a unir las palabras partidas por un guion a
+                       final de renglón
+  --show-logical       da también la página secuencial (su lugar en el
+                       archivo), entre corchetes, donde difiere de la
+                       etiqueta
+  --detailed           informe detallado: cuántas veces aparece cada
+                       término, y una página por renglón
+  --context            un fragmento del texto en torno a cada aparición
+                       (implica --detailed)
+  --context-width N    caracteres de contexto a cada lado (por omisión: 60)
+  --sort               la lista en orden alfabético (por omisión, en el
+                       orden de los términos)
+  --txt FILE           escribe además la lista, en orden alfabético, en un
+                       archivo de texto
+  --csv FILE           escribe además los resultados en un archivo CSV
+  --password PASSWORD  la contraseña para abrir el PDF
+
+Por ejemplo: py-pdftools find-words libro.pdf amor "re:virtu(s|tem|tis)"
+--ignore-accents --context
 .fi
 .SS completion
 .nf

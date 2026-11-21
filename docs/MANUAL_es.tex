@@ -168,10 +168,11 @@ su texto. Tiene una ventana, \texttt{py-pdftools-gui}, y una línea de
 sobre un archivo o sobre muchos.
 
 \index{pdf2iso}\index{anotaciones}\index{anotaciones!etiquetas}\index{anotaciones!categorias@categorías}\index{capas}\index{censura}\index{ocr@OCR}\index{etiquetas de pagina@etiquetas de página}\index{encabezados y pies de pagina@encabezados y pies de página}\index{marcas de agua}\index{imposicion@imposición}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
-El programa reúne seis programas anteriores míos: \texttt{py-annotate}
+El programa reúne siete programas anteriores míos: \texttt{py-annotate}
 (anotaciones), \texttt{py-redact} (censura), \texttt{py-foliation}
 (etiquetas de página, encabezados, pies y marcas de agua),
-\texttt{py-imposition} (imposición), \texttt{py-pdfocr} (OCR) y
+\texttt{py-imposition} (imposición), \texttt{py-pdfocr} (OCR),
+\texttt{pdf-word-finder} (las páginas de las palabras, para un índice) y
 \texttt{pdf2iso} (copias PDF/A y PDF/X). Los documentos hechos con ellos se
 leen como antes: las etiquetas y categorías de las anotaciones, las capas
 de encabezados, pies y marcas de agua y la historia de una imposición
@@ -1225,6 +1226,75 @@ la página en que se abre. Este programa también las obedece, si
 \menu{Configuración\then Documentos\then Un documento se abre mostrando}
 está en \menu{Lo que pide el documento}.
 
+\section{Índice de palabras}
+\label{sec:wordindex}
+\index{indice de palabras@índice de palabras}\index{etiquetas de pagina@etiquetas de página}\index{linea de ordenes@línea de órdenes}%
+\menu{Editar\then Índice de palabras} (figura~\ref{fig:word_index_es}) viene
+de mi programa \texttt{pdf-word-finder}. Busca las palabras, frases o
+patrones de una lista e informa las páginas en que aparece cada uno: no su
+lugar en el archivo, sino sus etiquetas, el número impreso en ellas, que es
+el que le sirve al lector para abrir el libro
+(sección~\ref{sec:labels}). El resultado es, por defecto, un renglón por
+término, listo para copiarse al índice de un libro:
+
+\begin{verbatim}
+amor i, 1, 4
+Sharahzad 3, 5, 23, 34
+Nombre de Dios 5, 23
+\end{verbatim}
+
+\shot{word_index_es}{0.85}{El índice de tres términos, el tercero una
+  expresión regular, con la página en el archivo donde difiere de la
+  etiqueta.}
+
+\index{indice de palabras@índice de palabras!terminos@términos}\index{expresiones regulares}%
+Los términos se escriben a la izquierda, uno por renglón, o se leen de un
+archivo de texto con \menu{Leer una lista}; un \texttt{\#} inicia un
+comentario, que se deja fuera. Un término es una expresión regular si
+empieza por \texttt{re:} (como \texttt{re:virtu(s|tem|tis)}), o lo son
+todos, con \menu{Todos los términos son expresiones regulares}. Una frase se
+encuentra aunque esté partida entre dos renglones.
+
+\index{indice de palabras@índice de palabras!opciones}%
+Antes de buscar, el texto de las páginas se prepara: se deshacen las
+ligaduras (\enquote{ﬁ} pasa a \enquote{fi}) y se vuelven a unir las palabras
+partidas por un guion a final de renglón (\menu{Unir las palabras partidas a
+final de renglón}, marcada al principio). Las demás opciones:
+
+\begin{description}
+\item[Solo palabras completas] marcada al principio; sin marcar,
+  \enquote{amor} se encuentra también en \enquote{amoris}.
+\item[Distinguir mayúsculas] \enquote{Amor} no es \enquote{amor}.
+\item[Sin distinguir acentos] \enquote{philologia} encuentra
+  \enquote{philología}.
+\item[También las expresiones regulares, como palabras completas] una
+  expresión regular se deja tal como se escribe, salvo que esto se marque.
+\item[También la página en el archivo] donde difiere de la etiqueta, entre
+  corchetes: \enquote{xiv [sec.~16]}.
+\item[En orden alfabético] los términos en el orden del alfabeto español
+  (sin contar tildes ni mayúsculas, la ñ después de la n); si no, en el
+  orden en que se escribieron.
+\item[Detallado] cuántas veces aparece cada término, y sus páginas una por
+  renglón; \menu{Con contexto} añade, bajo cada página, un fragmento del
+  texto en torno a cada aparición, de tantos caracteres a cada lado.
+\end{description}
+
+\noindent Sobre el resultado, un renglón dice cuántos términos se
+encontraron, cuántas veces y en cuántas páginas; y aparte, lo que conviene
+saber: que el documento no tiene etiquetas de página (entonces las páginas
+se dan por su lugar en el archivo), que algunas páginas no tienen texto
+(escaneadas, y aún sin leer con OCR: véase la sección~\ref{sec:ocr}) y qué
+términos no se encontraron. Un doble clic sobre una página del resultado
+lleva a ella. \menu{Copiar} pone el resultado en el portapapeles;
+\menu{Guardar como texto} escribe la lista, siempre en orden alfabético;
+\menu{Guardar como CSV} escribe una fila por término y página, con cuántas
+veces y el contexto.
+
+La búsqueda se hace sobre el documento tal como está en la ventana, con sus
+etiquetas tal como las muestra el modo Foliar, guardadas o no. Desde la
+línea de órdenes hace lo mismo \texttt{py-pdftools find-words}
+(sección~\ref{sec:cli}).
+
 \section{Imponer}
 \label{sec:impose}
 
@@ -1564,6 +1634,7 @@ Orden & Qué hace\\
 \texttt{pdf-version} & muestra la versión de PDF de los archivos, o guarda una copia con otra\\
 \texttt{form} & muestra, llena, tabula y aplana formularios\\
 \texttt{reduce} & hace una copia más pequeña\\
+\texttt{find-words} & las páginas (rotuladas) de palabras, frases o patrones: un índice\\
 \texttt{completion} & escribe el script de autocompletado de un intérprete de órdenes\\
 \texttt{interface} & muestra o elige el idioma de la interfaz\\
 \bottomrule
@@ -1587,6 +1658,8 @@ $ py-pdftools from-images *.jpg -o escaneos.pdf --paper A4
 $ py-pdftools export text libro.pdf -o libro.md
 $ py-pdftools form fill formulario.pdf datos.json -o lleno.pdf
 $ py-pdftools reduce escaneos.pdf -o menor.pdf --level medium
+$ py-pdftools find-words libro.pdf amor "re:virtu(s|tem|tis)" \
+      --words-file nombres.txt --sort --txt indice.txt
 \end{verbatim}
 
 \noindent\index{etiquetas de pagina@etiquetas de página}%

@@ -3,11 +3,12 @@ How py-pdftools was made
 
 py-pdftools is a program for editing PDF documents: it annotates them,
 redacts them, changes their page labels, headers, footers, watermarks and
-the order of their pages, imposes them for printing, and reads the text of
-their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
-together five earlier programs by the same author, each of which did one of
-those things: py-annotate, py-redact, py-foliation, py-imposition and
-py-pdfocr. Here I explain how it was made, in twenty-five stages.
+the order of their pages, imposes them for printing, reads the text of
+their scanned pages, and finds the pages of words for an index. Nicolas
+Vaughan made it in November 2026 by bringing together six earlier programs
+by the same author, each of which did one of those things: py-annotate,
+py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
+I explain how it was made, in twenty-six stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -714,10 +715,30 @@ that used them still does. Its contents can't be changed in Customize the
 toolbars, which works with actions and not with widgets; the box of the page
 can go on any toolbar through Page navigation.
 
+26. A word index, from pdf-word-finder
+--------------------------------------
+
+pdf-word-finder, another program of mine, finds the words of a list in a
+PDF and gives the pages where each appears by their labels, as lines for
+the index of a book. It was small and well divided (the text, the
+patterns, the search, the report), so its search and its report were
+copied into one module, pages/wordfinder.py, with their rules unchanged:
+whole words by default, phrases that may be split across lines, words
+split by a hyphen joined again, regular expressions after re:, accents
+ignored if wished, the Spanish alphabetical order. Three things changed.
+It read the PDF with pypdf, and its labels from pypdf too; here the text
+comes from PyMuPDF and the labels from the same reader as the rest of the
+program, and the window passes its own labels, so that the search follows
+what Foliate shows, saved or not. Its messages were in Spanish only; here
+they are in English, translated as the rest. And its window, in tkinter,
+became a dialog of the window, Edit > Word index, while its command line
+became py-pdftools find-words, with the same options. Its tests came with
+it, on a document made with PyMuPDF instead of pypdf.
+
 Testing
 -------
 
-The program has 595 tests (`uv run pytest`): those of the four programs,
+The program has 601 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -729,7 +750,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, the properties of a
-PDF, the Spanish interface (every text translated, and none left over)
+PDF, the word index, the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its

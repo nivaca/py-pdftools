@@ -475,6 +475,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                         tip=tr("What the document is: its title, author and dates, its PDF version, "
                                                "pages and size, its security, and the fonts it uses"))
         self.a_doc_props.setIcon(icon("document-properties"))
+        # (en Editar: véase menus.py)
+        self.a_word_index = self._action(None, tr("Word index…"), self.word_index,
+                                         tip=tr("On which pages each word, phrase or pattern of a list appears, by "
+                                                "the labels of the pages: lines ready for an index"))
         m.addSeparator()
         self.a_export_pages = self._action(None, tr("Pages as pictures…"), lambda: self.export_pages_dialog(),
                                            tip=tr("The pages drawn as PNG, JPEG or TIFF pictures, at a resolution"))
@@ -776,6 +780,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def word_index(self):
+        """Edit > Word index: the pages of each term of a list (see wordindex_dialog.py)."""
+        if self.doc is None:
+            return
+        from .wordindex_dialog import WordIndexDialog
+
+        WordIndexDialog(self).exec()
 
     def document_properties(self):
         """File > PDF properties: what the document is, and its fonts (see docprops_dialog.py)."""
@@ -3235,7 +3247,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.page_box, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_find, self.a_compare,
+                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_find, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:

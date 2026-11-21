@@ -12372,4 +12372,284 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Page and zoom</en>
     <tr>Página y zoom</tr>
   </text>
+  <text>
+    <en>A list of terms</en>
+    <tr>Una lista de términos</tr>
+  </text>
+  <text>
+    <en>A list of {count} entries written to {path}</en>
+    <tr>Lista de {count} entradas escrita en {path}</tr>
+  </text>
+  <text>
+    <en>A list of {count} entry written to {path}</en>
+    <tr>Lista de {count} entrada escrita en {path}</tr>
+  </text>
+  <text>
+    <en>A regular expression that can't be read, “{term}”: {error}</en>
+    <tr>Una expresión regular mal formada, «{term}»: {error}</tr>
+  </text>
+  <text>
+    <en>A row for each term and page, with how many times and the context</en>
+    <tr>Una fila por término y página, con cuántas veces y el contexto</tr>
+  </text>
+  <text>
+    <en>Also the page in the file, where it differs from the label</en>
+    <tr>También la página en el archivo, donde difiere de la etiqueta</tr>
+  </text>
+  <text>
+    <en>CSV files (*.csv)</en>
+    <tr>Archivos CSV (*.csv)</tr>
+  </text>
+  <text>
+    <en>CSV written to {path}</en>
+    <tr>CSV escrito en {path}</tr>
+  </text>
+  <text>
+    <en>Convention: labelled page [seq. sequential page]</en>
+    <tr>Convención: página rotulada [sec. página secuencial]</tr>
+  </text>
+  <text>
+    <en>Detailed: how many times, and on which pages</en>
+    <tr>Detallado: cuántas veces, y en qué páginas</tr>
+  </text>
+  <text>
+    <en>Error: {error}</en>
+    <tr>Error: {error}</tr>
+  </text>
+  <text>
+    <en>Error: {path} could not be opened: {error}</en>
+    <tr>Error: no se pudo abrir {path}: {error}</tr>
+  </text>
+  <text>
+    <en>Error: {path} could not be read: {error}</en>
+    <tr>Error: no se pudo leer {path}: {error}</tr>
+  </text>
+  <text>
+    <en>Error: {path} is protected: give its password with --password</en>
+    <tr>Error: {path} está protegido: dé su contraseña con --password</tr>
+  </text>
+  <text>
+    <en>Every term is a regular expression</en>
+    <tr>Todos los términos son expresiones regulares</tr>
+  </text>
+  <text>
+    <en>Find words, phrases or patterns in a PDF, and give, on a line for each term, the labelled (printed) pages where it appears: lines ready for an index.</en>
+    <tr>Busca palabras, frases o patrones en un PDF e informa, en un renglón por término, las páginas rotuladas (impresas) en que aparece: renglones listos para un índice.</tr>
+  </text>
+  <text>
+    <en>For instance: {prog} book.pdf amor "re:virtu(s|tem|tis)" --ignore-accents --context</en>
+    <tr>Por ejemplo: {prog} libro.pdf amor "re:virtu(s|tem|tis)" --ignore-accents --context</tr>
+  </text>
+  <text>
+    <en>In alphabetical order</en>
+    <tr>En orden alfabético</tr>
+  </text>
+  <text>
+    <en>Join the words split at the end of a line</en>
+    <tr>Unir las palabras partidas a final de renglón</tr>
+  </text>
+  <text>
+    <en>Not found: {terms}</en>
+    <tr>Sin apariciones: {terms}</tr>
+  </text>
+  <text>
+    <en>On which pages each word, phrase or pattern of a list appears, by the labels of the pages: lines ready for an index</en>
+    <tr>En qué páginas aparece cada palabra, frase o patrón de una lista, según las etiquetas de las páginas: renglones listos para un índice</tr>
+  </text>
+  <text>
+    <en>One word, phrase or pattern on each line (re: before a regular expression; # begins a comment)</en>
+    <tr>Una palabra, frase o patrón por renglón (re: antes de una expresión regular; # inicia un comentario)</tr>
+  </text>
+  <text>
+    <en>Or put re: before each one that is</en>
+    <tr>O ponga re: antes de cada uno que lo sea</tr>
+  </text>
+  <text>
+    <en>Read a list…</en>
+    <tr>Leer una lista…</tr>
+  </text>
+  <text>
+    <en>Regular expressions, too, as whole words</en>
+    <tr>También las expresiones regulares, como palabras completas</tr>
+  </text>
+  <text>
+    <en>Save as CSV</en>
+    <tr>Guardar como CSV</tr>
+  </text>
+  <text>
+    <en>Save as CSV…</en>
+    <tr>Guardar como CSV…</tr>
+  </text>
+  <text>
+    <en>Save as text…</en>
+    <tr>Guardar como texto…</tr>
+  </text>
+  <text>
+    <en>Save the list as text</en>
+    <tr>Guardar la lista como texto</tr>
+  </text>
+  <text>
+    <en>Terms:</en>
+    <tr>Términos:</tr>
+  </text>
+  <text>
+    <en>Text files (*.txt)</en>
+    <tr>Archivos de texto (*.txt)</tr>
+  </text>
+  <text>
+    <en>The list, in alphabetical order</en>
+    <tr>La lista, en orden alfabético</tr>
+  </text>
+  <text>
+    <en>This PDF has no page labels: the pages are given by their place in the file.</en>
+    <tr>Este PDF no tiene etiquetas de página: las páginas se dan por su lugar en el archivo.</tr>
+  </text>
+  <text>
+    <en>Unticked, the terms are found inside words too</en>
+    <tr>Sin marcar, los términos se buscan también dentro de las palabras</tr>
+  </text>
+  <text>
+    <en>Where they are:</en>
+    <tr>Dónde están:</tr>
+  </text>
+  <text>
+    <en>Whole words only</en>
+    <tr>Solo palabras completas</tr>
+  </text>
+  <text>
+    <en>With context:</en>
+    <tr>Con contexto:</tr>
+  </text>
+  <text>
+    <en>Word index</en>
+    <tr>Índice de palabras</tr>
+  </text>
+  <text>
+    <en>Word index…</en>
+    <tr>Índice de palabras…</tr>
+  </text>
+  <text>
+    <en>Write the terms to find, one on each line.</en>
+    <tr>Escriba los términos que se han de buscar, uno por renglón.</tr>
+  </text>
+  <text>
+    <en>a detailed report: how many times each term appears, and a page on each line</en>
+    <tr>informe detallado: cuántas veces aparece cada término, y una página por renglón</tr>
+  </text>
+  <text>
+    <en>a file with a term on each line ('#' begins a comment)</en>
+    <tr>un archivo con un término por renglón («#» inicia un comentario)</tr>
+  </text>
+  <text>
+    <en>a fragment of text around each place (implies --detailed)</en>
+    <tr>un fragmento del texto en torno a cada aparición (implica --detailed)</tr>
+  </text>
+  <text>
+    <en>also give the sequential page (its place in the file), in brackets, where it differs from the label</en>
+    <tr>da también la página secuencial (su lugar en el archivo), entre corchetes, donde difiere de la etiqueta</tr>
+  </text>
+  <text>
+    <en>also write the list, in alphabetical order, to a text file</en>
+    <tr>escribe además la lista, en orden alfabético, en un archivo de texto</tr>
+  </text>
+  <text>
+    <en>also write the results to a CSV file</en>
+    <tr>escribe además los resultados en un archivo CSV</tr>
+  </text>
+  <text>
+    <en>characters</en>
+    <tr>caracteres</tr>
+  </text>
+  <text>
+    <en>characters of context on each side (default: 60)</en>
+    <tr>caracteres de contexto a cada lado (por omisión: 60)</tr>
+  </text>
+  <text>
+    <en>don't join the words split by a hyphen at the end of a line</en>
+    <tr>no vuelve a unir las palabras partidas por un guion a final de renglón</tr>
+  </text>
+  <text>
+    <en>every term is a regular expression (or put 're:' before each)</en>
+    <tr>todos los términos son expresiones regulares (o ponga «re:» antes de cada uno)</tr>
+  </text>
+  <text>
+    <en>find the terms inside words too (by default, only whole words)</en>
+    <tr>busca los términos también dentro de las palabras (por omisión, solo palabras completas)</tr>
+  </text>
+  <text>
+    <en>ignore accents</en>
+    <tr>no distingue acentos</tr>
+  </text>
+  <text>
+    <en>index</en>
+    <tr>indice</tr>
+  </text>
+  <text>
+    <en>match case</en>
+    <tr>distingue mayúsculas</tr>
+  </text>
+  <text>
+    <en>no term to find was given</en>
+    <tr>no se dio ningún término que buscar</tr>
+  </text>
+  <text>
+    <en>on which (labelled) pages each word, phrase or pattern appears: an index</en>
+    <tr>en qué páginas (rotuladas) aparece cada palabra, frase o patrón: un índice</tr>
+  </text>
+  <text>
+    <en>regular expressions, too, only match whole words</en>
+    <tr>también las expresiones regulares solo encuentran palabras completas</tr>
+  </text>
+  <text>
+    <en>the PDF</en>
+    <tr>el PDF</tr>
+  </text>
+  <text>
+    <en>the list in alphabetical order (by default, in the order of the terms)</en>
+    <tr>la lista en orden alfabético (por omisión, en el orden de los términos)</tr>
+  </text>
+  <text>
+    <en>the password to open the PDF</en>
+    <tr>la contraseña para abrir el PDF</tr>
+  </text>
+  <text>
+    <en>the words or phrases to find; a term that begins with 're:' is a regular expression</en>
+    <tr>las palabras o frases que se han de buscar; un término que empieza por «re:» es una expresión regular</tr>
+  </text>
+  <text>
+    <en>{count} term found</en>
+    <tr>{count} término encontrado</tr>
+  </text>
+  <text>
+    <en>{count} terms found</en>
+    <tr>{count} términos encontrados</tr>
+  </text>
+  <text>
+    <en>{count} time</en>
+    <tr>{count} vez</tr>
+  </text>
+  <text>
+    <en>{count} times</en>
+    <tr>{count} veces</tr>
+  </text>
+  <text>
+    <en>{empty} of {total} pages have no text (scanned, without OCR?).</en>
+    <tr>{empty} de {total} páginas no tienen texto (¿escaneadas, sin OCR?).</tr>
+  </text>
+  <text>
+    <en>{label} [seq. {page}]</en>
+    <tr>{label} [sec. {page}]</tr>
+  </text>
+  <text>
+    <en>{path} could not be read: {error}</en>
+    <tr>No se pudo leer {path}: {error}</tr>
+  </text>
+  <text>
+    <en>{path} could not be written: {error}</en>
+    <tr>No se pudo escribir {path}: {error}</tr>
+  </text>
+  <text>
+    <en>“{term}”: not found</en>
+    <tr>«{term}»: sin apariciones</tr>
+  </text>
 </interface>

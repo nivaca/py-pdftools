@@ -6,7 +6,7 @@ py-pdftools
 py-pdftools edits PDF documents. It annotates them, redacts them, changes
 their page labels, headers, footers, watermarks and the order of their
 pages, imposes them for printing, and reads the text of their scanned
-pages. It brings together, in one window and one command line, what five
+pages. It brings together, in one window and one command line, what six
 earlier programs of mine did apart:
 
 * [py-annotate](https://github.com/nivaca/py-annotate): highlights, notes,
@@ -23,7 +23,10 @@ earlier programs of mine did apart:
 * [py-pdfocr](https://github.com/nivaca/py-pdfocr): the text of scanned
   pages, read by tesseract and written into the PDF, invisible, under their
   pictures (OCR), with tesseract's languages and their more accurate
-  models.
+  models;
+* [pdf-word-finder](https://github.com/nivaca/pdf-word-finder): on which
+  pages each word, phrase or pattern of a list appears, by the numbers
+  printed on them (the page labels), as lines ready for an index.
 
 The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
@@ -61,7 +64,7 @@ The mode Impose: a booklet:
 Where it comes from
 -------------------
 
-py-pdftools grew out of five programs I wrote earlier, each for one kind of
+py-pdftools grew out of six programs I wrote earlier, each for one kind of
 work on PDF documents. When they had grown side by side for a while, it
 was clear that they shared much (the way the interface is translated, the
 configuration, the conversion to PDF/A and PDF/X, the packaging) and that
@@ -78,6 +81,7 @@ were, each with its own repository and releases.
                            header-footer, watermark and pages
     py-imposition 0.10.3   the mode Impose, and the commands under impose
     py-pdfocr 1.0.3        the mode OCR, and the command ocr
+    pdf-word-finder 1.6    Edit > Word index, and the command find-words
 
 What changed when they were brought together:
 
@@ -250,8 +254,18 @@ itself. The toolbar Page navigation, at the bottom of the window, goes to
 the first, previous, next and last page, and its box takes a page number
 or label; like the other toolbars, it can be changed in Customize the
 toolbars. The box of the page and that of the zoom are on the toolbar Page
-and zoom, which can be moved anywhere or hidden. File > PDF properties shows what a document is (its metadata,
-file, pages, security) and the fonts it uses.
+and zoom, which can be moved anywhere or hidden. File > PDF properties
+shows what a document is (its metadata, file, pages, security) and the
+fonts it uses.
+
+Edit > Word index (from pdf-word-finder) finds the words, phrases or
+regular expressions of a list, typed or read from a file, and gives the
+pages where each appears, by their labels, as lines ready for the index of
+a book (`Sharahzad 3, 5, 23, 34`), or in detail, with how many times and
+a fragment of text around each place; the result is copied, or saved as
+text or CSV. Words split by a hyphen at the end of a line are joined
+first, and accents can be ignored. From the command line:
+`py-pdftools find-words book.pdf --words-file terms.txt --txt index.txt`.
 
 Redact > Find text only covered looks for text that only seems redacted:
 still in the file under a black or white box, a picture or an annotation
@@ -359,6 +373,8 @@ The command line
     $ py-pdftools view book.pdf --layout cover --open-at 9 -i
     $ py-pdftools impose booklet book.pdf -o booklet.pdf
     $ py-pdftools impose --help                        the commands of imposition
+    $ py-pdftools find-words book.pdf amor "re:virtu(s|tem|tis)" --sort
+                                                       the pages of each term
 
 `py-pdftools COMMAND -h` explains each command. `py-pdftools completion
 bash|fish|zsh` prints a completion script for the shell. The commands are
