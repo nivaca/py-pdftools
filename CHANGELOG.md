@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.4 — 2026-11-21
 
 - **Debian and Ubuntu**: each release now has a `.deb`
   (`py-pdftools_VERSION-1_amd64.deb`), for Debian 12, Ubuntu 22.04 and
