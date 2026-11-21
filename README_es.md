@@ -249,13 +249,13 @@ selecciones se dibujan con transparencia o como contornos, y si el texto
 y los gráficos se suavizan (antialiasing).
 
 Moverse por un documento funciona en todos los modos. Ver > Marcadores
-(F5) muestra los marcadores del documento como un árbol que se puede
+(F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
 estilo, o los saca de los títulos. Los enlaces se siguen con un clic (con
 Seleccionar, Ctrl+clic), también las direcciones web y de correo escritas
 en el texto, y Alt+Izquierda y Alt+Derecha van y vuelven por los lugares
 visitados. Un documento se abre donde se dejó, o como pide (su página, su
-zoom y su panel), y `py-pdftools-gui libro.pdf#page=12` o
+zoom y sus miniaturas), y `py-pdftools-gui libro.pdf#page=12` o
 `#nameddest=intro` lo abre en un lugar. El menú Ver tiene dos páginas lado
 a lado (Ctrl+Mayús+2, con la primera sola como portada si se quiere), los
 zooms (ajustar a la página, al ancho, al alto o a lo impreso; tamaño real;

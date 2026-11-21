@@ -241,12 +241,12 @@ transparency or as outlines, and whether text and graphics are smoothed
 (antialiasing).
 
 Moving through a document works in every mode. View > Bookmarks (F5)
-shows the document's bookmarks as a tree that can be filtered; its right
+shows the document's bookmarks (hidden until it is asked for) as a tree that can be filtered; its right
 click adds, renames, moves, indents and styles them, or makes them from
 the headings. Links are followed with a click (with Select, Ctrl+click),
 web and mail addresses written in the text too, and Alt+Left and
 Alt+Right go back and forth through the places jumped to. A document
-opens where it was left, or as it asks (its page, zoom and panel), and
+opens where it was left, or as it asks (its page, zoom and thumbnails), and
 `py-pdftools-gui book.pdf#page=12` or `#nameddest=intro` opens it at a
 place. The menu View has two pages side by side (Ctrl+Shift+2, with the
 first alone as a cover if wished), the zooms (fit the page, the width, the

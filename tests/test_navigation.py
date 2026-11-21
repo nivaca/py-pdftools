@@ -299,7 +299,23 @@ def test_opening_as_the_document_asks(window, tmp_path):
     doc.save(path)
     window.outline_dock.hide()
     assert window.open_path(path)
-    assert window.page == 2 and window.canvas.fit == "width" and window.outline_dock.isVisibleTo(window)
+    # (the bookmarks it asks for stay hidden: their panel opens only when the user asks)
+    assert window.page == 2 and window.canvas.fit == "width" and not window.outline_dock.isVisibleTo(window)
+
+
+def test_the_bookmarks_start_hidden_and_stay_as_the_user_leaves_them(window, book):
+    assert window.open_path(book)
+    assert not window.outline_dock.isVisibleTo(window)
+    window.a_outline.trigger()
+    assert window.outline_dock.isVisibleTo(window)
+    first = window.mode
+    for _ in range(2):  # (the second time, each mode has an arrangement of its own to give back)
+        for key in window.modes:
+            window.set_mode(key)
+            assert window.outline_dock.isVisibleTo(window), key
+    window.a_outline.trigger()
+    window.set_mode(first)
+    assert not window.outline_dock.isVisibleTo(window)
 
 
 def test_the_last_session_opened_again(book, tmp_path, monkeypatch):

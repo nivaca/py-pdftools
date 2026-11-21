@@ -806,6 +806,17 @@ command line imposed a booklet, the window opened a document, and removing
 the package left nothing behind. `tools/release.py` now makes it after the
 AppImage and attaches it to each release.
 
+30. Bookmarks only when asked for
+---------------------------------
+
+The bookmarks panel kept appearing by itself. Two things showed it: many
+PDFs ask, in their catalog (`/PageMode /UseOutlines`), to open with their
+bookmarks shown, and the window obeyed; and each mode kept its own
+arrangement of panels, so a panel opened once came back in the next
+session. Now the panel is hidden when the program starts, a document's
+request no longer opens it, and changing modes leaves it as it was. Only
+F5, or View > Panels > Bookmarks, opens it.
+
 Testing
 -------
 

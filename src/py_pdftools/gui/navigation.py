@@ -204,14 +204,14 @@ class NavigationMixin:
             self.canvas.set_zoom(1.0)
 
     def _open_as_asked(self):
-        """The document's own view on opening: its page, its zoom, and the panel it asks for."""
+        """The document's own view on opening: its page, its zoom, and the thumbnails if it asks for them (not
+        the bookmarks: their panel opens only when the user asks for it)."""
         try:
             kind, mode = self.doc.xref_get_key(self.doc.pdf_catalog(), "PageMode")
         except (RuntimeError, ValueError):
             kind, mode = "null", ""
-        if kind == "name" and mode == "/UseOutlines" and self.outline_tree.topLevelItemCount():
-            self.outline_dock.show()
-        elif kind == "name" and mode == "/UseThumbs":
+        # (/UseOutlines no abre los marcadores: su panel se abre solo cuando el usuario lo pide, con F5)
+        if kind == "name" and mode == "/UseThumbs":
             self.a_thumbs.setChecked(True)
         elif kind == "name" and mode == "/FullScreen" and self.ask_full_screen():
             QTimer.singleShot(0, self.present)  # (once the window shows the document)

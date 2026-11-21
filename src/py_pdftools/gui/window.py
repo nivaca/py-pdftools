@@ -1001,7 +1001,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         the toolbars, panels and menus of that mode are shown (and of every mode, but those it has no use for)."""
         state = self.settings.value(f"arrangement/{key}/state")
         if isinstance(state, QByteArray):
+            # The bookmarks stay as the user left them: their panel isn't part of a mode's arrangement
+            bookmarks = self.outline_dock.isVisibleTo(self)
             self.restoreState(state)
+            self.outline_dock.setVisible(bookmarks)
             mode = self.modes[key]
             for other in self.modes.values():
                 if other is not mode:
@@ -1051,6 +1054,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         bars = self.settings.value("toolbars")
         if isinstance(bars, QByteArray):
             self.restoreState(bars)
+        # Los marcadores empiezan ocultos en cada sesión; F5 los abre
+        self.outline_dock.hide()
 
     def save_settings(self):
         if self.host is None:  # (a tab's size is its window's)
