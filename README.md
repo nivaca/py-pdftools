@@ -240,7 +240,9 @@ within half of the free memory), whether selections are drawn with
 transparency or as outlines, and whether text and graphics are smoothed
 (antialiasing).
 
-Moving through a document works in every mode. View > Bookmarks (F5)
+Moving through a document works in every mode. The quick find box, on
+the toolbar Find (Ctrl+Shift+F), goes from one place of a text to the next
+with Enter (Shift+Enter, back), without minding capitals or accents. View > Bookmarks (F5)
 shows the document's bookmarks (hidden until it is asked for) as a tree that can be filtered; its right
 click adds, renames, moves, indents and styles them, or makes them from
 the headings. Links are followed with a click (with Select, Ctrl+click),

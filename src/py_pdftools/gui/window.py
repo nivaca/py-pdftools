@@ -593,6 +593,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                    QKeySequence.StandardKey.Find,
                                    tr("Find a word, a phrase or a pattern on the pages, and highlight (or underline, "
                                       "strike out…) the places found"))
+        from .quickfind import QuickFindAction
+
+        # La búsqueda rápida: una casilla en la barra Buscar; Ctrl+Mayús+F pone el cursor en ella.
+        self.a_quick_find = QuickFindAction(self)
+        self.quick_find_key = self._action(m, tr("Quick find"), self.quick_find, "Ctrl+Shift+F",
+                                           tr("Put the cursor in the quick find box, on the toolbar Find"))
 
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
         self.m_layers.setToolTipsVisible(True)
@@ -746,7 +752,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.common_bars = [
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
-            self.toolbar_of("find", tr("Find"), [self.a_find]),
+            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_quick_find]),
             # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],
@@ -920,6 +926,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             if other.key != self.mode:
                 for act in other.actions:
                     act.setEnabled(False)
+
+    def quick_find(self):
+        """The cursor in the quick find box; if no toolbar shows one (it was taken off, or the mode has no
+        Find), the dialog Find."""
+        bar = self.findChild(QToolBar, "find")
+        if not self.a_quick_find.focus():
+            mode = self.modes.get(self.mode)
+            if bar is not None and bar.parent() is self and not bar.isVisible() and \
+                    "find" not in getattr(mode, "without", ()) and self.a_quick_find in bar.actions():
+                bar.show()
+                if self.a_quick_find.focus():
+                    return
+            self.find_in_mode()
 
     def find_in_mode(self):
         """Find: and highlight (Annotate), or redact (Redact)."""
@@ -3258,7 +3277,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.page_box, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_find, self.a_compare,
+                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_find, self.a_quick_find, self.quick_find_key, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:

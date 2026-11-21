@@ -15,6 +15,11 @@ Debian package, the RPM, the wheel and the source, are on
   Appearance > Show tooltips off, which now governs only the others; the
   items of the toolbars that had none (the count of pages, the fields of
   Impose's toolbar, Undo apply) have one.
+- **Quick find**: a box on the toolbar Find (Ctrl+Shift+F puts the cursor
+  in it) that finds a text without opening the dialog: Enter goes to the
+  next place, from the page shown, Shift+Enter to the previous one, without
+  minding capitals or accents; beside it, which place of how many. Esc goes
+  back to the pages.
 - **Page and zoom**: some room between the box of the page and the count
   of pages, which touched.
 

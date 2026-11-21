@@ -826,7 +826,23 @@ the application that drops the requests for tooltips now lets through
 those of any widget inside a toolbar, so the setting governs only menus,
 fields and dialogs. A script that went through every toolbar found the
 items with no tooltip of their own: the count of pages, the fields of the
-toolbar of Impose and their labels, and Undo apply. Each has one now.
+toolbar of Impose and their labels, and Undo apply. Each has one now. The
+count of pages beside the box of the page also got a little room before
+it: the two touched.
+
+32. Quick find
+--------------
+
+Find and highlight is a dialog: good for marking what is found, slow for
+only looking for a word. I added a box to the toolbar Find
+(`gui/quickfind.py`), which uses the same search (`annotate/search.py`,
+here without minding capitals or accents). Enter goes to the next place,
+from the page shown, Shift+Enter to the previous one, and each place is
+shown for a moment, as the dialog shows it; beside the box, "3/17". The
+box is an action of its own, like the box of the page, so it can be taken
+off a toolbar or put on another one. Ctrl+Shift+F puts the cursor in it;
+if no toolbar shows it, the dialog opens instead. Esc had to be claimed by
+the box itself, since a shortcut of the window took it first.
 
 Testing
 -------

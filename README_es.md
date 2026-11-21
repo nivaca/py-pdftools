@@ -248,7 +248,10 @@ páginas y miniaturas, dentro de la mitad de la memoria libre), si las
 selecciones se dibujan con transparencia o como contornos, y si el texto
 y los gráficos se suavizan (antialiasing).
 
-Moverse por un documento funciona en todos los modos. Ver > Marcadores
+Moverse por un documento funciona en todos los modos. La casilla de
+búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F), va de un lugar de un
+texto al siguiente con Intro (Mayús+Intro, hacia atrás), sin distinguir
+mayúsculas ni acentos. Ver > Marcadores
 (F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
 estilo, o los saca de los títulos. Los enlaces se siguen con un clic (con

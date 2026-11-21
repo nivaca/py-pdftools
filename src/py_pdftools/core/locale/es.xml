@@ -12664,4 +12664,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The unit of the lengths of every command</en>
     <tr>La unidad de las longitudes de todas las órdenes</tr>
   </text>
+  <text>
+    <en>Quick find</en>
+    <tr>Búsqueda rápida</tr>
+  </text>
+  <text>
+    <en>Find a text in the document: Enter goes to the next place, Shift+Enter to the previous one (Ctrl+Shift+F)</en>
+    <tr>Buscar un texto en el documento: Intro va al lugar siguiente, Mayús+Intro al anterior (Ctrl+Mayús+F)</tr>
+  </text>
+  <text>
+    <en>Find in the text</en>
+    <tr>Buscar en el texto</tr>
+  </text>
+  <text>
+    <en>Put the cursor in the quick find box, on the toolbar Find</en>
+    <tr>Poner el cursor en la casilla de búsqueda rápida, en la barra Buscar</tr>
+  </text>
 </interface>
