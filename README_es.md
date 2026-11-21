@@ -5,9 +5,9 @@ py-pdftools
 
 py-pdftools edita documentos PDF. Los anota, los censura, cambia sus
 etiquetas de página, sus encabezados, pies de página y marcas de agua y el
-orden de sus páginas, y los impone para imprenta. Reúne, en una sola
-ventana y una sola línea de órdenes, lo que hacían por separado cuatro
-programas anteriores míos:
+orden de sus páginas, los impone para imprenta y lee el texto de sus
+páginas escaneadas. Reúne, en una sola ventana y una sola línea de
+órdenes, lo que hacían por separado cinco programas anteriores míos:
 
 * [py-annotate](https://github.com/nivaca/py-annotate): resaltados, notas,
   cuadros de texto, formas, dibujos y sellos, escritos como anotaciones PDF
@@ -21,11 +21,14 @@ programas anteriores míos:
   páginas;
 * [py-imposition](https://github.com/nivaca/py-imposition): folletos, n-up,
   paso y repetición, sangrados y marcas de corte, secuencias y carpetas
-  vigiladas.
+  vigiladas;
+* [py-pdfocr](https://github.com/nivaca/py-pdfocr): el texto de las páginas
+  escaneadas, leído por tesseract y escrito en el PDF, invisible, bajo sus
+  imágenes (OCR), con los idiomas de tesseract y sus modelos más precisos.
 
 La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
-versión 0.1.0.
+versión 1.5.0.
 
 Soy Nicolas Vaughan (<nicolasvaughan@proton.me>) y lo escribí en 2026. Es
 software libre, bajo la Licencia Pública General de GNU, versión 3 o
@@ -55,7 +58,7 @@ El modo Imponer: un folleto:
 De dónde viene
 --------------
 
-py-pdftools nació de cuatro programas que escribí antes, cada uno para un
+py-pdftools nació de cinco programas que escribí antes, cada uno para un
 tipo de trabajo con documentos PDF. Tras un tiempo de crecer uno al lado
 del otro, era claro que compartían mucho (la manera de traducir la
 interfaz, la configuración, el paso a PDF/A y PDF/X, el empaquetado) y que
@@ -71,6 +74,7 @@ quedan como estaban, cada uno con su repositorio y sus versiones.
     py-foliation 1.0.1     el modo Foliar, y las órdenes labels, view,
                            header-footer, watermark y pages
     py-imposition 0.10.3   el modo Imponer, y las órdenes de impose
+    py-pdfocr 1.0.3        el modo OCR, y la orden ocr
 
 Lo que cambió al reunirlos:
 

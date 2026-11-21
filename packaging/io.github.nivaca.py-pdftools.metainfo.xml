@@ -13,14 +13,15 @@
   <description>
     <p>
       py-pdftools edits PDF documents. It brings together, in one window and one command line,
-      what four programs did apart: annotations, redaction, page labels with headers, footers,
-      watermarks and the order of the pages, and imposition for printing.
+      what five programs did apart: annotations, redaction, page labels with headers, footers,
+      watermarks and the order of the pages, imposition for printing, and the text of scanned
+      pages (OCR).
     </p>
     <p xml:lang="es">
       py-pdftools edita documentos PDF. Reúne, en una sola ventana y una sola línea de órdenes, lo
-      que hacían por separado cuatro programas: las anotaciones, la censura, las etiquetas de página
-      con los encabezados, los pies de página, las marcas de agua y el orden de las páginas, y la
-      imposición para imprenta.
+      que hacían por separado cinco programas: las anotaciones, la censura, las etiquetas de página
+      con los encabezados, los pies de página, las marcas de agua y el orden de las páginas, la
+      imposición para imprenta y el texto de las páginas escaneadas (OCR).
     </p>
     <ul>
       <li>Annotate: highlights, notes, text boxes, shapes, drawings and stamps, as ordinary PDF annotations, with comments, replies and review statuses</li>

@@ -3,10 +3,10 @@ How py-pdftools was made
 
 py-pdftools is a program for editing PDF documents: it annotates them,
 redacts them, changes their page labels, headers, footers, watermarks and
-the order of their pages, and imposes them for printing. Nicolas Vaughan
-made it in November 2026 by bringing together four programs of his, each
-of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in twenty-one stages.
+the order of their pages, imposes them for printing, and reads the text of
+their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
+together five programs of his, each of which did one of those things:
+py-annotate, py-redact, py-foliation, py-imposition and py-pdfocr. Here I explain how it was made, in twenty-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -337,7 +337,10 @@ is written. The settings download its more accurate models (tessdata_best)
 into a folder of py-pdftools, and for each run a folder of links gives
 tesseract, for each language, the better model if there is one. The command
 line has `py-pdftools ocr`. Tesseract is optional: without it, there is no
-OCR, and its tests are skipped.
+OCR, and its tests are skipped. The OCR is that of py-pdfocr, my program
+that reads scanned pages on the command line: the same engine, the same
+command, the same languages and models; only the window, and the words
+corrected beside their pictures, are py-pdftools' own.
 
 16. The window, as one works in it
 -----------------------------------

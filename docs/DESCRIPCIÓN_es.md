@@ -2,11 +2,11 @@
 
 ## Análisis
 
-py-pdftools edita documentos PDF: los anota, los censura, cambia sus etiquetas de página, sus encabezados, pies de página y marcas de agua y el orden de sus páginas, y los impone para imprenta. Fue desarrollado en noviembre de 2026 por Nicolas Vaughan, que reunió en él cuatro programas suyos, cada uno de los cuales hacía una de esas cosas: py-annotate (las anotaciones), py-redact (la censura), py-foliation (las etiquetas de página, los encabezados y pies, las marcas de agua y el orden de las páginas) y py-imposition (la imposición).
+py-pdftools edita documentos PDF: los anota, los censura, cambia sus etiquetas de página, sus encabezados, pies de página y marcas de agua y el orden de sus páginas, los impone para imprenta y lee el texto de sus páginas escaneadas. Fue desarrollado en noviembre de 2026 por Nicolas Vaughan, que reunió en él cinco programas suyos, cada uno de los cuales hacía una de esas cosas: py-annotate (las anotaciones), py-redact (la censura), py-foliation (las etiquetas de página, los encabezados y pies, las marcas de agua y el orden de las páginas), py-imposition (la imposición) y py-pdfocr (el OCR, en la línea de órdenes).
 
-El requisito central era no perder nada de lo que cada programa ya hacía bien. Los cuatro tenían sus pruebas, sus casos raros resueltos y sus decisiones tomadas; el programa nuevo debía conservarlos, no reescribirlos. Además, tenía que haber una sola ventana y una sola línea de órdenes, y el documento abierto tenía que ser uno, con sus anotaciones, su censura y sus cambios a la vista al mismo tiempo, y con un solo historial para deshacer.
+El requisito central era no perder nada de lo que cada programa ya hacía bien. Todos tenían sus pruebas, sus casos raros resueltos y sus decisiones tomadas; el programa nuevo debía conservarlos, no reescribirlos. Además, tenía que haber una sola ventana y una sola línea de órdenes, y el documento abierto tenía que ser uno, con sus anotaciones, su censura y sus cambios a la vista al mismo tiempo, y con un solo historial para deshacer.
 
-Lo demás vino de las diferencias entre los cuatro. py-annotate guarda en el mismo documento; py-redact escribe siempre una copia nueva, porque censurar no tiene vuelta atrás; py-foliation guardaba sus cambios en memoria hasta guardar el archivo. Se decidió guardar en el documento todo menos la censura, que sigue escribiendo una copia, comprobada, como en py-redact. La ventana y la línea de órdenes tenían que estar en español y en inglés, y el programa debía instalarse en Linux, Windows y macOS.
+Lo demás vino de las diferencias entre ellos. py-annotate guarda en el mismo documento; py-redact escribe siempre una copia nueva, porque censurar no tiene vuelta atrás; py-foliation guardaba sus cambios en memoria hasta guardar el archivo. Se decidió guardar en el documento todo menos la censura, que sigue escribiendo una copia, comprobada, como en py-redact. La ventana y la línea de órdenes tenían que estar en español y en inglés, y el programa debía instalarse en Linux, Windows y macOS.
 
 ## Diseño
 
@@ -72,7 +72,7 @@ Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y co
 
 ### OCR
 
-El OCR usa el programa tesseract (la versión del sistema), en varios procesos a la vez; de cada palabra lee el lugar y la confianza. Tiene su propio modo. El texto se escribe en el documento, invisible, como un cambio que se deshace como los demás, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
+El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios procesos a la vez; de cada palabra lee el lugar y la confianza. Tiene su propio modo. El texto se escribe invisible en el documento, como un cambio que se deshace, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
 
 ## Validación
 

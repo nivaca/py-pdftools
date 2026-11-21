@@ -5,8 +5,9 @@ py-pdftools
 
 py-pdftools edits PDF documents. It annotates them, redacts them, changes
 their page labels, headers, footers, watermarks and the order of their
-pages, and imposes them for printing. It brings together, in one window
-and one command line, what four earlier programs of mine did apart:
+pages, imposes them for printing, and reads the text of their scanned
+pages. It brings together, in one window and one command line, what five
+earlier programs of mine did apart:
 
 * [py-annotate](https://github.com/nivaca/py-annotate): highlights, notes,
   text boxes, shapes, drawings and stamps, written as ordinary PDF
@@ -18,11 +19,15 @@ and one command line, what four earlier programs of mine did apart:
   watermarks, the view when the document is opened, and the order of the
   pages;
 * [py-imposition](https://github.com/nivaca/py-imposition): booklets, n-up,
-  step and repeat, bleeds and crop marks, sequences and hot folders.
+  step and repeat, bleeds and crop marks, sequences and hot folders;
+* [py-pdfocr](https://github.com/nivaca/py-pdfocr): the text of scanned
+  pages, read by tesseract and written into the PDF, invisible, under their
+  pictures (OCR), with tesseract's languages and their more accurate
+  models.
 
 The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
-version 0.1.0.
+version 1.5.0.
 
 I am Nicolas Vaughan (<nicolasvaughan@proton.me>), and I wrote it in 2026.
 It is free software, under the GNU General Public License, version 3 or
@@ -52,8 +57,8 @@ The mode Impose: a booklet:
 Where it comes from
 -------------------
 
-py-pdftools grew out of four programs I wrote earlier, each for one kind of
-work on PDF documents. When the four had grown side by side for a while, it
+py-pdftools grew out of five programs I wrote earlier, each for one kind of
+work on PDF documents. When they had grown side by side for a while, it
 was clear that they shared much (the way the interface is translated, the
 configuration, the conversion to PDF/A and PDF/X, the packaging) and that
 the same document often went through more than one of them: annotated,
@@ -68,6 +73,7 @@ were, each with its own repository and releases.
     py-foliation 1.0.1     the mode Foliate, and the commands labels, view,
                            header-footer, watermark and pages
     py-imposition 0.10.3   the mode Impose, and the commands under impose
+    py-pdfocr 1.0.3        the mode OCR, and the command ocr
 
 What changed when they were brought together:
 

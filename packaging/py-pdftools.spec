@@ -45,13 +45,14 @@ Recommends:     tesseract-langpack-eng
 
 %description
 py-pdftools edits PDF documents. It brings together, in one window and one
-command line, four programs: py-pdftools (highlights, notes, text boxes,
+command line, five programs: py-annotate (highlights, notes, text boxes,
 shapes, drawings and stamps, written as ordinary PDF annotations), py-redact
 (boxes over what is to be removed, and a redacted copy in which it is removed
 for good, and checked), py-foliation (page labels, headers and footers,
 watermarks, the view when the document is opened, and the order of the
-pages) and py-imposition (booklets, n-up, step and repeat and the rest of
-imposition for printing, with sequences and hot folders).
+pages), py-imposition (booklets, n-up, step and repeat and the rest of
+imposition for printing, with sequences and hot folders) and py-pdfocr (the
+text of scanned pages, read by tesseract and written under them).
 
 The window and the command line are in English or Spanish.
 
