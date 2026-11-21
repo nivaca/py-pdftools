@@ -113,3 +113,79 @@ def test_the_name_of_the_socket(monkeypatch, tmp_path):
     long.mkdir()
     monkeypatch.setenv("XDG_RUNTIME_DIR", str(long))
     assert instance.server_name().startswith("py-pdftools-")  # (too long for a socket: a name)
+
+
+def test_ping_opens_nothing(app, tmp_path):
+    assert not instance.running()
+    before = len(_WINDOWS)
+    assert gui.background(True)
+    pinger = subprocess.Popen([sys.executable, "-c", "from py_pdftools.gui import instance; "
+                                                     "print(instance.running())"], stdout=subprocess.PIPE, text=True)
+    wait(app, lambda: pinger.poll() is not None, seconds=30)
+    assert pinger.stdout.read().strip() == "True"
+    for _ in range(20):
+        app.processEvents()
+    assert len(_WINDOWS) == before  # (asked whether it runs: no window opened)
+
+
+def test_started_in_the_tray(app, tmp_path, monkeypatch):
+    """--background: no window, the program waiting in the background; a second --background ends at once."""
+    monkeypatch.setattr(app, "exec", lambda: 0)
+    before = len(_WINDOWS)
+    assert gui.main(["--background"]) == 0
+    assert len(_WINDOWS) == before and gui._INSTANCE.server is not None
+    monkeypatch.setattr(instance, "running", lambda: True)
+    calls, real = [], gui.background
+    monkeypatch.setattr(gui, "background", lambda on: calls.append(on))
+    assert gui.main(["--background"]) == 0 and calls == []  # (not started twice)
+    monkeypatch.setattr(gui, "background", real)
+
+
+def test_a_window_kept_ready(app, tmp_path, monkeypatch):
+    monkeypatch.setattr(gui, "SPARE_DELAY_MS", 0)
+    assert gui.take_spare() is None
+    assert gui.background(True)
+    gui.prepare_spare()
+    spare = gui._SPARE[0]
+    assert not spare.isVisible()
+    win = gui.open_window(pdf(tmp_path / "a.pdf"))
+    assert win is spare and win.isVisible() and win.path.name == "a.pdf"
+    wait(app, lambda: gui._SPARE is not None, seconds=5)  # (another one, made after)
+    assert gui._SPARE is not None and gui._SPARE[0] is not spare
+    # a setting changed since it was made: not used (it would show the settings as they were)
+    config.set("reload", False)
+    stale = gui._SPARE[0]
+    other = gui.open_window(pdf(tmp_path / "b.pdf"))
+    assert other is not stale and other.path.name == "b.pdf"
+    gui.background(False)
+    assert gui._SPARE is None
+
+
+def test_start_with_the_session(app, tmp_path, monkeypatch):
+    from py_pdftools.gui import autostart
+    from py_pdftools.gui.prefs import SettingsDialog
+
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
+    assert not autostart.enabled()
+    path = autostart.enable(True)
+    assert path == tmp_path / "xdg" / "autostart" / "py-pdftools.desktop"
+    text = path.read_text()
+    assert "Exec=" in text and text.split("Exec=")[1].split("\n")[0].endswith("--background")
+    autostart.enable(False)
+    assert not path.exists()
+    monkeypatch.setenv("APPIMAGE", "/opt/My Apps/py-pdftools.AppImage")
+    assert "Exec='/opt/My Apps/py-pdftools.AppImage' --background" in autostart.enable(True).read_text()
+    autostart.enable(False)
+    win = gui.open_window(pdf(tmp_path / "doc.pdf"))
+    dialog = SettingsDialog(win.prefs, win)
+    assert not dialog.login.isChecked() and not dialog.background.isChecked()
+    dialog.login.setChecked(True)
+    assert dialog.background.isChecked()  # (it needs the background: turned on with it)
+    dialog.accept()
+    assert autostart.enabled() and config.get("background") is True
+    dialog = SettingsDialog(win.prefs, win)
+    assert dialog.login.isChecked()
+    dialog.background.setChecked(False)
+    assert not dialog.login.isChecked()
+    dialog.accept()
+    assert not autostart.enabled()

@@ -50,6 +50,19 @@ def enabled() -> bool:
         return False
 
 
+def running() -> bool:
+    """Whether the program runs in the background already (it answers a ping, and opens nothing)."""
+    socket = QLocalSocket()
+    socket.connectToServer(server_name())
+    if not socket.waitForConnected(TIMEOUT_MS):
+        return False
+    socket.write(json.dumps({"ping": True}).encode() + b"\n")
+    ok = socket.waitForBytesWritten(TIMEOUT_MS) and socket.waitForReadyRead(TIMEOUT_MS) and \
+        socket.readAll().data().strip() == b"ok"
+    socket.disconnectFromServer()
+    return ok
+
+
 def send(files: list[str]) -> bool:
     """Give FILES (paths; none: just a window) to the program running in the background, if there is one.
     Whether it took them."""
@@ -127,13 +140,16 @@ class Instance(QObject):
         if not socket.canReadLine():
             return
         try:
-            files = json.loads(socket.readLine().data().decode()).get("open", [])
+            message = json.loads(socket.readLine().data().decode())
+            files = message.get("open", [])
         except (ValueError, AttributeError):
-            files = []
+            message, files = {}, []
         socket.write(b"ok\n")
         # (written before hanging up: else the answer may be lost, and the other start opens a window too)
         socket.waitForBytesWritten(TIMEOUT_MS)
         socket.disconnectFromServer()
+        if isinstance(message, dict) and message.get("ping"):  # (only whether it runs: see running)
+            return
         for path in files or [None]:
             self.open_window(path or None)
 

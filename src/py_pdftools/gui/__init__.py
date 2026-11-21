@@ -26,8 +26,11 @@ def main(argv: list[str] | None = None) -> int:
         print(f"py-pdftools {__version__}")
         return 0
     if argv and argv[0] in ("--help", "-h"):
-        print("Usage: py-pdftools-gui [file.pdf]   (the command line: py-pdftools --help)")
+        print("Usage: py-pdftools-gui [file.pdf]   (the command line: py-pdftools --help)\n"
+              "       py-pdftools-gui --background  (in the tray, without a window: documents then open at once)")
         return 0
+    hidden = "--background" in argv  # (started with the session: in the tray, without a window)
+    argv = [a for a in argv if a != "--background"]
     from .navigation import split_place
 
     # (a file may come with a place: book.pdf#page=12, book.pdf#nameddest=intro)
@@ -37,7 +40,9 @@ def main(argv: list[str] | None = None) -> int:
     from . import instance
 
     # (a local socket needs no application object: none is made, so the window's can be made after)
-    if instance.enabled() and instance.send(files):
+    if hidden and instance.running():  # (en segundo plano ya: nada que hacer)
+        return 0
+    if not hidden and instance.enabled() and instance.send(files):
         return 0
     # El idioma configurado se fija antes de crear la ventana: sus textos se traducen al construirse.
     from ..core import interface
@@ -57,6 +62,12 @@ def main(argv: list[str] | None = None) -> int:
     from . import performance
 
     performance.apply()  # (the memory profile, the transparency, the antialiasing: Settings > Performance)
+    if hidden:
+        # Solo el icono de la bandeja; una ventana se prepara, oculta, para el primer documento (ver spare).
+        if not background(True):
+            print("py-pdftools-gui: it could not start in the background", file=sys.stderr)
+            return 1
+        return app.exec()
     win = MainWindow()
     # La ventana entra en _WINDOWS como las que se reconstruyen al cambiar de idioma; change_language la saca
     # de ahí.
@@ -127,7 +138,7 @@ def open_window(path=None):
     empty = next((w for w in _WINDOWS if w.is_open() and w.host is None and w.path is None), None)
     win = empty
     if win is None:
-        win = MainWindow()
+        win = take_spare() or MainWindow()
         _WINDOWS.append(win)
     if path is not None:
         file, place = split_place(str(path))
@@ -161,14 +172,79 @@ def quit_all() -> bool:
 
 
 def background(on: bool) -> bool:
-    """Keep running in the background (ON), or not, from now on. Whether it could."""
-    global _INSTANCE
+    """Keep running in the background (ON), or not, from now on. Whether it could. In the background, a
+    window is kept ready (see spare)."""
+    global _INSTANCE, _SPARE
     from .instance import Instance
 
     if on:
         if _INSTANCE is None:
             _INSTANCE = Instance(open_window, quit_all)
-        return _INSTANCE.start()
+        started = _INSTANCE.start()
+        if started:
+            _later_spare()
+        return started
     if _INSTANCE is not None:
         _INSTANCE.stop()
+    if _SPARE is not None:
+        _SPARE[0].deleteLater()
+        _SPARE = None
     return True
+
+
+# ----------------------------------------------------------------- a window kept ready
+
+# A window made beforehand, hidden, while the program waits in the background: the next document opened from
+# outside (or New window in the tray) takes it, instead of making one then (about a third of a second, and
+# more on a slow machine). It is made again after. A window made before the settings changed is not used: it
+# would show them as they were (see _looks).
+_SPARE: tuple | None = None  # (the window, the settings it was made with)
+SPARE_DELAY_MS = 1500  # (made a moment after the program is idle, not while the user waits)
+
+
+def _looks() -> tuple:
+    """What a window takes from the settings when it is made: the configuration file, and the language,
+    toolbars and mode kept by Qt."""
+    from PySide6.QtCore import QSettings
+
+    from ..core import config, interface
+
+    try:
+        conf = config.config_path().read_bytes()
+    except OSError:
+        conf = b""
+    qs = QSettings("py-pdftools", "py-pdftools")
+    keys = ("toolbar_contents", "toolbar_looks", "toolbars", "mode", "reading", "thumbnails", "gaps", "spread")
+    return conf, interface.code(), tuple(str(qs.value(k, "")) for k in keys)
+
+
+def _later_spare():
+    from PySide6.QtCore import QTimer
+
+    QTimer.singleShot(SPARE_DELAY_MS, prepare_spare)
+
+
+def prepare_spare():
+    """Make the window kept ready, if the program is in the background and has none."""
+    global _SPARE
+    if _INSTANCE is None or _INSTANCE.server is None or _SPARE is not None:
+        return
+    from .window import MainWindow
+
+    win = MainWindow()
+    _SPARE = (win, _looks())
+
+
+def take_spare():
+    """The window kept ready (and another one made, a moment later); None if there is none, or it was made
+    with settings that changed since."""
+    global _SPARE
+    if _SPARE is None:
+        return None
+    win, looks = _SPARE
+    _SPARE = None
+    _later_spare()
+    if looks != _looks():
+        win.deleteLater()
+        return None
+    return win

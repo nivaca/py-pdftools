@@ -82,6 +82,16 @@ class SettingsDialog(QDialog):
                                       "icon in the tray, where there is one), and opens the next document at "
                                       "once. File > Quit ends it."))
         form.addRow("", self.background)
+        from . import autostart
+
+        self.login = QCheckBox(tr("Start with the session, in the tray: the first document opens at once too"))
+        self.login.setChecked(autostart.enabled())
+        self.login.setToolTip(tr("py-pdftools starts when you log in, without a window, and waits in the "
+                                 "background (so this needs the setting above, which is turned on with it)"))
+        # (empezar con la sesión es empezar en segundo plano: una casilla arrastra a la otra)
+        self.login.toggled.connect(lambda on: self.background.setChecked(True) if on else None)
+        self.background.toggled.connect(lambda on: self.login.setChecked(False) if not on else None)
+        form.addRow("", self.login)
         self.reopen = QCheckBox(tr("Open again the documents that were open when py-pdftools was ended"))
         try:
             self.reopen.setChecked(bool(config.get("reopen")))
@@ -327,6 +337,13 @@ class SettingsDialog(QDialog):
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
             else:
                 background(on)
+        from . import autostart
+
+        if self.login.isChecked() != autostart.enabled():
+            try:
+                autostart.enable(self.login.isChecked())
+            except OSError as e:
+                QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         super().accept()
 
     def settings(self) -> settings.Settings:

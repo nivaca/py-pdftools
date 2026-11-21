@@ -12172,4 +12172,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>page {page} is now {label}</en>
     <tr>la página {page} es ahora {label}</tr>
   </text>
+  <text>
+    <en>Start with the session, in the tray: the first document opens at once too</en>
+    <tr>Empezar con la sesión, en la bandeja: también el primer documento se abre al instante</tr>
+  </text>
+  <text>
+    <en>py-pdftools starts when you log in, without a window, and waits in the background (so this needs the setting above, which is turned on with it)</en>
+    <tr>py-pdftools empieza al iniciar la sesión, sin ventana, y espera en segundo plano (así que necesita el ajuste de arriba, que se activa con este)</tr>
+  </text>
 </interface>
