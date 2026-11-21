@@ -5,6 +5,14 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.8.1 — 2026-11-21
+
+- **Recognise the text of these pages (OCR)**, in the right click on the
+  thumbnails, works in every mode; it was grey everywhere but in the mode
+  OCR.
+- **Extract to a new PDF** opens the new file in a new tab beside the
+  document.
+
 ## 1.8.0 — 2026-11-21
 
 - **Word index** (from pdf-word-finder): Edit > Word index finds the words,
