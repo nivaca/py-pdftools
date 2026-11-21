@@ -629,7 +629,11 @@ the dialogs the manual explains, 34 in each language. It runs with a home
 folder and a configuration of its own, so it never reads or writes mine,
 and it hides the temporary folders it uses, which would otherwise show in
 the status bar and in some fields. The pictures can be made again whenever
-the window changes.
+the window changes. Each manual ends with an index of about six hundred
+entries, made with makeindex (latexmk runs it, with a style of its own that
+puts a heading at each letter); the entries were put before the paragraphs
+that name each term, from a list of terms in both languages, and the
+Spanish ones sort their accented words as if they had none.
 
 Writing the manual was also a way to check the program, since each
 sentence had to be compared with the code. It found one old mistake: the

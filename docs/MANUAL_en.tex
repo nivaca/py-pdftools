@@ -132,6 +132,9 @@
 \graphicspath{{img/manual/}}
 \usepackage{longtable}
 
+% the index (makeindex, with the style manual.ist: see latexmkrc)
+\makeindex
+
 % menus, keys, and the pictures of the window
 \newcommand*{\menu}[1]{\textit{#1}}
 \newcommand*{\then}{\,>\,}
@@ -160,6 +163,7 @@ passwords and exports their pages, pictures and text. It has a window,
 \texttt{py-pdftools-gui}, and a command line, \texttt{py-pdftools}, which
 does most of the same work without a window, on one file or on many.
 
+\index{pdf2iso}\index{annotations}\index{annotations!tags}\index{annotations!categories}\index{layers}\index{redaction}\index{ocr@OCR}\index{page labels}\index{headers and footers}\index{watermarks}\index{imposition}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 The program brings together six earlier programs of mine:
 \texttt{py-annotate} (annotations), \texttt{py-redact} (redaction),
 \texttt{py-foliation} (page labels, headers, footers and watermarks),
@@ -169,6 +173,7 @@ read as before: the tags and categories of annotations, the layers of
 headers, footers and watermarks, and the history of an imposition kept
 their names.
 
+\index{modes}\index{menus!submenus}\index{smaller copies}\index{command line}\index{macos and windows@macOS and Windows}%
 This manual explains the window first, mode by mode, then the work on
 whole files, the settings and the command line. The menus are written in
 italics, with their submenus after a \enquote{>}, as \menu{File\then Save a
@@ -177,6 +182,7 @@ is the Command key. The pictures show the window in English; with the
 interface in Spanish, every menu and dialog is in Spanish too (see
 section~\ref{sec:settings}).
 
+\index{licence}%
 \texttt{py-pdftools} is free software, under the GNU General Public
 License, version 3 or later. It uses PyMuPDF (GNU AGPL 3), pikepdf (Mozilla
 Public License 2.0), reportlab (BSD) and PySide6 (GNU LGPL 3); the full list
@@ -189,6 +195,7 @@ of the software it uses, with its licences, is in
 Every version is published on GitHub and on Codeberg (the addresses are on
 the first page), with these files:
 
+\index{appimage@AppImage}\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{installers}\index{macos and windows@macOS and Windows}%
 \begin{itemize}
 \item \texttt{py-pdftools-VERSION-x86\_64.AppImage}: the AppImage, for any
   Linux;
@@ -203,6 +210,7 @@ the first page), with these files:
 
 \subsection{Fedora}
 
+\index{fedora (copr, rpm)@Fedora (Copr, RPM)}%
 The easiest way is the Copr repository, for Fedora 45 and later. It uses
 Fedora's own Python, PyMuPDF, pikepdf, reportlab and PySide6, and installs
 a menu entry and the manual page (\texttt{man py-pdftools}):
@@ -212,7 +220,8 @@ $ sudo dnf copr enable nivaca/py-pdftools
 $ sudo dnf install py-pdftools
 \end{verbatim}
 
-\noindent Updates then come with \texttt{sudo dnf upgrade}. The RPM of
+\noindent\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{pyhanko@pyHanko}\index{tools!hand@Hand}\index{digital signatures}%
+Updates then come with \texttt{sudo dnf upgrade}. The RPM of
 each release can also be installed by hand, after importing its key with
 \texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora does not package
 pyHanko, the library of digital signatures, so the RPM goes without them;
@@ -220,6 +229,7 @@ the menu \menu{File\then Security} then says how to add it.
 
 \subsection{The AppImage}
 
+\index{appimage@AppImage}\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{pyhanko@pyHanko}\index{command line}%
 The AppImage needs nothing else: it brings its own Python, Qt and
 libraries, pyHanko among them, and runs on any Linux with glibc 2.34 or
 later (Ubuntu 22.04, Debian 12, Fedora 35 and later). Make it executable
@@ -243,7 +253,8 @@ $ install/install.sh --uninstall
 > install\install.bat -Uninstall
 \end{verbatim}
 
-\noindent The first two lines install (or update) and uninstall it on
+\noindent\index{links}\index{macos and windows@macOS and Windows}%
+The first two lines install (or update) and uninstall it on
 Linux and macOS, the others on Windows, where \texttt{-Desktop} also puts
 a shortcut on the desktop. Each one makes a Python environment of its own for
 \texttt{py-pdftools}, installs it there with its libraries (downloaded from
@@ -254,6 +265,7 @@ settings are never touched, so an update keeps them.
 
 \subsection{From the source}
 
+\index{uv}%
 With \texttt{uv}, the program runs straight from a copy of the source:
 
 \begin{verbatim}
@@ -268,6 +280,7 @@ $ uv run py-pdftools --help
 Three programs, installed apart, add what they do; without them,
 \texttt{py-pdftools} works without that:
 
+\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{ocr@OCR}\index{ocr@OCR!languages}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{language of the interface}%
 \begin{itemize}
 \item \textbf{Tesseract}, for OCR, with the languages of the documents
   (\texttt{tesseract-langpack-\ldots} on Fedora, \texttt{tesseract-ocr-\ldots}
@@ -276,7 +289,8 @@ Three programs, installed apart, add what they do; without them,
 \item \textbf{veraPDF}, if it is installed, to check the PDF/A copies.
 \end{itemize}
 
-\noindent Digital signatures need pyHanko: the AppImage and the installers
+\noindent\index{appimage@AppImage}\index{installers}\index{pyhanko@pyHanko}\index{digital signatures}%
+Digital signatures need pyHanko: the AppImage and the installers
 bring it; elsewhere, \texttt{pip install 'py-pdftools[signatures]'} adds it.
 
 \section{Starting the program}
@@ -291,13 +305,15 @@ $ py-pdftools-gui book.pdf#page=12
 $ py-pdftools-gui book.pdf#nameddest=intro
 \end{verbatim}
 
-\noindent With \texttt{\#page=} a document opens at that page, and with
+\noindent\index{opening at a page or destination}%
+With \texttt{\#page=} a document opens at that page, and with
 \texttt{\#nameddest=} at a named place of it. If the window is already
 open, the files are opened in it instead of in a new one.
 
 \subsection{Keeping it ready, in the background}
 \label{sec:background}
 
+\index{background, running in the}%
 Starting a program with Qt and PyMuPDF takes a second or two. If
 \menu{Settings\then General\then Keep running in the background} is ticked,
 closing the last window does not end the program: it stays in memory, with
@@ -308,6 +324,7 @@ then shows that window in a few hundredths of a second. The icon of the
 tray opens a window or ends the program; \menu{File\then Quit}
 (\key{Ctrl+Q}) ends it too.
 
+\index{background, running in the}\index{session, start with the}%
 With \menu{Settings\then General\then Start with the session} the program
 also starts when you log in, in the tray and without a window
 (\texttt{py-pdftools-gui --background}), so that the first document of the
@@ -316,6 +333,7 @@ day opens at once as well.
 \section{The window}
 \label{sec:window}
 
+\index{modes}\index{toolbars}\index{thumbnails}\index{bookmarks}\index{annotations!status}\index{redaction}\index{ocr@OCR}\index{imposition}%
 Figure~\ref{fig:read_en} shows the window with a document open. From the
 top: the menus; the bar of the modes (Read, OCR, Redact, Annotate, Foliate,
 Impose) and the main toolbar; on the left, the thumbnails of the pages,
@@ -327,9 +345,11 @@ bottom, the status bar, where the program says what it has just done.
 
 \subsection{The modes}
 
+\index{modes}\index{annotations!grouping and aligning}\index{keys}%
 The bar of the modes chooses what the window does, and how it is arranged.
 \key{Ctrl+1} to \key{Ctrl+6} choose the modes in the order of the bar.
 
+\index{tesseract@Tesseract}\index{modes!read@Read}\index{modes!ocr@OCR}\index{modes!redact@Redact}\index{modes!annotate@Annotate}\index{modes!foliate@Foliate}\index{modes!impose@Impose}\index{toolbars}\index{thumbnails}\index{zoom}\index{annotations}\index{annotations!stamp}\index{annotations!grouping and aligning}\index{redaction}\index{redaction!redacted copy}\index{ocr@OCR}\index{page labels}\index{headers and footers}\index{watermarks}\index{opening view}\index{imposition}\index{imposition!booklet}%
 \begin{description}
 \item[Read] only the pages and their thumbnails, with the toolbars to
   open, find, move through the pages and zoom; the mouse moves the pages.
@@ -346,17 +366,20 @@ The bar of the modes chooses what the window does, and how it is arranged.
   step and repeat (section~\ref{sec:impose}).
 \end{description}
 
+\index{modes}\index{toolbars}\index{thumbnails}\index{annotations!grouping and aligning}\index{page labels!ranges}%
 Each mode keeps its own arrangement of the window: which toolbars and
 panels are shown, where they are, the size of the thumbnails and the width
 of the panels. Arrange a mode once, dragging its toolbars and panels or
 hiding them with a right click, and choosing it again brings that
 arrangement back, also the next time the program is opened.
 
+\index{modes}\index{hints of the modes}%
 When a mode is chosen, a hint on what can be done in it is shown over the
 bottom of the pages for a few seconds; \menu{Help\then Tips for this mode}
 (\key{F1}) shows it again. The hints can be turned off in
 \menu{Settings\then Appearance}.
 
+\index{modes}\index{menus!submenus}\index{zoom}\index{annotations!grouping and aligning}\index{redaction}\index{ocr@OCR}\index{imposition}%
 The menus change with the mode too: Redact, Pages, Impose and OCR appear
 in their modes, and the menu Tools in Annotate. The menus File, Edit and
 View are always there, grouped in submenus (\menu{File\then New},
@@ -365,6 +388,7 @@ View are always there, grouped in submenus (\menu{File\then New},
 
 \subsection{Toolbars}
 
+\index{toolbars}\index{toolbars!locking}\index{toolbars!icons and text}\index{annotations!locking}%
 The toolbars can be dragged by their handle to another place, or out of
 the window. A right click on any toolbar shows the list of toolbars, to
 show or hide them, and how all of them look: icons only, text only, text
@@ -372,6 +396,7 @@ beside or under the icons, and the size of the icons. The same choices are
 in \menu{Settings\then Appearance}, with \menu{Lock the toolbars}, which
 keeps them where they are.
 
+\index{toolbars}\index{toolbars!customizing}%
 \menu{Settings\then Toolbars\then Customize the toolbars} (figure~\ref{fig:toolbars_en})
 chooses the buttons of each toolbar and their order: the actions on the
 left are added with the arrow, those on the right taken out or moved up
@@ -383,6 +408,7 @@ actions are wished, delete them, and bring any toolbar back to how it was at fir
 
 \subsection{The thumbnails}
 
+\index{thumbnails}\index{annotations}\index{page labels}%
 The panel of the thumbnails (\key{F3}) shows the pages small, each with its
 number in the file and, beside it, its label (see
 section~\ref{sec:labels}): in figure~\ref{fig:read_en}, the first page is
@@ -390,6 +416,7 @@ labelled \enquote{i}, the second \enquote{1}. A dot and a number after the
 label say how many annotations or boxes the page has. The slider under the
 thumbnails changes their size.
 
+\index{thumbnails}\index{copying text}\index{annotations!copying}\index{ocr@OCR}\index{headers and footers}\index{watermarks}%
 A click on a thumbnail goes to its page. \key{Ctrl+click} and
 \key{Shift+click} choose several, and \key{Ctrl+A}, with the thumbnails in
 focus, chooses them all. The pages chosen can be dragged to another place
@@ -401,6 +428,7 @@ opens.
 
 \subsection{Opening and saving}
 
+\index{opening!recent documents}\index{opening!a document}\index{tabs}\index{view!split}\index{pages!splitting}%
 A document is opened with \menu{File\then Open} (\key{Ctrl+O}), by dropping
 it on the window, or from \menu{File\then Open recent}. \menu{File\then Open
 in a new tab} (\key{Ctrl+T}) opens it in a tab of the same window; with
@@ -410,12 +438,14 @@ every document opens so. \menu{View\then Split the view}
 two documents side by side, and \menu{View\then Move the tab to a window of
 its own} takes it out.
 
+\index{passwords}\index{zoom}%
 A document protected with a password asks for it when it is opened. A
 document changed by another program while it is open is opened again by
 itself (this can be turned off in \menu{Settings\then General}), and each
 document opens where it was left, at the same page and zoom (in
 \menu{Settings\then Documents}).
 
+\index{modes}\index{saving}\index{working copy}\index{annotations}\index{forms}\index{redaction}\index{redaction!boxes}\index{imposition}%
 \menu{File\then Save} (\key{Ctrl+S}) writes the changes into the document:
 its annotations, its redaction boxes (as the redaction marks of PDF, not
 yet applied), the form, and the changes of the modes Foliate and Impose.
@@ -424,10 +454,12 @@ stays as it was until it is saved. Saving keeps the signatures of a signed
 document valid for what they signed. \menu{File\then Save as}
 (\key{Ctrl+Shift+S}) writes a copy and goes on with it.
 
+\index{modes}\index{undo and redo}\index{annotations}\index{page labels}\index{imposition}%
 \menu{Edit\then Undo} (\key{Ctrl+Z}) and \menu{Redo} (\key{Ctrl+Shift+Z})
 go back and forth through everything done to the document, in any mode:
 annotations, boxes, labels, pages moved or deleted, an imposition applied.
 
+\index{recovery copy}%
 While the document is changed and not yet saved, the program keeps a
 recovery copy of it every two minutes (the time is set in
 \menu{Settings\then General}). If the program ends without saving, the next
@@ -435,12 +467,14 @@ time the document is opened it offers to bring those changes back.
 
 \subsection{The rest of the menu File}
 
+\index{passwords}\index{flattening}\index{combining files}\index{pdf from pictures@PDF from pictures}\index{smaller copies}\index{pdf version@PDF version}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 Besides opening and saving, the menu File holds the work on whole files,
 which is explained in section~\ref{sec:files}: \menu{New} (combining files,
 a PDF from pictures), \menu{Save a copy} (flattened, smaller, with another
 PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
 \menu{Security} (passwords and signatures). It also has:
 
+\index{comparing versions}\index{annotations}%
 \begin{description}
 \item[Compare with another version] marks on this document what differs
   from another version of the same text (another edition, a draft): its
@@ -453,20 +487,24 @@ PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
 \section{Reading and moving through a document}
 \label{sec:reading}
 
+\index{modes}%
 These ways of reading and moving work in every mode.
 
 \subsection{Moving}
 
+\index{moving through pages}\index{page labels}%
 The pages are shown one under the other, and scroll with the wheel of the
 mouse, the scroll bar or the keys. \key{PgUp} and \key{PgDown} go to the
 previous and next page, \key{Ctrl+Home} and \key{Ctrl+End} to the first and
 the last. The box above the pages takes a page number or a label: type
 \enquote{12}, or \enquote{xiv}, and press Enter.
 
+\index{tools!hand@Hand}\index{autoscroll}%
 The tool Hand (\key{M}) moves the pages by dragging them; holding the space
 bar turns any tool into Hand for a moment, and the middle button of the
 mouse scrolls by itself, faster the farther the mouse goes.
 
+\index{links}\index{history of views}\index{bookmarks}\index{copying text}%
 Links are followed with a click (with the tool Select, with
 \key{Ctrl+click}), and web and mail addresses written in the text too,
 after asking whether to open them (in \menu{Settings\then Documents}).
@@ -475,6 +513,7 @@ jumped to: links, bookmarks, pages typed, places found.
 
 \subsection{Bookmarks}
 
+\index{bookmarks}\index{annotations!filtering}\index{page labels}%
 \menu{View\then Panels\then Bookmarks} (\key{F5}) shows the bookmarks of
 the document (its outline) as a tree, with the label of the page each one
 goes to (figure~\ref{fig:read_en}). The box at the top filters them by a
@@ -485,6 +524,7 @@ italics, and can make them from the headings of the text.
 
 \subsection{Finding text}
 
+\index{modes}\index{modes!redact@Redact}\index{toolbars}\index{finding!and redacting}\index{finding!text}\index{annotations!highlight}\index{redaction}%
 The button Find of the main toolbar (\key{Ctrl+F}) opens \menu{Find and
 highlight}: it finds a word, a phrase or a pattern in the document, lists
 the places found with their context, and goes to each one with
@@ -495,6 +535,7 @@ section~\ref{sec:redact}).
 
 \subsection{Selecting and copying text}
 
+\index{modes}\index{tools!hand@Hand}\index{selecting text}\index{copying text}\index{annotations!highlight}\index{annotations!underline, strikeout}\index{redaction}%
 The tool Select text (\key{X}), beside Hand in every mode, selects text as
 in a text editor: drag over it (across pages too), \key{Alt+drag} for a
 column, double-click a word, triple-click a line, \key{Shift+click} to
@@ -504,6 +545,7 @@ it out, to mark it for redaction, or to find it.
 
 \subsection{Zoom and layout}
 
+\index{zoom}\index{zoom!inked area}\index{zoom!actual size}\index{tools!zoom to area@Zoom to area}%
 The box of the zoom, above the pages, takes a percentage, or offers the
 usual ones. \menu{View\then Zoom} fits the page (\key{Ctrl+0}), the width
 (\key{Ctrl+9}), the height (\key{Ctrl+8}), or the inked area of the page
@@ -513,6 +555,7 @@ at its printed size on the screen. \key{Ctrl++} and \key{Ctrl+-} zoom in and
 out, as does \key{Ctrl} with the wheel. The tool Zoom to area (\key{Z})
 zooms to a frame dragged on a page, or zooms in where it clicks.
 
+\index{modes}\index{modes!foliate@Foliate}\index{page layout!two pages}\index{page layout!cover}\index{page layout!gaps}\index{view!rotating}%
 \menu{View\then Page layout} shows the pages one at a time, instead of
 scrolling, or two side by side (\key{Ctrl+Shift+2}), as an open book; with
 \menu{The first page alone, as a cover}, the even pages are on the left
@@ -526,17 +569,20 @@ good, use the mode Foliate.
 
 \subsection{Reading colours and full screen}
 
+\index{reading colours}%
 \menu{View\then Reading colours} shows the pages in other colours, which
 tire the eyes less at night: white, yellow or green on black, light on
 dark grey, or colours of one's own. Only the pages in view change, not the
 file; pictures change with them.
 
+\index{full screen}%
 \menu{View\then Full screen} (\key{F11}) shows the pages one at a time,
 full screen, as a presentation: the arrows or a click turn them, and
 \key{Esc} ends it.
 
 \subsection{Sharper text}
 
+\index{sharpness of text}%
 MuPDF, which draws the pages, draws the edges of letters soft, without
 snapping them to the pixels of the screen as the fonts of the desktop are,
 so that text can look a little blurred beside them. \menu{Settings\then
@@ -547,6 +593,7 @@ which darken those edges. Pictures get a little darker too.
 \section{Annotating}
 \label{sec:annotate}
 
+\index{modes}\index{modes!annotate@Annotate}\index{toolbars}\index{annotations}%
 In the mode Annotate (figure~\ref{fig:annotate_en}), the second toolbar
 holds the tools of annotation, which are also in the menu Tools, each with
 its key; the panel on the right lists the annotations of the document.
@@ -556,11 +603,13 @@ its key; the panel on the right lists the annotations of the document.
 
 \subsection{The tools}
 
+\index{toolbars}\index{annotations}%
 A tool is chosen in the toolbar, in the menu Tools, or with its key, and
 stays chosen until another is. With Select (\key{V}), a click selects an
 annotation, a frame dragged around several selects them all, and the
 handles of a selected annotation move and resize it.
 
+\index{tools!hand@Hand}\index{links}\index{annotations}\index{annotations!highlight}\index{annotations!underline, strikeout}\index{annotations!note}\index{annotations!text box}\index{annotations!callout}\index{annotations!typewriter}\index{annotations!stamp}\index{annotations!check mark}\index{signature, handwritten}\index{annotations!attached file}\index{annotations!shapes}\index{annotations!freehand}\index{tools!eraser@Eraser}\index{tablet pen}\index{links!making}\index{forms}%
 \begin{longtable}{@{}p{0.33\textwidth}lp{0.5\textwidth}@{}}
 \toprule
 Tool & Key & What it does\\
@@ -596,15 +645,18 @@ Link & \key{J} & A link (section~\ref{sec:links}).\\
 \bottomrule
 \end{longtable}
 
+\index{tools!hand@Hand}\index{annotations}\index{annotations!stamp}\index{annotations!check mark}\index{signature, handwritten}\index{tools!properties}%
 The right click on a tool sets what it does: the stamp or check mark it
 puts, and the signature, which is drawn once by hand in a small dialog and
 kept for later. \menu{Tools\then Properties of the tool} sets the colour,
 width, font and opacity the tool gives to new annotations.
 
+\index{settings!shortcuts}%
 The keys of the tools can be changed in \menu{Settings\then Shortcuts}.
 
 \subsection{Colours}
 
+\index{colours of annotations}\index{page labels!ranges}%
 The colours offered in the menus each have a meaning, shown beside their
 name, so that a reading can be marked consistently: yellow for what is
 important, green for definitions and concepts, blue for references and
@@ -614,6 +666,7 @@ Colours} changes the colours and what each means to you.
 
 \subsection{The panel of the annotations}
 
+\index{annotations}\index{annotations!panel}\index{annotations!filtering}\index{annotations!sorting}\index{annotations!status}\index{annotations!tags}\index{annotations!categories}%
 The panel of the annotations (\key{F4}) lists every annotation of the
 document, with its page, kind, author, status, the date it was changed, and
 its text (what it marks, or what it says). Its box at the top searches their
@@ -624,6 +677,7 @@ the pages show only the annotations the filters let through;
 \menu{Show the annotations} (\key{Ctrl+Shift+A}) hides them all, to see the
 document as it is.
 
+\index{annotations}\index{annotations!note}\index{annotations!replies}\index{annotations!status}\index{annotations!tags}%
 A click on an annotation of the list goes to it and selects it.
 \key{Alt+Down} and \key{Alt+Up} go to the next and previous one. Under the
 list, the annotation selected can be given a colour, a comment, tags, and a
@@ -634,6 +688,7 @@ annotation selected, or adds a note if none is.
 
 \subsection{Properties}
 
+\index{annotations}\index{annotations!tags}\index{annotations!categories}\index{annotations!properties}\index{annotations!locking}%
 \menu{Edit\then Properties} (\key{Alt+Return}), or a double click, shows
 all the properties of the annotations selected (figure~\ref{fig:annot_props_en}):
 their colours, border, font, alignment and opacity, their text, author,
@@ -644,6 +699,7 @@ this kind} makes the tool give that look to the next ones.
 
 \shot{annot_props_en}{0.45}{The properties of a text box.}
 
+\index{annotations}\index{textual criticism}\index{annotations!exporting}%
 The part \menu{Textual criticism} is for editors of texts: it makes the
 annotation an entry of the critical apparatus, with its kind (a variant
 reading, a manuscript reading, an emendation, a conjecture, a lacuna, a
@@ -653,11 +709,13 @@ its location, its source, the rationale and the confidence. \menu{File\then
 Export\then The annotations\then The critical apparatus} writes those
 entries in the order of the text.
 
+\index{annotations}\index{annotations!categories}%
 The categories an annotation may be put in are set in
 \menu{Settings\then Categories}, one on each line.
 
 \subsection{Editing several annotations}
 
+\index{annotations}\index{annotations!grouping and aligning}\index{annotations!copying}\index{page labels!ranges}%
 \menu{Edit\then Copy}, \menu{Paste} and \menu{Duplicate} (\key{Ctrl+D})
 copy annotations, also to another page or document. \menu{Edit\then
 Select} selects those of the page (\key{Ctrl+A}) or those of the same kind,
@@ -670,6 +728,7 @@ size. \menu{Edit\then Remove annotations} deletes those of the page, or all.
 \subsection{Find and highlight}
 \label{sec:findmark}
 
+\index{finding!and highlighting}\index{wildcards}\index{annotations}\index{annotations!highlight}\index{annotations!underline, strikeout}%
 \menu{Tools\then Find and highlight} (\key{Ctrl+F}, figure~\ref{fig:find_highlight_en})
 finds a word, a phrase or a pattern on the pages and marks the places
 found, with a highlight, an underline, a strikeout or any other text
@@ -686,6 +745,7 @@ context, and they are marked all at once, or only those chosen.
 \subsection{Links}
 \label{sec:links}
 
+\index{links}\index{links!making}%
 The tool Link (\key{J}, also in \menu{Edit\then Links}) makes a link where
 it is dragged on the page. The dialog asks where it goes: to a page of the
 document, to a web address, or to another PDF (figure~\ref{fig:link_en}).
@@ -698,8 +758,10 @@ the links} takes every link out of the document.
 
 \subsection{Exporting and importing annotations}
 
+\index{annotations}\index{annotations!exporting}\index{exporting}%
 \menu{File\then Export\then The annotations} writes the annotations:
 
+\index{annotations}\index{annotations!replies}\index{annotations!tags}\index{annotations!categories}\index{textual criticism}\index{annotations!exporting}\index{exporting!text}%
 \begin{itemize}
 \item as a report, in Markdown, page by page, with what they mark and their
   comments;
@@ -714,10 +776,12 @@ the links} takes every link out of the document.
   and their replies.
 \end{itemize}
 
-\noindent \menu{File\then Import\then Annotations} reads them from a JSON
+\noindent\index{annotations}\index{annotations!exporting}\index{annotations!importing}%
+\menu{File\then Import\then Annotations} reads them from a JSON
 or XFDF file, or from another copy of the same PDF, such as one annotated by
 someone else; the annotations already in the document are not added twice.
 
+\index{links}\index{annotations}\index{flattening}\index{forms}%
 \menu{File\then Save a copy\then Flattened} makes the annotations part of
 the pages: they are seen and printed everywhere, but can't be edited or
 removed any more. \menu{Without annotations} saves the document without
@@ -725,6 +789,7 @@ any (links and form fields stay).
 
 \subsection{Each mode, its own annotations}
 
+\index{modes}\index{annotations}\index{layers}\index{redaction}%
 Each mode works on its own annotations. In Annotate, the redaction boxes
 are shown, but the mouse goes through them; in Redact, the annotations are
 shown, and the mouse goes through them. The menu Layers, in Annotate, shows
@@ -733,6 +798,7 @@ and hides the layers of a document that has them (its optional content).
 \section{Forms}
 \label{sec:forms}
 
+\index{forms}\index{forms!panel}%
 A document with a form opens the panel Form (\key{F6}) by itself, or it
 opens with a click on a field. The fields can be filled on the page, as in
 any viewer, or in the panel, which lists them all, with their names
@@ -742,18 +808,21 @@ required.
 \shot{form_en}{1}{A form, with the panel Form. The price and the tax are
   shown in their format, and the total is worked out.}
 
+\index{saving}\index{forms}\index{javascript@JavaScript}%
 What most forms ask is done without JavaScript: numbers, dates, phone
 numbers and other formats are checked and shown in their format (in the
 picture, \enquote{1234.5} is shown as \enquote{\$1,234.50}), and sums and
 other calculations are worked out when a value changes. The form is saved
 with the document, with \menu{File\then Save}.
 
+\index{annotations!exporting}\index{flattening}\index{forms}%
 The buttons of the panel reset the form to its default values, export its
 values (JSON, CSV, XFDF or FDF), and import them, to fill the form with
 data kept elsewhere. \menu{File\then Save a copy\then With the form
 flattened} makes what the fields show part of the pages, so that it can't
 be changed any more.
 
+\index{forms}\index{forms!command line}\index{command line}%
 The command \texttt{py-pdftools form} does the same from the command line:
 it shows the fields of a form, fills it from a data file, makes a table of
 the values of many filled forms, and flattens it (section~\ref{sec:cli}).
@@ -761,6 +830,7 @@ the values of many filled forms, and flattens it (section~\ref{sec:cli}).
 \section{Redacting}
 \label{sec:redact}
 
+\index{modes}\index{modes!redact@Redact}\index{redaction}\index{redaction!redacted copy}%
 Redacting removes for good what must not be read: names, numbers,
 addresses, passages, pictures. In the mode Redact (figure~\ref{fig:redact_en}),
 boxes are put over what is to be removed; nothing is removed until the
@@ -772,11 +842,13 @@ loses anything.
 
 \subsection{Marking}
 
+\index{modes}\index{redaction}\index{redaction!marking}%
 The tool Redact (\key{R} in this mode) marks text by dragging over it: a box
 is made over each of its lines. Elsewhere, or with \key{Ctrl}, it draws a
 box, over a picture or any area. A double click marks only a word, or a
 picture.
 
+\index{annotations!stamp}\index{redaction}\index{redaction!boxes}%
 The panel of the boxes, on the right, lists them, with their page, the
 other pages they go on, their colour and size. A box can be repeated on
 other pages, in the same place, as a letterhead or a stamp would need: its
@@ -785,6 +857,7 @@ from page 2 to the end), and \menu{Redact\then Pages of the boxes} does the
 same for the boxes selected. Under the list, \menu{New boxes} sets the
 colour and the pages of the boxes still to be drawn.
 
+\index{annotations!note}\index{annotations!locking}\index{redaction}\index{redaction!properties of boxes}\index{redaction!codes}%
 \menu{Redact\then Properties of the boxes} sets how they will be once
 redacted: their fill (with no colour, what is under the box is removed and
 nothing is painted there), a text written over them (\enquote{REDACTED},
@@ -795,6 +868,7 @@ codes} chooses the code sets: short texts written over a box to say why
 it was redacted, such as the codes of the U.S. Freedom of Information Act
 (\texttt{(b)(6)}) or of the Privacy Act; sets of one's own can be added.
 
+\index{redaction}\index{redaction!showing the result}%
 \menu{Redact\then Show the result} (\key{Ctrl+R}) shows the boxes as they
 will look once applied: opaque, with their text (figure~\ref{fig:redact_result_en}).
 They can still be changed.
@@ -804,6 +878,7 @@ They can still be changed.
 
 \subsection{Find and redact}
 
+\index{finding!and redacting}\index{regular expressions}\index{forms}\index{redaction}\index{redaction!patterns}%
 \menu{Redact\then Find and redact} (figure~\ref{fig:redact_find_en}) finds
 what is to be redacted and puts boxes over it. It finds a word or phrase;
 several of them (one on each line, or read from a text file); or patterns:
@@ -820,6 +895,7 @@ with their context; \menu{Mark them all} puts a box over each, and
 
 \subsection{Text only covered}
 
+\index{toolbars!icons and text}\index{annotations}\index{redaction}\index{redaction!text only covered}\index{redaction!redacted copy}%
 A document may look redacted and not be: a black box drawn over a name, or
 a picture or an annotation over it, hides it on the screen, but the name is
 still in the file, and anyone can select it, copy it, or find it.
@@ -832,6 +908,7 @@ all} marks it, so that the redacted copy takes it out.
 
 \subsection{The redacted copy}
 
+\index{bookmarks}\index{annotations}\index{redaction}\index{redaction!redacted copy}%
 \menu{Redact\then Save the redacted copy} (\key{Ctrl+Shift+R}) writes a
 copy of the document in which what is under the boxes is removed: text,
 pictures (the part under the box), drawings and annotations. The copy is
@@ -840,6 +917,7 @@ bookmark gives it away, the program says so. The copy is made from the
 document as it was last saved, so the program offers to save the other
 changes first.
 
+\index{links}\index{annotations!attached file}\index{layers}\index{javascript@JavaScript}\index{redaction}\index{redaction!redacted copy}\index{metadata}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{Save the redacted copy as} makes it a PDF/A or PDF/X
 (section~\ref{sec:pdfa}). With \menu{Also remove metadata, hidden text,
 attachments and scripts} ticked, the copy loses as well what the document
@@ -848,12 +926,14 @@ isn't shown, layers switched off, attached files, JavaScript and links.
 \menu{Redact\then Metadata} (\key{Ctrl+Shift+M}) shows and changes the
 metadata the copy will have, or removes it.
 
+\index{annotations}\index{flattening}\index{ocr@OCR!searchable copy}%
 Copies that make the annotations part of the pages (flattened, searchable,
 printed) leave the boxes out, since a box painted there would hide what is
 still in the file.
 
 \subsection{Hidden information}
 
+\index{thumbnails}\index{links}\index{bookmarks}\index{annotations!attached file}\index{layers}\index{forms}\index{redaction}\index{metadata}\index{hidden information}\index{page labels}%
 \menu{Redact\then Remove hidden information} shows what the document holds
 besides what its pages show (figure~\ref{fig:hidden_en}): metadata,
 attached files, bookmarks, page labels, comments, form fields, hidden
@@ -863,6 +943,7 @@ is not changed, and its boxes are not applied.
 
 \shot{hidden_en}{0.55}{Remove hidden information.}
 
+\index{links}\index{layers}\index{redaction}\index{metadata}\index{sanitizing}\index{redaction!settings}%
 \menu{Redact\then Sanitize the document} saves at once a copy without
 metadata, hidden text and layers, attachments, scripts and links, and
 with nothing else changed. \menu{Settings of redaction} sets the colour of new boxes, what
@@ -874,6 +955,7 @@ under a box is always removed.
 \section{Reading scanned pages (OCR)}
 \label{sec:ocr}
 
+\index{tesseract@Tesseract}\index{modes}\index{modes!ocr@OCR}\index{undo and redo}\index{redaction}\index{ocr@OCR}%
 A scanned page is a picture: its text can't be found, selected or marked.
 The mode OCR (figure~\ref{fig:ocr_en}) reads that text with Tesseract and
 writes it into the document, invisible, under the picture of each page, so
@@ -882,6 +964,7 @@ is a change of the document, undone and saved like the others.
 
 \shot{ocr_en}{1}{The mode OCR, with a scanned page.}
 
+\index{tesseract@Tesseract}\index{thumbnails}\index{ocr@OCR!languages}\index{ocr@OCR!turning pages}\index{language of the interface}%
 The panel says which version of Tesseract is installed and how many pages
 are scans without text. It reads those pages, those chosen in the
 thumbnails, the page shown, or a list of pages; pages that already have
@@ -891,11 +974,13 @@ result. \menu{Turn the pages lying sideways or upside down} turns them
 first (this needs the data \enquote{osd} of Tesseract). \menu{Recognise
 text} (\key{Ctrl+Shift+O}) reads them.
 
+\index{tesseract@Tesseract}\index{ocr@OCR!doubtful words}%
 With \menu{Check the doubtful words before the text is written}, the words
 Tesseract was not sure of are shown, each beside its picture, to be
 corrected before the text is written; how sure is sure enough is set in
 \menu{Doubtful below}.
 
+\index{tesseract@Tesseract}\index{ocr@OCR}\index{ocr@OCR!languages}\index{ocr@OCR!models}\index{ocr@OCR!turning pages}\index{language of the interface}%
 \menu{OCR\then Languages} (figure~\ref{fig:ocr_languages_en}) lists every
 language Tesseract can read, and downloads, updates or removes its more
 accurate models (\enquote{tessdata\_best}), and \enquote{osd}, which finds
@@ -904,6 +989,7 @@ default are set in \menu{Settings\then General\then OCR languages}.
 
 \shot{ocr_languages_en}{0.75}{The languages of OCR.}
 
+\index{modes}\index{thumbnails}\index{ocr@OCR}\index{ocr@OCR!searchable copy}%
 \menu{File\then Save a copy\then Searchable (OCR)} writes a copy with the
 text read, without changing the document open; in the other modes, the
 right click on the thumbnails reads the pages chosen. From the command
@@ -912,6 +998,7 @@ line: \texttt{py-pdftools ocr scan.pdf -l lat+spa --rotate --report}.
 \section{Foliating: labels and pages}
 \label{sec:foliate}
 
+\index{modes}\index{modes!foliate@Foliate}\index{page labels}\index{page labels!ranges}\index{headers and footers}\index{watermarks}\index{command line}%
 The mode Foliate (figure~\ref{fig:pages_en}) works on the pages as a whole:
 their labels, their order, their headers, footers and watermarks, and how
 the document opens. Its panel, on the right, has the ranges of the labels,
@@ -924,11 +1011,13 @@ that would make the same labels from the command line.
 \subsection{Page labels}
 \label{sec:labels}
 
+\index{thumbnails}\index{page labels}\index{page labels!styles}%
 The page labels are the numbers a PDF viewer shows for its pages, instead
 of 1, 2, 3: a book's front matter in roman numerals, its text from 1, an
 appendix as A-1, A-2. They don't change the pages; they are what the
 reader types to go to page \enquote{xiv}, and what the thumbnails show.
 
+\index{page labels}\index{page labels!ranges}\index{page labels!styles}%
 They are given by ranges: each range starts at a page, with a style
 (1, 2, 3; i, ii, iii; I, II, III; a, b, c; A, B, C; 1r, 1v, 2r, as the
 folios of a manuscript; or no number, only a prefix), the number it starts
@@ -936,6 +1025,7 @@ at, a prefix and a suffix. In the table of the panel, \menu{Add a range}
 starts a new range at the page shown, \menu{Remove the range} removes it,
 and \menu{No labels} removes all of them.
 
+\index{thumbnails}\index{redaction!boxes}\index{page labels}\index{page labels!numbering pages}%
 It is simpler, most of the time, to choose pages in the thumbnails and use
 their right click, \menu{Labels}: \menu{Number these pages}
 (figure~\ref{fig:number_en}) numbers them one after the other, in a style,
@@ -946,6 +1036,7 @@ labels}.
 
 \shot{number_en}{0.35}{Numbering three pages.}
 
+\index{page labels}\index{page labels!copying and lists}%
 \menu{Pages\then Labels} also copies the labels of another PDF (an earlier
 export of the same book, for instance), reads them from a list (a text
 file with the label of each page, one on each line), and saves them as
@@ -955,6 +1046,7 @@ labels, or take those of their new places, or the program asks each time.
 
 \subsection{Arranging the pages}
 
+\index{modes}\index{toolbars}\index{thumbnails}\index{links}\index{bookmarks}\index{annotations!grouping and aligning}\index{annotations!copying}\index{page labels!ranges}\index{pages!arranging}\index{pages!inserting and replacing}%
 The pages are arranged with the toolbar of the mode, the right click on the
 thumbnails and \menu{Pages\then Arrange pages}: rotate them, duplicate
 them, delete them, move them (to the start, to the end, before a page),
@@ -962,6 +1054,7 @@ reverse their order, insert blank pages before or after them, insert the
 pages of another PDF, or replace them by pages of another PDF (their links
 and bookmarks stay). Pages can also be dragged in the thumbnails.
 
+\index{bookmarks}\index{annotations!grouping and aligning}\index{page labels}\index{page labels!ranges}\index{pages!arranging}\index{pages!extracting}\index{pages!splitting}%
 \menu{Extract to a new PDF} saves the pages chosen as a new file.
 \menu{Arrange pages\then Split} (figure~\ref{fig:split_en}) cuts the
 document into several files: every so many pages (one per page, named
@@ -973,6 +1066,7 @@ that no part is bigger than a size.
 
 \subsection{Headers and footers}
 
+\index{page labels}\index{headers and footers}\index{headers and footers!variables}%
 \menu{Pages\then Header and footer\then Add} (figure~\ref{fig:headfoot_en})
 writes text at the top and bottom of the pages, in three places each:
 left, centre, right. Unlike the labels, they change the pages themselves,
@@ -981,6 +1075,7 @@ insert:
 
 \shot{headfoot_en}{0.85}{A footer with the label of each page, from page 2.}
 
+\index{bookmarks}\index{page labels}\index{headers and footers!variables}\index{bates numbering@Bates numbering}%
 \begin{longtable}{@{}>{\raggedright}p{0.36\textwidth}p{0.58\textwidth}@{}}
 \toprule
 Variable & What it writes\\
@@ -1001,6 +1096,7 @@ Variable & What it writes\\
 \end{longtable}
 
 
+\index{background, running in the}\index{page labels!numbering pages}\index{headers and footers}\index{bates numbering@Bates numbering}\index{profiles}\index{imposition!preview}\index{smaller copies}%
 The dialog also sets the margins (in centimetres, inches or points), and
 whether the pages are made smaller to leave room for the header; the font
 (Helvetica, Times or Courier), its size, colour, bold and italic, a border
@@ -1011,12 +1107,14 @@ digits and a suffix. The preview, on the right, shows the result on any
 page. The settings can be saved as a profile, and the profiles marked
 \menu{Show on menu} appear in \menu{Pages\then Header and footer}.
 
+\index{headers and footers}\index{bates numbering@Bates numbering}%
 \menu{Update} changes the header and footer added last, and \menu{Remove
 all} takes them away (or only the Bates numbers), since they are kept as
 a layer of their own.
 
 \subsection{Watermarks}
 
+\index{headers and footers}\index{headers and footers!variables}\index{watermarks}%
 \menu{Pages\then Watermark\then Add} (figure~\ref{fig:watermark_en}) puts a
 text, or a page of a PDF, in front of the content of the pages or behind
 it: \enquote{DRAFT} across them, a seal, a logo drawn in a PDF. The text
@@ -1028,12 +1126,14 @@ and removed as the headers can.
 
 \shot{watermark_en}{0.85}{A watermark.}
 
+\index{headers and footers}\index{bates numbering@Bates numbering}\index{watermarks}\index{several files at once}%
 \menu{Pages\then On several files} adds or removes headers, footers, Bates
 numbers or watermarks on many PDFs at once, the Bates numbers going on from
 one file to the next.
 
 \subsection{When the document is opened}
 
+\index{opening view}\index{settings!documents}%
 \menu{Pages\then When the document is opened} sets how PDF viewers show
 the document when they open it: its page layout (single, single continuous,
 facing, facing continuous, cover, cover continuous), its page view (actual
@@ -1044,6 +1144,7 @@ size, fit to width, fit to page), and the page it opens at. This program obeys t
 \section{Imposing}
 \label{sec:impose}
 
+\index{modes}\index{modes!impose@Impose}\index{annotations!grouping and aligning}\index{page labels!ranges}\index{imposition}\index{imposition!booklet}\index{imposition!binding, paper, marks}%
 Imposing arranges the pages of a document on the sheets of paper they will
 be printed on: a booklet, folded in the middle; several pages on each
 sheet (n-up); copies of a page repeated to fill a sheet (step and repeat);
@@ -1053,6 +1154,7 @@ with marks for cutting and folding, bleeds and gutters. The mode Impose
 \shot{impose_en}{1}{The mode Impose: a 2-up booklet, and a sheet of the
   result.}
 
+\index{annotations!stamp}\index{forms}\index{profiles}\index{imposition}\index{imposition!booklet}\index{imposition!basic and advanced forms}\index{imposition!sequence}\index{imposition!binding, paper, marks}%
 The form on the left sets the imposition, in two ways. \menu{Basic} has the
 layout (its type, columns and rows), the profile, the units, the binding
 (saddle-stitching or perfect binding, sheets per fold, the side bound,
@@ -1061,6 +1163,7 @@ of every command of imposition, one by one (booklet, n-up, step and
 repeat, creep, bleed, trim and shift, tiles, stamps, page numbers\ldots),
 and the \menu{Sequence}, which chains several of them.
 
+\index{saving}\index{undo and redo}\index{forms}\index{imposition}\index{imposition!preview}\index{imposition!applying}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{Preview} (\key{F5}) runs the command and shows the result on the
 right, a sheet at a time; with \menu{Auto preview}, it runs whenever the
 form changes. \menu{Save} writes the result as a new file (also as PDF/A or
@@ -1068,6 +1171,7 @@ PDF/X, with \menu{Impose\then Save as}); \menu{Apply} (\key{Ctrl+Return})
 makes the result the document, which \menu{Undo apply} or \key{Ctrl+Z}
 takes back. \menu{Stop} stops a long command.
 
+\index{forms}\index{profiles}\index{imposition}\index{imposition!command line}\index{command line}%
 The settings of the form can be kept as profiles; those marked \menu{Show
 on Menu} appear in \menu{Impose\then Profiles}. \menu{Impose\then Copy
 command line} copies the command that does the same, to use it in a
@@ -1080,6 +1184,7 @@ original document} shows it beside the result.
 
 \subsection{Combining files}
 
+\index{links}\index{bookmarks}\index{annotations}\index{forms}\index{page labels}\index{combining files}%
 \menu{File\then New\then Combine files} (figure~\ref{fig:combine_en}) makes
 one PDF of several, or of some of their pages. The files are dropped on its
 list, or added, and put in order by dragging them, or with \menu{Up} and
@@ -1093,6 +1198,7 @@ page labels of each file can be kept.
 
 \subsection{A PDF from pictures}
 
+\index{modes}\index{modes!ocr@OCR}\index{annotations!sorting}\index{ocr@OCR}\index{pdf from pictures@PDF from pictures}%
 \menu{File\then New\then New PDF from pictures} (figure~\ref{fig:images_en})
 makes a PDF of photographs or scans, a page for each, in the order of the
 list. \menu{By name} sorts them. Each page can be as big as its picture, or
@@ -1104,6 +1210,7 @@ read its text at once.
 
 \subsection{Smaller copies}
 
+\index{smaller copies}%
 \menu{File\then Save a copy\then Smaller} (figure~\ref{fig:reduce_en})
 makes a copy that takes less space. It shows first where the bytes of the
 document go: its pictures, the content of its pages, and the rest. Then it
@@ -1117,8 +1224,10 @@ latter, and nothing changes in how the document looks.
 
 \subsection{Exporting}
 
+\index{exporting}%
 \menu{File\then Export} (figure~\ref{fig:export_en}) saves:
 
+\index{exporting!pages as pictures}\index{exporting!text}%
 \begin{itemize}
 \item the pages as pictures, PNG, JPEG or TIFF, at a resolution, in colour
   or grey, all of them or some;
@@ -1132,6 +1241,7 @@ latter, and nothing changes in how the document looks.
 
 \subsection{Another PDF version}
 
+\index{layers}\index{pdf version@PDF version}\index{encryption}%
 Some programs and offices ask for a PDF of a given version.
 \menu{File\then Save a copy\then With another PDF version}
 (figure~\ref{fig:version_en}) makes a copy that says it is PDF 1.3 to 2.0,
@@ -1145,6 +1255,7 @@ below 1.7).
 \subsection{PDF/A and PDF/X}
 \label{sec:pdfa}
 
+\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{pdf2iso}\index{annotations!attached file}\index{forms}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{File\then Save a copy} also writes the document as PDF/A-1b, PDF/A-2b
 or PDF/A-3b, the forms of PDF made for archiving (the last one with
 attached files), or as PDF/X-4, for printing. Ghostscript makes them, and
@@ -1154,6 +1265,7 @@ pdf2iso} can name another \texttt{pdf2iso} to use.
 
 \subsection{Passwords}
 
+\index{passwords}\index{annotations!locking}\index{passwords!permissions}\index{encryption}%
 \menu{File\then Security\then Protect with passwords}
 (figure~\ref{fig:protect_en}) sets a password to open the document, one
 for its permissions (printing, copying, changing it\ldots), or both, and
@@ -1167,6 +1279,7 @@ a document opened with its password.
 
 \subsection{Digital signatures}
 
+\index{passwords}\index{digital signatures}\index{digital signatures!digital id@digital ID}%
 A digital signature says who signed a document, and shows whether it was
 changed afterwards. It needs a digital ID: a file \texttt{.p12} with a
 certificate and its private key, protected by a password, given by an
@@ -1176,6 +1289,7 @@ name, an e-mail address and the rest of the details.
 
 \shot{make_id_en}{0.5}{Making a digital ID.}
 
+\index{passwords}\index{annotations!locking}\index{forms}\index{redaction!boxes}\index{digital signatures}\index{digital signatures!certifying}\index{digital signatures!timestamp}%
 \menu{File\then Security\then Sign the document} (figure~\ref{fig:sign_en})
 signs it with an ID and its password, with a reason, a place and a contact.
 A visible signature is dragged where it goes on the page, or put in an
@@ -1190,6 +1304,7 @@ then.
 
 \shot{sign_en}{0.6}{Signing a document.}
 
+\index{digital signatures!checking}%
 \menu{File\then Security\then Check the signatures}
 (figure~\ref{fig:signatures_en}) checks the signatures of the document:
 whether each is intact and valid, who signed it and whether they are among
@@ -1203,12 +1318,14 @@ opens the document as it was when that signature was made.
 \section{Settings}
 \label{sec:settings}
 
+\index{tabs}\index{settings}%
 \menu{Settings\then Settings} (\key{Ctrl+,}) has seven tabs.
 
 \subsection{General}
 
 \shot{settings_general_en}{0.6}{Settings, General.}
 
+\index{pdf2iso}\index{background, running in the}\index{tabs}\index{recovery copy}\index{annotations}\index{tablet pen}\index{ocr@OCR}\index{ocr@OCR!languages}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{settings!author}\index{language of the interface}%
 \begin{description}
 \item[Author] the name written in the annotations you make.
 \item[Recovery copy every] how often the changes not yet saved are kept,
@@ -1228,13 +1345,15 @@ opens the document as it was when that signature was made.
 \item[Put the tools back] as they were at first.
 \end{description}
 
-\noindent The foot of the tab says where the settings are kept (see
+\noindent\index{tabs}%
+The foot of the tab says where the settings are kept (see
 section~\ref{sec:files-kept}).
 
 \subsection{Appearance}
 
 \shot{settings_appearance_en}{0.6}{Settings, Appearance.}
 
+\index{modes}\index{hints of the modes}\index{toolbars}\index{toolbars!icons and text}\index{sharpness of text}\index{annotations!locking}\index{settings!appearance}\index{language of the interface}%
 \begin{description}
 \item[Colours of the interface] as the system, light or dark.
 \item[Size of the interface] the size of the letters of the menus,
@@ -1251,6 +1370,7 @@ section~\ref{sec:files-kept}).
 
 \shot{settings_documents_en}{0.6}{Settings, Documents.}
 
+\index{opening!recent documents}\index{zoom}\index{zoom!actual size}\index{settings!documents}%
 \begin{description}
 \item[A document opens showing] the zoom of a document opened for the
   first time: as the document asks, the whole page, the width of the page,
@@ -1265,6 +1385,7 @@ section~\ref{sec:files-kept}).
 
 \subsection{Colours, Shortcuts, Categories}
 
+\index{annotations}\index{colours of annotations}\index{annotations!categories}\index{settings!shortcuts}%
 \menu{Colours} sets the colours offered in the menus of annotation, and
 what each one means to you. \menu{Shortcuts} sets the key of every tool and
 action: click the key of an action and press the new one. \menu{Categories}
@@ -1275,6 +1396,7 @@ the three has a button to bring back the usual ones.
 
 \shot{settings_performance_en}{0.6}{Settings, Performance.}
 
+\index{thumbnails}\index{settings!performance}%
 \begin{description}
 \item[Memory] how much memory the window may use: Low, Normal, High, or All
   pages, which keeps every page and thumbnail drawn, within half of the free
@@ -1288,6 +1410,7 @@ the three has a button to bring back the usual ones.
 \subsection{Where the settings are kept}
 \label{sec:files-kept}
 
+\index{modes}\index{toolbars}\index{tools!hand@Hand}\index{annotations!grouping and aligning}\index{page labels!ranges}\index{headers and footers!variables}\index{configuration files}\index{macos and windows@macOS and Windows}%
 The settings are kept in a file, \texttt{config.toml}, in the configuration
 folder: \texttt{\textasciitilde/.config/py-pdftools/} on Linux,
 \texttt{\textasciitilde/Library/Application Support/py-pdftools/} on macOS,
@@ -1300,12 +1423,14 @@ The certificates of the signers trusted are kept in the same folder, in
 documents open at the end are kept apart, in \texttt{py-pdftools.conf},
 in the same configuration folder on Linux.
 
+\index{language of the interface}%
 The language of the interface can also be chosen with
 \texttt{py-pdftools interface es} (or \texttt{en}).
 
 \section{The command line}
 \label{sec:cli}
 
+\index{passwords}\index{forms}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{command line}\index{command line!common options}%
 \texttt{py-pdftools} does without a window most of what the window does,
 on one file or on many, so that it can be used in scripts.
 \texttt{py-pdftools COMMAND -h} explains each command and all its options.
@@ -1315,6 +1440,7 @@ them in a folder (\texttt{--output-dir}); \texttt{-n} shows what would be
 done, without writing anything; \texttt{--conform} saves them as PDF/A or
 PDF/X; \texttt{--password} opens protected files.
 
+\index{pdf2iso}\index{forms}\index{ocr@OCR}\index{page labels}\index{pages!splitting}\index{headers and footers}\index{bates numbering@Bates numbering}\index{watermarks}\index{imposition}\index{combining files}\index{smaller copies}\index{exporting!pages as pictures}\index{pdf version@PDF version}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{language of the interface}\index{command line!completion}%
 \begin{longtable}{@{}lp{0.68\textwidth}@{}}
 \toprule
 Command & What it does\\
@@ -1359,23 +1485,27 @@ $ py-pdftools form fill form.pdf data.json -o filled.pdf
 $ py-pdftools reduce scans.pdf -o smaller.pdf --level medium
 \end{verbatim}
 
-\noindent The second sets the labels i, ii\ldots\ from page 1 and 1,
+\noindent\index{page labels}%
+The second sets the labels i, ii\ldots\ from page 1 and 1,
 2\ldots\ from page 9. In \texttt{pages}, the operations are made in the
 order given, each on the pages as the ones before left them; a list of
 pages is written as \texttt{9-20,31}, with \texttt{LAST} counting from the
 end, or \texttt{all}, \texttt{even}, \texttt{odd}. The single quotes keep
 the shell from reading \texttt{\$pagelabel}.
 
+\index{command line!completion}%
 \texttt{py-pdftools completion bash} (or \texttt{fish}, \texttt{zsh})
 prints a script that completes the commands and options in the shell.
 
 \section{Keys}
 \label{sec:keys}
 
+\index{annotations}\index{settings!shortcuts}%
 The keys of the tools of annotation are in section~\ref{sec:annotate}.
 These are the others; all of them can be changed in \menu{Settings\then
 Shortcuts}.
 
+\index{modes}\index{hints of the modes}\index{thumbnails}\index{tabs}\index{view!split}\index{undo and redo}\index{moving through pages}\index{tools!hand@Hand}\index{history of views}\index{bookmarks}\index{selecting text}\index{copying text}\index{zoom}\index{zoom!inked area}\index{zoom!actual size}\index{tools!zoom to area@Zoom to area}\index{view!rotating}\index{full screen}\index{annotations}\index{annotations!highlight}\index{annotations!properties}\index{annotations!grouping and aligning}\index{annotations!copying}\index{forms}\index{redaction}\index{redaction!marking}\index{redaction!showing the result}\index{redaction!redacted copy}\index{metadata}\index{ocr@OCR}\index{pages!splitting}\index{imposition}\index{imposition!preview}\index{imposition!applying}\index{keys}%
 \begin{longtable}{@{}>{\raggedright}p{0.4\textwidth}p{0.54\textwidth}@{}}
 \toprule
 Key & Action\\
@@ -1421,6 +1551,7 @@ Key & Action\\
 
 \section{When something goes wrong}
 
+\index{appimage@AppImage}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{pyhanko@pyHanko}\index{modes}\index{toolbars}\index{toolbars!customizing}\index{toolbars!icons and text}\index{thumbnails}\index{recovery copy}\index{sharpness of text}\index{annotations!grouping and aligning}\index{forms}\index{redaction}\index{redaction!text only covered}\index{redaction!redacted copy}\index{ocr@OCR}\index{ocr@OCR!languages}\index{ocr@OCR!models}\index{smaller copies}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{language of the interface}\index{configuration files}%
 \begin{description}
 \item[The text looks blurred] choose \menu{Sharper} or \menu{Sharpest} in
   \menu{Settings\then Appearance\then Text on the pages}, and check that
@@ -1447,9 +1578,12 @@ Key & Action\\
   brings back the first arrangement of every mode.
 \end{description}
 
-\noindent Problems and wishes can be written as issues on GitHub or
+\noindent\index{troubleshooting}%
+Problems and wishes can be written as issues on GitHub or
 Codeberg (the addresses are on the first page), or sent to
 \href{mailto:nicolasvaughan@proton.me}{\texttt{nicolasvaughan@proton.me}}.
+
+\printindex
 
 \end{document}
 

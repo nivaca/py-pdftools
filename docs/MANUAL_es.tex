@@ -132,6 +132,9 @@
 \graphicspath{{img/manual/}}
 \usepackage{longtable}
 
+% the index (makeindex, with the style manual.ist: see latexmkrc)
+\makeindex
+
 % menus, keys, and the pictures of the window
 \newcommand*{\menu}[1]{\textit{#1}}
 \newcommand*{\then}{\,>\,}
@@ -161,6 +164,7 @@ su texto. Tiene una ventana, \texttt{py-pdftools-gui}, y una línea de
 órdenes, \texttt{py-pdftools}, que hace casi todo lo mismo sin ventana,
 sobre un archivo o sobre muchos.
 
+\index{pdf2iso}\index{anotaciones}\index{anotaciones!etiquetas}\index{anotaciones!categorias@categorías}\index{capas}\index{censura}\index{ocr@OCR}\index{etiquetas de pagina@etiquetas de página}\index{encabezados y pies de pagina@encabezados y pies de página}\index{marcas de agua}\index{imposicion@imposición}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 El programa reúne seis programas anteriores míos: \texttt{py-annotate}
 (anotaciones), \texttt{py-redact} (censura), \texttt{py-foliation}
 (etiquetas de página, encabezados, pies y marcas de agua),
@@ -170,6 +174,7 @@ leen como antes: las etiquetas y categorías de las anotaciones, las capas
 de encabezados, pies y marcas de agua y la historia de una imposición
 conservaron sus nombres.
 
+\index{modos}\index{menus@menús!submenus@submenús}\index{copias mas pequenas@copias más pequeñas}\index{linea de ordenes@línea de órdenes}\index{macos y windows@macOS y Windows}%
 Este manual explica primero la ventana, modo por modo; luego, el trabajo
 sobre archivos enteros, la configuración y la línea de órdenes. Los menús
 van en cursiva, con sus submenús tras un \enquote{>}, así:
@@ -178,6 +183,7 @@ van en cursiva, con sus submenús tras un \enquote{>}, así:
 muestran la ventana en español; con la interfaz en inglés, todos los menús
 y diálogos están en inglés (véase la sección~\ref{sec:settings}).
 
+\index{licencia}%
 \texttt{py-pdftools} es software libre, con la Licencia Pública General de
 GNU, versión 3 o posterior. Usa PyMuPDF (GNU AGPL 3), pikepdf (Mozilla
 Public License 2.0), reportlab (BSD) y PySide6 (GNU LGPL 3); la lista
@@ -190,6 +196,7 @@ completa del software que usa, con sus licencias, está en
 Cada versión se publica en GitHub y en Codeberg (las direcciones están en
 la primera página), con estos archivos:
 
+\index{appimage@AppImage}\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{instaladores}\index{macos y windows@macOS y Windows}%
 \begin{itemize}
 \item \texttt{py-pdftools-VERSIÓN-x86\_64.AppImage}: la AppImage, para
   cualquier Linux;
@@ -205,6 +212,7 @@ la primera página), con estos archivos:
 
 \subsection{Fedora}
 
+\index{fedora (copr, rpm)@Fedora (Copr, RPM)}%
 Lo más fácil es el repositorio de Copr, para Fedora 45 y posteriores. Usa
 el Python, el PyMuPDF, el pikepdf, el reportlab y el PySide6 de Fedora, e
 instala una entrada en el menú y la página del manual
@@ -215,7 +223,8 @@ $ sudo dnf copr enable nivaca/py-pdftools
 $ sudo dnf install py-pdftools
 \end{verbatim}
 
-\noindent Las actualizaciones llegan luego con \texttt{sudo dnf upgrade}.
+\noindent\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{pyhanko@pyHanko}\index{herramientas!mano@Mano}\index{firmas digitales}%
+Las actualizaciones llegan luego con \texttt{sudo dnf upgrade}.
 El RPM de cada versión también puede instalarse a mano, tras importar su
 clave con \texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora no
 empaqueta pyHanko, la biblioteca de las firmas digitales, así que el RPM va
@@ -224,6 +233,7 @@ añadirla.
 
 \subsection{La AppImage}
 
+\index{appimage@AppImage}\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{pyhanko@pyHanko}\index{linea de ordenes@línea de órdenes}%
 La AppImage no necesita nada más: trae su propio Python, Qt y bibliotecas,
 pyHanko entre ellas, y funciona en cualquier Linux con glibc 2.34 o
 posterior (Ubuntu 22.04, Debian 12, Fedora 35 y posteriores). Basta con
@@ -249,7 +259,8 @@ $ install/install.sh --uninstall
 > install\install.bat -Uninstall
 \end{verbatim}
 
-\noindent Las dos primeras líneas lo instalan (o lo actualizan) y lo
+\noindent\index{instaladores}\index{modos}\index{contrasenas@contraseñas!permisos}\index{macos y windows@macOS y Windows}%
+Las dos primeras líneas lo instalan (o lo actualizan) y lo
 desinstalan en Linux y macOS; las demás, en Windows, donde
 \texttt{-Desktop} pone además un acceso directo en el escritorio. Cada
 instalador crea un entorno de Python propio para \texttt{py-pdftools}, lo
@@ -261,6 +272,7 @@ se toca nunca, así que una actualización la conserva.
 
 \subsection{Desde el código fuente}
 
+\index{uv}%
 Con \texttt{uv}, el programa funciona directamente desde una copia del
 código:
 
@@ -276,6 +288,7 @@ $ uv run py-pdftools --help
 Tres programas, que se instalan aparte, añaden lo que hacen; sin ellos,
 \texttt{py-pdftools} funciona sin eso:
 
+\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{ocr@OCR}\index{ocr@OCR!idiomas}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{idioma de la interfaz}%
 \begin{itemize}
 \item \textbf{Tesseract}, para el OCR, con los idiomas de los documentos
   (\texttt{tesseract-langpack-\ldots} en Fedora,
@@ -284,7 +297,8 @@ Tres programas, que se instalan aparte, añaden lo que hacen; sin ellos,
 \item \textbf{veraPDF}, si está instalado, para comprobar las copias PDF/A.
 \end{itemize}
 
-\noindent Las firmas digitales necesitan pyHanko: la AppImage y los
+\noindent\index{appimage@AppImage}\index{instaladores}\index{pyhanko@pyHanko}\index{firmas digitales}%
+Las firmas digitales necesitan pyHanko: la AppImage y los
 instaladores lo traen; en otros casos, lo añade
 \texttt{pip install 'py-pdftools[signatures]'}.
 
@@ -300,13 +314,15 @@ $ py-pdftools-gui libro.pdf#page=12
 $ py-pdftools-gui libro.pdf#nameddest=intro
 \end{verbatim}
 
-\noindent Con \texttt{\#page=}, el documento se abre en esa página; con
+\noindent\index{abrir en una pagina o destino@abrir en una página o destino}%
+Con \texttt{\#page=}, el documento se abre en esa página; con
 \texttt{\#nameddest=}, en un destino con nombre. Si la ventana ya está
 abierta, los archivos se abren en ella y no en una nueva.
 
 \subsection{Listo en segundo plano}
 \label{sec:background}
 
+\index{segundo plano}%
 Arrancar un programa con Qt y PyMuPDF tarda uno o dos segundos. Si está
 marcada \menu{Configuración\then General\then Seguir funcionando en
 segundo plano}, cerrar la última ventana no termina el programa: queda en
@@ -317,6 +333,7 @@ de archivos, muestra entonces esa ventana en unas centésimas de segundo. El
 icono de la bandeja abre una ventana o termina el programa; también lo
 termina \menu{Archivo\then Salir} (\key{Ctrl+Q}).
 
+\index{segundo plano}\index{sesion, empezar con la@sesión, empezar con la}%
 Con \menu{Configuración\then General\then Empezar con la sesión}, el
 programa arranca además al iniciar la sesión, en la bandeja y sin ventana
 (\texttt{py-pdftools-gui --background}), para que también el primer
@@ -325,6 +342,7 @@ documento del día se abra al instante.
 \section{La ventana}
 \label{sec:window}
 
+\index{modos}\index{barras de herramientas}\index{miniaturas}\index{marcadores}\index{anotaciones!estado}\index{censura}\index{ocr@OCR}\index{imposicion@imposición}%
 La figura~\ref{fig:read_es} muestra la ventana con un documento abierto. De
 arriba abajo: los menús; la barra de los modos (Leer, OCR, Censurar,
 Anotar, Foliar, Imponer) y la barra de herramientas principal; a la
@@ -337,9 +355,11 @@ programa dice lo que acaba de hacer.
 
 \subsection{Los modos}
 
+\index{modos}\index{barras de herramientas}\index{teclas}%
 La barra de los modos elige qué hace la ventana y cómo se organiza.
 \key{Ctrl+1} a \key{Ctrl+6} eligen los modos en el orden de la barra.
 
+\index{tesseract@Tesseract}\index{modos!leer@Leer}\index{modos!ocr@OCR}\index{modos!censurar@Censurar}\index{modos!anotar@Anotar}\index{modos!foliar@Foliar}\index{modos!imponer@Imponer}\index{barras de herramientas}\index{miniaturas}\index{zoom}\index{anotaciones}\index{anotaciones!sello}\index{censura}\index{censura!copia censurada}\index{ocr@OCR}\index{etiquetas de pagina@etiquetas de página}\index{encabezados y pies de pagina@encabezados y pies de página}\index{marcas de agua}\index{vista al abrir}\index{imposicion@imposición}\index{imposicion@imposición!folleto}%
 \begin{description}
 \item[Leer] solo las páginas y sus miniaturas, con las barras para abrir,
   buscar, moverse por las páginas y ampliar; el ratón mueve las páginas.
@@ -356,17 +376,20 @@ La barra de los modos elige qué hace la ventana y cómo se organiza.
   folletos, varias por hoja, repeticiones (sección~\ref{sec:impose}).
 \end{description}
 
+\index{modos}\index{barras de herramientas}\index{miniaturas}\index{anotaciones!agrupar y alinear}%
 Cada modo conserva su propia disposición de la ventana: qué barras y
 paneles se ven, dónde están, el tamaño de las miniaturas y el ancho de los
 paneles. Basta con organizar un modo una vez, arrastrando sus barras y
 paneles u ocultándolos con un clic derecho, y al volver a elegirlo esa
 disposición vuelve, también la próxima vez que se abra el programa.
 
+\index{modos}\index{consejos de los modos}%
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte baja de las páginas; \menu{Ayuda\then Consejos
 de este modo} (\key{F1}) lo muestra de nuevo. Los consejos se desactivan en
 \menu{Configuración\then Aspecto}.
 
+\index{modos}\index{menus@menús!submenus@submenús}\index{zoom}\index{anotaciones!agrupar y alinear}\index{censura}\index{ocr@OCR}\index{imposicion@imposición}%
 También los menús cambian con el modo: Censurar, Páginas, Imponer y OCR
 aparecen en sus modos, y el menú Herramientas en Anotar. Los menús
 Archivo, Editar y Ver están siempre, agrupados en submenús
@@ -376,6 +399,7 @@ Archivo, Editar y Ver están siempre, agrupados en submenús
 
 \subsection{Barras de herramientas}
 
+\index{barras de herramientas}\index{barras de herramientas!bloquear}\index{barras de herramientas!iconos y texto}\index{anotaciones!bloquear}%
 Las barras pueden arrastrarse por su asa a otro lugar, o fuera de la
 ventana. Un clic derecho en cualquiera de ellas muestra la lista de las
 barras, para mostrarlas u ocultarlas, y el aspecto de todas: solo iconos,
@@ -384,6 +408,7 @@ iconos. Las mismas opciones están en \menu{Configuración\then Aspecto},
 con \menu{Bloquear las barras de herramientas}, que las deja fijas donde
 están.
 
+\index{barras de herramientas}%
 \menu{Configuración\then Barras de herramientas\then Personalizar las
 barras de herramientas} (figura~\ref{fig:toolbars_es}) elige los botones de
 cada barra y su orden: las acciones de la izquierda se añaden con la
@@ -396,6 +421,7 @@ barra vuelve a ser \menu{Como era al principio}.
 
 \subsection{Las miniaturas}
 
+\index{miniaturas}\index{anotaciones}%
 El panel de las miniaturas (\key{F3}) muestra las páginas en pequeño, cada
 una con su número en el archivo y, al lado, su etiqueta (véase la
 sección~\ref{sec:labels}): en la figura~\ref{fig:read_es}, la primera
@@ -403,6 +429,7 @@ página lleva la etiqueta \enquote{i}; la segunda, \enquote{1}. Un punto y
 un número tras la etiqueta dicen cuántas anotaciones o recuadros tiene la
 página. El deslizador bajo las miniaturas cambia su tamaño.
 
+\index{miniaturas}\index{copiar texto}\index{anotaciones!copiar}\index{ocr@OCR}\index{paginas@páginas!ordenar}\index{encabezados y pies de pagina@encabezados y pies de página}\index{marcas de agua}%
 Un clic en una miniatura lleva a su página. \key{Ctrl+clic} y
 \key{Mayús+clic} eligen varias, y \key{Ctrl+A}, con el foco en las
 miniaturas, las elige todas. Las páginas elegidas pueden arrastrarse a otro
@@ -413,6 +440,7 @@ marca de agua, leer su texto (OCR) y elegir cómo se abre el documento.
 
 \subsection{Abrir y guardar}
 
+\index{abrir!documentos recientes}\index{abrir!un documento}\index{pestanas@pestañas}\index{vista!dividida}\index{paginas@páginas!dividir}%
 Un documento se abre con \menu{Archivo\then Abrir} (\key{Ctrl+O}),
 soltándolo sobre la ventana o desde \menu{Archivo\then Abrir reciente}.
 \menu{Archivo\then Abrir en una pestaña nueva} (\key{Ctrl+T}) lo abre en
@@ -422,12 +450,14 @@ Abrir los documentos en pestañas de una sola ventana}, todos se abren así.
 pestaña visible junto a las otras, para leer dos documentos lado a lado, y
 \menu{Ver\then Llevar la pestaña a una ventana propia} la saca.
 
+\index{contrasenas@contraseñas}\index{zoom}%
 Un documento protegido con contraseña la pide al abrirse. Un documento que
 otro programa cambia mientras está abierto se vuelve a abrir solo (puede
 desactivarse en \menu{Configuración\then General}), y cada documento se
 abre donde se dejó, en la misma página y con el mismo zoom (en
 \menu{Configuración\then Documentos}).
 
+\index{modos}\index{guardar}\index{anotaciones}\index{formularios}\index{censura}\index{imposicion@imposición}\index{imposicion@imposición!aplicar}%
 \menu{Archivo\then Guardar} (\key{Ctrl+S}) escribe los cambios en el
 documento: sus anotaciones, sus recuadros de censura (como las marcas de
 censura de PDF, todavía sin aplicar), el formulario y los cambios de los
@@ -437,11 +467,13 @@ Guardar mantiene válidas las firmas de un documento firmado para lo que
 firmaron. \menu{Archivo\then Guardar como} (\key{Ctrl+Shift+S}) escribe una
 copia y sigue con ella.
 
+\index{modos}\index{deshacer y rehacer}\index{anotaciones}\index{etiquetas de pagina@etiquetas de página}\index{imposicion@imposición}%
 \menu{Editar\then Deshacer} (\key{Ctrl+Z}) y \menu{Rehacer}
 (\key{Ctrl+Shift+Z}) recorren hacia atrás y hacia adelante todo lo hecho
 en el documento, en cualquier modo: anotaciones, recuadros, etiquetas,
 páginas movidas o borradas, una imposición aplicada.
 
+\index{copia de recuperacion@copia de recuperación}\index{etiquetas de pagina@etiquetas de página!intervalos}%
 Mientras el documento tiene cambios sin guardar, el programa guarda una
 copia de recuperación cada dos minutos (el intervalo se fija en
 \menu{Configuración\then General}). Si el programa termina sin guardar, la
@@ -449,6 +481,7 @@ próxima vez que se abra el documento ofrecerá recuperar esos cambios.
 
 \subsection{El resto del menú Archivo}
 
+\index{contrasenas@contraseñas}\index{aplanar}\index{combinar archivos}\index{pdf a partir de imagenes@PDF a partir de imágenes}\index{copias mas pequenas@copias más pequeñas}\index{version de pdf@versión de PDF}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 Además de abrir y guardar, el menú Archivo reúne el trabajo sobre archivos
 enteros, que se explica en la sección~\ref{sec:files}: \menu{Nuevo}
 (combinar archivos, un PDF a partir de imágenes), \menu{Guardar una copia}
@@ -456,6 +489,7 @@ enteros, que se explica en la sección~\ref{sec:files}: \menu{Nuevo}
 \menu{Exportar}, \menu{Importar} y \menu{Seguridad} (contraseñas y firmas).
 Tiene también:
 
+\index{comparar versiones}\index{anotaciones}%
 \begin{description}
 \item[Comparar con otra versión] marca en este documento lo que difiere de
   otra versión del mismo texto (otra edición, un borrador): sus palabras,
@@ -468,10 +502,12 @@ Tiene también:
 \section{Leer y moverse por un documento}
 \label{sec:reading}
 
+\index{modos}%
 Estas formas de leer y de moverse funcionan en todos los modos.
 
 \subsection{Moverse}
 
+\index{barras de herramientas}\index{moverse por las paginas@moverse por las páginas}%
 Las páginas se muestran una debajo de otra y se desplazan con la rueda del
 ratón, la barra de desplazamiento o el teclado. \key{RePág} y \key{AvPág}
 van a la página anterior y a la siguiente; \key{Ctrl+Inicio} y
@@ -479,12 +515,14 @@ van a la página anterior y a la siguiente; \key{Ctrl+Inicio} y
 acepta un número de página o una etiqueta: escriba \enquote{12}, o
 \enquote{xiv}, y pulse Intro.
 
+\index{barras de herramientas}\index{herramientas!mano@Mano}\index{barra espaciadora}\index{desplazamiento automatico@desplazamiento automático}%
 La herramienta Mano (\key{M}) mueve las páginas arrastrándolas; mantener
 pulsada la barra espaciadora convierte cualquier herramienta en Mano por un
 momento, y el botón central del ratón desplaza solo: pulsado y soltado, las
 páginas corren hacia donde va el puntero, más rápido cuanto más lejos esté
 de donde se pulsó, hasta el siguiente clic.
 
+\index{enlaces}\index{historial de vistas}\index{marcadores}\index{copiar texto}%
 Los enlaces se siguen con un clic (con la herramienta Seleccionar, con
 \key{Ctrl+clic}), y también las direcciones web y de correo escritas en el
 texto, tras preguntar si se abren (en \menu{Configuración\then
@@ -494,6 +532,7 @@ encontrados.
 
 \subsection{Marcadores}
 
+\index{marcadores}\index{anotaciones!filtrar}%
 \menu{Ver\then Paneles\then Marcadores} (\key{F5}) muestra los marcadores
 del documento (su esquema) como un árbol, con la etiqueta de la página a la
 que va cada uno (figura~\ref{fig:read_es}). El cuadro de arriba los filtra
@@ -505,6 +544,7 @@ texto.
 
 \subsection{Buscar texto}
 
+\index{modos}\index{modos!censurar@Censurar}\index{barras de herramientas}\index{buscar!y censurar}\index{buscar!texto}\index{censura}%
 El botón Buscar de la barra principal (\key{Ctrl+F}) abre \menu{Buscar y
 resaltar}: busca una palabra, una frase o un patrón en el documento,
 muestra los lugares encontrados con su contexto y va a cada uno con
@@ -515,6 +555,7 @@ sección~\ref{sec:redact}).
 
 \subsection{Seleccionar y copiar texto}
 
+\index{modos}\index{herramientas!mano@Mano}\index{seleccionar texto}\index{copiar texto}\index{censura}%
 La herramienta Seleccionar texto (\key{X}), junto a Mano en todos los
 modos, selecciona el texto como en un editor: arrastrando sobre él (también
 de una página a otra), con \key{Alt+arrastrar} una columna, con doble clic
@@ -525,6 +566,7 @@ para censurarlo o buscarlo.
 
 \subsection{Zoom y disposición}
 
+\index{zoom}\index{zoom!a lo impreso}\index{zoom!tamano real@tamaño real}\index{herramientas!ampliar una zona@Ampliar una zona}%
 El cuadro del zoom, sobre las páginas, acepta un porcentaje u ofrece los
 habituales. \menu{Ver\then Zoom} ajusta a la página (\key{Ctrl+0}), al
 ancho (\key{Ctrl+9}), al alto (\key{Ctrl+8}) o a lo impreso
@@ -535,6 +577,7 @@ márgenes, tan ancho como la ventana. \menu{Tamaño real}
 rueda. La herramienta Ampliar una zona (\key{Z}) amplía un marco arrastrado
 sobre la página, o acerca donde se hace clic.
 
+\index{modos}\index{disposicion de pagina@disposición de página!dos paginas@dos páginas}\index{disposicion de pagina@disposición de página!portada}\index{disposicion de pagina@disposición de página!espacio entre paginas@espacio entre páginas}\index{vista!girar}\index{paginas@páginas!ordenar}%
 \menu{Ver\then Disposición de página} muestra las páginas de una en una, en
 lugar del desplazamiento continuo, o dos lado a lado (\key{Ctrl+Shift+2}),
 como un libro abierto; con \menu{La primera página sola, como portada}, las
@@ -549,17 +592,20 @@ Foliar.
 
 \subsection{Colores de lectura y pantalla completa}
 
+\index{colores de lectura}%
 \menu{Ver\then Colores de lectura} muestra las páginas con otros colores,
 que cansan menos la vista de noche: blanco, amarillo o verde sobre negro,
 claro sobre gris oscuro, o colores propios. Solo cambian las páginas en
 pantalla, no el archivo; las imágenes cambian con ellas.
 
+\index{pantalla completa}%
 \menu{Ver\then Pantalla completa} (\key{F11}) muestra las páginas de una en
 una, a toda pantalla, como una presentación: las flechas o un clic las
 pasan, y \key{Esc} termina.
 
 \subsection{Texto más nítido}
 
+\index{modos}\index{nitidez del texto}%
 MuPDF, que dibuja las páginas, dibuja suaves los bordes de las letras, sin
 ajustarlos a los píxeles de la pantalla como sí se ajustan las fuentes del
 escritorio, de modo que el texto puede verse algo borroso a su lado.
@@ -571,6 +617,7 @@ Las imágenes se oscurecen también un poco.
 \section{Anotar}
 \label{sec:annotate}
 
+\index{modos}\index{modos!anotar@Anotar}\index{barras de herramientas}\index{anotaciones}%
 En el modo Anotar (figura~\ref{fig:annotate_es}), la segunda barra reúne
 las herramientas de anotación, que están también en el menú Herramientas,
 cada una con su tecla; el panel de la derecha lista las anotaciones del
@@ -581,12 +628,14 @@ documento.
 
 \subsection{Las herramientas}
 
+\index{barras de herramientas}\index{anotaciones}%
 Una herramienta se elige en la barra, en el menú Herramientas o con su
 tecla, y sigue elegida hasta que se elige otra. Con Seleccionar (\key{V}),
 un clic selecciona una anotación, un marco arrastrado alrededor de varias
 las selecciona todas, y las asas de una anotación seleccionada la mueven y
 le cambian el tamaño.
 
+\index{herramientas!mano@Mano}\index{enlaces}\index{anotaciones}\index{anotaciones!resaltado}\index{anotaciones!subrayado, tachado}\index{anotaciones!nota}\index{anotaciones!cuadro de texto}\index{anotaciones!llamada}\index{anotaciones!maquina de escribir@máquina de escribir}\index{anotaciones!sello}\index{anotaciones!marca de verificacion@marca de verificación}\index{firma manuscrita}\index{anotaciones!archivo adjunto}\index{anotaciones!figuras}\index{anotaciones!a mano alzada}\index{herramientas!goma de borrar@Goma de borrar}\index{lapiz de tableta@lápiz de tableta}\index{formularios}%
 \begin{longtable}{@{}p{0.33\textwidth}lp{0.5\textwidth}@{}}
 \toprule
 Herramienta & Tecla & Qué hace\\
@@ -622,17 +671,20 @@ Enlace & \key{J} & Un enlace (sección~\ref{sec:links}).\\
 \bottomrule
 \end{longtable}
 
+\index{herramientas!mano@Mano}\index{anotaciones}\index{anotaciones!sello}\index{firma manuscrita}%
 El clic derecho sobre una herramienta decide qué pone: el sello o la marca
 de verificación, y la firma, que se dibuja a mano una vez en un pequeño
 diálogo y se guarda para después. \menu{Herramientas\then Propiedades de la
 herramienta} fija el color, el ancho, la fuente y la opacidad que la
 herramienta da a las anotaciones nuevas.
 
+\index{configuracion@configuración!atajos}%
 Las teclas de las herramientas se cambian en \menu{Configuración\then
 Atajos}.
 
 \subsection{Colores}
 
+\index{colores de las anotaciones}%
 Cada color de los menús tiene un significado, que se ve junto a su nombre,
 para marcar una lectura de forma coherente: amarillo para lo importante,
 verde para definiciones y conceptos, azul para referencias y citas, rosa
@@ -643,6 +695,7 @@ significa para usted.
 
 \subsection{El panel de las anotaciones}
 
+\index{anotaciones}\index{anotaciones!panel}\index{anotaciones!filtrar}\index{anotaciones!ordenar}\index{anotaciones!estado}\index{anotaciones!categorias@categorías}%
 El panel de las anotaciones (\key{F4}) lista todas las del documento, con
 su página, tipo, autor, estado, la fecha en que cambiaron y su texto (lo que
 marcan, o lo que dicen). Su cuadro de arriba busca en su texto, y las
@@ -653,6 +706,7 @@ Anotaciones\then Solo las que muestra la lista}, las páginas muestran solo
 las anotaciones que dejan pasar los filtros; \menu{Mostrar las anotaciones}
 (\key{Ctrl+Shift+A}) las oculta todas, para ver el documento tal como es.
 
+\index{anotaciones}\index{anotaciones!nota}\index{anotaciones!respuestas}\index{anotaciones!estado}\index{etiquetas de pagina@etiquetas de página}%
 Un clic en una anotación de la lista lleva a ella y la selecciona.
 \key{Alt+Abajo} y \key{Alt+Arriba} van a la siguiente y a la anterior.
 Bajo la lista, la anotación seleccionada puede recibir un color, un
@@ -664,6 +718,7 @@ seleccionada o, si no hay ninguna, añade una nota.
 
 \subsection{Propiedades}
 
+\index{anotaciones}\index{anotaciones!etiquetas}\index{anotaciones!categorias@categorías}\index{anotaciones!propiedades}\index{anotaciones!bloquear}\index{etiquetas de pagina@etiquetas de página}%
 \menu{Editar\then Propiedades} (\key{Alt+Intro}), o un doble clic, muestra
 todas las propiedades de las anotaciones seleccionadas
 (figura~\ref{fig:annot_props_es}): sus colores, borde, fuente, alineación y
@@ -675,6 +730,7 @@ ese aspecto a las siguientes.
 
 \shot{annot_props_es}{0.45}{Las propiedades de un cuadro de texto.}
 
+\index{anotaciones}\index{critica textual@crítica textual}\index{anotaciones!exportar}%
 La parte \menu{Crítica textual} es para editores de textos: convierte la
 anotación en una entrada del aparato crítico, con su tipo (variante,
 lectura del manuscrito, enmienda, conjetura, laguna, corrección del
@@ -684,11 +740,13 @@ fuente, la justificación y el grado de certeza. \menu{Archivo\then
 Exportar\then Las anotaciones\then El aparato crítico} escribe esas
 entradas en el orden del texto.
 
+\index{anotaciones}\index{anotaciones!categorias@categorías}%
 Las categorías en que puede ponerse una anotación se fijan en
 \menu{Configuración\then Categorías}, una por línea.
 
 \subsection{Editar varias anotaciones}
 
+\index{anotaciones}\index{anotaciones!agrupar y alinear}\index{anotaciones!copiar}%
 \menu{Editar\then Copiar}, \menu{Pegar} y \menu{Duplicar} (\key{Ctrl+D})
 copian anotaciones, también a otra página o a otro documento.
 \menu{Editar\then Seleccionar} selecciona las de la página (\key{Ctrl+A})
@@ -703,6 +761,7 @@ todas.
 \subsection{Buscar y resaltar}
 \label{sec:findmark}
 
+\index{buscar!y resaltar}\index{expresiones regulares}\index{comodines}\index{anotaciones}\index{anotaciones!resaltado}\index{anotaciones!subrayado, tachado}%
 \menu{Herramientas\then Buscar y resaltar} (\key{Ctrl+F},
 figura~\ref{fig:find_highlight_es}) busca una palabra, una frase o un
 patrón en las páginas y marca los lugares encontrados con un resaltado, un
@@ -721,6 +780,7 @@ vez, o solo los elegidos.
 \subsection{Enlaces}
 \label{sec:links}
 
+\index{enlaces}\index{enlaces!crear}%
 La herramienta Enlace (\key{J}, también en \menu{Editar\then Enlaces})
 crea un enlace donde se arrastra sobre la página. El diálogo pregunta
 adónde va: a una página del documento, a una dirección web o a otro PDF
@@ -734,8 +794,10 @@ saca del documento todos los enlaces.
 
 \subsection{Exportar e importar anotaciones}
 
+\index{anotaciones}\index{anotaciones!exportar}\index{exportar}%
 \menu{Archivo\then Exportar\then Las anotaciones} escribe las anotaciones:
 
+\index{anotaciones}\index{anotaciones!respuestas}\index{anotaciones!categorias@categorías}\index{critica textual@crítica textual}\index{anotaciones!exportar}\index{etiquetas de pagina@etiquetas de página}\index{exportar!texto}%
 \begin{itemize}
 \item como informe, en Markdown, página por página, con lo que marcan y sus
   comentarios;
@@ -751,11 +813,13 @@ saca del documento todos los enlaces.
   marcan, sus comentarios y sus respuestas.
 \end{itemize}
 
-\noindent \menu{Archivo\then Importar\then Anotaciones} las lee de un
+\noindent\index{anotaciones}\index{anotaciones!exportar}\index{anotaciones!importar}%
+\menu{Archivo\then Importar\then Anotaciones} las lee de un
 archivo JSON o XFDF, o de otra copia del mismo PDF, como una que anotó otra
 persona; las anotaciones que ya están en el documento no se añaden dos
 veces.
 
+\index{enlaces}\index{anotaciones}\index{aplanar}\index{formularios}%
 \menu{Archivo\then Guardar una copia\then Aplanada} hace las anotaciones
 parte de las páginas: se ven y se imprimen en todas partes, pero ya no se
 pueden editar ni quitar. \menu{Sin anotaciones} guarda el documento sin
@@ -763,6 +827,7 @@ ninguna (los enlaces y los campos de formulario se quedan).
 
 \subsection{Cada modo, sus anotaciones}
 
+\index{modos}\index{anotaciones}\index{capas}\index{censura}%
 Cada modo trabaja sobre sus propias anotaciones. En Anotar, los recuadros
 de censura se ven, pero el ratón pasa a través de ellos; en Censurar se
 ven las anotaciones, y el ratón pasa a través de ellas. El menú Capas, en
@@ -772,6 +837,7 @@ contenido opcional).
 \section{Formularios}
 \label{sec:forms}
 
+\index{formularios}\index{formularios!panel}%
 Un documento con formulario abre solo el panel Formulario (\key{F6}), o lo
 abre un clic en un campo. Los campos se llenan sobre la página, como en
 cualquier visor, o en el panel, que los lista todos con sus nombres
@@ -781,6 +847,7 @@ obligatorios.
 \shot{form_es}{1}{Un formulario, con el panel Formulario. El precio y el
   impuesto se muestran en su formato, y el total se calcula.}
 
+\index{guardar}\index{formularios}\index{javascript@JavaScript}%
 Lo que piden casi todos los formularios se hace sin JavaScript: los
 números, las fechas, los teléfonos y otros formatos se comprueban y se
 muestran en su formato (en la imagen, \enquote{1234.5} aparece como
@@ -788,12 +855,14 @@ muestran en su formato (en la imagen, \enquote{1234.5} aparece como
 un valor. El formulario se guarda con el documento, con
 \menu{Archivo\then Guardar}.
 
+\index{modos}\index{anotaciones!exportar}\index{aplanar}\index{formularios}\index{formularios!aplanar}%
 Los botones del panel devuelven el formulario a sus valores por defecto,
 exportan sus valores (JSON, CSV, XFDF o FDF) y los importan, para llenar el
 formulario con datos guardados en otra parte. \menu{Archivo\then Guardar
 una copia\then Con el formulario aplanado} hace parte de las páginas lo que
 muestran los campos, de modo que ya no puede cambiarse.
 
+\index{formularios}\index{formularios!linea de ordenes@línea de órdenes}\index{linea de ordenes@línea de órdenes}%
 La orden \texttt{py-pdftools form} hace lo mismo desde la línea de órdenes:
 muestra los campos de un formulario, lo llena desde un archivo de datos,
 hace una tabla con los valores de muchos formularios llenos y lo aplana
@@ -802,6 +871,7 @@ hace una tabla con los valores de muchos formularios llenos y lo aplana
 \section{Censurar}
 \label{sec:redact}
 
+\index{modos}\index{modos!censurar@Censurar}\index{censura}\index{censura!copia censurada}%
 Censurar quita para siempre lo que no debe leerse: nombres, números,
 direcciones, pasajes, imágenes. En el modo Censurar
 (figura~\ref{fig:redact_es}), se ponen recuadros sobre lo que hay que
@@ -813,11 +883,13 @@ archivo nuevo: el documento abierto nunca pierde nada.
 
 \subsection{Marcar}
 
+\index{modos}\index{censura}\index{censura!marcar}%
 La herramienta Censurar (\key{R} en este modo) marca el texto arrastrando
 sobre él: se crea un recuadro sobre cada una de sus líneas. En otro lugar,
 o con \key{Ctrl}, dibuja un recuadro, sobre una imagen o sobre cualquier
 zona. Un doble clic marca solo una palabra, o una imagen.
 
+\index{anotaciones!sello}\index{censura}\index{censura!recuadros}%
 El panel de los recuadros, a la derecha, los lista con su página, las
 demás páginas en que van, su color y su tamaño. Un recuadro puede repetirse
 en otras páginas, en el mismo lugar, como pediría un membrete o un sello:
@@ -827,6 +899,7 @@ recuadros} hace lo mismo con los recuadros seleccionados. Bajo la lista,
 \menu{Recuadros nuevos} fija el color y las páginas de los que aún están
 por dibujar.
 
+\index{anotaciones!nota}\index{anotaciones!estado}\index{anotaciones!bloquear}\index{censura}\index{censura!propiedades de los recuadros}\index{censura!codigos@códigos}%
 \menu{Censurar\then Propiedades de los recuadros} decide cómo serán una vez
 censurados: su relleno (sin color, lo que hay debajo se quita y no se
 pinta nada encima), un texto escrito sobre ellos (\enquote{CENSURADO}, un
@@ -837,6 +910,7 @@ códigos: textos breves que se escriben sobre un recuadro para decir por qué
 se censuró, como los de la ley estadounidense de libertad de información
 (\texttt{(b)(6)}) o de la Privacy Act; pueden añadirse conjuntos propios.
 
+\index{censura}\index{censura!mostrar el resultado}%
 \menu{Censurar\then Mostrar el resultado} (\key{Ctrl+R}) muestra los
 recuadros como quedarán una vez aplicados: opacos, con su texto
 (figura~\ref{fig:redact_result_es}). Todavía pueden cambiarse.
@@ -846,6 +920,7 @@ recuadros como quedarán una vez aplicados: opacos, con su texto
 
 \subsection{Buscar y censurar}
 
+\index{buscar!y censurar}\index{expresiones regulares}\index{anotaciones!estado}\index{censura}\index{censura!patrones}\index{censura!parcial}%
 \menu{Censurar\then Buscar y censurar} (figura~\ref{fig:redact_find_es})
 busca lo que hay que censurar y le pone recuadros. Busca una palabra o
 frase; varias (una por línea, o leídas de un archivo de texto); o patrones:
@@ -863,6 +938,7 @@ seleccionados}, solo sobre los marcados.
 
 \subsection{Texto solo cubierto}
 
+\index{anotaciones}\index{anotaciones!figuras}\index{censura}\index{censura!texto solo cubierto}\index{censura!copia censurada}%
 Un documento puede parecer censurado y no estarlo: un rectángulo negro
 dibujado sobre un nombre, o una imagen o una anotación encima, lo ocultan
 en la pantalla, pero el nombre sigue en el archivo, y cualquiera puede
@@ -876,6 +952,7 @@ para que la copia censurada lo quite.
 
 \subsection{La copia censurada}
 
+\index{modos}\index{anotaciones}\index{censura}\index{censura!copia censurada}%
 \menu{Censurar\then Guardar la copia censurada} (\key{Ctrl+Shift+R})
 escribe una copia del documento en la que se quita lo que hay bajo los
 recuadros: texto, imágenes (la parte cubierta), dibujos y anotaciones. La
@@ -884,6 +961,7 @@ todavía puede leerse, o un marcador lo delata, el programa lo dice. La
 copia se hace a partir del documento tal como se guardó por última vez, de
 modo que el programa ofrece guardar antes los demás cambios.
 
+\index{enlaces}\index{capas}\index{javascript@JavaScript}\index{censura}\index{censura!copia censurada}\index{metadatos}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{Guardar la copia censurada como} la hace PDF/A o PDF/X
 (sección~\ref{sec:pdfa}). Con \menu{Quitar también metadatos, texto oculto,
 adjuntos y scripts} marcado, la copia pierde además lo que el documento
@@ -892,12 +970,14 @@ que no se ve, las capas desactivadas, los archivos adjuntos, el JavaScript
 y los enlaces. \menu{Censurar\then Metadatos} (\key{Ctrl+Shift+M}) muestra
 y cambia los metadatos que tendrá la copia, o los quita.
 
+\index{anotaciones}\index{aplanar}\index{ocr@OCR!copia buscable}%
 Las copias que hacen las anotaciones parte de las páginas (aplanadas,
 buscables, impresas) dejan fuera los recuadros, porque un recuadro pintado
 allí ocultaría lo que sigue estando en el archivo.
 
 \subsection{Información oculta}
 
+\index{miniaturas}\index{enlaces}\index{marcadores}\index{capas}\index{formularios}\index{censura}\index{metadatos}\index{informacion oculta@información oculta}\index{etiquetas de pagina@etiquetas de página}%
 \menu{Censurar\then Quitar información oculta} muestra lo que el documento
 guarda aparte de lo que muestran sus páginas (figura~\ref{fig:hidden_es}):
 metadatos, archivos adjuntos, marcadores, etiquetas de página, comentarios,
@@ -907,6 +987,7 @@ esté marcado; el documento abierto no cambia y sus recuadros no se aplican.
 
 \shot{hidden_es}{0.55}{Quitar información oculta.}
 
+\index{enlaces}\index{capas}\index{censura}\index{metadatos}\index{sanear}\index{censura!configuracion@configuración}\index{imposicion@imposición!aplicar}%
 \menu{Censurar\then Sanear el documento} guarda de una vez una copia sin
 metadatos, texto ni capas ocultos, adjuntos, scripts ni enlaces, y sin
 ningún otro cambio. \menu{Configuración de la censura} fija el color de los
@@ -918,6 +999,7 @@ texto bajo un recuadro se quita siempre.
 \section{Leer páginas escaneadas (OCR)}
 \label{sec:ocr}
 
+\index{tesseract@Tesseract}\index{modos}\index{modos!ocr@OCR}\index{censura}\index{ocr@OCR}%
 Una página escaneada es una imagen: su texto no se puede buscar,
 seleccionar ni marcar. El modo OCR (figura~\ref{fig:ocr_es}) lee ese texto
 con Tesseract y lo escribe en el documento, invisible, bajo la imagen de
@@ -927,6 +1009,7 @@ como los demás.
 
 \shot{ocr_es}{1}{El modo OCR, con una página escaneada.}
 
+\index{tesseract@Tesseract}\index{miniaturas}\index{ocr@OCR!idiomas}\index{ocr@OCR!girar paginas@girar páginas}\index{idioma de la interfaz}%
 El panel dice qué versión de Tesseract está instalada y cuántas páginas
 son escaneos sin texto. Lee esas páginas, las elegidas en las miniaturas,
 la visible o una lista de páginas; las que ya tienen texto quedan como
@@ -936,11 +1019,13 @@ estén de lado o al revés} las gira antes (para esto hacen falta los datos
 \enquote{osd} de Tesseract). \menu{Reconocer el texto}
 (\key{Ctrl+Shift+O}) las lee.
 
+\index{tesseract@Tesseract}\index{ocr@OCR!palabras dudosas}%
 Con \menu{Revisar las palabras dudosas antes de escribir el texto}, las
 palabras de las que Tesseract no estuvo seguro se muestran, cada una junto
 a su imagen, para corregirlas antes de escribir el texto; cuánta seguridad
 basta se fija en \menu{Dudosa por debajo de}.
 
+\index{tesseract@Tesseract}\index{ocr@OCR}\index{ocr@OCR!idiomas}\index{ocr@OCR!modelos}\index{ocr@OCR!girar paginas@girar páginas}\index{idioma de la interfaz}%
 \menu{OCR\then Idiomas} (figura~\ref{fig:ocr_languages_es}) lista todos
 los idiomas que Tesseract puede leer, y descarga, actualiza o quita sus
 modelos más precisos (\enquote{tessdata\_best}) y \enquote{osd}, que
@@ -950,6 +1035,7 @@ General\then Idiomas del OCR}.
 
 \shot{ocr_languages_es}{0.75}{Los idiomas del OCR.}
 
+\index{modos}\index{miniaturas}\index{ocr@OCR}\index{ocr@OCR!copia buscable}\index{linea de ordenes@línea de órdenes}%
 \menu{Archivo\then Guardar una copia\then Con texto buscable (OCR)}
 escribe una copia con el texto leído, sin cambiar el documento abierto; en
 los demás modos, el clic derecho sobre las miniaturas lee las páginas
@@ -959,6 +1045,7 @@ elegidas. Desde la línea de órdenes:
 \section{Foliar: etiquetas y páginas}
 \label{sec:foliate}
 
+\index{modos}\index{modos!foliar@Foliar}\index{etiquetas de pagina@etiquetas de página}\index{etiquetas de pagina@etiquetas de página!intervalos}\index{encabezados y pies de pagina@encabezados y pies de página}\index{marcas de agua}\index{linea de ordenes@línea de órdenes}%
 El modo Foliar (figura~\ref{fig:pages_es}) trabaja sobre las páginas en
 conjunto: sus etiquetas, su orden, sus encabezados, pies y marcas de agua,
 y la forma en que se abre el documento. Su panel, a la derecha, tiene los
@@ -971,12 +1058,14 @@ abajo, la orden que haría las mismas etiquetas desde la línea de órdenes.
 \subsection{Etiquetas de página}
 \label{sec:labels}
 
+\index{miniaturas}\index{etiquetas de pagina@etiquetas de página}\index{etiquetas de pagina@etiquetas de página!estilos}%
 Las etiquetas de página son los números que un visor de PDF muestra para
 sus páginas en lugar de 1, 2, 3: los preliminares de un libro en números
 romanos, su texto desde 1, un apéndice como A-1, A-2. No cambian las
 páginas; son lo que el lector escribe para ir a la página \enquote{xiv} y
 lo que muestran las miniaturas.
 
+\index{etiquetas de pagina@etiquetas de página}\index{etiquetas de pagina@etiquetas de página!intervalos}\index{etiquetas de pagina@etiquetas de página!estilos}%
 Se dan por intervalos: cada intervalo empieza en una página, con un estilo
 (1, 2, 3; i, ii, iii; I, II, III; a, b, c; A, B, C; 1r, 1v, 2r, como los
 folios de un manuscrito; o sin número, solo el prefijo), el número con que
@@ -984,6 +1073,7 @@ empieza, un prefijo y un sufijo. En la tabla del panel, \menu{Añadir un
 intervalo} empieza uno nuevo en la página visible, \menu{Quitar el
 intervalo} lo quita y \menu{Sin etiquetas} las quita todas.
 
+\index{miniaturas}\index{etiquetas de pagina@etiquetas de página}\index{etiquetas de pagina@etiquetas de página!numerar paginas@numerar páginas}%
 Casi siempre es más sencillo elegir páginas en las miniaturas y usar su
 clic derecho, \menu{Etiquetas}: \menu{Numerar estas páginas}
 (figura~\ref{fig:number_es}) las numera una tras otra, en un estilo, desde
@@ -994,6 +1084,7 @@ de antes; \menu{Darles una sola etiqueta} les da a todas la misma;
 
 \shot{number_es}{0.35}{Numerar tres páginas.}
 
+\index{etiquetas de pagina@etiquetas de página}\index{etiquetas de pagina@etiquetas de página!copiar y listas}\index{etiquetas de pagina@etiquetas de página!al mover paginas@al mover páginas}%
 \menu{Páginas\then Etiquetas} también copia las etiquetas de otro PDF (de
 una exportación anterior del mismo libro, por ejemplo), las lee de una
 lista (un archivo de texto con la etiqueta de cada página, una por línea) y
@@ -1004,6 +1095,7 @@ o el programa pregunta cada vez.
 
 \subsection{Ordenar las páginas}
 
+\index{modos}\index{barras de herramientas}\index{miniaturas}\index{enlaces}\index{marcadores}\index{anotaciones!copiar}\index{paginas@páginas!ordenar}\index{paginas@páginas!insertar y reemplazar}%
 Las páginas se ordenan con la barra del modo, con el clic derecho sobre las
 miniaturas y con \menu{Páginas\then Ordenar páginas}: girarlas,
 duplicarlas, borrarlas, moverlas (al principio, al final, antes de una
@@ -1012,6 +1104,7 @@ insertar las páginas de otro PDF o reemplazarlas por páginas de otro PDF
 (sus enlaces y marcadores se quedan). Las páginas también pueden
 arrastrarse en las miniaturas.
 
+\index{modos}\index{marcadores}\index{paginas@páginas!ordenar}\index{paginas@páginas!extraer}\index{paginas@páginas!dividir}\index{varios archivos a la vez}%
 \menu{Extraer a un PDF nuevo} guarda las páginas elegidas como un archivo
 nuevo. \menu{Ordenar páginas\then Dividir} (figura~\ref{fig:split_es})
 corta el documento en varios archivos: cada tantas páginas (una por
@@ -1023,6 +1116,7 @@ libro, por ejemplo) o de modo que ninguna parte pase de un tamaño.
 
 \subsection{Encabezados y pies de página}
 
+\index{etiquetas de pagina@etiquetas de página}\index{encabezados y pies de pagina@encabezados y pies de página}\index{encabezados y pies de pagina@encabezados y pies de página!variables}%
 \menu{Páginas\then Encabezado y pie de página\then Añadir}
 (figura~\ref{fig:headfoot_es}) escribe texto arriba y abajo de las
 páginas, en tres lugares cada vez: izquierda, centro y derecha. A
@@ -1032,6 +1126,7 @@ texto puede llevar variables, que insertan los botones de debajo:
 \shot{headfoot_es}{0.85}{Un pie de página con la etiqueta de cada página,
   desde la página 2.}
 
+\index{encabezados y pies de pagina@encabezados y pies de página!variables}\index{numeracion bates@numeración Bates}%
 \begin{longtable}{@{}>{\raggedright}p{0.36\textwidth}p{0.58\textwidth}@{}}
 \toprule
 Variable & Qué escribe\\
@@ -1052,6 +1147,7 @@ Variable & Qué escribe\\
 \end{longtable}
 
 
+\index{etiquetas de pagina@etiquetas de página!numerar paginas@numerar páginas}\index{encabezados y pies de pagina@encabezados y pies de página}\index{numeracion bates@numeración Bates}\index{perfiles}\index{imposicion@imposición!vista previa}%
 El diálogo fija también los márgenes (en centímetros, pulgadas o puntos) y
 si las páginas se reducen para dejar sitio al encabezado; la fuente
 (Helvetica, Times o Courier), su tamaño, color, negrita y cursiva, un borde
@@ -1063,12 +1159,14 @@ muestra el resultado en cualquier página. La configuración puede guardarse
 como perfil, y los perfiles marcados con \menu{Mostrar en el menú}
 aparecen en \menu{Páginas\then Encabezado y pie de página}.
 
+\index{encabezados y pies de pagina@encabezados y pies de página}\index{numeracion bates@numeración Bates}%
 \menu{Actualizar} cambia el último encabezado y pie añadidos, y
 \menu{Quitar todo} los quita (o solo los números Bates), porque se guardan
 como una capa propia.
 
 \subsection{Marcas de agua}
 
+\index{anotaciones!sello}\index{ocr@OCR!girar paginas@girar páginas}\index{encabezados y pies de pagina@encabezados y pies de página}\index{encabezados y pies de pagina@encabezados y pies de página!variables}\index{marcas de agua}%
 \menu{Páginas\then Marca de agua\then Añadir}
 (figura~\ref{fig:watermark_es}) pone un texto, o una página de un PDF,
 delante del contenido de las páginas o detrás: \enquote{BORRADOR} de lado a
@@ -1080,12 +1178,14 @@ y se quita como los encabezados.
 
 \shot{watermark_es}{0.85}{Una marca de agua.}
 
+\index{encabezados y pies de pagina@encabezados y pies de página}\index{numeracion bates@numeración Bates}\index{marcas de agua}\index{varios archivos a la vez}%
 \menu{Páginas\then En varios archivos} añade o quita encabezados, pies,
 números Bates o marcas de agua en muchos PDF a la vez, con los números
 Bates siguiendo de un archivo al siguiente.
 
 \subsection{Al abrir el documento}
 
+\index{zoom!tamano real@tamaño real}\index{vista al abrir}\index{configuracion@configuración!documentos}%
 \menu{Páginas\then Al abrir el documento} fija cómo muestran el documento
 los visores de PDF al abrirlo: su disposición (una página, una página
 continua, páginas enfrentadas, enfrentadas continuas, portada, portada
@@ -1097,6 +1197,7 @@ está en \menu{Lo que pide el documento}.
 \section{Imponer}
 \label{sec:impose}
 
+\index{modos}\index{modos!imponer@Imponer}\index{imposicion@imposición}\index{imposicion@imposición!folleto}\index{imposicion@imposición!encuadernacion, papel, marcas@encuadernación, papel, marcas}%
 Imponer dispone las páginas de un documento en los pliegos de papel en que
 se imprimirán: un folleto, doblado por la mitad; varias páginas por hoja;
 copias de una página repetidas hasta llenar un pliego; con marcas de corte
@@ -1107,6 +1208,7 @@ y de plegado, sangrados y medianiles. El modo Imponer
 \shot{impose_es}{1}{El modo Imponer: un folleto de 2 y un pliego del
   resultado.}
 
+\index{anotaciones!sello}\index{formularios}\index{perfiles}\index{imposicion@imposición}\index{imposicion@imposición!folleto}\index{imposicion@imposición!formularios basico y avanzado@formularios básico y avanzado}\index{imposicion@imposición!secuencia}\index{imposicion@imposición!encuadernacion, papel, marcas@encuadernación, papel, marcas}%
 El formulario de la izquierda fija la imposición, de dos maneras.
 \menu{Básico} tiene la disposición (su tipo, columnas y filas), el perfil,
 las unidades, la encuadernación (cosida o encolada, pliegos por
@@ -1117,6 +1219,7 @@ compensación del desplazamiento, sangrado, recorte y desplazamiento,
 mosaicos, sellos, números de página\ldots), y la \menu{Secuencia}, que
 encadena varias.
 
+\index{guardar}\index{deshacer y rehacer}\index{formularios}\index{imposicion@imposición}\index{imposicion@imposición!vista previa}\index{imposicion@imposición!aplicar}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{Vista previa} (\key{F5}) ejecuta la orden y muestra el resultado a
 la derecha, un pliego cada vez; con \menu{Vista previa automática}, se
 ejecuta cada vez que cambia el formulario. \menu{Guardar} escribe el
@@ -1125,6 +1228,7 @@ resultado como un archivo nuevo (también como PDF/A o PDF/X, con
 convierte el resultado en el documento, y \menu{Deshacer aplicación} o
 \key{Ctrl+Z} lo devuelven. \menu{Detener} para una orden larga.
 
+\index{formularios}\index{perfiles}\index{imposicion@imposición}\index{imposicion@imposición!linea de ordenes@línea de órdenes}\index{linea de ordenes@línea de órdenes}%
 La configuración del formulario puede guardarse como perfiles; los
 marcados con \menu{Mostrar en el menú} aparecen en \menu{Imponer\then
 Perfiles}. \menu{Imponer\then Copiar línea de órdenes} copia la orden que
@@ -1138,6 +1242,7 @@ junto al resultado.
 
 \subsection{Combinar archivos}
 
+\index{enlaces}\index{marcadores}\index{anotaciones}\index{formularios}\index{etiquetas de pagina@etiquetas de página}\index{combinar archivos}%
 \menu{Archivo\then Nuevo\then Combinar archivos}
 (figura~\ref{fig:combine_es}) hace un solo PDF de varios, o de algunas de
 sus páginas. Los archivos se sueltan sobre su lista, o se añaden, y se
@@ -1154,6 +1259,7 @@ archivo.
 
 \subsection{Un PDF a partir de imágenes}
 
+\index{modos}\index{modos!ocr@OCR}\index{ocr@OCR}\index{pdf a partir de imagenes@PDF a partir de imágenes}%
 \menu{Archivo\then Nuevo\then PDF nuevo a partir de imágenes}
 (figura~\ref{fig:images_es}) hace un PDF de fotografías o escaneos, una
 página por cada una, en el orden de la lista. \menu{Por nombre} las ordena.
@@ -1165,6 +1271,7 @@ Cada página puede ser tan grande como su imagen, o del tamaño de un papel
 
 \subsection{Copias más pequeñas}
 
+\index{copias mas pequenas@copias más pequeñas}%
 \menu{Archivo\then Guardar una copia\then Más pequeña}
 (figura~\ref{fig:reduce_es}) hace una copia que ocupa menos. Primero
 muestra a qué se van los bytes del documento: sus imágenes, el contenido de
@@ -1179,8 +1286,10 @@ documento.
 
 \subsection{Exportar}
 
+\index{exportar}%
 \menu{Archivo\then Exportar} (figura~\ref{fig:export_es}) guarda:
 
+\index{exportar!paginas como imagenes@páginas como imágenes}\index{exportar!texto}%
 \begin{itemize}
 \item las páginas como imágenes, PNG, JPEG o TIFF, a una resolución, en
   color o en gris, todas o algunas;
@@ -1194,6 +1303,7 @@ documento.
 
 \subsection{Otra versión de PDF}
 
+\index{capas}\index{version de pdf@versión de PDF}\index{cifrado}%
 Algunos programas y oficinas piden un PDF de una versión dada.
 \menu{Archivo\then Guardar una copia\then Con otra versión de PDF}
 (figura~\ref{fig:version_es}) hace una copia que dice ser PDF 1.3 a 2.0, y
@@ -1206,6 +1316,7 @@ cifrado AES; un documento cifrado con AES-256 no puede bajar de 1.7).
 \subsection{PDF/A y PDF/X}
 \label{sec:pdfa}
 
+\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{pdf2iso}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
 \menu{Archivo\then Guardar una copia} escribe también el documento como
 PDF/A-1b, PDF/A-2b o PDF/A-3b, las formas de PDF pensadas para archivar (la
 última, con archivos adjuntos), o como PDF/X-4, para la imprenta. Las hace
@@ -1216,6 +1327,7 @@ prepara y las comprueba; si veraPDF está instalado, también las comprueba.
 
 \subsection{Contraseñas}
 
+\index{contrasenas@contraseñas}\index{contrasenas@contraseñas!permisos}\index{cifrado}%
 \menu{Archivo\then Seguridad\then Proteger con contraseñas}
 (figura~\ref{fig:protect_es}) pone una contraseña para abrir el documento,
 otra para sus permisos (imprimir, copiar, cambiarlo\ldots), o las dos, y
@@ -1229,6 +1341,7 @@ protección de un documento abierto con su contraseña.
 
 \subsection{Firmas digitales}
 
+\index{contrasenas@contraseñas}\index{firmas digitales}\index{firmas digitales!id digital@ID digital}%
 Una firma digital dice quién firmó un documento y muestra si se cambió
 después. Necesita un ID digital: un archivo \texttt{.p12} con un
 certificado y su clave privada, protegido con una contraseña, que da una
@@ -1238,6 +1351,7 @@ nombre, una dirección de correo y los demás datos.
 
 \shot{make_id_es}{0.5}{Crear un ID digital.}
 
+\index{contrasenas@contraseñas}\index{anotaciones!sello}\index{anotaciones!bloquear}\index{formularios}\index{censura!recuadros}\index{firmas digitales}\index{firmas digitales!certificar}%
 \menu{Archivo\then Seguridad\then Firmar el documento}
 (figura~\ref{fig:sign_es}) lo firma con un ID y su contraseña, con un
 motivo, un lugar y un contacto. Una firma visible se arrastra a su lugar en
@@ -1252,6 +1366,7 @@ guarda en ese momento.
 
 \shot{sign_es}{0.6}{Firmar un documento.}
 
+\index{firmas digitales!comprobar}%
 \menu{Archivo\then Seguridad\then Comprobar las firmas}
 (figura~\ref{fig:signatures_es}) comprueba las firmas del documento: si
 cada una está intacta y es válida, quién firmó y si está entre los
@@ -1265,6 +1380,7 @@ versión firmada} abre el documento tal como era cuando se hizo esa firma.
 \section{Configuración}
 \label{sec:settings}
 
+\index{pestanas@pestañas}\index{configuracion@configuración}%
 \menu{Configuración\then Configuración} (\key{Ctrl+,}) tiene siete
 pestañas.
 
@@ -1272,6 +1388,7 @@ pestañas.
 
 \shot{settings_general_es}{0.6}{Configuración, General.}
 
+\index{pdf2iso}\index{segundo plano}\index{pestanas@pestañas}\index{copia de recuperacion@copia de recuperación}\index{anotaciones}\index{lapiz de tableta@lápiz de tableta}\index{ocr@OCR}\index{ocr@OCR!idiomas}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{configuracion@configuración!autor}\index{idioma de la interfaz}%
 \begin{description}
 \item[Autor] el nombre que se escribe en las anotaciones que usted hace.
 \item[Copia de recuperación cada] cada cuánto se guardan los cambios aún
@@ -1292,13 +1409,15 @@ pestañas.
 \item[Devolver las herramientas] a como estaban al principio.
 \end{description}
 
-\noindent Al pie de la pestaña se dice dónde se guarda la configuración
+\noindent\index{pestanas@pestañas}%
+Al pie de la pestaña se dice dónde se guarda la configuración
 (véase la sección~\ref{sec:files-kept}).
 
 \subsection{Aspecto}
 
 \shot{settings_appearance_es}{0.6}{Configuración, Aspecto.}
 
+\index{modos}\index{consejos de los modos}\index{barras de herramientas}\index{barras de herramientas!iconos y texto}\index{nitidez del texto}\index{anotaciones!bloquear}\index{configuracion@configuración!aspecto}\index{idioma de la interfaz}%
 \begin{description}
 \item[Colores de la interfaz] como el sistema, claros u oscuros.
 \item[Tamaño de la interfaz] el tamaño de las letras de los menús, los
@@ -1316,6 +1435,7 @@ pestañas.
 
 \shot{settings_documents_es}{0.6}{Configuración, Documentos.}
 
+\index{abrir!documentos recientes}\index{zoom}\index{zoom!tamano real@tamaño real}\index{configuracion@configuración!documentos}%
 \begin{description}
 \item[Un documento se abre mostrando] el zoom de un documento que se abre
   por primera vez: lo que pide el documento, la página entera, el ancho
@@ -1331,6 +1451,7 @@ pestañas.
 
 \subsection{Colores, Atajos, Categorías}
 
+\index{anotaciones}\index{colores de las anotaciones}\index{anotaciones!categorias@categorías}\index{configuracion@configuración!atajos}%
 \menu{Colores} fija los colores que ofrecen los menús de anotación y lo que
 cada uno significa para usted. \menu{Atajos} fija la tecla de cada
 herramienta y acción: haga clic en la tecla de una acción y pulse la nueva.
@@ -1342,6 +1463,7 @@ a las habituales.
 
 \shot{settings_performance_es}{0.6}{Configuración, Rendimiento.}
 
+\index{miniaturas}\index{configuracion@configuración!rendimiento}%
 \begin{description}
 \item[Memoria] cuánta memoria puede usar la ventana: Baja, Normal, Alta o
   Todas las páginas, que mantiene dibujadas todas las páginas y miniaturas,
@@ -1357,6 +1479,7 @@ a las habituales.
 \subsection{Dónde se guarda la configuración}
 \label{sec:files-kept}
 
+\index{modos}\index{barras de herramientas}\index{herramientas!mano@Mano}\index{encabezados y pies de pagina@encabezados y pies de página!variables}\index{archivos de configuracion@archivos de configuración}\index{macos y windows@macOS y Windows}%
 La configuración se guarda en un archivo, \texttt{config.toml}, en la
 carpeta de configuración: \texttt{\textasciitilde/.config/py-pdftools/} en
 Linux, \texttt{\textasciitilde/Library/Application Support/py-pdftools/} en
@@ -1370,12 +1493,14 @@ firmantes de confianza se guardan en la misma carpeta, en
 herramientas y los documentos abiertos al terminar se guardan aparte, en
 \texttt{py-pdftools.conf}, en la misma carpeta de configuración en Linux.
 
+\index{idioma de la interfaz}%
 El idioma de la interfaz también se elige con
 \texttt{py-pdftools interface es} (o \texttt{en}).
 
 \section{La línea de órdenes}
 \label{sec:cli}
 
+\index{modos}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{linea de ordenes@línea de órdenes}\index{linea de ordenes@línea de órdenes!opciones comunes}%
 \texttt{py-pdftools} hace sin ventana casi todo lo que hace la ventana,
 sobre un archivo o sobre muchos, de modo que puede usarse en scripts.
 \texttt{py-pdftools ORDEN -h} explica cada orden y todas sus opciones. Las
@@ -1385,6 +1510,7 @@ cambian los archivos mismos (\texttt{-i}) o los escriben en una carpeta
 nada; \texttt{--conform} los guarda como PDF/A o PDF/X;
 \texttt{--password} abre archivos protegidos.
 
+\index{pdf2iso}\index{formularios}\index{ocr@OCR}\index{etiquetas de pagina@etiquetas de página}\index{paginas@páginas!dividir}\index{encabezados y pies de pagina@encabezados y pies de página}\index{numeracion bates@numeración Bates}\index{marcas de agua}\index{imposicion@imposición}\index{combinar archivos}\index{copias mas pequenas@copias más pequeñas}\index{exportar!paginas como imagenes@páginas como imágenes}\index{version de pdf@versión de PDF}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{idioma de la interfaz}\index{linea de ordenes@línea de órdenes!autocompletado}%
 \begin{longtable}{@{}lp{0.68\textwidth}@{}}
 \toprule
 Orden & Qué hace\\
@@ -1429,7 +1555,8 @@ $ py-pdftools form fill formulario.pdf datos.json -o lleno.pdf
 $ py-pdftools reduce escaneos.pdf -o menor.pdf --level medium
 \end{verbatim}
 
-\noindent El segundo pone las etiquetas i, ii\ldots\ desde la página 1 y
+\noindent\index{etiquetas de pagina@etiquetas de página}%
+El segundo pone las etiquetas i, ii\ldots\ desde la página 1 y
 1, 2\ldots\ desde la página 9. En \texttt{pages}, las operaciones se hacen
 en el orden dado, cada una sobre las páginas tal como las dejaron las
 anteriores; una lista de páginas se escribe \texttt{9-20,31}, con
@@ -1439,16 +1566,19 @@ lea \texttt{\$pagelabel}. Con la interfaz en español, la ayuda de las
 órdenes está en español, pero las órdenes y sus opciones se escriben
 siempre en inglés.
 
+\index{linea de ordenes@línea de órdenes!autocompletado}%
 \texttt{py-pdftools completion bash} (o \texttt{fish}, \texttt{zsh})
 escribe un script que completa las órdenes y opciones en el intérprete.
 
 \section{Teclas}
 \label{sec:keys}
 
+\index{anotaciones}\index{configuracion@configuración!atajos}%
 Las teclas de las herramientas de anotación están en la
 sección~\ref{sec:annotate}. Estas son las demás; todas pueden cambiarse en
 \menu{Configuración\then Atajos}.
 
+\index{modos}\index{consejos de los modos}\index{barras de herramientas}\index{miniaturas}\index{pestanas@pestañas}\index{vista!dividida}\index{deshacer y rehacer}\index{moverse por las paginas@moverse por las páginas}\index{herramientas!mano@Mano}\index{historial de vistas}\index{marcadores}\index{seleccionar texto}\index{copiar texto}\index{zoom}\index{zoom!a lo impreso}\index{zoom!tamano real@tamaño real}\index{herramientas!ampliar una zona@Ampliar una zona}\index{disposicion de pagina@disposición de página!dos paginas@dos páginas}\index{vista!girar}\index{pantalla completa}\index{anotaciones}\index{anotaciones!propiedades}\index{anotaciones!agrupar y alinear}\index{anotaciones!copiar}\index{formularios}\index{censura}\index{censura!marcar}\index{censura!mostrar el resultado}\index{censura!copia censurada}\index{metadatos}\index{ocr@OCR}\index{paginas@páginas!dividir}\index{imposicion@imposición}\index{imposicion@imposición!vista previa}\index{imposicion@imposición!aplicar}\index{teclas}%
 \begin{longtable}{@{}>{\raggedright}p{0.4\textwidth}p{0.54\textwidth}@{}}
 \toprule
 Tecla & Acción\\
@@ -1494,6 +1624,7 @@ Tecla & Acción\\
 
 \section{Cuando algo falla}
 
+\index{appimage@AppImage}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{pyhanko@pyHanko}\index{modos}\index{barras de herramientas}\index{barras de herramientas!personalizar}\index{miniaturas}\index{copia de recuperacion@copia de recuperación}\index{nitidez del texto}\index{censura}\index{censura!texto solo cubierto}\index{censura!copia censurada}\index{ocr@OCR}\index{ocr@OCR!idiomas}\index{ocr@OCR!modelos}\index{copias mas pequenas@copias más pequeñas}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{idioma de la interfaz}\index{archivos de configuracion@archivos de configuración}%
 \begin{description}
 \item[El texto se ve borroso] elija \menu{Más nítido} o \menu{Lo más
   nítido} en \menu{Configuración\then Aspecto\then Texto de las páginas}, y
@@ -1524,10 +1655,13 @@ Tecla & Acción\\
   modos.
 \end{description}
 
-\noindent Los problemas y los deseos pueden escribirse como incidencias en
+\noindent\index{problemas}%
+Los problemas y los deseos pueden escribirse como incidencias en
 GitHub o en Codeberg (las direcciones están en la primera página), o
 enviarse a
 \href{mailto:nicolasvaughan@proton.me}{\texttt{nicolasvaughan@proton.me}}.
+
+\printindex
 
 \end{document}
 
