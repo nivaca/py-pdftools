@@ -124,3 +124,25 @@ def test_in_the_window(app, plain, tmp_path, monkeypatch):
         assert not protection.read(plain).encrypted and w.password == ""
     finally:
         w.close()
+
+
+def test_a_protection_that_fails_leaves_the_document_shown(app, plain, tmp_path, monkeypatch):
+    """The document is closed before its file is written over (Windows doesn't let a file open be replaced); if
+    the protection then fails, it is shown again, as it was."""
+    from py_pdftools.gui.window import MainWindow
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    try:
+        assert w.open_path(plain)
+
+        def refuse(*a, **k):
+            raise protection.ProtectionError("no")
+
+        monkeypatch.setattr(protection, "protect", refuse)
+        w.ask_protection = lambda current: {"open_password": "pw", "owner_password": "", "allowed": set()}
+        assert not w.protection_dialog()
+        assert w.doc is not None and w.count == 1 and w.canvas.doc is not None
+    finally:
+        w.close()

@@ -338,6 +338,10 @@ class FilesMixin:
         chosen = self.ask_protection(current)
         if chosen is None:
             return False
+        # The file is written over: the document is closed first, as when it is saved (Windows doesn't let a
+        # file open be replaced), and shown again from it if the protection fails.
+        page = self.page
+        self._close_doc()
         try:
             if chosen.get("remove"):
                 protection.unprotect(self.path, self.path, key)
@@ -346,6 +350,8 @@ class FilesMixin:
                 protection.protect(self.path, self.path, password=key, **chosen)
                 opening = chosen["open_password"]
         except protection.ProtectionError as e:
+            self._load_work(self.file, page)
+            self.refresh()
             self.status(str(e), error=True)
             return False
         # The file changed under the window: opened again, with the new password, where it was.

@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in twenty-seven stages.
+I explain how it was made, in twenty-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -756,6 +756,31 @@ showed it, and the others open, in tabs or windows of their own, went on
 showing the toolbars as they were, until the program started again. A
 change of their look, of their lock or of their buttons now goes to every
 window open, and is written to the disk at once.
+
+28. Green again on Windows and Ubuntu
+-------------------------------------
+
+The tests also run on GitHub, on Ubuntu and on Windows, against the program
+installed by its installers. Every run had failed for a long while, and the
+mails of GitHub said so. On Ubuntu, Python aborted at the first window: the
+tests start an X server of their own where Xvfb is installed, and the
+runners have it, but not the libraries of Qt's plugin for X; they now draw
+offscreen there.
+
+Windows found more, two of them faults of the program. The CSV of the data
+of a form, and the table of many forms, had an empty line after each row:
+csv ends its lines with \r\n, and saving the text as text made them
+\r\r\n. Protect with passwords failed: it writes the protected file over
+the document, which the window kept open, and Windows doesn't let a file
+open be replaced. It now closes the document first, as saving does, and
+shows it again if the protection fails. Looking for what else kept the
+file open, I found the processes that draw the pages: each keeps a few
+documents open, so on Windows saving could fail too, once a page had been
+drawn. There they now read the document into memory and let the file go.
+The other three faults were of the tests: one wrote over a file it still
+had open, one expected the place where Linux starts programs with the
+session, and one replaced, as another program would, a file the window
+had open, which Windows doesn't allow.
 
 Testing
 -------

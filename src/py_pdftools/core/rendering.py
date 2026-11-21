@@ -12,6 +12,8 @@ Nothing here uses Qt: the process imports only this, annotate/annots.py and PyMu
 
 from __future__ import annotations
 
+import sys
+
 import pymupdf
 
 KEPT = 3  # documents kept open (one per window, usually)
@@ -35,7 +37,13 @@ def _document(path: str, password: str, stamp: tuple, bare: bool = False) -> pym
     # Otro sello (fecha, tamaño) quiere decir que el archivo cambió: las páginas despojadas ya no valen.
     if bare:
         _bare.pop(path, None)
-    doc = pymupdf.open(path)
+    # On Windows a file held open can't be replaced, and these processes keep documents open (KEPT): saving the
+    # document, or protecting it, would fail. There they are read into memory, and the file is let go at once.
+    if sys.platform == "win32":
+        with open(path, "rb") as f:
+            doc = pymupdf.open(stream=f.read(), filetype="pdf")
+    else:
+        doc = pymupdf.open(path)
     if doc.needs_pass:
         doc.authenticate(password)
     _docs[key] = (stamp, doc)

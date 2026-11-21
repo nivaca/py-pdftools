@@ -4,6 +4,8 @@ recent documents, where the file dialogs start. Each kept in the configuration f
 
 from __future__ import annotations
 
+import sys
+
 import pymupdf
 import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox
@@ -174,3 +176,29 @@ def test_text_sharpness(window, tmp_path):
         assert darker != plain
     finally:
         reading.SHARPEN = before
+
+
+@pytest.mark.skipif(not sys.platform.startswith("linux"), reason="reads the open files in /proc")
+def test_rendering_lets_go_of_the_file_on_windows(tmp_path, monkeypatch):
+    """On Windows the processes of rendering read a document into memory, and don't keep its file open: a file
+    held open there can't be replaced, so saving the document, or protecting it, would fail."""
+    import os
+
+    from py_pdftools.core import rendering
+
+    path = tmp_path / "w.pdf"
+    d = pymupdf.open()
+    d.new_page().insert_text((40, 60), "Windows")
+    d.save(path)
+    stamp = (path.stat().st_mtime_ns, path.stat().st_size)
+
+    def held() -> bool:
+        return any(os.path.realpath(f"/proc/self/fd/{fd}") == str(path) for fd in os.listdir("/proc/self/fd"))
+
+    monkeypatch.setattr(rendering.sys, "platform", "win32")
+    rendering._docs.clear()
+    try:
+        rendering.render(str(path), "", stamp, 0, 1.0)
+        assert not held()
+    finally:
+        rendering._docs.clear()
