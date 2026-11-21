@@ -412,4 +412,6 @@ py-pdftools es software libre: puede redistribuirlo o modificarlo según los
 términos de la Licencia Pública General de GNU publicada por la Free
 Software Foundation, versión 3 o (a su elección) cualquier versión
 posterior (véase [LICENSE](LICENSE)). Usa PyMuPDF (GNU AGPL 3), pikepdf
-(Mozilla Public License 2.0), reportlab (BSD) y PySide6 (GNU LGPL 3).
+(Mozilla Public License 2.0), reportlab (BSD) y PySide6 (GNU LGPL 3). Todo
+el software libre que usa, con sus licencias, está en
+[docs/TERCEROS_es.md](docs/TERCEROS_es.md).

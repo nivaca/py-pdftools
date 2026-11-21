@@ -395,4 +395,5 @@ under the terms of the GNU General Public License as published by the Free
 Software Foundation, either version 3 of the License, or (at your option)
 any later version (see [LICENSE](LICENSE)). It uses PyMuPDF (GNU AGPL 3),
 pikepdf (Mozilla Public License 2.0), reportlab (BSD) and PySide6 (GNU LGPL
-3).
+3). All the open-source software it uses, with its licences, is listed in
+[docs/THIRD-PARTY.md](docs/THIRD-PARTY.md).
