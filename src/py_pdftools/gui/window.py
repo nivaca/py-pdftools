@@ -332,7 +332,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.page_box.editingFinished.connect(lambda: self._page_shown(self.page) if self.doc is not None else None)
         # (beside it, how many pages there are; or 3/180, where the label is not the place of the page)
         self.page_label = QLabel("")
-        self.page_label.setStyleSheet("color: palette(placeholder-text);")
+        # (a little room between the box of the page and the count, which otherwise touch)
+        self.page_label.setStyleSheet("color: palette(placeholder-text); padding-left: 6px;")
         self.page_label.setToolTip(tr("How many pages the document has"))
         # La casilla del zoom: un porcentaje escrito, o uno de la lista, o un ajuste (página, ancho, alto...).
         self.zoom_label = QComboBox()

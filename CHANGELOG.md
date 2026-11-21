@@ -15,6 +15,8 @@ Debian package, the RPM, the wheel and the source, are on
   Appearance > Show tooltips off, which now governs only the others; the
   items of the toolbars that had none (the count of pages, the fields of
   Impose's toolbar, Undo apply) have one.
+- **Page and zoom**: some room between the box of the page and the count
+  of pages, which touched.
 
 ## 1.8.4 — 2026-11-21
 
