@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 from py_pdftools.core import config, health
@@ -61,6 +63,8 @@ def test_ocr_languages_not_installed(monkeypatch):
     monkeypatch.setattr(ocr, "version", lambda: "5")
     monkeypatch.setattr(ocr, "program", lambda: "/usr/bin/tesseract")
     monkeypatch.setattr(ocr, "languages", lambda: ["eng"])
+    # (as on a computer that has only English: the check must report it, not stop at it)
+    monkeypatch.setattr(ocr, "models", lambda: {"eng": Path("eng.traineddata")})
     config.set("ocr_language", "lat+eng")
     checks = health.ocr()
     assert checks[1].status == health.WARNING and "lat" in checks[1].detail and "eng" not in checks[1].detail

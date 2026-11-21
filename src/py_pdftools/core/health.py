@@ -179,7 +179,8 @@ def ocr() -> list[Check]:
                       tr("Install tesseract (tesseract on Fedora, tesseract-ocr on Debian and Ubuntu)"))]
     out = [Check(OK, title, f"{tesseract.version()} ({tesseract.program()})")]
     have = set(tesseract.languages())
-    wanted = tesseract.parse_languages(user_settings.load().ocr_language)
+    # (not ocr.parse_languages: it raises for a language not installed, which is what this check reports)
+    wanted = [n.strip() for n in user_settings.load().ocr_language.split("+") if n.strip()]
     missing = [n for n in wanted if n not in have]
     if missing:
         out.append(Check(WARNING, tr("Languages of OCR"),

@@ -891,6 +891,13 @@ It also looks at the shortcuts changed in Settings, against every other
 action. On its first run it found a real clash, F5 in Impose (see stage
 30).
 
+The tests on GitHub then found a fault of the check itself. To know the OCR
+languages chosen it used the function that parses them for OCR, which
+raises an error for a language not installed: the very case the check is
+there to report. On my computer Latin is installed, so the test passed;
+GitHub's computers have only English. The check now splits the list
+itself, and the test makes the computer look as if it had only English.
+
 35. Drawing with the graphics card
 ----------------------------------
 

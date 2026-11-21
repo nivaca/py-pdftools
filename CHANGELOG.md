@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **Check the configuration** stopped with an error when an OCR language
+  chosen in Settings wasn't installed, the very case it should report; it
+  now says which ones are missing (found by the tests on GitHub, whose
+  computers have only English).
+
 ## 1.8.6 — 2026-11-21
 
 - **Thumbnails**: in the middle of their panel, however wide it is made,
