@@ -68,3 +68,24 @@ def test_nothing_to_change_is_said(window, monkeypatch):
     assert "already" in window.statusBar().currentMessage()
     assert captions(window)[0] == "1"
 
+
+def test_select_all_thumbnails(window, monkeypatch):
+    """Ctrl+A in the thumbnails selects every page (not the annotations of the page, as elsewhere); and the
+    thumbnails' menu offers it."""
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QKeyEvent
+
+    window.pages.setFocus()
+    override = QKeyEvent(QEvent.Type.ShortcutOverride, Qt.Key.Key_A, Qt.KeyboardModifier.ControlModifier)
+    QApplication.sendEvent(window.pages, override)
+    assert override.isAccepted()  # (the list takes it: the window's Ctrl+A doesn't)
+    QApplication.sendEvent(window.pages, QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_A,
+                                                   Qt.KeyboardModifier.ControlModifier))
+    assert window.selected_pages() == [1, 2, 3, 4, 5, 6]
+    window.pages.clearSelection()
+    shown = {}
+    monkeypatch.setattr(window, "show_menu", lambda menu, where: shown.setdefault("menu", menu))
+    window.thumbs_menu(window.pages.visualItemRect(window.pages.item(1)).center())
+    every = next(a for a in shown["menu"].actions() if a.text() == "Select all the pages")
+    every.trigger()
+    assert window.selected_pages() == [1, 2, 3, 4, 5, 6]

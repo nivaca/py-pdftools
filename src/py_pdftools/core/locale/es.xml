@@ -12149,12 +12149,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Etiquetas cambiadas: {what}</tr>
   </text>
   <text>
+    <en>Select all the pages</en>
+    <tr>Seleccionar todas las páginas</tr>
+  </text>
+  <text>
     <en>The pages have those labels already</en>
     <tr>Las páginas ya tienen esas etiquetas</tr>
   </text>
   <text>
-    <en>The pages, with their labels when they are not their numbers; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several; right-click for what can be done with them</en>
-    <tr>Las páginas, con sus etiquetas cuando no son sus números; el número tras ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic elige varias; clic derecho para lo que se puede hacer con ellas</tr>
+    <en>The pages, with their labels when they are not their numbers; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several, Ctrl+A all; right-click for what can be done with them</en>
+    <tr>Las páginas, con sus etiquetas cuando no son sus números; el número tras ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic elige varias, Ctrl+A todas; clic derecho para lo que se puede hacer con ellas</tr>
   </text>
   <text>
     <en>and {count} more page</en>

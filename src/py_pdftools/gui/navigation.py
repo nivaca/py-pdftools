@@ -12,7 +12,7 @@ from urllib.parse import parse_qs, unquote
 
 import pymupdf
 from PySide6.QtCore import QEvent, QObject, QTimer, QUrl
-from PySide6.QtGui import QDesktopServices
+from PySide6.QtGui import QDesktopServices, QKeySequence
 from PySide6.QtWidgets import QMessageBox, QToolTip
 
 from ..core.interface import ntr, tr
@@ -40,6 +40,17 @@ class PageTips(QObject):
                 n = self.window.pages.row(item)
                 QToolTip.showText(event.globalPos(), self.window.page_details(n), self.window.pages.viewport())
                 return True
+        return False
+
+
+class SelectAllPages(QObject):
+    """Ctrl+A in the thumbnails selects all the pages: the list takes the key before the window's shortcut
+    (which selects the annotations of the page) gets it."""
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.ShortcutOverride and event.matches(QKeySequence.StandardKey.SelectAll):
+            event.accept()  # (así la tecla llega a la lista, que la toma como «seleccionar todo»)
+            return True
         return False
 
 

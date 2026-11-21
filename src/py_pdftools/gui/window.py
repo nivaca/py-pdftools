@@ -38,7 +38,7 @@ from .hint import HintOverlay
 from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
-from .navigation import NavigationMixin
+from .navigation import NavigationMixin, SelectAllPages
 from .forming import FormMixin
 from .linking import LinkEditMixin
 from .signing import SignMixin
@@ -246,15 +246,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.pages = QListWidget()
         from .navigation import PageTips
 
-        self.pages.viewport().installEventFilter(PageTips(self))  # (each page's details, as its tip)
+        self.pages.viewport().installEventFilter(PageTips(self))
+        self._select_all_pages = SelectAllPages(self)
+        self.pages.installEventFilter(self._select_all_pages)  # (each page's details, as its tip)
         self.pages.setViewMode(QListView.ViewMode.IconMode)
         self.pages.setFlow(QListView.Flow.TopToBottom)
         self.pages.setWrapping(False)
         self.pages.setMovement(QListView.Movement.Static)
         self.pages.setUniformItemSizes(True)
         self.pages.setToolTip(tr("The pages, with their labels when they are not their numbers; the number after ● "
-                                 "is how many annotations a page has. Ctrl+click or Shift+click chooses several; "
-                                 "right-click for what can be done with them"))
+                                 "is how many annotations a page has. Ctrl+click or Shift+click chooses several, "
+                                 "Ctrl+A all; right-click for what can be done with them"))
         # Varias a la vez: Ctrl y Mayúsculas eligen páginas sin moverse a ellas; un clic solo va a la página.
         self.pages.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         # La fila -1 llega cuando se vacía la lista (se abre otro documento): no hay nada que mostrar.
@@ -2782,11 +2784,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             return
         pages = self.selected_pages()
         menu.addSeparator()
+        every = menu.addAction(tr("Select all the pages"), self.select_all_pages)
+        every.setShortcut(QKeySequence.StandardKey.SelectAll)  # (que se vea: la tecla la toma la lista)
+        every.setEnabled(len(pages) < self.count)
         a = menu.addAction(tr("Recognise the text of these pages (OCR)…") if len(pages) > 1
                            else tr("Recognise the text of this page (OCR)…"),
                            lambda: self.recognise_dialog(chosen=True))
         a.setEnabled(self.a_recognise.isEnabled())
         self.show_menu(menu, self.pages.viewport().mapToGlobal(pos))
+
+    def select_all_pages(self):
+        """Every page chosen in the thumbnails (and in Foliate's list, which follows them)."""
+        self.pages.selectAll()
 
     def go_to_typed(self, typed: str) -> bool:
         """Go to the page TYPED names: the page shown, if it is its label; else a page with that label (any
