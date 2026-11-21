@@ -7,7 +7,7 @@ the order of their pages, imposes them for printing, and reads the text of
 their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
 together five earlier programs by the same author, each of which did one of
 those things: py-annotate, py-redact, py-foliation, py-imposition and
-py-pdfocr. Here I explain how it was made, in twenty-four stages.
+py-pdfocr. Here I explain how it was made, in twenty-five stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -679,6 +679,15 @@ allow) and the fonts it uses, with the pages of each. A font may be in a
 file several times, one subset for each chapter, as LaTeX makes them; the
 dialog shows it once, with all its pages. Looking at our own manuals with
 it showed that their PDFs had no title and no author, so now they have.
+
+25. Settings that fit, and fewer duplicates
+-------------------------------------------
+
+In a Settings window smaller than its contents, the form squeezed its rows,
+and the texts under a field, which wrap, ended up under the next field. Each
+tab made of a form is now in a scroll area: when the window is too short, it
+scrolls; it is never narrower than its checkboxes, so it only scrolls up and
+down.
 
 Testing
 -------

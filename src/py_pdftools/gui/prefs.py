@@ -15,6 +15,7 @@ from PySide6.QtWidgets import (
     QComboBox,
     QDialog,
     QDialogButtonBox,
+    QFrame,
     QFormLayout,
     QHeaderView,
     QKeySequenceEdit,
@@ -23,6 +24,7 @@ from PySide6.QtWidgets import (
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
+    QScrollArea,
     QSpinBox,
     QTableWidget,
     QTableWidgetItem,
@@ -51,6 +53,19 @@ ACTION_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand":
 def action_name(action: str) -> str:
     # Las acciones que no son herramientas tienen nombre aquí; las herramientas usan el de su anotación.
     return tr(ACTION_NAMES[action]) if action in ACTION_NAMES else tr(NAMES[action])
+
+
+def _scrolled(page: QWidget) -> QScrollArea:
+    """PAGE (a tab of forms) in a scroll area: in a dialog too small for it, it scrolls, instead of its rows
+    being squeezed until the texts under a field (wrapped labels) are covered by the next one."""
+    area = QScrollArea()
+    area.setWidgetResizable(True)
+    area.setFrameShape(QFrame.Shape.NoFrame)
+    area.setWidget(page)
+    # Solo se desplaza de arriba abajo: el diálogo no se estrecha más que lo que piden sus casillas
+    area.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+    area.setMinimumWidth(page.minimumSizeHint().width() + area.verticalScrollBar().sizeHint().width())
+    return area
 
 
 class SettingsDialog(QDialog):
@@ -164,9 +179,9 @@ class SettingsDialog(QDialog):
         where.setWordWrap(True)
         where.setStyleSheet("color: palette(placeholder-text);")
         form.addRow(where)
-        tabs.addTab(general, tr("General"))
-        tabs.addTab(self._appearance_tab(parent), tr("Appearance"))
-        tabs.addTab(self._documents_tab(), tr("Documents"))
+        tabs.addTab(_scrolled(general), tr("General"))
+        tabs.addTab(_scrolled(self._appearance_tab(parent)), tr("Appearance"))
+        tabs.addTab(_scrolled(self._documents_tab()), tr("Documents"))
 
         colours = QWidget()
         form = QFormLayout(colours)
@@ -249,7 +264,7 @@ class SettingsDialog(QDialog):
         self.graphics_antialias.setChecked(current["graphics_antialias"])
         for box in (self.transparency, self.text_antialias, self.graphics_antialias):
             form.addRow("", box)
-        tabs.addTab(perf, tr("Performance"))
+        tabs.addTab(_scrolled(perf), tr("Performance"))
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
