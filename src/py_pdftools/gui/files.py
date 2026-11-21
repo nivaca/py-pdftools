@@ -33,6 +33,74 @@ def ask_save(parent, title: str, text: str) -> QMessageBox.StandardButton:
 class FilesMixin:
     """Methods of MainWindow (which has the document, its annotations and the status line)."""
 
+    # ----------------------------------------------------------------- passwords
+
+    def protection_dialog(self) -> bool:
+        """Protect the document's file with passwords, or remove its protection (see core/protection.py); the
+        document is then opened again from it."""
+        from ..core import protection
+
+        if self.path is None:
+            return False
+        if self.is_modified():
+            # La protección se pone al archivo tal como está guardado: lo que no se guardó, antes.
+            answer = ask_save(self, tr("Unsaved changes"),
+                              tr("The protection is put on the file as it is saved. Save the changes first?"))
+            if answer != QMessageBox.StandardButton.Save or not self.save():
+                return False
+        key = self.password
+        try:
+            current = protection.read(self.path, key)
+            if current.encrypted and not current.owner:
+                # Abierto sin la contraseña de permisos: solo con ella se cambia la protección.
+                key = self.ask_owner_password()
+                if key is None:
+                    return False
+                current = protection.read(self.path, key)
+                if not current.owner:
+                    self.status(tr("That is not its permissions password"), error=True)
+                    return False
+        except protection.ProtectionError as e:
+            self.status(str(e), error=True)
+            return False
+        chosen = self.ask_protection(current)
+        if chosen is None:
+            return False
+        try:
+            if chosen.get("remove"):
+                protection.unprotect(self.path, self.path, key)
+                opening = ""
+            else:
+                protection.protect(self.path, self.path, password=key, **chosen)
+                opening = chosen["open_password"]
+        except protection.ProtectionError as e:
+            self.status(str(e), error=True)
+            return False
+        # The file changed under the window: opened again, with the new password, where it was.
+        self.drop_work()
+        if not self.open_path(self.path, password=opening):
+            return False
+        self.status(tr("{file} is no longer protected", file=self.path.name) if chosen.get("remove")
+                    else tr("{file} is protected", file=self.path.name))
+        return True
+
+    def ask_owner_password(self) -> str | None:
+        from PySide6.QtWidgets import QInputDialog, QLineEdit
+
+        text, ok = QInputDialog.getText(self, tr("Permissions password"),
+                                        tr("Its protection can be changed only with its permissions password:"),
+                                        QLineEdit.EchoMode.Password)
+        return text if ok and text else None
+
+    def ask_protection(self, current) -> dict | None:
+        """The protection chosen (see ProtectDialog.result_values); None if cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from .protect_dialog import ProtectDialog
+
+        dialog = ProtectDialog(current, self)
+        return dialog.result_values() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
     def _same_file(self, target: Path) -> bool:
         # resolve() sigue los enlaces simbólicos: un enlace al documento abierto también cuenta como él.
         if target.resolve() == self.path.resolve():

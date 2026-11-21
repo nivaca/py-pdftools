@@ -10577,4 +10577,148 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Save a copy without metadata, hidden text and layers, attachments, scripts and links, and with nothing else changed (the boxes aren't applied)</en>
     <tr>Guardar una copia sin metadatos, texto ni capas ocultos, adjuntos, scripts ni enlaces, y sin ningún otro cambio (los recuadros no se aplican)</tr>
   </text>
+  <text>
+    <en>A password is asked for to open it.</en>
+    <tr>Se pide una contraseña para abrirlo.</tr>
+  </text>
+  <text>
+    <en>A password to open the document, and one for what may be done with it (printing, copying, changing it); or its protection removed</en>
+    <tr>Una contraseña para abrir el documento y otra para lo que se puede hacer con él (imprimirlo, copiarlo, cambiarlo); o quitarle la protección</tr>
+  </text>
+  <text>
+    <en>Add comments and fill in forms</en>
+    <tr>Añadir comentarios y llenar formularios</tr>
+  </text>
+  <text>
+    <en>Again:</en>
+    <tr>Otra vez:</tr>
+  </text>
+  <text>
+    <en>Ask for a password to open it</en>
+    <tr>Pedir una contraseña para abrirlo</tr>
+  </text>
+  <text>
+    <en>Change the document in other ways</en>
+    <tr>Cambiar el documento de otras maneras</tr>
+  </text>
+  <text>
+    <en>Choose a password to open it, or restrictions, or both</en>
+    <tr>Elija una contraseña para abrirlo, restricciones, o ambas cosas</tr>
+  </text>
+  <text>
+    <en>Copy text and pictures</en>
+    <tr>Copiar texto e imágenes</tr>
+  </text>
+  <text>
+    <en>Fill in forms</en>
+    <tr>Llenar formularios</tr>
+  </text>
+  <text>
+    <en>Give a password: to open it, or for its permissions</en>
+    <tr>Dé una contraseña: para abrirlo o para sus permisos</tr>
+  </text>
+  <text>
+    <en>Insert, delete and turn pages</en>
+    <tr>Insertar, borrar y girar páginas</tr>
+  </text>
+  <text>
+    <en>It opens without a password, but what may be done with it is restricted.</en>
+    <tr>Abre sin contraseña, pero lo que se puede hacer con él está restringido.</tr>
+  </text>
+  <text>
+    <en>Its protection can be changed only with its permissions password</en>
+    <tr>Su protección solo se puede cambiar con su contraseña de permisos</tr>
+  </text>
+  <text>
+    <en>Its protection can be changed only with its permissions password:</en>
+    <tr>Su protección solo se puede cambiar con su contraseña de permisos:</tr>
+  </text>
+  <text>
+    <en>Its protection can be removed only with its permissions password</en>
+    <tr>Su protección solo se puede quitar con su contraseña de permisos</tr>
+  </text>
+  <text>
+    <en>Password:</en>
+    <tr>Contraseña:</tr>
+  </text>
+  <text>
+    <en>Permissions password</en>
+    <tr>Contraseña de permisos</tr>
+  </text>
+  <text>
+    <en>Permissions password:</en>
+    <tr>Contraseña de permisos:</tr>
+  </text>
+  <text>
+    <en>Print in high quality</en>
+    <tr>Imprimir en alta calidad</tr>
+  </text>
+  <text>
+    <en>Protect</en>
+    <tr>Proteger</tr>
+  </text>
+  <text>
+    <en>Protect with passwords</en>
+    <tr>Proteger con contraseñas</tr>
+  </text>
+  <text>
+    <en>Protect with passwords…</en>
+    <tr>Proteger con contraseñas…</tr>
+  </text>
+  <text>
+    <en>Remove the protection</en>
+    <tr>Quitar la protección</tr>
+  </text>
+  <text>
+    <en>Restrict what may be done with it</en>
+    <tr>Restringir lo que se puede hacer con él</tr>
+  </text>
+  <text>
+    <en>That is not its permissions password</en>
+    <tr>Esa no es su contraseña de permisos</tr>
+  </text>
+  <text>
+    <en>The permissions are kept by PDF programs, but they are not a lock: a program that ignores them can copy what can be read. The password to open it is the lock. The document is encrypted with AES-256.</en>
+    <tr>Los programas de PDF respetan los permisos, pero no son un candado: un programa que no los respete puede copiar lo que se puede leer. El candado es la contraseña para abrirlo. El documento se cifra con AES-256.</tr>
+  </text>
+  <text>
+    <en>The permissions password must not be that to open it: with it, the restrictions are lifted</en>
+    <tr>La contraseña de permisos no debe ser la de apertura: con ella se levantan las restricciones</tr>
+  </text>
+  <text>
+    <en>The protection is put on the file as it is saved. Save the changes first?</en>
+    <tr>La protección se pone al archivo tal como está guardado. ¿Guardar antes los cambios?</tr>
+  </text>
+  <text>
+    <en>The two passwords to open it are not the same</en>
+    <tr>Las dos contraseñas de apertura no son iguales</tr>
+  </text>
+  <text>
+    <en>The two permissions passwords are not the same</en>
+    <tr>Las dos contraseñas de permisos no son iguales</tr>
+  </text>
+  <text>
+    <en>This document is not protected.</en>
+    <tr>Este documento no está protegido.</tr>
+  </text>
+  <text>
+    <en>This document is protected ({method}).</en>
+    <tr>Este documento está protegido ({method}).</tr>
+  </text>
+  <text>
+    <en>Type the password to open it</en>
+    <tr>Escriba la contraseña para abrirlo</tr>
+  </text>
+  <text>
+    <en>Type the permissions password</en>
+    <tr>Escriba la contraseña de permisos</tr>
+  </text>
+  <text>
+    <en>{file} is no longer protected</en>
+    <tr>{file} ya no está protegido</tr>
+  </text>
+  <text>
+    <en>{file} is protected</en>
+    <tr>{file} está protegido</tr>
+  </text>
 </interface>

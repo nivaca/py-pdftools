@@ -429,6 +429,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for value, name in conform.STANDARDS:
             act = self._action(sub, tr(name) + "…", lambda _=False, v=value: self.save_standard_dialog(v))
             self.standard_actions[value] = act
+        self.a_protect = self._action(m, tr("Protect with passwords…"), self.protection_dialog,
+                                      tip=tr("A password to open the document, and one for what may be done with "
+                                             "it (printing, copying, changing it); or its protection removed"))
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
         m.addSeparator()
@@ -1054,8 +1057,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         if name:
             self.open_path(Path(name))
 
-    def open_path(self, path: Path, place: dict | None = None) -> bool:
-        """Open the document at PATH (shown at PLACE, if given: see navigation.open_at_start)."""
+    def open_path(self, path: Path, place: dict | None = None, password: str = "") -> bool:
+        """Open the document at PATH (shown at PLACE, if given: see navigation.open_at_start), with PASSWORD if
+        it is protected (else it is asked for)."""
         self.canvas.commit_text()
         self.keep_comment()
         self.reset_history()  # (the places of another document)
@@ -1066,15 +1070,16 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             return False
         if self.path is not None:
             recovery.discard(self.path)
-        password = ""
         # Se pide la contraseña hasta que el archivo abra o el usuario cancele; open_pdf solo prueba, y se cierra
         # enseguida.
+        tried = bool(password)
         while True:
             try:
                 annots.open_pdf(path, password).close()
                 break
             except PasswordError:
-                password = self.ask_password(path, again=bool(password))
+                password = self.ask_password(path, again=tried)
+                tried = True
                 if password is None:
                     self.status(tr("{path} is protected by a password", path=path), error=True)
                     return False

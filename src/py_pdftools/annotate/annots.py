@@ -1418,7 +1418,7 @@ def save_doc(doc: pymupdf.Document, target: Path) -> None:
     try:
         # garbage=1 takes out the objects no longer used without renumbering the others.
         doc.save(tmp, garbage=1, deflate=True,
-                 encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
+                 encryption=pdfdoc.kept_encryption(doc))
         if doc.name and Path(doc.name).resolve() == target.resolve():
             doc.close()
         os.replace(tmp, target)

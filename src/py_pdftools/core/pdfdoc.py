@@ -52,6 +52,13 @@ def open_pdf(path: Path, password: str, error: type[Exception], password_error: 
     return doc
 
 
+def kept_encryption(doc: pymupdf.Document) -> int:
+    """How DOC is to be saved: protected as it is (with its passwords and permissions), if it is; else not.
+    (needs_pass alone misses a file with only a permissions password, which opens without asking.)"""
+    encrypted = doc.needs_pass or bool((doc.metadata or {}).get("encryption"))
+    return pymupdf.PDF_ENCRYPT_KEEP if encrypted else pymupdf.PDF_ENCRYPT_NONE
+
+
 # A word of a page: its rectangle, its block and its line first (then, maybe, its text)
 Word = Sequence
 

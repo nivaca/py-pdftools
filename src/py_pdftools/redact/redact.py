@@ -225,7 +225,7 @@ def write_redacted(source: Path, boxes: list[Box], target: Path, password: str =
         # (garbage=4 drops the objects nothing uses any more: the fonts and images
         # that only the redacted parts used, which would otherwise stay in the file)
         doc.save(tmp, garbage=4, deflate=True, clean=True,
-                 encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
+                 encryption=pdfdoc.kept_encryption(doc))
         doc.close()
         os.replace(tmp, target)
     except BaseException as e:
@@ -506,7 +506,7 @@ def sanitize(source: Path, target: Path, password: str = "", kinds: set[str] | N
         hidden.remove(doc, kinds)
         # Sin «unused», garbage=1 y sin clean: el resto del archivo cambia lo menos posible.
         doc.save(tmp, garbage=4 if "unused" in kinds else 1, deflate=True, clean="unused" in kinds,
-                 encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
+                 encryption=pdfdoc.kept_encryption(doc))
         doc.close()
         os.replace(tmp, target)
     except BaseException as e:
@@ -612,7 +612,7 @@ def remove_bookmarks(path: Path, which: set[int] | None = None, password: str = 
                 last = item[0]
             doc.set_toc(fixed)
         doc.save(tmp, garbage=4, deflate=True,
-                 encryption=pymupdf.PDF_ENCRYPT_KEEP if doc.needs_pass else pymupdf.PDF_ENCRYPT_NONE)
+                 encryption=pdfdoc.kept_encryption(doc))
         doc.close()
         os.replace(tmp, path)
     except BaseException as e:
