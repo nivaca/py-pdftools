@@ -5,7 +5,7 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.5.0 — 2026-11-21
 
 - **The menus in groups**: File, Edit and View have submenus (File > New,
   Export, Import and Security; Edit > Select, Arrange, Remove
