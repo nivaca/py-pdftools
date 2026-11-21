@@ -5,8 +5,9 @@ py-pdftools is a program for editing PDF documents: it annotates them,
 redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, imposes them for printing, and reads the text of
 their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
-together five programs of his, each of which did one of those things:
-py-annotate, py-redact, py-foliation, py-imposition and py-pdfocr. Here I explain how it was made, in twenty-two stages.
+together five earlier programs by the same author, each of which did one of
+those things: py-annotate, py-redact, py-foliation, py-imposition and
+py-pdfocr. Here I explain how it was made, in twenty-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
