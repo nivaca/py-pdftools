@@ -80,13 +80,18 @@ export PYTHONDONTWRITEBYTECODE=1
 #  another Python's settings
 export PYTHONNOUSERSITE=1
 unset PYTHONPATH PYTHONHOME PYTHONSTARTUP VIRTUAL_ENV
-#  A command of the command line first (py-pdftools.AppImage impose booklet book.pdf): the command
-#  line; else the window (py-pdftools.AppImage [file.pdf])
-case "${1:-}" in
-    labels | view | header-footer | watermark | pages | impose | completion | interface | -h | --help)
-        exec "$PYTHON" -m py_pdftools "$@" ;;
+#  The window with nothing, a file (py-pdftools.AppImage book.pdf, book.pdf#page=3) or --background;
+#  anything else is the command line (py-pdftools.AppImage impose booklet book.pdf, combine ...), so
+#  that its new commands need no change here
+FIRST="${1:-}"
+case "$FIRST" in
+    "" | --background) exec "$PYTHON" -m py_pdftools.gui "$@" ;;
+    -h | --help | --version | -V | --interface) exec "$PYTHON" -m py_pdftools "$@" ;;
 esac
-exec "$PYTHON" -m py_pdftools.gui "$@"
+if [ -e "$FIRST" ] || [ -e "${FIRST%%#*}" ]; then
+    exec "$PYTHON" -m py_pdftools.gui "$@"
+fi
+exec "$PYTHON" -m py_pdftools "$@"
 """
 
 

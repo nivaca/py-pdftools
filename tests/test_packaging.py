@@ -120,3 +120,32 @@ def test_icons():
     assert (icons / "linux/hicolor/scalable/apps/py-pdftools.svg").read_bytes() == (icons / "py-pdftools.svg").read_bytes()
     assert (icons / "macos/py-pdftools.icns").read_bytes()[:4] == b"icns"
     assert (icons / "windows/py-pdftools.ico").is_file()
+
+
+@pytest.mark.skipif(shutil.which("bash") is None or __import__("os").name == "nt", reason="AppRun is bash, for Linux")
+def test_the_appimage_starts_the_window_or_the_command_line(tmp_path):
+    """The AppImage's AppRun: the window with nothing, a file (with a place, too) or --background; any other
+    word, a command of the command line (also those added after AppRun was written)."""
+    import importlib.util
+    import subprocess
+
+    spec = importlib.util.spec_from_file_location("bundle", ROOT / "tools" / "bundle-appimage.py")
+    bundle = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(bundle)
+    fake = tmp_path / "python"
+    fake.write_text('#!/bin/bash\necho "$2"\n')  # (says which module it was asked to run)
+    fake.chmod(0o755)
+    apprun = tmp_path / "AppRun"
+    apprun.write_text(bundle.APPRUN % {"python": "python"})
+    apprun.chmod(0o755)
+    book = tmp_path / "book.pdf"
+    book.write_bytes(b"%PDF-1.4\n")
+
+    def module(*args):
+        return subprocess.run([str(apprun), *args], capture_output=True, text=True, check=True,
+                              env={"PATH": "/usr/bin:/bin"}).stdout.strip()
+
+    assert module() == "py_pdftools.gui"
+    assert module(str(book)) == module(f"{book}#page=3") == module("--background") == "py_pdftools.gui"
+    for command in ("impose", "combine", "export", "pdf-version", "form", "ocr", "--help"):
+        assert module(command, "x") == "py_pdftools", command
