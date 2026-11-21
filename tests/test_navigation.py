@@ -776,3 +776,14 @@ def test_extracted_pages_open_in_a_new_tab(window, tmp_path, monkeypatch):
     new = host.windows()[1]
     assert new.path == target and host.current() is new
     new.close()
+
+
+def test_the_thumbnails_are_in_the_middle_of_their_panel(window):
+    window.show_thumbnails(True)
+    window.splitter.setSizes([400, 700]) if hasattr(window, "splitter") else None
+    window.thumbs_box.grab()  # (shown: the list gets its width, and lays its cells out again)
+    QApplication.processEvents()
+    view = window.pages.viewport().width()
+    cell = window.pages.visualItemRect(window.pages.item(1))
+    assert view > window.thumb.width() + 28  # (wider than a thumbnail: there is something to center)
+    assert cell.width() == view and abs(cell.center().x() - view / 2) <= 1

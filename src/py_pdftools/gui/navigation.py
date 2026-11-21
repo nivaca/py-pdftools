@@ -11,9 +11,9 @@ from pathlib import Path
 from urllib.parse import parse_qs, unquote
 
 import pymupdf
-from PySide6.QtCore import QEvent, QObject, QTimer, QUrl
+from PySide6.QtCore import QEvent, QObject, QSize, QTimer, QUrl
 from PySide6.QtGui import QDesktopServices, QKeySequence
-from PySide6.QtWidgets import QMessageBox, QToolTip
+from PySide6.QtWidgets import QMessageBox, QStyledItemDelegate, QToolTip
 
 from ..core.interface import ntr, tr
 
@@ -51,6 +51,25 @@ class SelectAllPages(QObject):
         if event.type() == QEvent.Type.ShortcutOverride and event.matches(QKeySequence.StandardKey.SelectAll):
             event.accept()  # (así la tecla llega a la lista, que la toma como «seleccionar todo»)
             return True
+        return False
+
+
+class CenterThumbnails(QStyledItemDelegate):
+    """The column of thumbnails in the middle of their panel: each cell of the list is as wide as the panel
+    (see MainWindow._size_thumbnails), and, as the delegate of the list, it makes every item as large as its
+    cell, so the list draws each thumbnail in the middle of it. As a filter of the list's viewport, it sizes
+    the cells again when the panel changes width."""
+
+    def __init__(self, window):
+        super().__init__(window)
+        self.window = window
+
+    def sizeHint(self, option, index) -> QSize:
+        return self.window.pages.gridSize()
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Resize and event.size().width() != event.oldSize().width():
+            self.window._size_thumbnails()
         return False
 
 

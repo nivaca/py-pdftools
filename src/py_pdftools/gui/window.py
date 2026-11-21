@@ -258,6 +258,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         from .navigation import PageTips
 
         self.pages.viewport().installEventFilter(PageTips(self))
+        from .navigation import CenterThumbnails
+
+        # Al cambiar el ancho del panel, las celdas se ensanchan con él: las miniaturas quedan en el centro.
+        self._center_thumbs = CenterThumbnails(self)
+        self.pages.setItemDelegate(self._center_thumbs)
+        self.pages.viewport().installEventFilter(self._center_thumbs)
         self._select_all_pages = SelectAllPages(self)
         self.pages.installEventFilter(self._select_all_pages)  # (each page's details, as its tip)
         self.pages.setViewMode(QListView.ViewMode.IconMode)
@@ -2296,7 +2302,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
     def _size_thumbnails(self):
         self.pages.setIconSize(self.thumb)
-        self.pages.setGridSize(QSize(self.thumb.width() + 28, self.thumb.height() + 30))
+        # Cells as wide as the panel (at least as the thumbnail and its margin): each thumbnail in the middle
+        width = max(self.thumb.width() + 28, self.pages.viewport().width())
+        size = QSize(width, self.thumb.height() + 30)
+        if self.pages.gridSize() != size:
+            self.pages.setGridSize(size)
         self.pages.setMinimumWidth(min(self.thumb.width() + 50, 140))
 
     # ----------------------------------------------------------------- the menu of an annotation

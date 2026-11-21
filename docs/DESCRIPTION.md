@@ -844,6 +844,18 @@ off a toolbar or put on another one. Ctrl+Shift+F puts the cursor in it;
 if no toolbar shows it, the dialog opens instead. Esc had to be claimed by
 the box itself, since a shortcut of the window took it first.
 
+33. Thumbnails in the middle
+----------------------------
+
+The thumbnails are a list in its icon mode, one column, each cell as wide
+as a thumbnail and its margin; a panel made wider left the column on its
+left side. The list doesn't center an item in a wider cell, so both must
+grow: the cells are now as wide as the panel, laid out again when it
+changes width, and a delegate of the list makes each item as large as its
+cell, which the list then draws in the middle. A first try that changed
+the size of each item was dropped: with thousands of pages, it would run
+through all of them at each change of width.
+
 Testing
 -------
 
