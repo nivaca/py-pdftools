@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.6.2
+Version:        1.7.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.7.0-1
+- Version 1.7.0: the toolbar Page navigation; File > PDF properties; sharper
+  text (an unsharp mask); hints and tooltips off at first; an index in the user
+  manuals.
+
 * Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.6.2-1
 - Version 1.6.2: the user manual, in English and Spanish, with pictures
   (docs/MANUAL_en.pdf, docs/MANUAL_es.pdf).

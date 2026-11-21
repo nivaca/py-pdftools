@@ -5,6 +5,25 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.7.0 — 2026-11-21
+
+- **Page navigation**, a toolbar at the bottom of the window: First page,
+  Previous page, the box of the page shown ("12 of 180", which takes a
+  number or a label), Next page, Last page. It is edited like the others in
+  Customize the toolbars, where its box can also go on any other toolbar.
+- **File > PDF properties**: what the document is (title, author, dates,
+  the programs that made it, PDF version, pages and page size, whether it
+  is tagged, linearized, signed or encrypted, what it doesn't allow) and the
+  fonts it uses, with their type, encoding, embedding and pages; Copy puts
+  it all on the clipboard.
+- **Sharper text**: after the gamma, an unsharp mask makes the edges of the
+  letters steeper, light in Sharper and stronger in Sharpest; it shows most
+  when the pages are zoomed out.
+- **Fewer bubbles**: the hint of a mode is no longer shown when a mode is
+  chosen, and the tooltips are off; Settings > Appearance turns either on
+  (F1 still shows the hint).
+- The user manuals have an index (about 600 entries in each language).
+
 ## 1.6.2 — 2026-11-21
 
 - **The user manual**, in English and Spanish:
