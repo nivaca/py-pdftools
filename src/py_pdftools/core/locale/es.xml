@@ -11133,4 +11133,92 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{size} MB</en>
     <tr>{size} MB</tr>
   </text>
+  <text>
+    <en>A page of another PDF</en>
+    <tr>Una página de otro PDF</tr>
+  </text>
+  <text>
+    <en>Change the link</en>
+    <tr>Cambiar el enlace</tr>
+  </text>
+  <text>
+    <en>Drag on the page to make a link there; click a link to change or remove it</en>
+    <tr>Arrastre sobre la página para hacer un enlace allí; haga clic en un enlace para cambiarlo o quitarlo</tr>
+  </text>
+  <text>
+    <en>Every web and mail address written in the text, on every page, becomes a link</en>
+    <tr>Cada dirección web y de correo escrita en el texto, en todas las páginas, se vuelve un enlace</tr>
+  </text>
+  <text>
+    <en>Its page:</en>
+    <tr>Su página:</tr>
+  </text>
+  <text>
+    <en>Link changed</en>
+    <tr>Enlace cambiado</tr>
+  </text>
+  <text>
+    <en>Link made</en>
+    <tr>Enlace hecho</tr>
+  </text>
+  <text>
+    <en>Link removed</en>
+    <tr>Enlace quitado</tr>
+  </text>
+  <text>
+    <en>Links</en>
+    <tr>Enlaces</tr>
+  </text>
+  <text>
+    <en>Make links of the addresses in the text</en>
+    <tr>Hacer enlaces de las direcciones del texto</tr>
+  </text>
+  <text>
+    <en>No address of the text is without a link</en>
+    <tr>No hay dirección del texto sin enlace</tr>
+  </text>
+  <text>
+    <en>Remove all the links</en>
+    <tr>Quitar todos los enlaces</tr>
+  </text>
+  <text>
+    <en>Remove all the links…</en>
+    <tr>Quitar todos los enlaces…</tr>
+  </text>
+  <text>
+    <en>Remove the link</en>
+    <tr>Quitar el enlace</tr>
+  </text>
+  <text>
+    <en>Remove the {count} link of the document?</en>
+    <tr>¿Quitar el {count} enlace del documento?</tr>
+  </text>
+  <text>
+    <en>Remove the {count} links of the document?</en>
+    <tr>¿Quitar los {count} enlaces del documento?</tr>
+  </text>
+  <text>
+    <en>Take every link out of the document</en>
+    <tr>Quitar del documento todos los enlaces</tr>
+  </text>
+  <text>
+    <en>The document has no links</en>
+    <tr>El documento no tiene enlaces</tr>
+  </text>
+  <text>
+    <en>{count} link made</en>
+    <tr>Se hizo {count} enlace</tr>
+  </text>
+  <text>
+    <en>{count} link removed</en>
+    <tr>Se quitó {count} enlace</tr>
+  </text>
+  <text>
+    <en>{count} links made</en>
+    <tr>Se hicieron {count} enlaces</tr>
+  </text>
+  <text>
+    <en>{count} links removed</en>
+    <tr>Se quitaron {count} enlaces</tr>
+  </text>
 </interface>

@@ -39,6 +39,7 @@ from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin
+from .linking import LinkEditMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
 from .outline import OutlineMixin
@@ -107,7 +108,7 @@ DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one i
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
 TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"),
-              "zoomarea": N_("Zoom to area"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
+              "zoomarea": N_("Zoom to area"), "link": N_("Link"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
               "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature")}
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
 MARKS = {"check": (N_("Check mark ✓"), (((0.1, 0.55), (0.4, 0.85), (0.9, 0.15)),)),
@@ -172,7 +173,7 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
-                 WorkingMixin, FilesMixin, ToolbarsMixin, QMainWindow):
+                 WorkingMixin, FilesMixin, LinkEditMixin, ToolbarsMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -493,6 +494,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_copy = self._action(m, tr("Copy"), self.copy_selected)
         self.a_paste = self._action(m, tr("Paste"), self.paste)
         self.a_duplicate = self._action(m, tr("Duplicate"), self.duplicate)
+        self.m_edit = m
         m.addSeparator()
         self.a_group = self._action(m, tr("Group"), self.group_selected,
                                     tip=tr("Make the selected annotations one group: selected, moved and deleted "
@@ -543,6 +545,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 self.tool_actions[tool] = act
             m.addSeparator()
         self.tool_actions["select"].setChecked(True)
+        self._build_link_tool(self.m_edit, m)  # (la herramienta Enlace, también en este menú)
+        m.addSeparator()
         self._action(m, tr("Properties of the tool…"), lambda: self.tool_dialog(self.canvas.mode))
         m.addSeparator()
         self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(),
@@ -709,6 +713,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
             self._tool_button_menus(bar)
             self.tool_bars.append(bar)
+            if name == "notes":  # (la herramienta Enlace, que no hace anotaciones, va con las notas)
+                bar.addAction(self.tool_actions["link"])
         self.apply_shortcuts()
         self.show_labels(self.settings.value("toolbar_labels", "false") == "true")
 

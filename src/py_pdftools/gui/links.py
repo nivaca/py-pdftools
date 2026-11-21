@@ -28,12 +28,11 @@ class LinksMixin:
         if number in self._links or self.doc is None:
             return self._links.get(number, [])
         page = self.doc[number]
-        turn = page.rotation_matrix
         found = []
         for link in page.get_links():
             if link.get("kind") == pymupdf.LINK_NONE:
                 continue
-            r = (pymupdf.Rect(link["from"]) * turn).normalize()
+            r = pymupdf.Rect(link["from"]).normalize()  # (PyMuPDF lo da ya como la página se muestra)
             found.append(((r.x0, r.y0, r.x1, r.y1), link))
         # Las direcciones escritas en el texto, como enlaces: la palabra entera, sin la puntuación de alrededor.
         boxes, texts = self.page_words(number), self.word_texts(number)

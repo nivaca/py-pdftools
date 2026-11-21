@@ -436,6 +436,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     text_selected = Signal()  # the text selected with the tool Select text changed (see textselect.py)
     text_menu = Signal(object)  # QPoint (global): a right click on the text selected
     link_clicked = Signal(int, dict)  # page, the link clicked (see links.py)
+    link_drawn = Signal(int, object)  # page, (x0, y0, x1, y1): the area of a new link, drawn with the tool Link
+    link_edit = Signal(int, dict)  # page, a link of the document clicked with the tool Link
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
     menu_asked = Signal(int, object, int, object)  # index (-1: none), place on the screen, page, place on it
     text_done = Signal(int, object)  # index (-1: a new one), the annotation with the text written
@@ -1520,6 +1522,24 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 super().mousePressEvent(event)
                 return
             self.commit_text()
+        if self.mode == "link" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+            # La herramienta Enlace: un clic sobre un enlace lo cambia; un arrastre dibuja el área de uno nuevo.
+            page, point = self.locate(event.position().toPoint())
+            if page is not None:
+                link = self.link_at(page.number, point)
+                if link is not None and not link.get("in_text"):
+                    self.link_edit.emit(page.number, link)
+                    event.accept()
+                    return
+                start = self._clamp(page, point)
+                band = QGraphicsRectItem(QRectF(start, start), page)
+                pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
+                pen.setCosmetic(True)
+                band.setPen(pen)
+                band.setZValue(4)
+                self._drag = {"kind": "linkarea", "page": page, "start": start, "item": band}
+            event.accept()
+            return
         if self.mode == "zoomarea" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
             # Zoom to area: a frame dragged on a page, zoomed to on the release (a click zooms in, there).
             page, point = self.locate(event.position().toPoint())
@@ -1744,7 +1764,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._show_text(self._text_selection(n, drag["start"], point))
         elif kind == "erase":
             self._erase_at(point)
-        elif kind in ("band", "zoomarea"):
+        elif kind in ("band", "zoomarea", "linkarea"):
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
             tip = drag["start"]
@@ -1909,6 +1929,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         n = page.number
         if kind == "select-text":
             self.text_select_release(drag, moved)
+            return
+        if kind == "linkarea":
+            r = drag["item"].rect()
+            self.scene().removeItem(drag["item"])
+            if moved and r.width() > 2 and r.height() > 2:
+                self.link_drawn.emit(n, (r.left(), r.top(), r.right(), r.bottom()))
             return
         if kind == "zoomarea":
             r = drag["item"].rect()
