@@ -75,6 +75,7 @@ class TabHost(QMainWindow):
         win.windowTitleChanged.connect(lambda _t, w=win: self._retitle(w))
         tabs.show()
         win.show()
+        self.tab_bars()
         if front:
             self.show_window(win)
 
@@ -123,10 +124,25 @@ class TabHost(QMainWindow):
                 self.sides[1].removeTab(0)
                 self.sides[0].addTab(w, text)
         self.sides[1].setVisible(bool(self.sides[1].count()))
+        self.tab_bars()
         if not self.windows() and not self.closing:
             self.close()
         else:
             self._title()
+
+    def tab_bars(self):
+        """The bars of the tabs hidden while there is only one tab, unless Settings > General > Show the tab
+        bar with only one document says otherwise; with the view split, always shown (each side's tab has its
+        menu there, to bring it back)."""
+        from ..core import config
+
+        try:
+            lone = bool(config.get("lone_tab"))
+        except config.ConfigError:
+            lone = False
+        split = bool(self.sides[1].count())
+        for tabs in self.sides:
+            tabs.setTabBarAutoHide(not (lone or split))
 
     # ----------------------------------------------------------------- moving tabs
 
@@ -243,3 +259,9 @@ def open_in_tab(path=None, near=None):
         win.open_path(Path(file), place)
     host.show_window(win)
     return win
+
+
+def apply_tab_bars():
+    """The setting of the bars of the tabs, in every window of tabs (when it changes)."""
+    for host in list(_HOSTS):
+        host.tab_bars()

@@ -12364,4 +12364,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Last changed</en>
     <tr>Último cambio</tr>
   </text>
+  <text>
+    <en>Show the bar of the tabs with only one document open</en>
+    <tr>Mostrar la barra de las pestañas con un solo documento abierto</tr>
+  </text>
 </interface>

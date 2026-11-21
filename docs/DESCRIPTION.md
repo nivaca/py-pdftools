@@ -701,6 +701,12 @@ were twice at the top and the bottom of the window; they stay only on Page
 navigation, and the toolbar Navigation keeps the history of the places
 jumped to and the tools to select text, move the pages and zoom to an area.
 
+A window of tabs with a single document showed a bar with a single tab,
+which only took room. It is now hidden until there are two (Qt hides it by
+itself), unless a new setting asks to show it always; with the view split
+it is always shown, since the menu of each tab, which takes it back to the
+other side, is on that bar.
+
 Testing
 -------
 

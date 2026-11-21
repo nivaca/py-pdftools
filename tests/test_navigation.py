@@ -519,6 +519,7 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     # The split view: the second document beside the first; again, back.
     second.a_split.trigger()
     assert host.sides[1].isVisibleTo(host) and host.side_of(second) is host.sides[1]
+    assert not any(t.tabBarAutoHide() for t in host.sides)  # (split: each side's bar shown, with its menu)
     assert window.isVisible() and second.isVisible()  # (both in view)
     # Each window's shortcuts act only in it (no two actions take the same keys).
     from PySide6.QtCore import Qt
@@ -541,6 +542,14 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     third.close()
     second.close()
     assert host.windows() == [window] and host.isVisible()
+    # One tab left: its bar hidden, unless Settings > General > Show the bar of the tabs says otherwise
+    from py_pdftools.gui.tabs import apply_tab_bars
+
+    assert host.sides[0].tabBarAutoHide() and not host.sides[0].tabBar().isVisible()
+    config.set("lone_tab", True)
+    apply_tab_bars()
+    assert not host.sides[0].tabBarAutoHide() and host.sides[0].tabBar().isVisible()
+    config.set("lone_tab", False)
     window.annotations = window.saved = []
     window.close()
     assert not host.isVisible()  # (the last tab closed: its window too)

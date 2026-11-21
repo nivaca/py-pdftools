@@ -250,7 +250,8 @@ zona, Z), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
 colores de lectura (blanco, amarillo o verde sobre negro, o propios), el
 espacio entre las páginas, que se puede quitar, y Pantalla completa (F11)
 como presentación. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
-documentos en pestañas de una ventana, y Ver > Dividir la vista (`Ctrl+\`)
+documentos en pestañas de una ventana (la barra de las pestañas aparece
+desde la segunda, o siempre, con una opción), y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Un documento que otro programa cambia se abre de
 nuevo solo. La barra espaciadora, mantenida, convierte cualquier
 herramienta en Mano, y el botón central desplaza solo. La barra

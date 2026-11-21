@@ -242,8 +242,9 @@ the zoom; and the tool Zoom to area, Z), the view turned without changing
 the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
 black, or one's own), the gaps between the pages hidden, and Full screen
 (F11) as a presentation. File > Open in a new tab (Ctrl+T) puts documents
-in tabs of one window, and View > Split the view (`Ctrl+\`) shows two side
-by side. A document changed by another program opens again by itself.
+in tabs of one window (the bar of the tabs shows from the second one on,
+or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
+side by side. A document changed by another program opens again by itself.
 Space held turns any tool into Hand, and the middle button scrolls by
 itself. The toolbar Page navigation, at the bottom of the window, goes to
 the first, previous, next and last page, and its box takes a page number

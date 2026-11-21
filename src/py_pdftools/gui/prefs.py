@@ -121,6 +121,12 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.tabs)
+        self.lone_tab = QCheckBox(tr("Show the bar of the tabs with only one document open"))
+        try:
+            self.lone_tab.setChecked(bool(config.get("lone_tab")))
+        except config.ConfigError:
+            pass
+        form.addRow("", self.lone_tab)
         self.reload = QCheckBox(tr("Open a document again when another program changes it"))
         self.reload.setToolTip(tr("At once if nothing is unsaved here; else py-pdftools asks first"))
         try:
@@ -478,6 +484,11 @@ class SettingsDialog(QDialog):
                 config.set("tabs", self.tabs.isChecked())
             if self.reload.isChecked() != bool(config.get("reload")):
                 config.set("reload", self.reload.isChecked())
+            if self.lone_tab.isChecked() != bool(config.get("lone_tab")):
+                config.set("lone_tab", self.lone_tab.isChecked())
+                from .tabs import apply_tab_bars
+
+                apply_tab_bars()  # (en efecto enseguida, en todas las ventanas de pestañas)
         except (OSError, config.ConfigError) as e:
             QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         # (running in the background: kept in the configuration file, and in effect at once)
