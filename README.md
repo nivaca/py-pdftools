@@ -160,6 +160,9 @@ prepares and checks them, is part of py-pdftools: see "Where it comes
 from"). For OCR, the tesseract program, with the languages of the
 documents (`tesseract-langpack-…` on Fedora, `tesseract-ocr-…` on Debian
 and Ubuntu).
+Digital signatures need pyHanko: the AppImage and the installers bring it;
+elsewhere, `pip install 'py-pdftools[signatures]'` (Fedora doesn't package
+it, so the RPM goes without; the menu then says how to add it).
 
 The window
 ----------
@@ -251,6 +254,23 @@ margin, and can open it in the mode OCR to read its text. From the
 command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
 `py-pdftools from-images *.jpg -o scans.pdf --paper A4`.
 
+File > Save a copy > Smaller makes a copy that takes less space: its
+pictures drawn again at a lower resolution (only those shown above it),
+its fonts reduced to the characters used, what nothing uses taken out;
+the dialog shows where the bytes go. The tool Link (J, in Annotate) draws
+a link to a page, an address or another PDF, and a click on a link changes
+or removes it; Edit > Links makes links of the addresses in the text.
+
+Forms are filled in the panel Form (F6), which opens by itself with a
+document that has one, or with clicks on the page. What most forms ask is
+done without JavaScript: numbers and dates checked and shown in their
+format, sums worked out. The panel exports and imports the values (JSON,
+CSV, XFDF, FDF), and `py-pdftools form` shows, fills, tabulates and
+flattens forms from the command line. File > Digital signatures signs the
+document with a digital ID, visibly or not (and makes an ID of one's own),
+and checks its signatures: whether each is intact and valid, who signed
+and whether they are trusted, and what changed after it.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
@@ -324,10 +344,11 @@ Tests
 
     $ uv run pytest
 
-There are 508 tests: those of the four programs, and those of what is new
+There are 554 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, OCR, navigation, security, the toolbars, combining
-files and PDFs of pictures, the Spanish interface, the packaging). Their
+files and PDFs of pictures, smaller copies, links, forms, signatures, the
+Spanish interface, the packaging). Their
 windows are drawn on an X server of their own (Xvfb), if it is installed,
 else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See

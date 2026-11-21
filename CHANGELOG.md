@@ -5,6 +5,32 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **File > Save a copy > Smaller** (and `py-pdftools reduce`): a copy that
+  takes less space, at one of four levels: pictures drawn again at 220,
+  150 or 96 dpi (only those shown above it), fonts reduced to the
+  characters used, what nothing uses taken out; the dialog shows where
+  the bytes go.
+- **Links made and changed**: the tool Link (J, in Annotate) draws a link
+  to a page, an address or another PDF; a click on a link changes or
+  removes it; Edit > Links makes links of the addresses in the text, or
+  removes them all. Links of turned pages are now found where they are.
+- **Forms filled in**: the panel Form (F6) has an editor for each field,
+  and clicks on the page set check boxes and radio buttons. Numbers,
+  percentages, dates and phone numbers are checked and shown in their
+  format, and sums worked out, as the form's scripts ask, without
+  JavaScript.
+- **Form data**: exported and imported as JSON, CSV, XFDF or FDF; a copy
+  with the form flattened; `py-pdftools form show | fill | table |
+  flatten`.
+- **Digital signatures** (File > Digital signatures; with pyHanko, an
+  optional dependency): a self-signed digital ID made; the document signed
+  visibly or not, certified, its fields locked, with a timestamp from a
+  server if one is given; signatures checked (intact, valid, trusted, what
+  changed after them), their signers trusted, the version each signed
+  opened.
+
 ## 1.3.0 — 2026-11-20
 
 - **File > Combine files** (and `py-pdftools combine`): one PDF made of

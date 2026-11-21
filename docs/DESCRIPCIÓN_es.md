@@ -1,4 +1,4 @@
-# py-pdftools 1.3.0: descripción
+# py-pdftools 1.4.0: descripción
 
 ## Análisis
 
@@ -22,19 +22,19 @@ La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-fo
 
 ### La ventana al trabajar
 
-Las miniaturas admiten varias páginas a la vez, en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor (arrastrar, también entre páginas; Alt para una columna; doble y triple clic) y ofrece copiarlo, marcarlo o censurarlo. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante, y una página de rendimiento: la memoria que puede usar y la calidad del dibujo.
+Las miniaturas admiten varias páginas a la vez, en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor, también entre páginas. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante, y una página de rendimiento: la memoria que puede usar y la calidad del dibujo.
 
 ### Moverse por el documento
 
 Los marcadores son un panel común a todos los modos, y allí se editan. Los enlaces se siguen, y también las direcciones web y de correo escritas en el texto; cada salto queda en un historial (Alt+Izquierda, Alt+Derecha). La vista admite dos páginas lado a lado, más zooms, el giro sin tocar el archivo, colores de lectura y pantalla completa. Cada pestaña es una ventana entera dentro de otra, que puede mostrar dos a la vez. Un archivo que otro programa cambia se vuelve a abrir.
 
-### Seguridad, archivos nuevos y barras de herramientas
+### Seguridad, formularios y archivos nuevos
 
-El modo Censurar busca texto solo cubierto: texto que sigue en el archivo bajo un recuadro negro o blanco, una imagen o una anotación dibujados después, y que cualquiera puede copiar; lo encontrado se cubre con recuadros. Quitar la información oculta abarca ahora las capas apagadas, con lo que contienen y sus nombres. Archivo > Proteger con contraseñas pone una contraseña de apertura, una de permisos o ambas (AES-256). Archivo > Combinar archivos hace un PDF de varios, o de algunas de sus páginas; Archivo > PDF nuevo a partir de imágenes, uno de fotografías o escaneos, que puede abrirse en el modo OCR. Las barras de herramientas se editan.
+Censurar busca texto solo cubierto (que sigue en el archivo bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Proteger con contraseñas cifra con AES-256; Firmas digitales firma con un ID digital (con pyHanko), crea uno propio y comprueba las firmas. El panel Formulario rellena los campos, con los formatos, comprobaciones y sumas de las funciones estándar hechos en Python, sin JavaScript, y lleva sus datos dentro y fuera (JSON, CSV, XFDF, FDF). Archivo combina varios PDF, hace uno de imágenes y guarda copias más pequeñas; la herramienta Enlace dibuja y cambia enlaces. Las barras de herramientas se editan.
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 128 archivos de Python, unas 37 200 líneas (una décima parte, comentarios), y 2707 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 142 archivos de Python, unas 40 000 líneas (una décima parte, comentarios), y 2898 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -76,7 +76,7 @@ El OCR usa el programa tesseract (la versión del sistema), en varios procesos a
 
 ## Validación
 
-Hay 508 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos y los PDF de imágenes, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 554 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios y las firmas, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
@@ -86,9 +86,9 @@ Las pruebas corren también en GitHub, en Ubuntu y en Windows, contra el program
 
 ## Plataforma
 
-Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta Ghostscript (pdf2iso, otro programa del autor, viene incluido); para el OCR, el programa tesseract y los idiomas de los documentos.
+Funciona en Linux, y debería funcionar en Windows y macOS, donde lo instalan los instaladores de `install/`; un flujo de trabajo de GitHub los prueba allí. Necesita Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6. La AppImage lleva su propio Python con todo eso, y el RPM es para Fedora. Para PDF/A y PDF/X hace falta Ghostscript (pdf2iso, otro programa del autor, viene incluido); para el OCR, el programa tesseract y los idiomas de los documentos. Las firmas digitales necesitan pyHanko, que se instala aparte (`pip install 'py-pdftools[signatures]'`); la AppImage y los instaladores ya lo traen, el RPM no, porque Fedora no lo empaqueta.
 
-Es una aplicación de escritorio y no necesita internet, salvo para descargar, si se quiere, los modelos más precisos de Tesseract. Nada del usuario sale del equipo.
+Es una aplicación de escritorio y no necesita internet, salvo para descargar, si se quiere, los modelos más precisos de Tesseract, y para pedir a un servidor un sello de tiempo al firmar, si se le indica uno; las firmas se comprueban sin conexión. Nada del usuario sale del equipo.
 
 ## Ambiente
 

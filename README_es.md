@@ -165,6 +165,9 @@ que las prepara y las comprueba, es parte de py-pdftools: véase «De dónde
 viene»). Para el OCR, el programa tesseract, con los idiomas de los
 documentos (`tesseract-langpack-…` en Fedora, `tesseract-ocr-…` en Debian
 y Ubuntu).
+Las firmas digitales necesitan pyHanko: la AppImage y los instaladores lo
+traen; en otro caso, `pip install 'py-pdftools[signatures]'` (Fedora no lo
+empaqueta, así que el RPM va sin él; el menú dice entonces cómo añadirlo).
 
 La ventana
 ----------
@@ -261,6 +264,24 @@ leer su texto. Desde la línea de órdenes: `py-pdftools combine a.pdf
 b.pdf:2-5 -o todo.pdf` y `py-pdftools from-images *.jpg -o escaneos.pdf
 --paper A4`.
 
+Archivo > Guardar una copia > Más pequeña hace una copia que ocupa menos:
+sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
+encima de ella), sus fuentes reducidas a los caracteres usados, sin lo que
+nada usa; el diálogo muestra adónde van los bytes. La herramienta Enlace
+(J, en Anotar) dibuja un enlace a una página, una dirección u otro PDF, y
+un clic sobre un enlace lo cambia o lo quita; Editar > Enlaces hace enlaces
+de las direcciones del texto.
+
+Los formularios se rellenan en el panel Formulario (F6), que se abre solo
+con un documento que lo tiene, o con clics en la página. Lo que piden casi
+todos los formularios se hace sin JavaScript: números y fechas comprobados
+y mostrados en su formato, sumas calculadas. El panel exporta e importa
+los valores (JSON, CSV, XFDF, FDF), y `py-pdftools form` muestra, rellena,
+tabula y aplana formularios desde la línea de órdenes. Archivo > Firmas
+digitales firma el documento con un ID digital, de forma visible o no (y
+crea un ID propio), y comprueba sus firmas: si cada una está intacta y es
+válida, quién firmó y si es de confianza, y qué cambió después.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
@@ -340,11 +361,12 @@ Pruebas
 
     $ uv run pytest
 
-Hay 508 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 554 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, las barras de
-herramientas, la combinación de archivos y los PDF de imágenes, la
-interfaz en español, el empaquetado). Sus
+herramientas, la combinación de archivos, los PDF de imágenes, las copias
+más pequeñas, los enlaces, los formularios, las firmas, la interfaz en
+español, el empaquetado). Sus
 ventanas se dibujan en un servidor X propio (Xvfb), si está instalado, o
 si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el

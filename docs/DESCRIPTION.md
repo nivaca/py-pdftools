@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in nineteen stages.
+py-imposition. Here I explain how it was made, in twenty stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -483,10 +483,56 @@ PDF of scans is usually wanted for its text. Both are also commands,
 `py-pdftools combine` and `py-pdftools from-images`; in the first,
 `book.pdf:1-3,7` takes only those pages of a file.
 
+20. Smaller files, links, forms and signatures
+---------------------------------------------
+
+The last group of things recommended by the reading of PDFCraft took
+the longest. Making a file smaller was quick to write, but its first
+results were odd: PyMuPDF's function for drawing pictures again only
+halves them, so a picture asked for at 150 dpi came out at 300. It takes
+a set of options of MuPDF itself, and with those the pictures are drawn
+again at the resolution asked, cubically, and only those shown above one
+and a half times it; scans in black and white keep at least 300 dpi, and
+a picture that would grow is left as it was. Writing objects in streams,
+which saves a good part of a file, broke files that are encrypted, so it
+is done only for those that are not.
+
+Links can now be drawn and changed with a tool of their own. PyMuPDF
+gives the area of a link as the page is shown, but writes it as the page
+is in the file, before it is turned; and it changed a link of a turned
+page into one somewhere else. So a link changed is removed and written
+anew, in the space of the file. This also showed that the program had
+been turning the areas of links twice, and clicking on links of turned
+pages missed them.
+
+Forms took three steps. Filling them in is done in a panel with an
+editor for each field, and with clicks on the page for check boxes and
+radio buttons; each value is a change of the document, undone like the
+others. PyMuPDF would not empty a text field, so text values are written
+through MuPDF itself. Then the scripts: almost every form calls a handful
+of standard functions, to show a number as money, to check a date, to
+add up some fields. I wrote those functions in Python, reading their
+calls out of the scripts, so no JavaScript engine was needed. A field
+keeps its value plainly and shows it formatted, as forms do. The data of
+forms goes in and out as JSON, CSV, XFDF and FDF, and the forms of many
+filled copies can be put in one table.
+
+Signatures use pyHanko, which Fedora doesn't have; it is an optional
+dependency, installed by the AppImage and the installers, and the menu
+says how to install it when it is missing. A digital ID of one's own is
+made with the cryptography library. pyHanko places a signature in the
+coordinates of the PDF, counted from the bottom, so the area dragged on
+the page is turned back and moved there. It could not sign a file that
+PyMuPDF had encrypted (PyMuPDF writes the encryption dictionary in a way
+pyHanko doesn't read), but it signs those that pikepdf encrypts, as File
+> Protect with passwords does. Checking signatures works offline: a
+signer is trusted when their certificate is among those kept as trusted,
+and the version a signature signed can be opened.
+
 Testing
 -------
 
-The program has 508 tests (`uv run pytest`): those of the four programs,
+The program has 554 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -494,13 +540,15 @@ the window, the boxes as redaction marks, the working copies with their
 undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
 the moving through a document (bookmarks, links, the history, the views,
 tabs, reloading), the security of documents (text only covered, hidden
-layers, passwords), the toolbars, combining files and PDFs of pictures, the Spanish interface (every text translated, and none
-left over) and the packaging. The windows of the four modes are tested as a user
-would use them, with mouse events on the pages; the redacted copy is also
-written in a process of its own, as the window does it, and imposition runs
-its commands in one. The window was checked by eye as well, with
-screenshots of each mode in both languages. The RPM runs all the tests
-again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 128 files of Python, around 37,200
-lines (about a tenth of them comments), and 2,707 texts of the interface
-in Spanish.
+layers, passwords), the toolbars, combining files and PDFs of pictures,
+smaller copies, links, forms and signatures, the Spanish interface (every
+text translated, and none left over) and the packaging. The windows of the
+four modes are tested as a user would use them, with mouse events on the
+pages; the redacted copy is also written in a process of its own, as the
+window does it, and imposition runs its commands in one. The window was
+checked by eye as well, with screenshots of each mode in both languages.
+The RPM runs all the tests again with Fedora's packages (without pyHanko,
+so the tests of the signatures are skipped there). The Linux installer was
+run in a home folder made for the test. The program has 142 files of
+Python, around 40,000 lines (about a tenth of them comments), and 2,898
+texts of the interface in Spanish.
