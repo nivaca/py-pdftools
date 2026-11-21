@@ -30,7 +30,7 @@ earlier programs of mine did apart:
 
 The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
-version 1.8.2.
+version 1.8.3.
 
 The user manual, with pictures of the window and its dialogs, explains it
 all at length: [docs/MANUAL_en.pdf](docs/MANUAL_en.pdf) (in Spanish,

@@ -1,4 +1,4 @@
-# py-pdftools 1.8.2: descripción
+# py-pdftools 1.8.3: descripción
 
 ## Análisis
 
@@ -80,13 +80,13 @@ El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios 
 
 ## Validación
 
-Hay 604 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 607 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
 Las ventanas se revisaron además a ojo, con capturas de cada modo en los dos idiomas, y el manual de usuario se cotejó frase por frase con los menús, las teclas y los diálogos del programa; así apareció un error viejo de los README, que aún decían que el clic derecho sobre una barra cambia solo esa. El RPM vuelve a correr todas las pruebas con los paquetes de Fedora; así apareció el fallo de las etiquetas de PyMuPDF 1.28. El instalador de Linux se probó en una carpeta personal hecha para la prueba.
 
-Las pruebas corren también en GitHub, en Ubuntu y en Windows, contra el programa instalado. Allí fallaban desde el principio (faltaban qpdf y pdftotext; en Windows, además, no se puede borrar un archivo abierto ni existe `SIGALRM`), y se corrigió: el flujo instala las herramientas, las pruebas que las necesitan se saltan donde no están y las carpetas temporales se borran aunque quede un archivo abierto.
+Las pruebas corren también en GitHub, en Ubuntu y en Windows, contra el programa instalado; en la versión 1.8.3 volvieron a pasar en ambos, tras corregir dos fallos del programa que solo Windows mostraba (los CSV de formularios con renglones vacíos, y proteger con contraseñas un documento abierto). Allí fallaban desde el principio (faltaban qpdf y pdftotext; en Windows, además, no se puede borrar un archivo abierto ni existe `SIGALRM`), y se corrigió: el flujo instala las herramientas, las pruebas que las necesitan se saltan donde no están y las carpetas temporales se borran aunque quede un archivo abierto.
 
 ## Plataforma
 

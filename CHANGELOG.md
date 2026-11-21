@@ -5,6 +5,18 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.8.3 — 2026-11-21
+
+- **Windows**: Protect with passwords failed, since it writes over the file
+  the window had open, which Windows doesn't allow; the document is now
+  closed first, and shown again if the protection fails. The processes that
+  draw the pages read the document into memory there, so as not to keep its
+  file open, which could make saving fail too.
+- **Windows**: the CSV of the data of a form, and the table of many forms
+  (`py-pdftools form table`), had an empty line after each row.
+- The tests on GitHub pass again on Ubuntu and Windows: on Ubuntu they draw
+  offscreen, and three tests now follow Windows' rules.
+
 ## 1.8.2 — 2026-11-21
 
 - **Toolbars**: a change of their look (text beside or under the icons,

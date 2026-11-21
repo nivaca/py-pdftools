@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.8.2
+Version:        1.8.3
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.3-1
+- Version 1.8.3: on Windows, protecting a document open and the CSVs of forms;
+  the tests pass again on GitHub.
+
 * Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.2-1
 - Version 1.8.2: a change of the toolbars reaches every window open.
 
