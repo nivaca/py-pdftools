@@ -5,6 +5,29 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.8.0 — 2026-11-21
+
+- **Word index** (from pdf-word-finder): Edit > Word index finds the words,
+  phrases or regular expressions of a list and gives the pages where each
+  appears, by their labels, as lines ready for the index of a book
+  (`Sharahzad 3, 5, 23, 34`), or in detail, with how many times and the
+  context; it copies the result, or saves it as text or CSV. From the
+  command line: `py-pdftools find-words`, with pdf-word-finder's options.
+- **The box of the page and the box of the zoom**, once fixed above the
+  pages, are on a toolbar of their own, Page and zoom, which can be moved
+  anywhere or hidden.
+- **The bar of the tabs** is hidden while a window of tabs has only one
+  document; Settings > General > Show the bar of the tabs with only one
+  document open (off at first) shows it always. With the view split, it is
+  always shown.
+- **Settings** no longer squeezes its rows in a small window, where the
+  texts under a field were covered by the next one: its tabs scroll.
+- The field to name **another pdf2iso** is gone from Settings and from the
+  settings of redaction: pdf2iso is part of py-pdftools.
+- **Previous page and Next page** are only on the toolbar Page navigation,
+  no longer also on Navigation.
+- The user manuals carry the right version (1.7.0 shipped them saying 1.6).
+
 ## 1.7.0 — 2026-11-21
 
 - **Page navigation**, a toolbar at the bottom of the window: First page,

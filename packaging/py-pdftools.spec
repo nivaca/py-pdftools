@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.7.0
+Version:        1.8.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,12 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.0-1
+- Version 1.8.0: Word index (from pdf-word-finder) and the command find-words;
+  the toolbar Page and zoom; a setting for the bar of the tabs; the Settings
+  tabs scroll; no field for another pdf2iso; Previous and Next page only on Page
+  navigation.
+
 * Sat Nov 21 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.7.0-1
 - Version 1.7.0: the toolbar Page navigation; File > PDF properties; sharper
   text (an unsharp mask); hints and tooltips off at first; an index in the user
