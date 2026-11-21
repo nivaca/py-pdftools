@@ -263,11 +263,11 @@ resolution, in grey if wished), the pictures of the document, or its text
 (Markdown, with its headings guessed, HTML or plain text); File > Save a
 copy > With another PDF version makes a copy that says it is PDF 1.3 to
 2.0, naming what the document uses that the version chosen doesn't have.
-Pages > Split cuts a document every so many pages (one per page, named
-after their labels), at given pages, at its bookmarks (each part named
-after its bookmark), or so that no part is bigger than a size. From the
-command line: `py-pdftools export pages | images | text`, `py-pdftools
-pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
+Pages > Arrange pages > Split cuts a document every so many pages (one per
+page, named after their labels), at given pages, at its bookmarks (each
+part named after its bookmark), or so that no part is bigger than a size.
+From the command line: `py-pdftools export pages | images | text`,
+`py-pdftools pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
 `--split-size 10`.
 
 File > Save a copy > Smaller makes a copy that takes less space: its

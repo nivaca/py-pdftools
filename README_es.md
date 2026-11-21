@@ -273,12 +273,12 @@ una resolución, en gris si se quiere), las imágenes del documento o su
 texto (Markdown, con sus títulos deducidos, HTML o texto simple); Archivo >
 Guardar una copia > Con otra versión de PDF hace una copia que dice ser PDF
 1.3 a 2.0, y nombra lo que el documento usa que la versión elegida no
-tiene. Foliar > Partir corta un documento cada tantas páginas (una por
-página, con el nombre de su etiqueta), en páginas dadas, en sus marcadores
-(cada parte con el nombre de su marcador) o de modo que ninguna parte pase
-de un tamaño. Desde la línea de órdenes: `py-pdftools export pages | images
-| text`, `py-pdftools pdf-version`, y `py-pdftools pages --split-bookmarks
-1` o `--split-size 10`.
+tiene. Páginas > Ordenar páginas > Dividir corta un documento cada tantas
+páginas (una por página, con el nombre de su etiqueta), en páginas dadas,
+en sus marcadores (cada parte con el nombre de su marcador) o de modo que
+ninguna parte pase de un tamaño. Desde la línea de órdenes:
+`py-pdftools export pages | images | text`, `py-pdftools pdf-version`, y
+`py-pdftools pages --split-bookmarks 1` o `--split-size 10`.
 
 Archivo > Guardar una copia > Más pequeña hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
