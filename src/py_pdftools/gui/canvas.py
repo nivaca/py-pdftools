@@ -437,6 +437,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     text_menu = Signal(object)  # QPoint (global): a right click on the text selected
     link_clicked = Signal(int, dict)  # page, the link clicked (see links.py)
     field_clicked = Signal(str, str)  # the name of a form field clicked, and the state of its button (see forming.py)
+    sign_drawn = Signal(int, object)  # page, (x0, y0, x1, y1): the area of a visible signature (see signing.py)
     link_drawn = Signal(int, object)  # page, (x0, y0, x1, y1): the area of a new link, drawn with the tool Link
     link_edit = Signal(int, dict)  # page, a link of the document clicked with the tool Link
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
@@ -1439,6 +1440,10 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     # ----------------------------------------------------------------- the keys and the mouse
 
     def keyPressEvent(self, event):
+        if event.key() == Qt.Key.Key_Escape and self.mode == "signarea":  # (la firma, sin dibujar: cancelada)
+            self.sign_drawn.emit(-1, None)
+            event.accept()
+            return
         if event.key() == Qt.Key.Key_Escape and self.text_sel:  # (the text selected, unselected)
             self.clear_text_selection()
             event.accept()
@@ -1533,11 +1538,13 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 super().mousePressEvent(event)
                 return
             self.commit_text()
-        if self.mode == "link" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+        if self.mode in ("link", "signarea") and self.doc is not None and \
+                event.button() == Qt.MouseButton.LeftButton:
             # La herramienta Enlace: un clic sobre un enlace lo cambia; un arrastre dibuja el área de uno nuevo.
+            # (El área de una firma visible se dibuja igual.)
             page, point = self.locate(event.position().toPoint())
             if page is not None:
-                link = self.link_at(page.number, point)
+                link = self.link_at(page.number, point) if self.mode == "link" else None
                 if link is not None and not link.get("in_text"):
                     self.link_edit.emit(page.number, link)
                     event.accept()
@@ -1548,7 +1555,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 pen.setCosmetic(True)
                 band.setPen(pen)
                 band.setZValue(4)
-                self._drag = {"kind": "linkarea", "page": page, "start": start, "item": band}
+                self._drag = {"kind": "linkarea" if self.mode == "link" else "signarea", "page": page,
+                              "start": start, "item": band}
             event.accept()
             return
         if self.mode == "zoomarea" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
@@ -1775,7 +1783,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._show_text(self._text_selection(n, drag["start"], point))
         elif kind == "erase":
             self._erase_at(point)
-        elif kind in ("band", "zoomarea", "linkarea"):
+        elif kind in ("band", "zoomarea", "linkarea", "signarea"):
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
             tip = drag["start"]
@@ -1941,11 +1949,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         if kind == "select-text":
             self.text_select_release(drag, moved)
             return
-        if kind == "linkarea":
+        if kind in ("linkarea", "signarea"):
             r = drag["item"].rect()
             self.scene().removeItem(drag["item"])
             if moved and r.width() > 2 and r.height() > 2:
-                self.link_drawn.emit(n, (r.left(), r.top(), r.right(), r.bottom()))
+                (self.link_drawn if kind == "linkarea" else self.sign_drawn).emit(
+                    n, (r.left(), r.top(), r.right(), r.bottom()))
             return
         if kind == "zoomarea":
             r = drag["item"].rect()

@@ -11505,4 +11505,128 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{file} has no key to sign with</en>
     <tr>{file} no tiene clave con la que firmar</tr>
   </text>
+  <text>
+    <en>(none) — e.g. http://timestamp.example.org</en>
+    <tr>(ninguno) — p. ej. http://timestamp.example.org</tr>
+  </text>
+  <text>
+    <en>A timestamp server (RFC 3161) vouches for the time of the signature; it needs the internet</en>
+    <tr>Un servidor de sellos de tiempo (RFC 3161) da fe de la hora de la firma; necesita internet</tr>
+  </text>
+  <text>
+    <en>Certify:</en>
+    <tr>Certificar:</tr>
+  </text>
+  <text>
+    <en>Certify: filling in the form allowed</en>
+    <tr>Certificar: se permite rellenar el formulario</tr>
+  </text>
+  <text>
+    <en>Certify: no changes allowed</en>
+    <tr>Certificar: no se permiten cambios</tr>
+  </text>
+  <text>
+    <en>Certify: the form and comments allowed</en>
+    <tr>Certificar: se permiten el formulario y los comentarios</tr>
+  </text>
+  <text>
+    <en>Contact:</en>
+    <tr>Contacto:</tr>
+  </text>
+  <text>
+    <en>Digital ID</en>
+    <tr>ID digital</tr>
+  </text>
+  <text>
+    <en>Digital ID:</en>
+    <tr>ID digital:</tr>
+  </text>
+  <text>
+    <en>Drag on the page where the signature goes (Escape: cancel)</en>
+    <tr>Arrastre sobre la página donde va la firma (Escape: cancelar)</tr>
+  </text>
+  <text>
+    <en>In the empty field {name}</en>
+    <tr>En el campo vacío {name}</tr>
+  </text>
+  <text>
+    <en>Invisible</en>
+    <tr>Invisible</tr>
+  </text>
+  <text>
+    <en>Lock the fields of the form once signed</en>
+    <tr>Bloquear los campos del formulario una vez firmado</tr>
+  </text>
+  <text>
+    <en>No: an ordinary signature</en>
+    <tr>No: una firma corriente</tr>
+  </text>
+  <text>
+    <en>Not signed</en>
+    <tr>Sin firmar</tr>
+  </text>
+  <text>
+    <en>Only the first signature of a document can certify it</en>
+    <tr>Solo la primera firma de un documento puede certificarlo</tr>
+  </text>
+  <text>
+    <en>Place:</en>
+    <tr>Lugar:</tr>
+  </text>
+  <text>
+    <en>Reason:</en>
+    <tr>Motivo:</tr>
+  </text>
+  <text>
+    <en>Save the signed document</en>
+    <tr>Guardar el documento firmado</tr>
+  </text>
+  <text>
+    <en>Sign it with a digital ID, visibly or not, and save the signed copy</en>
+    <tr>Firmarlo con un ID digital, de forma visible o no, y guardar la copia firmada</tr>
+  </text>
+  <text>
+    <en>Sign the document</en>
+    <tr>Firmar el documento</tr>
+  </text>
+  <text>
+    <en>Sign the document…</en>
+    <tr>Firmar el documento…</tr>
+  </text>
+  <text>
+    <en>Signature:</en>
+    <tr>Firma:</tr>
+  </text>
+  <text>
+    <en>Signed: saved {path}</en>
+    <tr>Firmado: se guardó {path}</tr>
+  </text>
+  <text>
+    <en>Signing…</en>
+    <tr>Firmando…</tr>
+  </text>
+  <text>
+    <en>Sign…</en>
+    <tr>Firmar…</tr>
+  </text>
+  <text>
+    <en>The signature covers the document as it is saved. Save the changes first?</en>
+    <tr>La firma cubre el documento tal como está guardado. ¿Guardar antes los cambios?</tr>
+  </text>
+  <text>
+    <en>The signed document is saved as a new file; the signature covers it as it is saved now.</en>
+    <tr>El documento firmado se guarda como un archivo nuevo; la firma lo cubre tal como está guardado ahora.</tr>
+  </text>
+  <text>
+    <en>Timestamp server:</en>
+    <tr>Servidor de sellos de tiempo:</tr>
+  </text>
+  <text>
+    <en>Visible: drag where it goes on the page</en>
+    <tr>Visible: arrastre donde va sobre la página</tr>
+  </text>
+  <text>
+    <en>{path} cannot be signed: {error}</en>
+    <tr>{path} no se puede firmar: {error}</tr>
+  </text>
 </interface>
