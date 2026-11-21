@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in seventeen stages.
+py-imposition. Here I explain how it was made, in eighteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -412,23 +412,70 @@ hidden. Reloading a file changed by another program was simple, but its
 first version named an attribute `_stamp`, which hid the method that
 makes stamp annotations; one test of annotations found it.
 
+18. Security, and toolbars to measure
+------------------------------------
+
+From the same reading of PDFCraft came three things about security, and
+the Redact mode had already done half of them. Removing hidden
+information was there, so it only got one kind more: hidden layers.
+PyMuPDF has no function that takes out what a layer switched off holds,
+so I wrote one. It reads each content stream with pikepdf, drops what is
+marked with a hidden layer (also through the combinations of layers that
+PDF allows), and the pictures and forms drawn with one; then it removes
+the annotations of those layers and the layers themselves, since their
+names can say too much. The redacted copy, when it is cleaned, does the
+same. A small surprise was that PyMuPDF reports every layer as switched
+on, so which ones are off is read from the catalog.
+
+The check for text only covered is new. Many documents are "redacted"
+by drawing a black box over the text, and the text stays in the file,
+where anyone can copy it. The check follows the order in which the page
+is drawn: a box drawn after a text, and over it, covers it; one drawn
+before is a background. Only black or white boxes count, and nearly so,
+since one of a colour is likely a highlight, through which the text shows;
+pictures and annotations that hide what is under them count too. The
+first version took the annotations from PyMuPDF's list of annotations,
+and then found each of them a second time among the drawings, because
+the drawings of a page include those of its annotations; a yellow
+highlight came out as a box. Now whatever is drawn inside an annotation
+belongs to it, and the annotation decides. I ran the check on fifty-two
+PDFs I had at hand, and it found nothing in any of them, which is what it
+should find. What is found can be covered with redaction boxes at once,
+and the redacted copy takes it out.
+
+Passwords are set from File: one to open the document, one for its
+permissions, or both, with AES-256 through pikepdf. The protection is
+changed or removed only with the permissions password. Writing this, I
+found that a file with only a permissions password lost it when its
+annotations were saved, because the program kept the encryption only of
+files that ask for a password to open; it now keeps it for these too.
+
+Last, the buttons of the modes got icons, and so did the few buttons
+left without one, and the toolbars became editable: the buttons of each one and their order, from
+every action of the menus, and toolbars of one's own. Each action is kept
+by the name of its attribute in the window, which doesn't change with the
+language. The first icons I drew had names that the icon theme of the
+desktop also had, so the theme put its own in their place, the same gear
+for two different buttons; they have names of their own now.
+
 Testing
 -------
 
-The program has 466 tests (`uv run pytest`): those of the four programs,
+The program has 495 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
 the window, the boxes as redaction marks, the working copies with their
 undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
 the moving through a document (bookmarks, links, the history, the views,
-tabs, reloading), the Spanish interface (every text translated, and none
+tabs, reloading), the security of documents (text only covered, hidden
+layers, passwords), the toolbars, the Spanish interface (every text translated, and none
 left over) and the packaging. The windows of the four modes are tested as a user
 would use them, with mouse events on the pages; the redacted copy is also
 written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 120 files of Python, around 35,400
-lines (about a tenth of them comments), and 2,581 texts of the interface
+made for the test. The program has 125 files of Python, around 36,500
+lines (about a tenth of them comments), and 2,656 texts of the interface
 in Spanish.

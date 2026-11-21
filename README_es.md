@@ -239,6 +239,18 @@ muestra dos lado a lado. Un documento que otro programa cambia se abre de
 nuevo solo. La barra espaciadora, mantenida, convierte cualquier
 herramienta en Mano, y el botón central desplaza solo.
 
+Censurar > Buscar texto solo cubierto busca texto que solo parece
+censurado: sigue en el archivo bajo un recuadro negro o blanco, una imagen
+o una anotación dibujados encima, y cualquiera puede copiarlo; los
+recuadros puestos sobre lo encontrado lo quitan en la copia censurada.
+Quitar la información oculta quita también las capas apagadas, con lo que
+contienen. Archivo > Proteger con contraseñas pone una contraseña para
+abrir el documento, otra para sus permisos (imprimir, copiar, cambiarlo) o
+ambas, cifrado con AES-256; solo la contraseña de permisos las cambia o
+las quita. Configuración > Personalizar las barras de herramientas (o el clic
+derecho sobre una barra) elige los botones de cada barra y su orden, y
+añade barras propias.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
@@ -318,10 +330,10 @@ Pruebas
 
     $ uv run pytest
 
-Hay 466 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 495 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
-copias de trabajo, el OCR, la navegación, la interfaz en español, el
-empaquetado). Sus
+copias de trabajo, el OCR, la navegación, la seguridad, las barras de
+herramientas, la interfaz en español, el empaquetado). Sus
 ventanas se dibujan en un servidor X propio (Xvfb), si está instalado, o
 si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el

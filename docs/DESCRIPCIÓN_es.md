@@ -1,4 +1,4 @@
-# py-pdftools 1.1.0: descripción
+# py-pdftools 1.2.0: descripción
 
 ## Análisis
 
@@ -22,15 +22,19 @@ La línea de órdenes, `py-pdftools`, tiene grupos: `labels`, `view`, `header-fo
 
 ### La ventana al trabajar
 
-Las miniaturas admiten varias páginas a la vez (Ctrl, Mayús), en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor (arrastrar, también entre páginas; Alt para una columna; doble y triple clic) y ofrece copiarlo, marcarlo, censurarlo o buscarlo. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante (un segundo inicio le pasa sus archivos por un socket local), y una página de rendimiento: la memoria que puede usar, la transparencia de las selecciones y el suavizado del texto y de los gráficos.
+Las miniaturas admiten varias páginas a la vez (Ctrl, Mayús), en cualquier modo, con el menú de páginas de Foliar; la casilla de la página muestra su etiqueta y acepta una etiqueta o un número. El OCR tiene su modo, entre Leer y Censurar, y un gestor de idiomas que descarga o quita los modelos mejores de tesseract. Una herramienta selecciona texto como un editor (arrastrar, también entre páginas; Alt para una columna; doble y triple clic) y ofrece copiarlo, marcarlo, censurarlo o buscarlo. Dos ajustes completan la ventana: seguir funcionando en segundo plano, con un icono en la bandeja, para que el siguiente documento se abra al instante, y una página de rendimiento: la memoria que puede usar y la calidad del dibujo.
 
 ### Moverse por el documento
 
-Los marcadores son un panel común a todos los modos, donde también se editan. Los enlaces se siguen, y también las direcciones web y de correo escritas en el texto; cada salto queda en un historial (Alt+Izquierda, Alt+Derecha). Un documento se abre donde se dejó, o como pide. La vista admite dos páginas lado a lado, más ajustes de zoom, el giro sin tocar el archivo, colores de lectura y pantalla completa como presentación. Cada pestaña es una ventana entera dentro de otra, que puede mostrar dos a la vez; sus atajos actúan solo donde está el foco. Un archivo que otro programa cambia se vuelve a abrir.
+Los marcadores son un panel común a todos los modos, donde también se editan. Los enlaces se siguen, y también las direcciones web y de correo escritas en el texto; cada salto queda en un historial (Alt+Izquierda, Alt+Derecha). Un documento se abre donde se dejó, o como pide. La vista admite dos páginas lado a lado, más ajustes de zoom, el giro sin tocar el archivo, colores de lectura y pantalla completa como presentación. Cada pestaña es una ventana entera dentro de otra, que puede mostrar dos a la vez. Un archivo que otro programa cambia se vuelve a abrir.
+
+### Seguridad y barras de herramientas
+
+El modo Censurar busca texto solo cubierto: texto que sigue en el archivo bajo un recuadro negro o blanco, una imagen o una anotación dibujados después, y que cualquiera puede copiar; lo encontrado se cubre con recuadros. Quitar la información oculta abarca ahora las capas apagadas, con lo que contienen y sus nombres. Archivo > Proteger con contraseñas pone una contraseña de apertura, una de permisos o ambas (AES-256). Las barras de herramientas se editan, y los botones de los modos tienen iconos.
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 120 archivos de Python, unas 35 400 líneas (una décima parte, comentarios), y 2581 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 125 archivos de Python, unas 36 500 líneas (una décima parte, comentarios), y 2656 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -72,7 +76,7 @@ El OCR usa el programa tesseract (la versión del sistema), en varios procesos a
 
 ## Validación
 
-Hay 466 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 495 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

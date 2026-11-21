@@ -231,6 +231,17 @@ by side. A document changed by another program opens again by itself.
 Space held turns any tool into Hand, and the middle button scrolls by
 itself.
 
+Redact > Find text only covered looks for text that only seems redacted:
+still in the file under a black or white box, a picture or an annotation
+drawn over it, where anyone can copy it; boxes put over what it finds take
+it out in the redacted copy. Remove hidden information also takes out the
+layers switched off, with what they hold. File > Protect with passwords
+sets a password to open the document, one for its permissions (printing,
+copying, changing it), or both, encrypted with AES-256; only the
+permissions password changes or removes them. Settings > Customize the
+toolbars (or a right click on a toolbar) chooses the buttons of each
+toolbar and their order, and adds toolbars of one's own.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
@@ -304,9 +315,10 @@ Tests
 
     $ uv run pytest
 
-There are 466 tests: those of the four programs, and those of what is new
+There are 495 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
-the working copies, OCR, navigation, the Spanish interface, the packaging). Their
+the working copies, OCR, navigation, security, the toolbars, the Spanish
+interface, the packaging). Their
 windows are drawn on an X server of their own (Xvfb), if it is installed,
 else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See
