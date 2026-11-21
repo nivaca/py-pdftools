@@ -30,6 +30,10 @@ La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
 versión 1.6.1.
 
+El manual de usuario, con imágenes de la ventana y de sus diálogos, lo
+explica todo por extenso: [docs/MANUAL_es.pdf](docs/MANUAL_es.pdf) (en
+inglés, [docs/MANUAL_en.pdf](docs/MANUAL_en.pdf)).
+
 Soy Nicolas Vaughan (<nicolasvaughan@proton.me>) y lo escribí en 2026. Es
 software libre, bajo la Licencia Pública General de GNU, versión 3 o
 posterior (véase «Licencia»).
@@ -262,7 +266,7 @@ ambas, cifrado con AES-256; solo la contraseña de permisos las cambia o
 las quita. Configuración > Barras de herramientas fija cómo se ven las
 barras, como en KDE: la posición de su texto (solo iconos, solo texto, junto
 a los iconos o debajo), el tamaño de los iconos y si se quedan donde están;
-el clic derecho sobre una barra los fija para esa. Personalizar las barras
+el clic derecho sobre cualquier barra los fija para todas. Personalizar las barras
 elige los botones de cada una y su orden, y añade barras propias. Los menús
 Archivo, Editar y Ver van en submenús (Archivo > Nuevo, Exportar,
 Importar, Seguridad; Ver > Paneles, Ir a, Zoom, Disposición de página...).

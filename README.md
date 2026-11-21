@@ -29,6 +29,10 @@ The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
 version 1.6.1.
 
+The user manual, with pictures of the window and its dialogs, explains it
+all at length: [docs/MANUAL_en.pdf](docs/MANUAL_en.pdf) (in Spanish,
+[docs/MANUAL_es.pdf](docs/MANUAL_es.pdf)).
+
 I am Nicolas Vaughan (<nicolasvaughan@proton.me>), and I wrote it in 2026.
 It is free software, under the GNU General Public License, version 3 or
 later (see "Licensing").
@@ -254,7 +258,7 @@ copying, changing it), or both, encrypted with AES-256; only the
 permissions password changes or removes them. Settings > Toolbars sets how the toolbars look, as in KDE: the
 position of their text (icons only, text only, beside or under the icons),
 the size of their icons, and whether they stay where they are; the right
-click on a toolbar sets them for that one. Customize the toolbars chooses
+click on any toolbar sets them for all of them. Customize the toolbars chooses
 the buttons of each toolbar and their order, and adds toolbars of one's
 own. The menus File, Edit and View are in submenus (File > New, Export,
 Import, Security; View > Panels, Go to, Zoom, Page layout...).

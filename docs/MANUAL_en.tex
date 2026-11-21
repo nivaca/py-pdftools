@@ -128,18 +128,1328 @@
 
 \date{2026-11-21}
 
-% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+% The pictures, made by tools/manual_images.py
+\graphicspath{{img/manual/}}
+\usepackage{longtable}
+
+% menus, keys, and the pictures of the window
+\newcommand*{\menu}[1]{\textit{#1}}
+\newcommand*{\then}{\,>\,}
+\newcommand*{\key}[1]{\texttt{#1}}
+\newcommand*{\shot}[3]{%
+  \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=#2\textwidth,height=0.75\textheight,keepaspectratio]{#1}
+    \caption{#3}
+    \label{fig:#1}
+  \end{figure}}
+
 \begin{document}
 \maketitle
 
+\tableofcontents*
+
 \section{Introduction}
 \noindent
+\texttt{py-pdftools} is a program to read and work on PDF documents. It
+annotates them, fills their forms, redacts what must not be read, reads the
+text of scanned pages (OCR), numbers and arranges their pages, adds headers,
+footers and watermarks, imposes them for printing, signs them and checks
+their signatures, combines them, makes them smaller, protects them with
+passwords and exports their pages, pictures and text. It has a window,
+\texttt{py-pdftools-gui}, and a command line, \texttt{py-pdftools}, which
+does most of the same work without a window, on one file or on many.
+
+The program brings together six earlier programs of mine:
+\texttt{py-annotate} (annotations), \texttt{py-redact} (redaction),
+\texttt{py-foliation} (page labels, headers, footers and watermarks),
+\texttt{py-imposition} (imposition), \texttt{py-pdfocr} (OCR) and
+\texttt{pdf2iso} (copies as PDF/A and PDF/X). Documents made with them are
+read as before: the tags and categories of annotations, the layers of
+headers, footers and watermarks, and the history of an imposition kept
+their names.
+
+This manual explains the window first, mode by mode, then the work on
+whole files, the settings and the command line. The menus are written in
+italics, with their submenus after a \enquote{>}, as \menu{File\then Save a
+copy\then Smaller}; keys are written as \key{Ctrl+S}. On macOS, \key{Ctrl}
+is the Command key. The pictures show the window in English; with the
+interface in Spanish, every menu and dialog is in Spanish too (see
+section~\ref{sec:settings}).
+
+\texttt{py-pdftools} is free software, under the GNU General Public
+License, version 3 or later. It uses PyMuPDF (GNU AGPL 3), pikepdf (Mozilla
+Public License 2.0), reportlab (BSD) and PySide6 (GNU LGPL 3); the full list
+of the software it uses, with its licences, is in
+\texttt{docs/THIRD-PARTY.md}.
+
+\section{Installing it}
+\label{sec:install}
+
+Every version is published on GitHub and on Codeberg (the addresses are on
+the first page), with these files:
+
+\begin{itemize}
+\item \texttt{py-pdftools-VERSION-x86\_64.AppImage}: the AppImage, for any
+  Linux;
+\item \texttt{py-pdftools-VERSION-1.fc45.noarch.rpm}: the Fedora package,
+  signed, with the key that signs it, \texttt{RPM-GPG-KEY-py-pdftools};
+\item \texttt{py-pdftools-VERSION.zip}: the source, with the installers
+  for Linux, macOS and Windows;
+\item \texttt{py\_pdftools-VERSION-py3-none-any.whl} and
+  \texttt{py\_pdftools-VERSION.tar.gz}: the wheel and the source package,
+  for Python.
+\end{itemize}
+
+\subsection{Fedora}
+
+The easiest way is the Copr repository, for Fedora 45 and later. It uses
+Fedora's own Python, PyMuPDF, pikepdf, reportlab and PySide6, and installs
+a menu entry and the manual page (\texttt{man py-pdftools}):
+
+\begin{verbatim}
+$ sudo dnf copr enable nivaca/py-pdftools
+$ sudo dnf install py-pdftools
+\end{verbatim}
+
+\noindent Updates then come with \texttt{sudo dnf upgrade}. The RPM of
+each release can also be installed by hand, after importing its key with
+\texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora does not package
+pyHanko, the library of digital signatures, so the RPM goes without them;
+the menu \menu{File\then Security} then says how to add it.
+
+\subsection{The AppImage}
+
+The AppImage needs nothing else: it brings its own Python, Qt and
+libraries, pyHanko among them, and runs on any Linux with glibc 2.34 or
+later (Ubuntu 22.04, Debian 12, Fedora 35 and later). Make it executable
+and run it; with a command after its name, it works as the command line:
+
+\begin{verbatim}
+$ chmod +x py-pdftools-*-x86_64.AppImage
+$ ./py-pdftools-*-x86_64.AppImage book.pdf
+$ ./py-pdftools-*-x86_64.AppImage impose booklet book.pdf
+\end{verbatim}
+
+\subsection{The installers (Linux, macOS, Windows)}
+
+They need Python 3.14 or later. From the folder of the source (the ZIP):
+
+\begin{verbatim}
+$ install/install.sh               (Linux, macOS)
+$ install/install.sh --uninstall
+> install\install.bat              (Windows)
+> install\install.bat -Desktop     (with a shortcut)
+> install\install.bat -Uninstall
+\end{verbatim}
+
+\noindent The first two lines install (or update) and uninstall it on
+Linux and macOS, the others on Windows, where \texttt{-Desktop} also puts
+a shortcut on the desktop. Each one makes a Python environment of its own for
+\texttt{py-pdftools}, installs it there with its libraries (downloaded from
+PyPI, so the first installation needs the internet), links the commands
+\texttt{py-pdftools} and \texttt{py-pdftools-gui}, and adds the window to
+the menu of the system. Nothing needs administrator rights, and the
+settings are never touched, so an update keeps them.
+
+\subsection{From the source}
+
+With \texttt{uv}, the program runs straight from a copy of the source:
+
+\begin{verbatim}
+$ git clone https://github.com/nivaca/py-pdftools.git
+$ cd py-pdftools
+$ uv run py-pdftools-gui book.pdf
+$ uv run py-pdftools --help
+\end{verbatim}
+
+\subsection{What else it can use}
+
+Three programs, installed apart, add what they do; without them,
+\texttt{py-pdftools} works without that:
+
+\begin{itemize}
+\item \textbf{Tesseract}, for OCR, with the languages of the documents
+  (\texttt{tesseract-langpack-\ldots} on Fedora, \texttt{tesseract-ocr-\ldots}
+  on Debian and Ubuntu);
+\item \textbf{Ghostscript}, for copies as PDF/A and PDF/X;
+\item \textbf{veraPDF}, if it is installed, to check the PDF/A copies.
+\end{itemize}
+
+\noindent Digital signatures need pyHanko: the AppImage and the installers
+bring it; elsewhere, \texttt{pip install 'py-pdftools[signatures]'} adds it.
+
+\section{Starting the program}
+
+The window is opened from the menu of the system, or with
+\texttt{py-pdftools-gui}, with or without files:
+
+\begin{verbatim}
+$ py-pdftools-gui
+$ py-pdftools-gui book.pdf notes.pdf
+$ py-pdftools-gui book.pdf#page=12
+$ py-pdftools-gui book.pdf#nameddest=intro
+\end{verbatim}
+
+\noindent With \texttt{\#page=} a document opens at that page, and with
+\texttt{\#nameddest=} at a named place of it. If the window is already
+open, the files are opened in it instead of in a new one.
+
+\subsection{Keeping it ready, in the background}
+\label{sec:background}
+
+Starting a program with Qt and PyMuPDF takes a second or two. If
+\menu{Settings\then General\then Keep running in the background} is ticked,
+closing the last window does not end the program: it stays in memory, with
+an icon in the tray of the desktop (where the desktop has one), and a
+window ready for the next document, hidden. Running
+\texttt{py-pdftools-gui} again, or opening a PDF from the file manager,
+then shows that window in a few hundredths of a second. The icon of the
+tray opens a window or ends the program; \menu{File\then Quit}
+(\key{Ctrl+Q}) ends it too.
+
+With \menu{Settings\then General\then Start with the session} the program
+also starts when you log in, in the tray and without a window
+(\texttt{py-pdftools-gui --background}), so that the first document of the
+day opens at once as well.
+
+\section{The window}
+\label{sec:window}
+
+Figure~\ref{fig:read_en} shows the window with a document open. From the
+top: the menus; the bar of the modes (Read, OCR, Redact, Annotate, Foliate,
+Impose) and the main toolbar; on the left, the thumbnails of the pages,
+and here, beside them, the bookmarks; in the middle, the pages; at the
+bottom, the status bar, where the program says what it has just done.
+
+\shot{read_en}{1}{The window in the mode Read, with the bookmarks (F5) and
+  the thumbnails (F3).}
+
+\subsection{The modes}
+
+The bar of the modes chooses what the window does, and how it is arranged.
+\key{Ctrl+1} to \key{Ctrl+6} choose the modes in the order of the bar.
+
+\begin{description}
+\item[Read] only the pages and their thumbnails, with the toolbars to
+  open, find, move through the pages and zoom; the mouse moves the pages.
+\item[OCR] the text of scanned pages, read by Tesseract
+  (section~\ref{sec:ocr}).
+\item[Redact] boxes over what must not be read, and the redacted copy
+  (section~\ref{sec:redact}).
+\item[Annotate] highlights, notes, drawings, stamps and the rest of the
+  annotations, with their panel (section~\ref{sec:annotate}).
+\item[Foliate] the labels of the pages, their order, headers, footers and
+  watermarks, and the view when the document is opened
+  (section~\ref{sec:foliate}).
+\item[Impose] the pages arranged on sheets for printing: booklets, n-up,
+  step and repeat (section~\ref{sec:impose}).
+\end{description}
+
+Each mode keeps its own arrangement of the window: which toolbars and
+panels are shown, where they are, the size of the thumbnails and the width
+of the panels. Arrange a mode once, dragging its toolbars and panels or
+hiding them with a right click, and choosing it again brings that
+arrangement back, also the next time the program is opened.
+
+When a mode is chosen, a hint on what can be done in it is shown over the
+bottom of the pages for a few seconds; \menu{Help\then Tips for this mode}
+(\key{F1}) shows it again. The hints can be turned off in
+\menu{Settings\then Appearance}.
+
+The menus change with the mode too: Redact, Pages, Impose and OCR appear
+in their modes, and the menu Tools in Annotate. The menus File, Edit and
+View are always there, grouped in submenus (\menu{File\then New},
+\menu{Export}, \menu{Import}, \menu{Security}; \menu{View\then Panels},
+\menu{Go to}, \menu{Zoom}, \menu{Page layout}).
+
+\subsection{Toolbars}
+
+The toolbars can be dragged by their handle to another place, or out of
+the window. A right click on any toolbar shows the list of toolbars, to
+show or hide them, and how all of them look: icons only, text only, text
+beside or under the icons, and the size of the icons. The same choices are
+in \menu{Settings\then Appearance}, with \menu{Lock the toolbars}, which
+keeps them where they are.
+
+\menu{Settings\then Toolbars\then Customize the toolbars} (figure~\ref{fig:toolbars_en})
+chooses the buttons of each toolbar and their order: the actions on the
+left are added with the arrow, those on the right taken out or moved up
+and down. It can also make new toolbars of one's own, with whatever
+actions are wished, delete them, and bring any toolbar back to how it was at first.
+
+\shot{toolbars_en}{0.75}{Customize the toolbars: the buttons of the toolbar
+  Navigation.}
+
+\subsection{The thumbnails}
+
+The panel of the thumbnails (\key{F3}) shows the pages small, each with its
+number in the file and, beside it, its label (see
+section~\ref{sec:labels}): in figure~\ref{fig:read_en}, the first page is
+labelled \enquote{i}, the second \enquote{1}. A dot and a number after the
+label say how many annotations or boxes the page has. The slider under the
+thumbnails changes their size.
+
+A click on a thumbnail goes to its page. \key{Ctrl+click} and
+\key{Shift+click} choose several, and \key{Ctrl+A}, with the thumbnails in
+focus, chooses them all. The pages chosen can be dragged to another place
+in the document. Their right click
+offers what can be done with them: turn, duplicate, extract or delete them,
+move them, insert pages before or after them, number them, put a header or
+watermark on them, read their text (OCR), and choose how the document
+opens.
+
+\subsection{Opening and saving}
+
+A document is opened with \menu{File\then Open} (\key{Ctrl+O}), by dropping
+it on the window, or from \menu{File\then Open recent}. \menu{File\then Open
+in a new tab} (\key{Ctrl+T}) opens it in a tab of the same window; with
+\menu{Settings\then General\then Open documents in tabs of one window},
+every document opens so. \menu{View\then Split the view}
+(\key{Ctrl+\textbackslash}) puts the tab shown beside the others, to read
+two documents side by side, and \menu{View\then Move the tab to a window of
+its own} takes it out.
+
+A document protected with a password asks for it when it is opened. A
+document changed by another program while it is open is opened again by
+itself (this can be turned off in \menu{Settings\then General}), and each
+document opens where it was left, at the same page and zoom (in
+\menu{Settings\then Documents}).
+
+\menu{File\then Save} (\key{Ctrl+S}) writes the changes into the document:
+its annotations, its redaction boxes (as the redaction marks of PDF, not
+yet applied), the form, and the changes of the modes Foliate and Impose.
+Those changes are made at once on a working copy, and shown, but the file
+stays as it was until it is saved. Saving keeps the signatures of a signed
+document valid for what they signed. \menu{File\then Save as}
+(\key{Ctrl+Shift+S}) writes a copy and goes on with it.
+
+\menu{Edit\then Undo} (\key{Ctrl+Z}) and \menu{Redo} (\key{Ctrl+Shift+Z})
+go back and forth through everything done to the document, in any mode:
+annotations, boxes, labels, pages moved or deleted, an imposition applied.
+
+While the document is changed and not yet saved, the program keeps a
+recovery copy of it every two minutes (the time is set in
+\menu{Settings\then General}). If the program ends without saving, the next
+time the document is opened it offers to bring those changes back.
+
+\subsection{The rest of the menu File}
+
+Besides opening and saving, the menu File holds the work on whole files,
+which is explained in section~\ref{sec:files}: \menu{New} (combining files,
+a PDF from pictures), \menu{Save a copy} (flattened, smaller, with another
+PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
+\menu{Security} (passwords and signatures). It also has:
+
+\begin{description}
+\item[Compare with another version] marks on this document what differs
+  from another version of the same text (another edition, a draft): its
+  words, in reading order.
+\item[Print] (\key{Ctrl+P}) prints the pages with their annotations.
+\item[Close window] (\key{Ctrl+W}) and \textup{\textit{Quit}}
+  (\key{Ctrl+Q}).
+\end{description}
+
+\section{Reading and moving through a document}
+\label{sec:reading}
+
+These ways of reading and moving work in every mode.
+
+\subsection{Moving}
+
+The pages are shown one under the other, and scroll with the wheel of the
+mouse, the scroll bar or the keys. \key{PgUp} and \key{PgDown} go to the
+previous and next page, \key{Ctrl+Home} and \key{Ctrl+End} to the first and
+the last. The box above the pages takes a page number or a label: type
+\enquote{12}, or \enquote{xiv}, and press Enter.
+
+The tool Hand (\key{M}) moves the pages by dragging them; holding the space
+bar turns any tool into Hand for a moment, and the middle button of the
+mouse scrolls by itself, faster the farther the mouse goes.
+
+Links are followed with a click (with the tool Select, with
+\key{Ctrl+click}), and web and mail addresses written in the text too,
+after asking whether to open them (in \menu{Settings\then Documents}).
+\key{Alt+Left} and \key{Alt+Right} go back and forth through the places
+jumped to: links, bookmarks, pages typed, places found.
+
+\subsection{Bookmarks}
+
+\menu{View\then Panels\then Bookmarks} (\key{F5}) shows the bookmarks of
+the document (its outline) as a tree, with the label of the page each one
+goes to (figure~\ref{fig:read_en}). The box at the top filters them by a
+word, and the buttons below open or close the whole tree. A click goes to
+the bookmark's place. Their right click adds a bookmark at the place shown,
+renames, deletes, moves and indents them, gives them a colour, bold or
+italics, and can make them from the headings of the text.
+
+\subsection{Finding text}
+
+The button Find of the main toolbar (\key{Ctrl+F}) opens \menu{Find and
+highlight}: it finds a word, a phrase or a pattern in the document, lists
+the places found with their context, and goes to each one with
+\menu{Previous} and \menu{Next}; it can also mark them (see
+section~\ref{sec:findmark}). In the mode Redact, the same button opens
+\menu{Find and redact}, which puts boxes over them (see
+section~\ref{sec:redact}).
+
+\subsection{Selecting and copying text}
+
+The tool Select text (\key{X}), beside Hand in every mode, selects text as
+in a text editor: drag over it (across pages too), \key{Alt+drag} for a
+column, double-click a word, triple-click a line, \key{Shift+click} to
+extend the selection. \key{Ctrl+C} copies it, and \key{Ctrl+A} selects the
+text of the page. Its right click offers to highlight, underline or strike
+it out, to mark it for redaction, or to find it.
+
+\subsection{Zoom and layout}
+
+The box of the zoom, above the pages, takes a percentage, or offers the
+usual ones. \menu{View\then Zoom} fits the page (\key{Ctrl+0}), the width
+(\key{Ctrl+9}), the height (\key{Ctrl+8}), or the inked area of the page
+(\key{Ctrl+7}), that is, its text and pictures without their margins, as
+wide as the window. \menu{Actual size} (\key{Ctrl+Shift+0}) shows the page
+at its printed size on the screen. \key{Ctrl++} and \key{Ctrl+-} zoom in and
+out, as does \key{Ctrl} with the wheel. The tool Zoom to area (\key{Z})
+zooms to a frame dragged on a page, or zooms in where it clicks.
+
+\menu{View\then Page layout} shows the pages one at a time, instead of
+scrolling, or two side by side (\key{Ctrl+Shift+2}), as an open book; with
+\menu{The first page alone, as a cover}, the even pages are on the left
+(figure~\ref{fig:view_en}). Unticking \menu{Gaps between the pages} makes
+them one long sheet. \menu{Rotate the view} (\key{Ctrl+]} and \key{Ctrl+[})
+turns every page in the window, but not in the file; to turn pages for
+good, use the mode Foliate.
+
+\shot{view_en}{1}{Two pages side by side, the first alone as a cover, and
+  the reading colours White on black.}
+
+\subsection{Reading colours and full screen}
+
+\menu{View\then Reading colours} shows the pages in other colours, which
+tire the eyes less at night: white, yellow or green on black, light on
+dark grey, or colours of one's own. Only the pages in view change, not the
+file; pictures change with them.
+
+\menu{View\then Full screen} (\key{F11}) shows the pages one at a time,
+full screen, as a presentation: the arrows or a click turn them, and
+\key{Esc} ends it.
+
+\subsection{Sharper text}
+
+MuPDF, which draws the pages, draws the edges of letters soft, without
+snapping them to the pixels of the screen as the fonts of the desktop are,
+so that text can look a little blurred beside them. \menu{Settings\then
+Appearance\then Text on the pages} sets how they are drawn: \menu{As drawn}
+(as MuPDF draws them), \menu{Sharper} (the default) or \menu{Sharpest},
+which darken those edges. Pictures get a little darker too.
+
+\section{Annotating}
+\label{sec:annotate}
+
+In the mode Annotate (figure~\ref{fig:annotate_en}), the second toolbar
+holds the tools of annotation, which are also in the menu Tools, each with
+its key; the panel on the right lists the annotations of the document.
+
+\shot{annotate_en}{1}{The mode Annotate: a highlight, a note, a rectangle,
+  a text box and a stamp, and their panel.}
+
+\subsection{The tools}
+
+A tool is chosen in the toolbar, in the menu Tools, or with its key, and
+stays chosen until another is. With Select (\key{V}), a click selects an
+annotation, a frame dragged around several selects them all, and the
+handles of a selected annotation move and resize it.
+
+\begin{longtable}{@{}p{0.33\textwidth}lp{0.5\textwidth}@{}}
+\toprule
+Tool & Key & What it does\\
+\midrule
+\endhead
+Select & \key{V} & Selects, moves and resizes annotations.\\
+Eraser & \key{E} & Erases the annotations dragged over (in a drawing, only what is touched).\\
+Highlight & \key{H} & Highlights the text dragged over.\\
+Area highlight & \key{Shift+H} & Highlights a region: a picture, a table, a scanned page.\\
+Underline & \key{U} & Underlines the text dragged over.\\
+Strikeout & \key{S} & Strikes out the text dragged over.\\
+Squiggly underline & \key{Q} & Underlines it with a wavy line.\\
+Insert text & \key{I} & Marks where text should be inserted, and writes it.\\
+Replace text & \key{Shift+I} & Strikes out the text dragged over and writes the new one at its end.\\
+Note & \key{N} & A note, shown as an icon, with its text in the panel.\\
+Text box & \key{T} & A box with text, dragged or clicked.\\
+Callout & \key{Shift+T} & A text with a line that points at a place.\\
+Typewriter & \key{Y} & Text written straight on the page, without box or border.\\
+Signature & \key{Shift+K} & Your handwritten signature, drawn once.\\
+Attached file & \key{Shift+A} & A file attached to the page.\\
+Check mark & \key{K} & A check, a cross, a dot or a dash, as on a form.\\
+Stamp & \key{Shift+S} & A stamp: Approved, Draft, Confidential, Final\ldots\\
+Rectangle & \key{R} & A rectangle.\\
+Ellipse & \key{O} & An ellipse.\\
+Polygon & \key{G} & A polygon: click each corner, double-click or Enter to end.\\
+Cloud & \key{Shift+G} & A cloud, as revisions are marked on drawings.\\
+Line & \key{L} & A line.\\
+Arrow & \key{A} & An arrow.\\
+Polyline & \key{Shift+L} & A line of several segments.\\
+Freehand & \key{P} & A drawing by hand; with a tablet's pen, pressing harder draws wider.\\
+Freehand highlight & \key{Shift+P} & A highlight by hand, where there is no text.\\
+Link & \key{J} & A link (section~\ref{sec:links}).\\
+\bottomrule
+\end{longtable}
+
+The right click on a tool sets what it does: the stamp or check mark it
+puts, and the signature, which is drawn once by hand in a small dialog and
+kept for later. \menu{Tools\then Properties of the tool} sets the colour,
+width, font and opacity the tool gives to new annotations.
+
+The keys of the tools can be changed in \menu{Settings\then Shortcuts}.
+
+\subsection{Colours}
+
+The colours offered in the menus each have a meaning, shown beside their
+name, so that a reading can be marked consistently: yellow for what is
+important, green for definitions and concepts, blue for references and
+citations, pink for questions, orange for arguments and conclusions, purple
+for context and history, red for errors to check. \menu{Settings\then
+Colours} changes the colours and what each means to you.
+
+\subsection{The panel of the annotations}
+
+The panel of the annotations (\key{F4}) lists every annotation of the
+document, with its page, kind, author, status, the date it was changed, and
+its text (what it marks, or what it says). Its box at the top searches their
+text, and the lists below filter them by kind, author, colour, status, tag
+and category; the list on the right sorts them by page, by kind, by author,
+by status, or the last changed first. With \menu{View\then Annotations\then Only those the list shows},
+the pages show only the annotations the filters let through;
+\menu{Show the annotations} (\key{Ctrl+Shift+A}) hides them all, to see the
+document as it is.
+
+A click on an annotation of the list goes to it and selects it.
+\key{Alt+Down} and \key{Alt+Up} go to the next and previous one. Under the
+list, the annotation selected can be given a colour, a comment, tags, and a
+status (accepted, rejected, cancelled, completed); replies can be written
+to it, as in a conversation, and are kept in the document as the replies of
+PDF, which other programs show. \key{C} writes the comment of the
+annotation selected, or adds a note if none is.
+
+\subsection{Properties}
+
+\menu{Edit\then Properties} (\key{Alt+Return}), or a double click, shows
+all the properties of the annotations selected (figure~\ref{fig:annot_props_en}):
+their colours, border, font, alignment and opacity, their text, author,
+tags and categories, and whether they are locked (a locked annotation
+can't be moved, resized, erased or deleted). With several selected, what is
+changed changes in all of them. \menu{Use this style for new annotations of
+this kind} makes the tool give that look to the next ones.
+
+\shot{annot_props_en}{0.45}{The properties of a text box.}
+
+The part \menu{Textual criticism} is for editors of texts: it makes the
+annotation an entry of the critical apparatus, with its kind (a variant
+reading, a manuscript reading, an emendation, a conjecture, a lacuna, a
+scribal correction, a marginal addition\ldots), the reading of the text and
+the other reading, the witness (a manuscript or edition, by its siglum),
+its location, its source, the rationale and the confidence. \menu{File\then
+Export\then The annotations\then The critical apparatus} writes those
+entries in the order of the text.
+
+The categories an annotation may be put in are set in
+\menu{Settings\then Categories}, one on each line.
+
+\subsection{Editing several annotations}
+
+\menu{Edit\then Copy}, \menu{Paste} and \menu{Duplicate} (\key{Ctrl+D})
+copy annotations, also to another page or document. \menu{Edit\then
+Select} selects those of the page (\key{Ctrl+A}) or those of the same kind,
+and \key{Esc} selects none. \menu{Edit\then Arrange} groups them
+(\key{Ctrl+G}), so that they are selected, moved and deleted together, and
+ungroups them (\key{Ctrl+Shift+G}); locks them; and aligns them (left
+sides, centres, tops\ldots), spreads them evenly or makes them the same
+size. \menu{Edit\then Remove annotations} deletes those of the page, or all.
+
+\subsection{Find and highlight}
+\label{sec:findmark}
+
+\menu{Tools\then Find and highlight} (\key{Ctrl+F}, figure~\ref{fig:find_highlight_en})
+finds a word, a phrase or a pattern on the pages and marks the places
+found, with a highlight, an underline, a strikeout or any other text
+annotation. It can match case and whole words only, use a regular
+expression, ignore accents, take \enquote{u} for \enquote{v} and
+\enquote{i} for \enquote{j} (as in Latin texts), and use wildcards
+(\texttt{*} for any letters, \texttt{?} for one: \texttt{iust*}
+finds \textit{iustitia}, \textit{iustus}, \textit{iusto}). It finds on all pages,
+on the page shown or on some; the places found are listed with their
+context, and they are marked all at once, or only those chosen.
+
+\shot{find_highlight_en}{0.6}{Find and highlight.}
+
+\subsection{Links}
+\label{sec:links}
+
+The tool Link (\key{J}, also in \menu{Edit\then Links}) makes a link where
+it is dragged on the page. The dialog asks where it goes: to a page of the
+document, to a web address, or to another PDF (figure~\ref{fig:link_en}).
+A click with the tool on a link changes or removes it. \menu{Edit\then
+Links\then Make links of the addresses in the text} makes a link of every
+web and mail address written in the text, on every page; \menu{Remove all
+the links} takes every link out of the document.
+
+\shot{link_en}{0.55}{A link to a page.}
+
+\subsection{Exporting and importing annotations}
+
+\menu{File\then Export\then The annotations} writes the annotations:
+
+\begin{itemize}
+\item as a report, in Markdown, page by page, with what they mark and their
+  comments;
+\item as a table (CSV), for a spreadsheet;
+\item as the critical apparatus (Markdown);
+\item as data (JSON), to import them again, in this program or in
+  \texttt{py-annotate};
+\item as XFDF, the format in which PDF programs exchange annotations (tags
+  and categories are this program's own, and are left out);
+\item as a summary of the comments (PDF): each page with annotations,
+  beside a numbered list of them, with the text they mark, their comments
+  and their replies.
+\end{itemize}
+
+\noindent \menu{File\then Import\then Annotations} reads them from a JSON
+or XFDF file, or from another copy of the same PDF, such as one annotated by
+someone else; the annotations already in the document are not added twice.
+
+\menu{File\then Save a copy\then Flattened} makes the annotations part of
+the pages: they are seen and printed everywhere, but can't be edited or
+removed any more. \menu{Without annotations} saves the document without
+any (links and form fields stay).
+
+\subsection{Each mode, its own annotations}
+
+Each mode works on its own annotations. In Annotate, the redaction boxes
+are shown, but the mouse goes through them; in Redact, the annotations are
+shown, and the mouse goes through them. The menu Layers, in Annotate, shows
+and hides the layers of a document that has them (its optional content).
+
+\section{Forms}
+\label{sec:forms}
+
+A document with a form opens the panel Form (\key{F6}) by itself, or it
+opens with a click on a field. The fields can be filled on the page, as in
+any viewer, or in the panel, which lists them all, with their names
+(figure~\ref{fig:form_en}). The fields marked with an asterisk are
+required.
+
+\shot{form_en}{1}{A form, with the panel Form. The price and the tax are
+  shown in their format, and the total is worked out.}
+
+What most forms ask is done without JavaScript: numbers, dates, phone
+numbers and other formats are checked and shown in their format (in the
+picture, \enquote{1234.5} is shown as \enquote{\$1,234.50}), and sums and
+other calculations are worked out when a value changes. The form is saved
+with the document, with \menu{File\then Save}.
+
+The buttons of the panel reset the form to its default values, export its
+values (JSON, CSV, XFDF or FDF), and import them, to fill the form with
+data kept elsewhere. \menu{File\then Save a copy\then With the form
+flattened} makes what the fields show part of the pages, so that it can't
+be changed any more.
+
+The command \texttt{py-pdftools form} does the same from the command line:
+it shows the fields of a form, fills it from a data file, makes a table of
+the values of many filled forms, and flattens it (section~\ref{sec:cli}).
+
+\section{Redacting}
+\label{sec:redact}
+
+Redacting removes for good what must not be read: names, numbers,
+addresses, passages, pictures. In the mode Redact (figure~\ref{fig:redact_en}),
+boxes are put over what is to be removed; nothing is removed until the
+redacted copy is written, which is a new file: the document open never
+loses anything.
+
+\shot{redact_en}{1}{The mode Redact: a box over a line, repeated on every
+  page from the second, and the panel of the boxes.}
+
+\subsection{Marking}
+
+The tool Redact (\key{R} in this mode) marks text by dragging over it: a box
+is made over each of its lines. Elsewhere, or with \key{Ctrl}, it draws a
+box, over a picture or any area. A double click marks only a word, or a
+picture.
+
+The panel of the boxes, on the right, lists them, with their page, the
+other pages they go on, their colour and size. A box can be repeated on
+other pages, in the same place, as a letterhead or a stamp would need: its
+column \enquote{Goes on} takes a list of pages (\texttt{2-} in the picture:
+from page 2 to the end), and \menu{Redact\then Pages of the boxes} does the
+same for the boxes selected. Under the list, \menu{New boxes} sets the
+colour and the pages of the boxes still to be drawn.
+
+\menu{Redact\then Properties of the boxes} sets how they will be once
+redacted: their fill (with no colour, what is under the box is removed and
+nothing is painted there), a text written over them (\enquote{REDACTED},
+a name), its size, colour and alignment, and whether it repeats all along
+the box; a note shown when the mouse is over the box; and whether it is
+locked. \menu{Redaction
+codes} chooses the code sets: short texts written over a box to say why
+it was redacted, such as the codes of the U.S. Freedom of Information Act
+(\texttt{(b)(6)}) or of the Privacy Act; sets of one's own can be added.
+
+\menu{Redact\then Show the result} (\key{Ctrl+R}) shows the boxes as they
+will look once applied: opaque, with their text (figure~\ref{fig:redact_result_en}).
+They can still be changed.
+
+\shot{redact_result_en}{1}{Show the result: the boxes as they will be in
+  the redacted copy.}
+
+\subsection{Find and redact}
+
+\menu{Redact\then Find and redact} (figure~\ref{fig:redact_find_en}) finds
+what is to be redacted and puts boxes over it. It finds a word or phrase;
+several of them (one on each line, or read from a text file); or patterns:
+e-mail addresses, phone numbers, credit card numbers, dates, identity
+numbers and bank accounts (IBAN), in their U.S. or Spanish forms. It can
+match case, whole words, or a regular expression, on all pages, on this
+page, from this page to the end, or on some pages. \menu{Leave some
+characters visible} keeps, for instance, the last four digits of a card
+number, so that it can still be told apart. The places found are listed
+with their context; \menu{Mark them all} puts a box over each, and
+\menu{Mark the ticked ones} only over those ticked.
+
+\shot{redact_find_en}{0.6}{Find and redact.}
+
+\subsection{Text only covered}
+
+A document may look redacted and not be: a black box drawn over a name, or
+a picture or an annotation over it, hides it on the screen, but the name is
+still in the file, and anyone can select it, copy it, or find it.
+\menu{Redact\then Find text only covered} looks for such text, and lists
+it, with what covers it (figure~\ref{fig:covered_en}). \menu{Put boxes over
+all} marks it, so that the redacted copy takes it out.
+
+\shot{covered_en}{0.65}{Text only covered: two black boxes drawn over a
+  name and a phone, which are still in the file.}
+
+\subsection{The redacted copy}
+
+\menu{Redact\then Save the redacted copy} (\key{Ctrl+Shift+R}) writes a
+copy of the document in which what is under the boxes is removed: text,
+pictures (the part under the box), drawings and annotations. The copy is
+checked as it is written: if any text under a box can still be read, or a
+bookmark gives it away, the program says so. The copy is made from the
+document as it was last saved, so the program offers to save the other
+changes first.
+
+\menu{Save the redacted copy as} makes it a PDF/A or PDF/X
+(section~\ref{sec:pdfa}). With \menu{Also remove metadata, hidden text,
+attachments and scripts} ticked, the copy loses as well what the document
+holds besides its pages: its title, author and other metadata, text that
+isn't shown, layers switched off, attached files, JavaScript and links.
+\menu{Redact\then Metadata} (\key{Ctrl+Shift+M}) shows and changes the
+metadata the copy will have, or removes it.
+
+Copies that make the annotations part of the pages (flattened, searchable,
+printed) leave the boxes out, since a box painted there would hide what is
+still in the file.
+
+\subsection{Hidden information}
+
+\menu{Redact\then Remove hidden information} shows what the document holds
+besides what its pages show (figure~\ref{fig:hidden_en}): metadata,
+attached files, bookmarks, page labels, comments, form fields, hidden
+text, layers switched off, links and scripts, thumbnails, and deleted or
+unused content. A copy is saved without what is ticked; the document open
+is not changed, and its boxes are not applied.
+
+\shot{hidden_en}{0.55}{Remove hidden information.}
+
+\menu{Redact\then Sanitize the document} saves at once a copy without
+metadata, hidden text and layers, attachments, scripts and links, and
+with nothing else changed. \menu{Settings of redaction} sets the colour of new boxes, what
+happens to the pictures and drawings under a box (only the part covered is
+removed, or the whole picture, or nothing), and how the boxes not yet
+applied are shown (their outline and the opacity of their fill). Text
+under a box is always removed.
+
+\section{Reading scanned pages (OCR)}
+\label{sec:ocr}
+
+A scanned page is a picture: its text can't be found, selected or marked.
+The mode OCR (figure~\ref{fig:ocr_en}) reads that text with Tesseract and
+writes it into the document, invisible, under the picture of each page, so
+that it can be found, copied, highlighted and redacted like any other. It
+is a change of the document, undone and saved like the others.
+
+\shot{ocr_en}{1}{The mode OCR, with a scanned page.}
+
+The panel says which version of Tesseract is installed and how many pages
+are scans without text. It reads those pages, those chosen in the
+thumbnails, the page shown, or a list of pages; pages that already have
+text are left as they are. The languages are ticked in its list, the main
+one first; reading in the right languages matters a great deal for the
+result. \menu{Turn the pages lying sideways or upside down} turns them
+first (this needs the data \enquote{osd} of Tesseract). \menu{Recognise
+text} (\key{Ctrl+Shift+O}) reads them.
+
+With \menu{Check the doubtful words before the text is written}, the words
+Tesseract was not sure of are shown, each beside its picture, to be
+corrected before the text is written; how sure is sure enough is set in
+\menu{Doubtful below}.
+
+\menu{OCR\then Languages} (figure~\ref{fig:ocr_languages_en}) lists every
+language Tesseract can read, and downloads, updates or removes its more
+accurate models (\enquote{tessdata\_best}), and \enquote{osd}, which finds
+how pages are turned. This needs the internet, once. The languages read by
+default are set in \menu{Settings\then General\then OCR languages}.
+
+\shot{ocr_languages_en}{0.75}{The languages of OCR.}
+
+\menu{File\then Save a copy\then Searchable (OCR)} writes a copy with the
+text read, without changing the document open; in the other modes, the
+right click on the thumbnails reads the pages chosen. From the command
+line: \texttt{py-pdftools ocr scan.pdf -l lat+spa --rotate --report}.
+
+\section{Foliating: labels and pages}
+\label{sec:foliate}
+
+The mode Foliate (figure~\ref{fig:pages_en}) works on the pages as a whole:
+their labels, their order, their headers, footers and watermarks, and how
+the document opens. Its panel, on the right, has the ranges of the labels,
+the list of the pages with their labels, and, at the bottom, the command
+that would make the same labels from the command line.
+
+\shot{pages_en}{1}{The mode Foliate: the title page labelled \enquote{i},
+  the others from 1.}
+
+\subsection{Page labels}
+\label{sec:labels}
+
+The page labels are the numbers a PDF viewer shows for its pages, instead
+of 1, 2, 3: a book's front matter in roman numerals, its text from 1, an
+appendix as A-1, A-2. They don't change the pages; they are what the
+reader types to go to page \enquote{xiv}, and what the thumbnails show.
+
+They are given by ranges: each range starts at a page, with a style
+(1, 2, 3; i, ii, iii; I, II, III; a, b, c; A, B, C; 1r, 1v, 2r, as the
+folios of a manuscript; or no number, only a prefix), the number it starts
+at, a prefix and a suffix. In the table of the panel, \menu{Add a range}
+starts a new range at the page shown, \menu{Remove the range} removes it,
+and \menu{No labels} removes all of them.
+
+It is simpler, most of the time, to choose pages in the thumbnails and use
+their right click, \menu{Labels}: \menu{Number these pages}
+(figure~\ref{fig:number_en}) numbers them one after the other, in a style,
+from a number; \menu{Continue the numbering from before} goes on from the
+pages before; \menu{Give them one label} gives them all the same one;
+\menu{Edit their labels one by one}; \menu{No label}; and \menu{Copy their
+labels}.
+
+\shot{number_en}{0.35}{Numbering three pages.}
+
+\menu{Pages\then Labels} also copies the labels of another PDF (an earlier
+export of the same book, for instance), reads them from a list (a text
+file with the label of each page, one on each line), and saves them as
+such a list, to edit it and read it back. \menu{The labels, when pages
+move} decides what happens to the labels of pages moved: they keep their
+labels, or take those of their new places, or the program asks each time.
+
+\subsection{Arranging the pages}
+
+The pages are arranged with the toolbar of the mode, the right click on the
+thumbnails and \menu{Pages\then Arrange pages}: rotate them, duplicate
+them, delete them, move them (to the start, to the end, before a page),
+reverse their order, insert blank pages before or after them, insert the
+pages of another PDF, or replace them by pages of another PDF (their links
+and bookmarks stay). Pages can also be dragged in the thumbnails.
+
+\menu{Extract to a new PDF} saves the pages chosen as a new file.
+\menu{Arrange pages\then Split} (figure~\ref{fig:split_en}) cuts the
+document into several files: every so many pages (one per page, named
+after its label), at given pages, at its bookmarks of a level (each part
+named after its bookmark: the chapters of a book, for instance), or so
+that no part is bigger than a size.
+
+\shot{split_en}{0.45}{Splitting a document.}
+
+\subsection{Headers and footers}
+
+\menu{Pages\then Header and footer\then Add} (figure~\ref{fig:headfoot_en})
+writes text at the top and bottom of the pages, in three places each:
+left, centre, right. Unlike the labels, they change the pages themselves,
+and are printed. The text may hold variables, which the buttons under it
+insert:
+
+\shot{headfoot_en}{0.85}{A footer with the label of each page, from page 2.}
+
+\begin{longtable}{@{}>{\raggedright}p{0.36\textwidth}p{0.58\textwidth}@{}}
+\toprule
+Variable & What it writes\\
+\midrule
+\endhead
+\texttt{\$page} & the page number (of the file, from 1)\\
+\texttt{\$pagelabel} & the label of the page\\
+\texttt{\$totalpages} & the number of pages of the document\\
+\texttt{\$bookmark} & the bookmark the page is under\\
+\texttt{\$author} & the author of the document, as its properties give it\\
+\texttt{\$filename}, \texttt{\$filepath} & the name of the file, and its full path\\
+\texttt{\$date}, \texttt{\$shortdate}, \texttt{\$time} & today's date (in the format chosen), as 11/28/07, and the time, as 3:05 PM\\
+\texttt{\$day}, \texttt{\$month}, \texttt{\$year}, \texttt{\$shortyear} & parts of the date\\
+\texttt{\$hour}, \texttt{\$longhour}, \texttt{\$minute}, \texttt{\$second}, \texttt{\$ampm} & parts of the time\\
+\texttt{\$bates} & the Bates number: the prefix, the number and the suffix\\
+\texttt{\$\$} & a dollar sign\\
+\bottomrule
+\end{longtable}
 
 
+The dialog also sets the margins (in centimetres, inches or points), and
+whether the pages are made smaller to leave room for the header; the font
+(Helvetica, Times or Courier), its size, colour, bold and italic, a border
+and a background; the pages (all, or a list, and of those all, the even or
+the odd ones); and the Bates numbering, which numbers pages consecutively
+across documents, as in legal work, with a prefix, a start, a number of
+digits and a suffix. The preview, on the right, shows the result on any
+page. The settings can be saved as a profile, and the profiles marked
+\menu{Show on menu} appear in \menu{Pages\then Header and footer}.
 
+\menu{Update} changes the header and footer added last, and \menu{Remove
+all} takes them away (or only the Bates numbers), since they are kept as
+a layer of their own.
 
+\subsection{Watermarks}
 
+\menu{Pages\then Watermark\then Add} (figure~\ref{fig:watermark_en}) puts a
+text, or a page of a PDF, in front of the content of the pages or behind
+it: \enquote{DRAFT} across them, a seal, a logo drawn in a PDF. The text
+may hold the same variables as the headers (\enquote{Copy for
+\$author}). It sets the font, size, colour, rotation, opacity and
+position, the pages, and whether it is shown on the screen, when printing,
+or both; it can be updated
+and removed as the headers can.
 
+\shot{watermark_en}{0.85}{A watermark.}
+
+\menu{Pages\then On several files} adds or removes headers, footers, Bates
+numbers or watermarks on many PDFs at once, the Bates numbers going on from
+one file to the next.
+
+\subsection{When the document is opened}
+
+\menu{Pages\then When the document is opened} sets how PDF viewers show
+the document when they open it: its page layout (single, single continuous,
+facing, facing continuous, cover, cover continuous), its page view (actual
+size, fit to width, fit to page), and the page it opens at. This program obeys them too, with
+\menu{Settings\then Documents\then A document opens showing} set to
+\menu{As the document asks}.
+
+\section{Imposing}
+\label{sec:impose}
+
+Imposing arranges the pages of a document on the sheets of paper they will
+be printed on: a booklet, folded in the middle; several pages on each
+sheet (n-up); copies of a page repeated to fill a sheet (step and repeat);
+with marks for cutting and folding, bleeds and gutters. The mode Impose
+(figure~\ref{fig:impose_en}) is the workspace of \texttt{py-imposition}.
+
+\shot{impose_en}{1}{The mode Impose: a 2-up booklet, and a sheet of the
+  result.}
+
+The form on the left sets the imposition, in two ways. \menu{Basic} has the
+layout (its type, columns and rows), the profile, the units, the binding
+(saddle-stitching or perfect binding, sheets per fold, the side bound,
+double sided), the gutters, the paper, and the printer's marks. \menu{Advanced} has the forms
+of every command of imposition, one by one (booklet, n-up, step and
+repeat, creep, bleed, trim and shift, tiles, stamps, page numbers\ldots),
+and the \menu{Sequence}, which chains several of them.
+
+\menu{Preview} (\key{F5}) runs the command and shows the result on the
+right, a sheet at a time; with \menu{Auto preview}, it runs whenever the
+form changes. \menu{Save} writes the result as a new file (also as PDF/A or
+PDF/X, with \menu{Impose\then Save as}); \menu{Apply} (\key{Ctrl+Return})
+makes the result the document, which \menu{Undo apply} or \key{Ctrl+Z}
+takes back. \menu{Stop} stops a long command.
+
+The settings of the form can be kept as profiles; those marked \menu{Show
+on Menu} appear in \menu{Impose\then Profiles}. \menu{Impose\then Copy
+command line} copies the command that does the same, to use it in a
+script, and \menu{Command-line help for this command} explains all its
+options. \menu{Log} shows what the commands did, and \menu{Show the
+original document} shows it beside the result.
+
+\section{Working on whole files}
+\label{sec:files}
+
+\subsection{Combining files}
+
+\menu{File\then New\then Combine files} (figure~\ref{fig:combine_en}) makes
+one PDF of several, or of some of their pages. The files are dropped on its
+list, or added, and put in order by dragging them, or with \menu{Up} and
+\menu{Down}. The column of the pages takes the pages of each file to use,
+in their order (\texttt{1-3, 7}); empty, all of them. The links,
+annotations, form fields and bookmarks of the files are kept. The bookmarks
+can be one for each file, with its own under it; as they are; or none. The
+page labels of each file can be kept.
+
+\shot{combine_en}{0.75}{Combining two files: all of the first, the first page of the second.}
+
+\subsection{A PDF from pictures}
+
+\menu{File\then New\then New PDF from pictures} (figure~\ref{fig:images_en})
+makes a PDF of photographs or scans, a page for each, in the order of the
+list. \menu{By name} sorts them. Each page can be as big as its picture, or
+the size of a paper (A4, Letter\ldots), with a margin; and with
+\menu{Then read its text (OCR)}, the new PDF is opened in the mode OCR, to
+read its text at once.
+
+\shot{images_en}{0.75}{A PDF from three scans.}
+
+\subsection{Smaller copies}
+
+\menu{File\then Save a copy\then Smaller} (figure~\ref{fig:reduce_en})
+makes a copy that takes less space. It shows first where the bytes of the
+document go: its pictures, the content of its pages, and the rest. Then it
+draws again the pictures shown above a resolution (220 dpi for good
+quality, 150 for medium, 96 for the smallest), more compressed, and can
+make them grey; it reduces the fonts to the characters used, and takes out
+what nothing uses. \menu{Without touching the pictures} does only the
+latter, and nothing changes in how the document looks.
+
+\shot{reduce_en}{0.4}{A smaller copy.}
+
+\subsection{Exporting}
+
+\menu{File\then Export} (figure~\ref{fig:export_en}) saves:
+
+\begin{itemize}
+\item the pages as pictures, PNG, JPEG or TIFF, at a resolution, in colour
+  or grey, all of them or some;
+\item the pictures of the document, each in a file, as they are stored in
+  it;
+\item its text, as Markdown (with its headings and lists guessed), HTML or
+  plain text.
+\end{itemize}
+
+\shot{export_en}{0.45}{Exporting the pages as pictures.}
+
+\subsection{Another PDF version}
+
+Some programs and offices ask for a PDF of a given version.
+\menu{File\then Save a copy\then With another PDF version}
+(figure~\ref{fig:version_en}) makes a copy that says it is PDF 1.3 to 2.0,
+and names what the document uses that the version chosen doesn't have
+(transparency, objects in compressed streams, layers, JPEG 2000
+pictures, encryption with AES; a document encrypted with AES-256 can't go
+below 1.7).
+
+\shot{version_en}{0.5}{Saving a copy as PDF 1.3.}
+
+\subsection{PDF/A and PDF/X}
+\label{sec:pdfa}
+
+\menu{File\then Save a copy} also writes the document as PDF/A-1b, PDF/A-2b
+or PDF/A-3b, the forms of PDF made for archiving (the last one with
+attached files), or as PDF/X-4, for printing. Ghostscript makes them, and
+\texttt{pdf2iso}, part of this program, prepares and checks them; if
+veraPDF is installed, it checks them too. Settings \menu{General\then
+pdf2iso} can name another \texttt{pdf2iso} to use.
+
+\subsection{Passwords}
+
+\menu{File\then Security\then Protect with passwords}
+(figure~\ref{fig:protect_en}) sets a password to open the document, one
+for its permissions (printing, copying, changing it\ldots), or both, and
+encrypts the document with AES-256. Only the permissions password changes
+or removes them. The permissions are kept by PDF programs, but they are not
+a lock: a program that ignores them can copy what can be read. The
+password to open it is the lock. The same dialog removes the protection of
+a document opened with its password.
+
+\shot{protect_en}{0.45}{Protecting a document with passwords.}
+
+\subsection{Digital signatures}
+
+A digital signature says who signed a document, and shows whether it was
+changed afterwards. It needs a digital ID: a file \texttt{.p12} with a
+certificate and its private key, protected by a password, given by an
+institution or made by oneself. \menu{File\then Security\then Create a
+digital ID} (figure~\ref{fig:make_id_en}) makes one, self-signed, with a
+name, an e-mail address and the rest of the details.
+
+\shot{make_id_en}{0.5}{Making a digital ID.}
+
+\menu{File\then Security\then Sign the document} (figure~\ref{fig:sign_en})
+signs it with an ID and its password, with a reason, a place and a contact.
+A visible signature is dragged where it goes on the page, or put in an
+empty signature field of the form; an invisible one is only in the file.
+\menu{Certify}, for the first signature of a document, makes it say what
+may still be changed after it: nothing, filling the form, or filling and
+annotating; \menu{Lock
+the fields of the form once signed} does what it says. A timestamp server
+adds a time that doesn't depend on the computer's clock. The signed
+document is saved as a new file: the signature covers it as it is saved
+then.
+
+\shot{sign_en}{0.6}{Signing a document.}
+
+\menu{File\then Security\then Check the signatures}
+(figure~\ref{fig:signatures_en}) checks the signatures of the document:
+whether each is intact and valid, who signed it and whether they are among
+the signers trusted, when, and what changed after it. \menu{Trust this
+signer} adds the signer to those trusted; \menu{Open the signed version}
+opens the document as it was when that signature was made.
+
+\shot{signatures_en}{0.7}{The signatures of a document: valid, but its
+  signer is not yet trusted.}
+
+\section{Settings}
+\label{sec:settings}
+
+\menu{Settings\then Settings} (\key{Ctrl+,}) has seven tabs.
+
+\subsection{General}
+
+\shot{settings_general_en}{0.6}{Settings, General.}
+
+\begin{description}
+\item[Author] the name written in the annotations you make.
+\item[Recovery copy every] how often the changes not yet saved are kept,
+  to recover them.
+\item[Keep running in the background] and \textup{\textit{Start with the
+  session}}: see section~\ref{sec:background}.
+\item[Open again the documents] that were open when the program was ended.
+\item[Open documents in tabs] of one window.
+\item[Open a document again] when another program changes it.
+\item[pdf2iso] the program that makes PDF/A and PDF/X copies; empty, the
+  one of \texttt{py-pdftools}.
+\item[OCR languages] the languages read by default (as \texttt{lat+spa}),
+  and the button to the dialog of the languages.
+\item[Pen pressure, Pen touch, Pen side button] how a tablet's pen draws:
+  whether its pressure is read once for each drawing or all along, how
+  hard a touch must be, and what its side button does.
+\item[Put the tools back] as they were at first.
+\end{description}
+
+\noindent The foot of the tab says where the settings are kept (see
+section~\ref{sec:files-kept}).
+
+\subsection{Appearance}
+
+\shot{settings_appearance_en}{0.6}{Settings, Appearance.}
+
+\begin{description}
+\item[Colours of the interface] as the system, light or dark.
+\item[Size of the interface] the size of the letters of the menus,
+  panels and dialogs: 90\,\% to 150\,\%.
+\item[Text on the pages] As drawn, Sharper or Sharpest (see
+  section~\ref{sec:reading}).
+\item[Language] English or Spanish; also in \menu{Settings\then Language}.
+\item[Show a hint] of what can be done when a mode is chosen.
+\item[Toolbars] their text (icons only, text only, beside or under the
+  icons), the size of their icons, and whether they are locked.
+\end{description}
+
+\subsection{Documents}
+
+\shot{settings_documents_en}{0.6}{Settings, Documents.}
+
+\begin{description}
+\item[A document opens showing] the zoom of a document opened for the
+  first time: as the document asks, the whole page, the width of the page,
+  or actual size.
+\item[Open each document where it was left] at its page and zoom.
+\item[Ask before opening a web or mail address] clicked in a document.
+\item[Recent documents in the menu] how many \menu{File\then Open recent}
+  shows, and a button to clear the list.
+\item[Open and save dialogs start in] the last folder used, or the
+  folder of the document.
+\end{description}
+
+\subsection{Colours, Shortcuts, Categories}
+
+\menu{Colours} sets the colours offered in the menus of annotation, and
+what each one means to you. \menu{Shortcuts} sets the key of every tool and
+action: click the key of an action and press the new one. \menu{Categories}
+sets the categories annotations can be put in, one on each line. Each of
+the three has a button to bring back the usual ones.
+
+\subsection{Performance}
+
+\shot{settings_performance_en}{0.6}{Settings, Performance.}
+
+\begin{description}
+\item[Memory] how much memory the window may use: Low, Normal, High, or All
+  pages, which keeps every page and thumbnail drawn, within half of the free
+  memory. The more memory, the faster the pages come back.
+\item[Transparency effects] selections drawn with transparency; without,
+  as outlines, which is faster on old computers.
+\item[Smooth the text, Smooth the graphics] antialiasing; without it, the
+  pages are drawn faster but rougher.
+\end{description}
+
+\subsection{Where the settings are kept}
+\label{sec:files-kept}
+
+The settings are kept in a file, \texttt{config.toml}, in the configuration
+folder: \texttt{\textasciitilde/.config/py-pdftools/} on Linux,
+\texttt{\textasciitilde/Library/Application Support/py-pdftools/} on macOS,
+\texttt{\%APPDATA\%\textbackslash py-pdftools\textbackslash} on Windows, or
+the folder named by the environment variable \texttt{PY\_PDFTOOLS\_CONFIG}.
+Each setting is checked when it is read, so a file edited by hand can't
+stop the program: a value that can't be read is replaced by its default.
+The certificates of the signers trusted are kept in the same folder, in
+\texttt{trusted}. How each mode arranges the window, the toolbars and the
+documents open at the end are kept apart, in \texttt{py-pdftools.conf},
+in the same configuration folder on Linux.
+
+The language of the interface can also be chosen with
+\texttt{py-pdftools interface es} (or \texttt{en}).
+
+\section{The command line}
+\label{sec:cli}
+
+\texttt{py-pdftools} does without a window most of what the window does,
+on one file or on many, so that it can be used in scripts.
+\texttt{py-pdftools COMMAND -h} explains each command and all its options.
+The commands that change PDFs write a new file
+(\texttt{-o OUTPUT}), change the files themselves (\texttt{-i}), or write
+them in a folder (\texttt{--output-dir}); \texttt{-n} shows what would be
+done, without writing anything; \texttt{--conform} saves them as PDF/A or
+PDF/X; \texttt{--password} opens protected files.
+
+\begin{longtable}{@{}lp{0.68\textwidth}@{}}
+\toprule
+Command & What it does\\
+\midrule
+\endhead
+\texttt{labels} & shows, sets, clears or copies the page labels\\
+\texttt{view} & shows or sets how PDFs open in a viewer\\
+\texttt{header-footer} & adds headers and footers, with Bates numbers\\
+\texttt{watermark} & adds watermarks\\
+\texttt{pages} & moves, deletes, rotates, inserts or splits pages\\
+\texttt{impose} & imposes pages for printing (with its own commands)\\
+\texttt{pdf2iso} & converts PDFs to PDF/A or PDF/X-4\\
+\texttt{ocr} & reads the text of scanned pages\\
+\texttt{combine} & combines PDFs, or some of their pages\\
+\texttt{from-images} & makes a PDF of pictures\\
+\texttt{export} & exports the pages as pictures, the pictures, or the text\\
+\texttt{pdf-version} & shows the PDF version of files, or saves a copy with another\\
+\texttt{form} & shows, fills, tabulates and flattens forms\\
+\texttt{reduce} & makes a smaller copy\\
+\texttt{completion} & prints the completion script of a shell\\
+\texttt{interface} & shows or chooses the language of the interface\\
+\bottomrule
+\end{longtable}
+
+\noindent Some examples:
+
+\begin{verbatim}
+$ py-pdftools labels book.pdf
+$ py-pdftools labels set book.pdf 1:r 9:D -i
+$ py-pdftools header-footer book.pdf \
+      --footer-center 'Page $pagelabel' -i
+$ py-pdftools watermark book.pdf --text DRAFT --opacity 30% -i
+$ py-pdftools pages book.pdf --move 201-214 9 --delete LAST -i
+$ py-pdftools pages book.pdf --split-bookmarks 1 --output-dir parts
+$ py-pdftools view book.pdf --layout cover --open-at 9 -i
+$ py-pdftools impose booklet book.pdf -o booklet.pdf
+$ py-pdftools ocr scan.pdf -l lat+spa --rotate --report
+$ py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf
+$ py-pdftools from-images *.jpg -o scans.pdf --paper A4
+$ py-pdftools export text book.pdf -o book.md
+$ py-pdftools form fill form.pdf data.json -o filled.pdf
+$ py-pdftools reduce scans.pdf -o smaller.pdf --level medium
+\end{verbatim}
+
+\noindent The second sets the labels i, ii\ldots\ from page 1 and 1,
+2\ldots\ from page 9. In \texttt{pages}, the operations are made in the
+order given, each on the pages as the ones before left them; a list of
+pages is written as \texttt{9-20,31}, with \texttt{LAST} counting from the
+end, or \texttt{all}, \texttt{even}, \texttt{odd}. The single quotes keep
+the shell from reading \texttt{\$pagelabel}.
+
+\texttt{py-pdftools completion bash} (or \texttt{fish}, \texttt{zsh})
+prints a script that completes the commands and options in the shell.
+
+\section{Keys}
+\label{sec:keys}
+
+The keys of the tools of annotation are in section~\ref{sec:annotate}.
+These are the others; all of them can be changed in \menu{Settings\then
+Shortcuts}.
+
+\begin{longtable}{@{}>{\raggedright}p{0.4\textwidth}p{0.54\textwidth}@{}}
+\toprule
+Key & Action\\
+\midrule
+\endhead
+\key{Ctrl+1} \ldots\ \key{Ctrl+6} & the modes, in the order of their bar\\
+\key{Ctrl+O}, \key{Ctrl+T} & open; open in a new tab\\
+\key{Ctrl+S}, \key{Ctrl+Shift+S} & save; save as\\
+\key{Ctrl+P} & print\\
+\key{Ctrl+W}, \key{Ctrl+Q} & close the window; quit\\
+\key{Ctrl+Z}, \key{Ctrl+Shift+Z} & undo; redo\\
+\key{Ctrl+C}, \key{Ctrl+V}, \key{Ctrl+D} & copy; paste; duplicate\\
+\key{Alt+Return} & properties\\
+\key{Del} & delete the annotations selected\\
+\key{Ctrl+A}, \key{Esc} & select all; select none\\
+\key{Ctrl+G}, \key{Ctrl+Shift+G} & group; ungroup\\
+\key{Ctrl+F} & find (and highlight, or redact)\\
+\key{V}, \key{X}, \key{M}, \key{Z} & Select, Select text, Hand, Zoom to area\\
+\key{F1} & tips for this mode\\
+\key{F3}, \key{F4}, \key{F5}, \key{F6} & thumbnails, annotations, bookmarks, form\\
+\key{Ctrl+Shift+A} & show or hide the annotations\\
+\key{Alt+Down}, \key{Alt+Up} & next and previous annotation\\
+\key{PgUp}, \key{PgDown} & previous and next page\\
+\key{Ctrl+Home}, \key{Ctrl+End} & first and last page\\
+\key{Alt+Left}, \key{Alt+Right} & previous and next view\\
+\key{Ctrl+0}, \key{Ctrl+9}, \key{Ctrl+8}, \key{Ctrl+7} & fit the page, the width, the height, the inked area\\
+\key{Ctrl+Shift+0} & actual size\\
+\key{Ctrl++}, \key{Ctrl+-} & zoom in and out\\
+\key{Ctrl+Shift+2} & two pages side by side\\
+\key{Ctrl+]}, \key{Ctrl+[} & rotate the view\\
+\key{Ctrl+\textbackslash} & split the view\\
+\key{F11} & full screen\\
+\key{R} (Redact) & the tool Redact\\
+\key{Ctrl+R} & show the result of the redaction\\
+\key{Ctrl+Shift+R} & save the redacted copy\\
+\key{Ctrl+Shift+M} & the metadata of the redacted copy\\
+\key{Ctrl+Shift+O} & recognise text (OCR)\\
+\key{F5} (Impose) & preview\\
+\key{Ctrl+Return} (Impose) & apply\\
+\key{Ctrl+,} & settings\\
+\bottomrule
+\end{longtable}
+
+\section{When something goes wrong}
+
+\begin{description}
+\item[The text looks blurred] choose \menu{Sharper} or \menu{Sharpest} in
+  \menu{Settings\then Appearance\then Text on the pages}, and check that
+  \menu{Smooth the text} is ticked in \menu{Performance}.
+\item[A big document is slow] give the window more memory in
+  \menu{Settings\then Performance}, or make the thumbnails smaller.
+\item[OCR is not offered, or reads badly] install Tesseract with the
+  languages of the document, tick them in the panel, the main one first,
+  and download the more accurate models in \menu{OCR\then Languages}.
+\item[PDF/A or PDF/X can't be made] install Ghostscript.
+\item[The signatures are not in the menu] install pyHanko
+  (\texttt{pip install 'py-pdftools[signatures]'}), or use the AppImage.
+\item[The redacted copy warns that text can still be read] some text under
+  a box was not removed (it may be in a form that can't be parsed): look at
+  the pages named, and put a box over the whole area, or use \menu{Find
+  text only covered}.
+\item[The program ended without saving] open the document again: it
+  offers to recover the changes kept in its recovery copy.
+\item[A setting is wrong] delete \texttt{config.toml}
+  (section~\ref{sec:files-kept}); the program starts with its defaults.
+\item[The toolbars or panels are lost] show them again with a right click
+  on the toolbars, or put a toolbar back with \menu{As it was at first} in
+  \menu{Customize the toolbars}; deleting \texttt{py-pdftools.conf}
+  brings back the first arrangement of every mode.
+\end{description}
+
+\noindent Problems and wishes can be written as issues on GitHub or
+Codeberg (the addresses are on the first page), or sent to
+\href{mailto:nicolasvaughan@proton.me}{\texttt{nicolasvaughan@proton.me}}.
 
 \end{document}
 
