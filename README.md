@@ -27,7 +27,7 @@ earlier programs of mine did apart:
 
 The window and the command line are in English and in Spanish. It runs on
 Linux, and its installers also install it on Windows and macOS. This is
-version 1.6.0.
+version 1.6.1.
 
 I am Nicolas Vaughan (<nicolasvaughan@proton.me>), and I wrote it in 2026.
 It is free software, under the GNU General Public License, version 3 or
@@ -361,7 +361,7 @@ Settings
 The language of the interface is chosen in Settings > Language (or
 Settings > Appearance), or with `py-pdftools interface es`. Settings >
 Appearance also sets the colours of the interface (as the system, light or
-dark), its size, the hints shown when a mode is chosen, and how the
+dark), its size, how sharp the text of the pages is drawn, the hints shown when a mode is chosen, and how the
 toolbars look; Settings > Documents, how a document opened for the first
 time is shown, whether each opens where it was left, whether to ask before
 opening a web address, how many recent documents File > Open recent shows,
@@ -376,7 +376,7 @@ Tests
 
     $ uv run pytest
 
-There are 590 tests: those of the four programs, and those of what is new
+There are 591 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, OCR, navigation, security, the menus and toolbars,
 combining files and PDFs of pictures, smaller copies, links, forms,

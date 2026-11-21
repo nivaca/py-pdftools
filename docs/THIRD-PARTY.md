@@ -7,7 +7,7 @@ py-pdftools is free software, under the GNU General Public License, version 3
 or later (GPL-3.0-or-later). It is built on the open-source software listed
 here: the libraries it imports, the programs it runs, the data it uses, and
 the tools that build, test and package it. The versions are those of
-py-pdftools 1.6.0 (as `uv.lock` resolves them); `uv tree` shows those of any
+py-pdftools 1.6.1 (as `uv.lock` resolves them); `uv tree` shows those of any
 later version. Licences are given as SPDX identifiers, as each project
 declares them.
 

@@ -591,22 +591,29 @@ interface (Qt's own scheme where it has one, a palette of Fusion where it
 is older), its size, its language, the hints of the modes, the toolbars,
 and how documents open, what is remembered of them, links, the recent
 ones and where the file dialogs start. A toolbar's right click now sets
-all of them, as the user expected, and not only the one clicked.
+all of them, as I expected it to, and not only the one clicked.
 
 Two faults were found on the way. The launcher of the AppImage had a list
 of the commands of the command line, written before eight new ones, so
 those opened the window; it now gives the window only what it can open, a
-file, and the rest to the command line. And while trying these changes
-by hand I found that my scripts, which gave the window a home folder of
-its own, still wrote the user's settings: the desktop sets
-XDG_CONFIG_HOME, which Qt reads first. The tests had always set it; the
-scripts now do too, and what they had left in the user's list of recent
-documents was taken out.
+file, and the rest to the command line. And the scripts with which these
+changes were tried by hand, which gave the window a home folder of its
+own, still wrote my own settings: the desktop sets XDG_CONFIG_HOME, which
+Qt reads first. The tests had always set it; the scripts now do too, and
+what they had left in my list of recent documents was taken out.
+
+The text of the pages looked a little blurred to me. I measured first: on
+my screen, at its own scale, the window showed what MuPDF draws pixel for
+pixel, so the blur was not in the window but in MuPDF's way of drawing text,
+which keeps the shapes of the letters exactly and does not snap them to the
+pixels, as the desktop's fonts are, so their edges are grey. Fewer levels of
+antialiasing changed almost nothing; a gamma that darkens those grey edges
+did. It is a setting, Text on the pages, sharper by default.
 
 Testing
 -------
 
-The program has 590 tests (`uv run pytest`): those of the four programs,
+The program has 591 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

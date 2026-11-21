@@ -28,7 +28,7 @@ páginas escaneadas. Reúne, en una sola ventana y una sola línea de
 
 La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
-versión 1.6.0.
+versión 1.6.1.
 
 Soy Nicolas Vaughan (<nicolasvaughan@proton.me>) y lo escribí en 2026. Es
 software libre, bajo la Licencia Pública General de GNU, versión 3 o
@@ -376,7 +376,7 @@ Configuración
 El idioma de la interfaz se elige en Configuración > Idioma (o en
 Configuración > Apariencia), o con `py-pdftools interface es`.
 Configuración > Apariencia fija además los colores de la interfaz (como el
-sistema, claros u oscuros), su tamaño, los consejos que aparecen al elegir
+sistema, claros u oscuros), su tamaño, la nitidez del texto de las páginas, los consejos que aparecen al elegir
 un modo y cómo se ven las barras de herramientas; Configuración >
 Documentos, cómo se muestra un documento abierto por primera vez, si cada
 uno se abre donde se dejó, si se pregunta antes de abrir una dirección web,
@@ -393,7 +393,7 @@ Pruebas
 
     $ uv run pytest
 
-Hay 590 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 591 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, los menús y las
 barras de herramientas, la combinación de archivos, los PDF de imágenes,

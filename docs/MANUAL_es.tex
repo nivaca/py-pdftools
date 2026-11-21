@@ -1,0 +1,151 @@
+\newcommand*{\version}{1.6}
+
+\documentclass[12pt,
+              article,
+              oneside
+              ]{memoir}
+
+\usepackage{iftex}
+
+\ifluatex
+  \usepackage{fontspec}
+\fi
+
+\usepackage[
+  % latin,
+  % english,
+  spanish,% <- principal
+  es-minimal,
+  es-noshorthands,
+  es-tabla,
+]{babel}
+
+\ifluatex
+% LuaLaTeX --------------------
+\defaultfontfeatures{Ligatures=TeX, Scale=MatchLowercase}
+\usepackage[MainFeatures={medium,
+  Ligatures=Common,
+  Numbers=OldStyle,
+  SmallCapsFeatures = {LetterSpace=5.0}}]
+{junicodevf}
+%
+% \setsansfont{Libertinus Sans}
+\setmonofont[Scale=MatchLowercase]{DejaVu Sans Mono}
+% \setmonofont[Scale=MatchLowercase]{Libertinus Mono}
+% \setmonofont[Scale=MatchLowercase}]{Fira Code}
+\else
+% PDFLaTeX ---------------------
+\usepackage[T1]{fontenc}
+\usepackage[osf]{libertinus}
+\usepackage[scaled=0.9]{FiraMono}
+% \usepackage[scaled=0.9]{cascadia-code}
+% \usepackage[scaled=0.9]{roboto}
+\input glyphtounicode
+\pdfgentounicode=1
+\fi
+
+\usepackage[babel=true, verbose=false, tracking=true, expansion=true, protrusion=true, final, draft=false]{microtype}
+\SetTracking{ encoding = *, shape = sc }{ 30 }
+\SetTracking[context = notracking, ]{encoding = *}{0}
+
+\usepackage[autostyle=false, style=british]{csquotes}
+\usepackage{latexcolors}
+
+\newcommand{\Rojo}{\color[HTML]{8B0000}}
+\newcommand*{\rojo}[1]{\textcolor[HTML]{8B0000}{#1}}
+\newcommand*{\rojoit}[1]{\textit{\textcolor[HTML]{8B0000}{#1}}}
+\newcommand{\Azul}{\color{bluenivaca}}
+\newcommand*{\azul}[1]{\textcolor{bluenivaca}{#1}}
+\newcommand{\Verde}{\color{darkgreen}}
+\newcommand*{\verde}[1]{\textcolor{darkgreen}{#1}}
+\newcommand{\Amarillo}{\color{goldenpoppy}}
+\newcommand*{\amarillo}[1]{\textcolor{goldenpoppy}{#1}}
+\newcommand{\Morado}{\color{byzantium}}
+\newcommand*{\morado}[1]{\textcolor{byzantium}{#1}}
+\newcommand{\Naranja}{\color{orange}}
+\newcommand*{\naranja}[1]{\textcolor{orange}{#1}}
+
+% \usepackage[margin=3cm]{geometry}
+
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\clubpenalty=9999
+\widowpenalty=9999
+\brokenpenalty=5000
+\frenchspacing
+\raggedbottom
+\midsloppy
+\parindent=14pt
+\fboxsep=2pt
+
+\renewcommand\thesection{\arabic{section}}
+\chapterstyle{reparticle}
+
+\usepackage{enumitem}
+\setlist{noitemsep, nosep}
+\setlist[description]{font=\itshape}
+
+\newcommand*{\elipsis}{\,.\,.\,.\,}
+\newcommand*{\elipsisb}{\textup{[\elipsis]}}
+
+\renewenvironment{quote}%
+ {\begin{list}{}%
+              {\setlength\rightmargin{0pt}%
+              \setlength\leftmargin{\parindent}}%
+  \item[]\small\ignorespaces}
+ {\unskip\end{list}}
+
+
+\definecolor{Link}{HTML}{408080}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  filecolor=blue,
+  citecolor = black,
+  urlcolor=Link,
+}
+\urlstyle{tt}
+\usepackage{bookmark}
+
+\setlength{\droptitle}{-2cm}
+
+\title{\bfseries%
+  \texttt{py-pdftools} v.\version{} \\
+  Manual de usuario}
+
+\author{%
+  Nicolás Vaughan\\
+  \begin{minipage}[t]{0.8\linewidth}
+    \centering\small%
+    \href{mailto:nicolasvaughan@proton.me}{\texttt{nicolasvaughan@proton.me}}\\
+    \url{https://nicolasvaughan.org}\\
+    \url{https://github.com/nivaca/py-pdftools}\\
+    \url{https://codeberg.org/nivaca/py-pdftools}\\
+  \end{minipage}}
+
+
+\date{2026-11-21}
+
+% ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+\begin{document}
+\maketitle
+
+\section{Introducción}
+\noindent
+
+
+
+
+
+
+
+\end{document}
+
+% ===============================================
+%%% Local Variables:
+%%% mode: latex
+%%% lsp-ltex-plus-language: "es-CO"
+%%% TeX-master: t
+%%% End:

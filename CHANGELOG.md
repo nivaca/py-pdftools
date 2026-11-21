@@ -5,6 +5,15 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.6.1 — 2026-11-21
+
+- **Sharper text on the pages**: Settings > Appearance > Text on the pages
+  (As drawn, Sharper, Sharpest). MuPDF draws the edges of letters soft,
+  not snapped to the screen's pixels as the desktop's fonts are; Sharper,
+  the default, darkens those edges.
+- docs/THIRD-PARTY.md (and TERCEROS_es.md): the open-source software
+  py-pdftools uses, with its licences.
+
 ## 1.6.0 — 2026-11-21
 
 - **A quicker start**: Settings > General > Start with the session puts

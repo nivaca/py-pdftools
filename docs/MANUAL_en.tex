@@ -1,9 +1,9 @@
+\newcommand*{\version}{1.6}
+
 \documentclass[12pt,
               article,
               oneside
               ]{memoir}
-
-% \usepackage{filemod}
 
 \usepackage{iftex}
 
@@ -14,28 +14,15 @@
 \usepackage[
   % latin,
   english,
-  spanish,% <- principal
-  es-minimal,
-  es-noshorthands,
-  es-tabla,
+  % spanish,% <- principal
+  % es-minimal,
+  % es-noshorthands,
+  % es-tabla,
 ]{babel}
 
 \ifluatex
 % LuaLaTeX --------------------
 \defaultfontfeatures{Ligatures=TeX, Scale=MatchLowercase}
-% \setmainfont[Ligatures=Common,
-% Numbers=OldStyle,
-% SmallCapsFeatures = {LetterSpace=5.0},
-% % BoldFont = {LinLibertineOZ},
-% % SmallCapsFeatures={Renderer=Basic},
-% ]{LibertinusSerif}
-% ]{Arno Pro}
-% ]{Adobe Caslon Pro}
-% ]{EBGaramond}
-% ]{Palatino LTS td}
-% ]{Palatino Linotype}
-% ]{Adobe Garamond Pro}
-%
 \usepackage[MainFeatures={medium,
   Ligatures=Common,
   Numbers=OldStyle,
@@ -50,31 +37,9 @@
 % PDFLaTeX ---------------------
 \usepackage[T1]{fontenc}
 \usepackage[osf]{libertinus}
-% \usepackage[osf]{sourceserifpro}
-% \usepackage[medium]{junicode}
-% \usepackage[default, semibold, osf]{sourceserifpro}
-% \usepackage[oldstylenums, nott]{kpfonts}
-% \usepackage[osf]{fbb}  % Bembo-Cardo
-% \usepackage[osf]{ETbb} % Tufte's Bembo
-% \usepackage[osf]{coelacanth}
-% \usepackage[p,osf]{baskervillef}
-% \usepackage[osf]{cochineal}
-% \usepackage[osf]{CormorantGaramond}
-% \usepackage[osf]{ebgaramond}
-% \usepackage[osf]{garamondx}
-% \usepackage[osf]{Baskervaldx}
-% \usepackage[osf]{newtxtext} % Times
-% \usepackage{cfr-lm} % Latin Modern with OSF
-% \usepackage{lmodern} % Latin Modern
-% \usepackage[scaled=0.95]{inconsolata}
-% \usepackage[scaled=0.7]{DejaVuSansMono}
 \usepackage[scaled=0.9]{FiraMono}
 % \usepackage[scaled=0.9]{cascadia-code}
 % \usepackage[scaled=0.9]{roboto}
-% \usepackage{josefin}
-% \usepackage[scaled=0.9]{FiraSans}
-% \usepackage{AlegreyaSans}
-% \usepackage[scaled=0.8]{DejaVuSans}
 \input glyphtounicode
 \pdfgentounicode=1
 \fi
@@ -105,14 +70,6 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 
-% \usepackage[
-%   style=authoryear-comp,
-%   giveninits=true,
-%   uniquename=init,
-%   mincrossrefs=20,
-% ]{biblatex}
-% \addbibresource{}
-
 \clubpenalty=9999
 \widowpenalty=9999
 \brokenpenalty=5000
@@ -139,15 +96,6 @@
   \item[]\small\ignorespaces}
  {\unskip\end{list}}
 
-\setlength{\droptitle}{-2cm}
-\title{\itshape\bfseries%
-  *Title*}
-\author{Nicolás Vaughan\\
-  Universidad de los Andes, Bogotá\\
-  \texttt{n.vaughan@uniandes.edu.co}%
-  %\texttt{n.vaughan@oxon.org}%
-  }
-\date{}
 
 \definecolor{Link}{HTML}{408080}
 \usepackage{hyperref}
@@ -161,10 +109,31 @@
 \urlstyle{tt}
 \usepackage{bookmark}
 
+\setlength{\droptitle}{-2cm}
+
+\title{\bfseries%
+  \texttt{py-pdftools} v.\version{} \\
+  User Manual}
+
+\author{%
+  Nicolás Vaughan\\
+  \begin{minipage}[t]{0.8\linewidth}
+    \centering\small%
+    \href{mailto:nicolasvaughan@proton.me}{\texttt{nicolasvaughan@proton.me}}\\
+    \url{https://nicolasvaughan.org}\\
+    \url{https://github.com/nivaca/py-pdftools}\\
+    \url{https://codeberg.org/nivaca/py-pdftools}\\
+  \end{minipage}}
+
+
+\date{2026-11-21}
+
 % ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 \begin{document}
 \maketitle
 
+\section{Introduction}
+\noindent
 
 
 
@@ -172,11 +141,6 @@
 
 
 
-
-
-
-% \nocite{*}
-% \printbibliography
 \end{document}
 
 % ===============================================
