@@ -7,7 +7,7 @@ the order of their pages, imposes them for printing, and reads the text of
 their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
 together five earlier programs by the same author, each of which did one of
 those things: py-annotate, py-redact, py-foliation, py-imposition and
-py-pdfocr. Here I explain how it was made, in twenty-three stages.
+py-pdfocr. Here I explain how it was made, in twenty-four stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -651,10 +651,39 @@ sentence had to be compared with the code. It found one old mistake: the
 READMEs still said that the right click on a toolbar sets how that one
 toolbar looks, while since stage 22 it sets all of them.
 
+24. A bar of pages, fewer bubbles, the properties of a PDF
+----------------------------------------------------------
+
+Using the program every day, I missed three things I had in other PDF
+viewers, and one thing bothered me. Moving to the first or the last page
+needed the keyboard or the menu, so a toolbar now does it, at the bottom of
+the window: First page, Previous page, a box with the page shown and how
+many there are, Next page, Last page. Its box had to be an action of its
+own, a widget action, so that it could be put on any toolbar in Customize
+the toolbars, like the buttons; Qt makes a box for each toolbar it is put
+on, and all of them follow the page. The bar is hidden in Impose, which has
+no pages to move through.
+
+The hints shown over the pages when a mode is chosen, and the tooltips over
+every button, were more than I wanted once I knew the program. Both are
+now off at first, and Settings > Appearance turns them on; F1 still shows
+the hint of a mode. Qt has no switch for all tooltips at once, so an event
+filter of the application drops the events that ask for them while the
+setting is off. A test that applied the settings left that filter in
+place, and a later test of the tips of the thumbnails failed; the tests
+now take it away after each one.
+
+File > PDF properties shows what a document is (its metadata, its file,
+its pages, whether it is tagged, signed or encrypted, what it doesn't
+allow) and the fonts it uses, with the pages of each. A font may be in a
+file several times, one subset for each chapter, as LaTeX makes them; the
+dialog shows it once, with all its pages. Looking at our own manuals with
+it showed that their PDFs had no title and no author, so now they have.
+
 Testing
 -------
 
-The program has 591 tests (`uv run pytest`): those of the four programs,
+The program has 595 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -665,7 +694,8 @@ tabs, reloading), the security of documents (text only covered, hidden
 layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
-settings, the Spanish interface (every text translated, and none left over)
+settings, the toolbar of the pages, the tooltips, the properties of a
+PDF, the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -674,5 +704,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 151 files of Python, around 41,700 lines (about a tenth of them
-comments), and 3,028 texts of the interface in Spanish.
+program has 154 files of Python, around 42,100 lines (about a tenth of them
+comments), and 3,058 texts of the interface in Spanish.
