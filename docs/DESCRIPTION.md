@@ -7,7 +7,7 @@ the order of their pages, imposes them for printing, and reads the text of
 their scanned pages. Nicolas Vaughan made it in November 2026 by bringing
 together five earlier programs by the same author, each of which did one of
 those things: py-annotate, py-redact, py-foliation, py-imposition and
-py-pdfocr. Here I explain how it was made, in twenty-two stages.
+py-pdfocr. Here I explain how it was made, in twenty-three stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -611,6 +611,31 @@ pixels, as the desktop's fonts are, so their edges are grey. Fewer levels of
 antialiasing changed almost nothing; a gamma that darkens those grey edges
 did. It is a setting, Text on the pages, sharper by default.
 
+23. A user manual
+-----------------
+
+The READMEs had grown into a long list of what the program does, but they
+did not explain how to do it. I made two templates in LaTeX, one in English
+and one in Spanish, and the manual was written in them: how to install and
+start the program, the window, each mode, the work on whole files, the
+settings, the command line and the keys, with a section on what to do when
+something goes wrong.
+
+Its pictures are made by a script, tools/manual_images.py, as the pictures
+of the READMEs are: it makes sample documents (an essay with bookmarks and
+labels, a form, a scanned page, a page with black boxes drawn over a name),
+opens them in the window, offscreen, and saves the window in each mode and
+the dialogs the manual explains, 34 in each language. It runs with a home
+folder and a configuration of its own, so it never reads or writes mine,
+and it hides the temporary folders it uses, which would otherwise show in
+the status bar and in some fields. The pictures can be made again whenever
+the window changes.
+
+Writing the manual was also a way to check the program, since each
+sentence had to be compared with the code. It found one old mistake: the
+READMEs still said that the right click on a toolbar sets how that one
+toolbar looks, while since stage 22 it sets all of them.
+
 Testing
 -------
 
@@ -630,7 +655,8 @@ and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
 commands in one. The window was checked by eye as well, with screenshots of
-each mode in both languages. The RPM runs all the tests again with Fedora's
+each mode in both languages, and the user manual was compared, sentence by
+sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
 program has 151 files of Python, around 41,700 lines (about a tenth of them
