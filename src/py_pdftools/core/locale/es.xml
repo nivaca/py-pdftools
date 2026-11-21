@@ -12652,4 +12652,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>“{term}”: not found</en>
     <tr>«{term}»: sin apariciones</tr>
   </text>
+  <text>
+    <en>How many pages the document has</en>
+    <tr>Cuántas páginas tiene el documento</tr>
+  </text>
+  <text>
+    <en>Undo the last imposition applied to the document</en>
+    <tr>Deshacer la última imposición aplicada al documento</tr>
+  </text>
+  <text>
+    <en>The unit of the lengths of every command</en>
+    <tr>La unidad de las longitudes de todas las órdenes</tr>
+  </text>
 </interface>

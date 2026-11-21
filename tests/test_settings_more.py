@@ -49,18 +49,31 @@ def test_tooltips(window):
     from PySide6.QtCore import QEvent, QPoint
     from PySide6.QtGui import QHelpEvent
 
-    def asks():  # (whether a widget gets the event that asks for its tooltip)
-        got = []
-        button = window.toolbars()[0]
-        original = button.event
-        button.event = lambda e: got.append(e.type()) or original(e)
+    from PySide6.QtCore import QObject
+
+    class Got(QObject):  # (a filter of the widget's own: it runs after the application's, if that one lets it)
+        def __init__(self):
+            super().__init__()
+            self.got = []
+
+        def eventFilter(self, obj, event):
+            self.got.append(event.type())
+            return False
+
+    def asks(button=None):  # (whether a widget gets the event that asks for its tooltip)
+        button = button if button is not None else window.outline_filter
+        spy = Got()
+        button.installEventFilter(spy)
         QApplication.sendEvent(button, QHelpEvent(QEvent.Type.ToolTip, QPoint(5, 5), QPoint(5, 5)))
-        button.event = original
-        return QEvent.Type.ToolTip in got
+        button.removeEventFilter(spy)
+        return QEvent.Type.ToolTip in spy.got
 
     try:
         appearance.apply_tooltips()
         assert not asks()
+        # (those of the toolbars show all the same)
+        bar = window.toolbars()[0]
+        assert asks(bar) and asks(bar.widgetForAction(bar.actions()[0]))
         d = SettingsDialog(window.prefs, window)
         assert not d.tooltips.isChecked()
         d.tooltips.setChecked(True)

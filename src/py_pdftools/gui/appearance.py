@@ -83,11 +83,12 @@ _NO_TIPS = None  # (the filter that keeps the tooltips from showing, while it is
 
 def apply_tooltips(show: bool | None = None):
     """Whether the tooltips show (the bubbles over buttons, menus and fields when the mouse rests on them):
-    without them, an event filter of the application drops the events that ask for them. Tips the program
+    without them, an event filter of the application drops the events that ask for them, except those of
+    the toolbars, which always show. Tips the program
     shows by itself (the address of a link under the mouse) are not of those, and stay."""
     global _NO_TIPS
     from PySide6.QtCore import QEvent, QObject
-    from PySide6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication, QToolBar, QWidget
 
     app = QApplication.instance()
     if app is None:
@@ -100,7 +101,15 @@ def apply_tooltips(show: bool | None = None):
 
         class NoTips(QObject):
             def eventFilter(self, obj, event):
-                return event.type() == QEvent.Type.ToolTip  # (tragado: la burbuja no se pide)
+                if event.type() != QEvent.Type.ToolTip:
+                    return False
+                # Las de las barras de herramientas se ven siempre: sus botones casi solo tienen icono
+                w = obj if isinstance(obj, QWidget) else None
+                while w is not None:
+                    if isinstance(w, QToolBar):
+                        return False
+                    w = w.parentWidget()
+                return True  # (tragado: la burbuja no se pide)
 
         _NO_TIPS = NoTips(app)
         app.installEventFilter(_NO_TIPS)

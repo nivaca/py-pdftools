@@ -817,6 +817,17 @@ session. Now the panel is hidden when the program starts, a document's
 request no longer opens it, and changing modes leaves it as it was. Only
 F5, or View > Panels > Bookmarks, opens it.
 
+31. Tooltips on the toolbars
+----------------------------
+
+The setting Show tooltips, off at first, hid every tooltip, those of the
+toolbars too, and most of their buttons have only an icon. The filter of
+the application that drops the requests for tooltips now lets through
+those of any widget inside a toolbar, so the setting governs only menus,
+fields and dialogs. A script that went through every toolbar found the
+items with no tooltip of their own: the count of pages, the fields of the
+toolbar of Impose and their labels, and Undo apply. Each has one now.
+
 Testing
 -------
 

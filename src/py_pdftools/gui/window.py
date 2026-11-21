@@ -333,6 +333,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # (beside it, how many pages there are; or 3/180, where the label is not the place of the page)
         self.page_label = QLabel("")
         self.page_label.setStyleSheet("color: palette(placeholder-text);")
+        self.page_label.setToolTip(tr("How many pages the document has"))
         # La casilla del zoom: un porcentaje escrito, o uno de la lista, o un ajuste (página, ancho, alto...).
         self.zoom_label = QComboBox()
         self.zoom_label.setEditable(True)
@@ -2910,7 +2911,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_page_number.show_page(label or str(page + 1), self.count)
         number = str(page + 1)
         self.page_label.setText(f"{number}/{self.count}" if label and label != number else str(self.count))
-        self.page_label.setToolTip(self.page_details(page) if self.doc is not None else "")
+        self.page_label.setToolTip(self.page_details(page) if self.doc is not None
+                                   else tr("How many pages the document has"))
         self.page_box.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count) + "\n"
                                  + tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
         self.pages.blockSignals(True)

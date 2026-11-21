@@ -11,6 +11,10 @@ Debian package, the RPM, the wheel and the source, are on
   for (View > Panels > Bookmarks, F5), not when a document asks for its
   bookmarks to be shown, nor from the arrangement kept from another
   session; once open, it stays in every mode until it is closed.
+- **Tooltips**: those of the toolbars show always, even with Settings >
+  Appearance > Show tooltips off, which now governs only the others; the
+  items of the toolbars that had none (the count of pages, the fields of
+  Impose's toolbar, Undo apply) have one.
 
 ## 1.8.4 — 2026-11-21
 
