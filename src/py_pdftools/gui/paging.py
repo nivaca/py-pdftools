@@ -800,7 +800,14 @@ class PagesMixin:
             default = Path(self.last_dir()) / f"{self.path.stem}-{stamps.compact_pages(value)}.pdf"
             name, _ = QFileDialog.getSaveFileName(self, tr("Extract to a new PDF"), str(default),
                                                   tr("PDF files (*.pdf)"))
-            return bool(name) and self.write_parts([(Path(name).with_suffix(".pdf"), value)])
+            target = Path(name).with_suffix(".pdf") if name else None
+            if target is None or not self.write_parts([(target, value)]):
+                return False
+            # El PDF nuevo se abre enseguida, en una pestaña junto a este documento
+            from .tabs import open_in_tab
+
+            open_in_tab(target, near=self)
+            return True
         if mode == "split":
             spec, folder = value
             return self.split_document(spec, folder)

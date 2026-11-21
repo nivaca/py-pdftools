@@ -737,3 +737,22 @@ def test_ocr_from_the_thumbnails_in_every_mode(window, monkeypatch):
     monkeypatch.setattr(ocr, "available", lambda: False)
     window.thumbs_menu(window.pages.visualItemRect(window.pages.item(0)).center())
     assert not next(a for a in shown[-1].actions() if "(OCR)" in a.text()).isEnabled()
+
+
+def test_extracted_pages_open_in_a_new_tab(window, tmp_path, monkeypatch):
+    """Extract to a new PDF writes the pages chosen as a new file, and opens it in a tab beside the document."""
+    from PySide6.QtWidgets import QFileDialog
+
+    from py_pdftools.gui import paging
+
+    target = tmp_path / "part.pdf"
+    monkeypatch.setattr(paging, "ask_arrange", lambda *a, **k: [2, 3])
+    monkeypatch.setattr(QFileDialog, "getSaveFileName", staticmethod(lambda *a, **k: (str(target), "")))
+    window.show()
+    assert window.arrange_dialog("extract", [2, 3])
+    assert pymupdf.open(target).page_count == 2
+    host = window.host
+    assert host is not None and len(host.windows()) == 2
+    new = host.windows()[1]
+    assert new.path == target and host.current() is new
+    new.close()

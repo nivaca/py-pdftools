@@ -735,8 +735,8 @@ became a dialog of the window, Edit > Word index, while its command line
 became py-pdftools find-words, with the same options. Its tests came with
 it, on a document made with PyMuPDF instead of pypdf.
 
-27. The menu of the thumbnails, in every mode
----------------------------------------------
+27. The menu of the thumbnails, in every mode, and extracted pages in a tab
+------------------------------------------------------------------------
 
 The right click on the thumbnails offers to read the pages chosen with OCR
 in every mode, as the READMEs said; but the item was grey everywhere except
@@ -744,6 +744,10 @@ in the mode OCR. It took its state from the action Recognise text, which
 belongs to that mode, and the window turns off the actions of a mode while
 another one is on. It now looks at what it needs, a document and tesseract.
 A test opens the menu in three modes.
+
+In the same menu, Extract to a new PDF wrote the new file and said where;
+it now also opens it, in a new tab beside the document, since one usually
+wants to see what was extracted.
 
 Testing
 -------
