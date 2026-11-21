@@ -88,10 +88,39 @@ def shortcuts(window) -> list[Check]:
     return out
 
 
+def graphics(window) -> Check | None:
+    """With the pages drawn by the graphics card (Settings > Performance): whether OpenGL gave a surface."""
+    from ..core import config
+
+    canvas = getattr(window, "canvas", None)
+    if canvas is None or not config.get("gpu"):
+        return None
+    from . import canvas as drawing
+
+    title = tr("Graphics card (OpenGL)")
+    if not getattr(canvas, "gpu", False):
+        if drawing.GPU_UNAVAILABLE:
+            return Check(health.WARNING, title, tr("Chosen in Settings, but not used: {why}",
+                                                   why=drawing.GPU_UNAVAILABLE),
+                         tr("The pages are drawn as usual; turn it off in Settings > Performance"))
+        return Check(health.INFO, title, tr("Chosen in Settings; it is used from the next start"))
+    context = canvas.viewport().context() if hasattr(canvas.viewport(), "context") else None
+    if context is None and not canvas.isVisible():  # (its surface gets a context only once drawn)
+        return Check(health.OK, title, tr("In use"))
+    if context is None or not context.isValid():
+        return Check(health.WARNING, title, tr("The graphics card gave no OpenGL surface: the pages may not show"),
+                     tr("Turn it off in Settings > Performance"))
+    fmt = context.format()
+    return Check(health.OK, title, f"OpenGL {fmt.majorVersion()}.{fmt.minorVersion()}")
+
+
 def run(window=None) -> list[Check]:
     checks = health.run()
     if window is not None and hasattr(window, "modes"):
         checks += shortcuts(window)
+        gpu = graphics(window)
+        if gpu is not None:
+            checks.append(gpu)
     return checks
 
 

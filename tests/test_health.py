@@ -113,3 +113,34 @@ def test_the_dialog(window):
     d = HealthDialog(window)
     assert d.list.topLevelItemCount() == len(d.checks) > 8
     d.close()
+
+
+def test_the_graphics_card_when_asked_for(tmp_path, monkeypatch):
+    """With the setting gpu, the pages are drawn by OpenGL where it works (the tests' Xvfb has it, by
+    software), and as usual where it doesn't (offscreen); the check says which."""
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui import canvas as drawing
+    from py_pdftools.gui import health_dialog
+    from py_pdftools.gui.window import MainWindow
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    config.set("gpu", True)
+    w = MainWindow()
+    w.show()
+    QApplication.processEvents()
+    try:
+        works = drawing.opengl_works() == ""
+        assert w.canvas.gpu == works
+        assert type(w.canvas.viewport()).__name__ == ("QOpenGLWidget" if works else "QWidget")
+        check = health_dialog.graphics(w)
+        assert check.status == (health.OK if works else health.WARNING)
+    finally:
+        w.close()
+    config.set("gpu", False)
+    w = MainWindow()
+    try:
+        assert not w.canvas.gpu and health_dialog.graphics(w) is None
+    finally:
+        w.close()

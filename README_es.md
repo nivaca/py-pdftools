@@ -245,8 +245,10 @@ documento del día se abre al instante.
 Configuración > Rendimiento fija cuánta memoria puede usar la ventana
 (Baja, Normal, Alta, o Todas las páginas, que guarda dibujadas todas las
 páginas y miniaturas, dentro de la mitad de la memoria libre), si las
-selecciones se dibujan con transparencia o como contornos, y si el texto
-y los gráficos se suavizan (antialiasing).
+selecciones se dibujan con transparencia o como contornos, si el texto y
+los gráficos se suavizan (antialiasing) y si las páginas se dibujan con la
+tarjeta gráfica (OpenGL, desactivado al principio, desde el próximo
+inicio), lo que hace más suaves el desplazamiento y el zoom.
 
 Moverse por un documento funciona en todos los modos. La casilla de
 búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F), va de un lugar de un

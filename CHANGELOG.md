@@ -20,6 +20,10 @@ Debian package, the RPM, the wheel and the source, are on
   of the temporary folder), whether the configuration file can be read and
   written, which of its values aren't valid or known, and shortcuts used
   twice, each with what to do; the report can be copied as text.
+- **Graphics card**: Settings > Performance > Draw the pages with the
+  graphics card (OpenGL), off at first, from the next start, for smoother
+  scrolling and zooming. Where OpenGL doesn't work, the pages are drawn as
+  usual, and Check the configuration says why.
 - **Impose**: F5 runs Preview again. It was also the key of the bookmarks
   panel, and with two actions on one key Qt ran neither; the bookmarks are
   put away while Impose is on (it shows no pages), and come back after.

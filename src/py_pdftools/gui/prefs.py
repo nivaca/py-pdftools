@@ -270,7 +270,12 @@ class SettingsDialog(QDialog):
         self.text_antialias.setChecked(current["text_antialias"])
         self.graphics_antialias = QCheckBox(tr("Smooth the graphics (antialiasing)"))
         self.graphics_antialias.setChecked(current["graphics_antialias"])
-        for box in (self.transparency, self.text_antialias, self.graphics_antialias):
+        self.gpu = QCheckBox(tr("Draw the pages with the graphics card (OpenGL)"))
+        self.gpu.setChecked(bool(config.get("gpu")))
+        self.gpu.setToolTip(tr("Smoother scrolling and zooming: the pictures of the pages are moved and scaled "
+                               "by the graphics card. It changes the next time py-pdftools starts. If the pages "
+                               "then show black or flicker, turn it off again."))
+        for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.gpu):
             form.addRow("", box)
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
@@ -496,6 +501,8 @@ class SettingsDialog(QDialog):
                 config.set("tabs", self.tabs.isChecked())
             if self.reload.isChecked() != bool(config.get("reload")):
                 config.set("reload", self.reload.isChecked())
+            if self.gpu.isChecked() != bool(config.get("gpu")):
+                config.set("gpu", self.gpu.isChecked())
             if self.lone_tab.isChecked() != bool(config.get("lone_tab")):
                 config.set("lone_tab", self.lone_tab.isChecked())
                 from .tabs import apply_tab_bars

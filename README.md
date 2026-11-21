@@ -237,8 +237,10 @@ document of the day opens at once too.
 Settings > Performance sets how much memory the window may use (Low,
 Normal, High, or All pages, which keeps every page and thumbnail drawn,
 within half of the free memory), whether selections are drawn with
-transparency or as outlines, and whether text and graphics are smoothed
-(antialiasing).
+transparency or as outlines, whether text and graphics are smoothed
+(antialiasing), and whether the pages are drawn with the graphics card
+(OpenGL, off at first, from the next start), which makes scrolling and
+zooming smoother.
 
 Moving through a document works in every mode. The quick find box, on
 the toolbar Find (Ctrl+Shift+F), goes from one place of a text to the next

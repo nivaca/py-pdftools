@@ -12908,4 +12908,52 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} is not there</en>
     <tr>{path} no existe</tr>
   </text>
+  <text>
+    <en>Chosen in Settings, but not used: {why}</en>
+    <tr>Elegida en la Configuración, pero no se usa: {why}</tr>
+  </text>
+  <text>
+    <en>Chosen in Settings; it is used from the next start</en>
+    <tr>Elegida en la Configuración; se usa desde el próximo inicio</tr>
+  </text>
+  <text>
+    <en>Draw the pages with the graphics card (OpenGL)</en>
+    <tr>Dibujar las páginas con la tarjeta gráfica (OpenGL)</tr>
+  </text>
+  <text>
+    <en>Graphics card (OpenGL)</en>
+    <tr>Tarjeta gráfica (OpenGL)</tr>
+  </text>
+  <text>
+    <en>Smoother scrolling and zooming: the pictures of the pages are moved and scaled by the graphics card. It changes the next time py-pdftools starts. If the pages then show black or flicker, turn it off again.</en>
+    <tr>Desplazamiento y zoom más suaves: la tarjeta gráfica mueve y escala las imágenes de las páginas. Cambia la próxima vez que py-pdftools se inicie. Si entonces las páginas se ven negras o parpadean, desactívelo otra vez.</tr>
+  </text>
+  <text>
+    <en>The graphics card gave no OpenGL context</en>
+    <tr>La tarjeta gráfica no dio un contexto de OpenGL</tr>
+  </text>
+  <text>
+    <en>The graphics card gave no OpenGL surface: the pages may not show</en>
+    <tr>La tarjeta gráfica no dio una superficie de OpenGL: puede que las páginas no se vean</tr>
+  </text>
+  <text>
+    <en>The module of OpenGL of PySide6 is not installed</en>
+    <tr>El módulo de OpenGL de PySide6 no está instalado</tr>
+  </text>
+  <text>
+    <en>The pages are drawn as usual; turn it off in Settings &gt; Performance</en>
+    <tr>Las páginas se dibujan como siempre; desactívelo en Configuración &gt; Rendimiento</tr>
+  </text>
+  <text>
+    <en>This display ({name}) has no OpenGL</en>
+    <tr>Esta pantalla ({name}) no tiene OpenGL</tr>
+  </text>
+  <text>
+    <en>Turn it off in Settings &gt; Performance</en>
+    <tr>Desactívelo en Configuración &gt; Rendimiento</tr>
+  </text>
+  <text>
+    <en>In use</en>
+    <tr>En uso</tr>
+  </text>
 </interface>

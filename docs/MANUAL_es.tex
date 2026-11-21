@@ -1627,6 +1627,15 @@ a las habituales.
   computadores viejos.
 \item[Suavizar el texto, Suavizar los gráficos] el antialiasing; sin él,
   las páginas se dibujan más rápido pero más toscas.
+\item[Dibujar las páginas con la tarjeta gráfica (OpenGL)] el
+  desplazamiento y el zoom son más suaves: la tarjeta gráfica, y no el
+  procesador, mueve y escala las imágenes de las páginas. Convertir las
+  páginas del PDF en imágenes lo sigue haciendo el procesador, así que una
+  página que tarda un momento en aparecer tarda lo mismo. Desactivado al
+  principio; cambia la próxima vez que el programa se inicie. Donde OpenGL
+  no funciona (algunas máquinas virtuales y pantallas remotas), las páginas
+  se dibujan como siempre, y \menu{Revisar la configuración} dice por qué;
+  si las páginas se ven negras o parpadean, desactívelo.
 \end{description}
 
 \subsection{Dónde se guarda la configuración}

@@ -1548,6 +1548,15 @@ the three has a button to bring back the usual ones.
   as outlines, which is faster on old computers.
 \item[Smooth the text, Smooth the graphics] antialiasing; without it, the
   pages are drawn faster but rougher.
+\item[Draw the pages with the graphics card (OpenGL)] scrolling and
+  zooming are smoother: the pictures of the pages are moved and scaled by
+  the graphics card instead of the processor. Turning PDF pages into
+  pictures is still done by the processor, so a page that takes a moment
+  to appear takes it all the same. Off at first; it changes the next time
+  the program starts. Where OpenGL doesn't work (some virtual machines and
+  remote displays), the pages are drawn as usual, and \menu{Check the
+  configuration} says why; if the pages show black or flicker, turn it
+  off.
 \end{description}
 
 \subsection{Where the settings are kept}

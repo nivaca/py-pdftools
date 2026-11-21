@@ -891,6 +891,29 @@ It also looks at the shortcuts changed in Settings, against every other
 action. On its first run it found a real clash, F5 in Impose (see stage
 30).
 
+35. Drawing with the graphics card
+----------------------------------
+
+The page view is a Qt graphics view, which the processor draws. Qt can give
+it an OpenGL surface instead (`QOpenGLWidget` as its viewport), and then the
+graphics card moves and scales the pictures of the pages, which makes
+scrolling and zooming smoother. It can't make pages appear sooner: MuPDF
+still turns them into pictures on the processor, in the processes that draw
+them. So it is a setting, in Settings > Performance, off at first and in
+effect from the next start, since the viewport is chosen when the window is
+made.
+
+The risk is the driver. On the display the tests use without an X server
+(offscreen), the first try gave a view that drew nothing, with a stream of
+messages from QPainter. Before using OpenGL the program now makes a small
+context of its own and makes it current; where that fails, or the display
+has no OpenGL, the view stays as it was, and Check the configuration says
+why. With OpenGL the whole view is drawn each time, as partial updates of an
+OpenGL surface cost more than they save. I checked it in Xvfb, whose
+OpenGL is done in software: a capture of the screen showed the pages as
+usual (a capture of the surface itself came out white, which is a matter of
+how it is read, not of what is shown).
+
 Testing
 -------
 

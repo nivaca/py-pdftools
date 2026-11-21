@@ -429,6 +429,60 @@ class TextEditor(QGraphicsTextItem):
         self.textCursor().insertText(QApplication.clipboard().text())
 
 
+
+GPU_UNAVAILABLE = ""  # (why the graphics card wasn't used, when it was asked for: see use_gpu)
+
+
+def opengl_works() -> str:
+    """'' if OpenGL can draw here, else why not: a display without it (offscreen, a remote one), or a
+    graphics card or driver that gives no context."""
+    from PySide6.QtGui import QGuiApplication, QOffscreenSurface, QOpenGLContext
+
+    if QGuiApplication.platformName() in ("offscreen", "minimal", "vnc"):
+        return tr("This display ({name}) has no OpenGL", name=QGuiApplication.platformName())
+    # Se prueba un contexto de verdad: un controlador sin OpenGL da pantallas negras, no un error
+    context = QOpenGLContext()
+    if not context.create():
+        return tr("The graphics card gave no OpenGL context")
+    surface = QOffscreenSurface()
+    surface.create()
+    try:
+        if not context.makeCurrent(surface):
+            return tr("The graphics card gave no OpenGL context")
+        context.doneCurrent()
+    finally:
+        surface.destroy()
+    return ""
+
+
+def use_gpu(view: QGraphicsView) -> bool:
+    """Draw VIEW with the graphics card, by OpenGL, if the settings ask for it (the setting gpu): its
+    viewport becomes an OpenGL surface, which moves and scales the pictures of the pages there instead of
+    on the processor. Whether it worked: where OpenGL can't draw (see opengl_works), or without its
+    module, it stays as it was, and GPU_UNAVAILABLE says why."""
+    global GPU_UNAVAILABLE
+    from ..core import config
+
+    try:
+        if not config.get("gpu"):
+            return False
+        from PySide6.QtGui import QSurfaceFormat
+        from PySide6.QtOpenGLWidgets import QOpenGLWidget
+    except config.ConfigError:
+        return False
+    except ImportError:
+        GPU_UNAVAILABLE = tr("The module of OpenGL of PySide6 is not installed")
+        return False
+    GPU_UNAVAILABLE = opengl_works()
+    if GPU_UNAVAILABLE:
+        return False
+    surface = QOpenGLWidget()
+    form = QSurfaceFormat()
+    form.setSamples(4)  # (bordes suavizados también en la superficie de OpenGL)
+    surface.setFormat(form)
+    view.setViewport(surface)
+    return True
+
 class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     """The pages and their annotations. The annotations are identified by their
     index in the window's list; what the user does is reported with the signals."""
@@ -456,6 +510,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setScene(QGraphicsScene(self))
+        # Con la tarjeta gráfica (Configuración > Rendimiento, desde el próximo inicio), antes de lo demás:
+        # lo que sigue se aplica a la superficie nueva.
+        self.gpu = use_gpu(self)
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
         self.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
         self.setRenderHint(QPainter.RenderHint.TextAntialiasing)
@@ -464,7 +521,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
         self.setBackgroundBrush(self.palette().dark())
         self.setAlignment(Qt.AlignmentFlag.AlignHCenter | Qt.AlignmentFlag.AlignTop)
-        self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.SmartViewportUpdate)
+        # (an OpenGL surface is drawn whole each time: partial updates of it cost more than they save)
+        self.setViewportUpdateMode(QGraphicsView.ViewportUpdateMode.FullViewportUpdate if self.gpu
+                                   else QGraphicsView.ViewportUpdateMode.SmartViewportUpdate)
         self.doc: pymupdf.Document | None = None
         self.continuous = True  # all the pages one under the other; else only the page shown
         self.page = 0  # the page in view (of a continuous view: the one in the middle of the window)
