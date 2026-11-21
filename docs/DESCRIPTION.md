@@ -859,6 +859,12 @@ cell, which the list then draws in the middle. A first try that changed
 the size of each item was dropped: with thousands of pages, it would run
 through all of them at each change of width.
 
+The thumbnails also stopped showing a page's number in the file beside its
+label ("2  1"), and the count by the box of the page stopped showing it
+("2/5"): two numbers for one page were confusing. A page is now shown by
+its label, or by its number if it has none. Only Foliate's list of pages,
+which is for setting the labels, keeps both.
+
 Testing
 -------
 

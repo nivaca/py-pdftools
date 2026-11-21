@@ -2939,8 +2939,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         if not self.page_box.hasFocus():
             self.page_box.setText(label or str(page + 1))
         self.a_page_number.show_page(label or str(page + 1), self.count)
-        number = str(page + 1)
-        self.page_label.setText(f"{number}/{self.count}" if label and label != number else str(self.count))
+        # (only the count: the box already says which page, by its label or else its number, never both)
+        self.page_label.setText(str(self.count))
         self.page_label.setToolTip(self.page_details(page) if self.doc is not None
                                    else tr("How many pages the document has"))
         self.page_box.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count) + "\n"
@@ -3135,8 +3135,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for i, a in enumerate(self.annotations):
             if 0 <= a.page < self.count and i in shown and self.owns(a):
                 self._by_page[a.page].append(a)
-        # En todos los modos, cada página con su etiqueta, si no es su número (antes, solo en Foliar: un cambio de
-        # etiqueta hecho desde otro modo no se veía); y cuántas anotaciones tiene.
+        # En todos los modos, cada página con su etiqueta, o con su número si no la tiene (nunca las dos cosas);
+        # y cuántas anotaciones tiene.
         try:
             shown_labels = self.page_labels()
         except Exception:  # (unas etiquetas que no se pueden leer no impiden mostrar las páginas)
@@ -3145,7 +3145,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             item = self.pages.item(n)
             count = len(self._by_page[n])
             label = shown_labels[n] if n < len(shown_labels) else ""
-            text = f"{n + 1}  {label}" if label and label != str(n + 1) else str(n + 1)
+            text = label or str(n + 1)
             if count:
                 text += f"  ● {count}"
             # setText solo si cambia: cada llamada vuelve a pintar el elemento.

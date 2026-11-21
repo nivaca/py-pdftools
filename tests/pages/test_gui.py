@@ -51,7 +51,7 @@ def test_labels_in_the_table_and_the_list(window):
     window._edit(0, style="r")
     QApplication.processEvents()  # (the change waits for the signal of the widget to be over)
     assert window.page_labels()[:3] == ["i", "ii", "iii"] and window.ranges_table.rowCount() == 2
-    assert window.page_list.item(0).text().endswith("i") and "9  1" in window.pages.item(8).text()
+    assert window.page_list.item(0).text().endswith("i") and window.pages.item(8).text() == "1"  # (the label only, not "9  1")
     assert "labels set" in window.cmd_line.text()
     window.page_list.clearSelection()
     for row in (99,):
@@ -151,14 +151,14 @@ def test_the_page_box_shows_and_takes_labels(window, app):
     number; beside it, how many pages there are, or n/N where the label isn't the place of the page."""
     window.set_ranges([Range(1, "r"), Range(5, "D")])
     window.show_page(2)
-    assert window.page_box.text() == "iii" and window.page_label.text() == "3/100"
+    assert window.page_box.text() == "iii" and window.page_label.text() == "100"
     assert "Page 3 of 100" in window.page_box.toolTip()
     for typed, page in (("IV", 3), ("1", 4), ("(2)", 1), ("100", 99)):  # (no page is labelled 100)
         window.page_box.setText(typed)
         window.page_box.returnPressed.emit()
         assert window.page == page, typed
     window.show_page(6)
-    assert window.page_box.text() == "3" and window.page_label.text() == "7/100"
+    assert window.page_box.text() == "3" and window.page_label.text() == "100"
     window.page_box.setText("nothing")
     assert not window.go_to_typed("nothing") and window.page == 6 and window.page_box.text() == "3"
 

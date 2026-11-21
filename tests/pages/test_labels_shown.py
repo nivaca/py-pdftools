@@ -55,12 +55,12 @@ def test_number_this_page_in_read_mode(window, monkeypatch):
     assert captions(window) == ["1", "2", "3", "4", "5", "6"]
     number(window, monkeypatch, 4, "r")
     assert window.page_labels()[4] == "i"
-    assert captions(window) == ["1", "2", "3", "4", "5  i", "6"]
+    assert captions(window) == ["1", "2", "3", "4", "i", "6"]
     assert "page 5 is now i" in window.statusBar().currentMessage()
     window.undo()
     assert captions(window)[4] == "5"
     window.redo()
-    assert captions(window)[4] == "5  i"
+    assert captions(window)[4] == "i"
 
 
 def test_nothing_to_change_is_said(window, monkeypatch):
