@@ -5,7 +5,7 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.4.0 — 2026-11-20
 
 - **File > Save a copy > Smaller** (and `py-pdftools reduce`): a copy that
   takes less space, at one of four levels: pictures drawn again at 220,
