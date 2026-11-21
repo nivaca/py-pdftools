@@ -10721,4 +10721,76 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{file} is protected</en>
     <tr>{file} está protegido</tr>
   </text>
+  <text>
+    <en>Add a separator</en>
+    <tr>Añadir un separador</tr>
+  </text>
+  <text>
+    <en>Add →</en>
+    <tr>Añadir →</tr>
+  </text>
+  <text>
+    <en>As it was at first</en>
+    <tr>Como era al principio</tr>
+  </text>
+  <text>
+    <en>Available:</en>
+    <tr>Disponibles:</tr>
+  </text>
+  <text>
+    <en>Choose the buttons of each toolbar and their order, or add toolbars of your own</en>
+    <tr>Elegir los botones de cada barra de herramientas y su orden, o añadir barras propias</tr>
+  </text>
+  <text>
+    <en>Customize the toolbars</en>
+    <tr>Personalizar las barras de herramientas</tr>
+  </text>
+  <text>
+    <en>Customize the toolbars…</en>
+    <tr>Personalizar las barras de herramientas…</tr>
+  </text>
+  <text>
+    <en>Delete this toolbar</en>
+    <tr>Borrar esta barra</tr>
+  </text>
+  <text>
+    <en>Down</en>
+    <tr>Bajar</tr>
+  </text>
+  <text>
+    <en>Filter</en>
+    <tr>Filtrar</tr>
+  </text>
+  <text>
+    <en>Its name:</en>
+    <tr>Su nombre:</tr>
+  </text>
+  <text>
+    <en>New toolbar</en>
+    <tr>Barra nueva</tr>
+  </text>
+  <text>
+    <en>New toolbar…</en>
+    <tr>Barra nueva…</tr>
+  </text>
+  <text>
+    <en>On the toolbar:</en>
+    <tr>En la barra:</tr>
+  </text>
+  <text>
+    <en>The toolbars were changed</en>
+    <tr>Se cambiaron las barras de herramientas</tr>
+  </text>
+  <text>
+    <en>Toolbar:</en>
+    <tr>Barra:</tr>
+  </text>
+  <text>
+    <en>Up</en>
+    <tr>Subir</tr>
+  </text>
+  <text>
+    <en>← Remove</en>
+    <tr>← Quitar</tr>
+  </text>
 </interface>

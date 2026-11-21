@@ -1,0 +1,99 @@
+"""Toolbars made to measure (gui/toolbars.py): buttons added, removed and moved on a toolbar, separators, a
+toolbar of one's own, kept for the next window, and each toolbar back to what it had at first; and every
+button of the toolbars has an icon, those of the modes too."""
+
+from __future__ import annotations
+
+import pytest
+from PySide6.QtWidgets import QApplication
+
+from py_pdftools.gui.toolbars import SEPARATOR, ToolbarsDialog
+from py_pdftools.gui.window import MainWindow
+
+
+@pytest.fixture
+def app():
+    return QApplication.instance() or QApplication([])
+
+
+@pytest.fixture
+def window(app, tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))  # (QSettings)
+    w = MainWindow()
+    yield w
+    w.close()
+
+
+def bar(w, name):
+    return next(b for b in w.toolbars() if b.objectName() == name)
+
+
+def test_every_button_has_an_icon(window):
+    for b in window.toolbars():
+        for act in b.actions():
+            assert act.isSeparator() or not act.icon().isNull(), (b.objectName(), act.text())
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"
+    window.show_labels(True)  # (the modes keep their names beside their icons)
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"
+    window.show_labels(False)
+
+
+def test_the_dialog_changes_a_toolbar(window):
+    d = ToolbarsDialog(window)
+    d.bar.setCurrentIndex(d.bar.findData("file"))
+    assert d.contents["file"] == ["a_open", "a_save", "a_print"]
+    d.chosen.setCurrentRow(2)
+    d.remove()  # (Print)
+    d.chosen.setCurrentRow(0)
+    d.add(["a_find"])  # (after Open)
+    d.add_separator()
+    d.chosen.setCurrentRow(0)
+    d.move(1)
+    assert d.contents["file"] == ["a_find", "a_open", SEPARATOR, "a_save"]
+    assert "a_print" in [d.available.item(r).data(256) for r in range(d.available.count())]
+    window.apply_toolbar_layout(d.layout_chosen())
+    assert window.bar_ids(bar(window, "file")) == ["a_find", "a_open", SEPARATOR, "a_save"]
+    # (una herramienta de anotar puesta en otra barra conserva su menú)
+    d = ToolbarsDialog(window)
+    d.bar.setCurrentIndex(d.bar.findData("zoom"))
+    d.add(["tool:rect"])
+    window.apply_toolbar_layout(d.layout_chosen())
+    button = bar(window, "zoom").widgetForAction(window.tool_actions["rect"])
+    assert button.contextMenuPolicy().name == "CustomContextMenu"
+
+
+def test_kept_for_the_next_window_and_reset(window, app):
+    d = ToolbarsDialog(window)
+    d.new_bar("Mine")
+    assert d.current() == "custom-1" and d.b_delete.isEnabled()
+    d.add(["a_save", "a_print"])
+    d.bar.setCurrentIndex(d.bar.findData("edit"))
+    d.chosen.setCurrentRow(0)
+    d.remove()
+    window.ask_toolbars = lambda: d.layout_chosen()
+    assert window.customize_toolbars()
+    mine = bar(window, "custom-1")
+    assert mine.windowTitle() == "Mine" and window.bar_ids(mine) == ["a_save", "a_print"]
+    window.settings.sync()
+
+    other = MainWindow()  # (sus barras como quedaron)
+    try:
+        assert other.bar_ids(bar(other, "custom-1")) == ["a_save", "a_print"]
+        assert other.bar_ids(bar(other, "edit")) == ["a_redo", "a_delete"]
+        d = ToolbarsDialog(other)
+        d.bar.setCurrentIndex(d.bar.findData("edit"))
+        d.reset()
+        d.bar.setCurrentIndex(d.bar.findData("custom-1"))
+        d.delete_bar()
+        other.apply_toolbar_layout(d.layout_chosen())
+        assert other.bar_ids(bar(other, "edit")) == ["a_undo", "a_redo", "a_delete"]
+        assert "custom-1" not in [b.objectName() for b in other.toolbars()]
+        assert other.toolbar_layout() == {"bars": {}, "custom": []}
+    finally:
+        other.close()
+
+
+def test_the_bar_of_the_modes_is_not_offered(window):
+    d = ToolbarsDialog(window)
+    assert "modes" not in d.contents
+    assert any(d.bar.itemText(i).endswith("(Annotate)") for i in range(d.bar.count()))

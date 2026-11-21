@@ -39,6 +39,7 @@ from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin
+from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
 from .outline import OutlineMixin
 from .imposing import ImposeMixin
@@ -171,7 +172,7 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
-                 WorkingMixin, FilesMixin, QMainWindow):
+                 WorkingMixin, FilesMixin, ToolbarsMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -222,6 +223,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self._build_outline()
         self._build_menus()
         self._build_modes()
+        self._init_toolbars()  # (antes de _restore: las barras añadidas por el usuario también se colocan)
         self._restore()
         self.set_mode(str(self.settings.value("mode", DEFAULT_MODE)))
         # Recovery copies of the annotations every few minutes (Settings); the document itself is never written.
@@ -654,6 +656,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_labels = QAction(tr("Labels in the toolbar"), self, checkable=True)
         self.a_labels.toggled.connect(self.show_labels)
         m.addAction(self.a_labels)
+        self.a_customize_bars = self._action(m, tr("Customize the toolbars…"), lambda: self.customize_toolbars(),
+                                             tip=tr("Choose the buttons of each toolbar and their order, or add "
+                                                    "toolbars of your own"))
         lang = m.addMenu(tr("Language"))
         group = QActionGroup(self)
         for code, name in interface.names().items():
@@ -693,15 +698,22 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
             tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext", "zoomarea")]
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
-            # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
-            for tool in tools:
-                button = bar.widgetForAction(self.tool_actions[tool])
-                button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
-                button.customContextMenuRequested.connect(
-                    lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+            self._tool_button_menus(bar)
             self.tool_bars.append(bar)
         self.apply_shortcuts()
         self.show_labels(self.settings.value("toolbar_labels", "false") == "true")
+
+    def _tool_button_menus(self, bar: QToolBar):
+        """The buttons of the tools on BAR, each with its menu (a right click: colour, stamp, properties...)."""
+        # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
+        own = {tool for group_ in TOOLS for tool, _, _ in group_} - {"hand", "selecttext", "zoomarea"}
+        for tool, act in self.tool_actions.items():
+            button = bar.widgetForAction(act)
+            if button is None or tool not in own:
+                continue
+            button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
+            button.customContextMenuRequested.connect(
+                lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
 
     def toolbar_of(self, name: str, title: str, actions: list) -> QToolBar:
         """A new toolbar NAME (its object name, which keeps its place between sessions), with ACTIONS."""
@@ -733,6 +745,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             menu.addSeparator()
             for dock in mode.docks:
                 menu.addAction(dock.toggleViewAction())
+        if hasattr(self, "a_customize_bars"):
+            menu.addSeparator()
+            menu.addAction(self.a_customize_bars)
         return menu
 
     def apply_shortcuts(self):
