@@ -682,6 +682,9 @@ def test_the_page_navigation_bar(window):
     assert bar is not None and bar.isVisible()
     assert window.toolBarArea(bar) == Qt.ToolBarArea.BottomToolBarArea
     assert window.bar_ids(bar) == ["a_first", "a_prev", "a_page_number", "a_next", "a_last"]
+    # (and they are not also on the toolbar Navigation, which keeps the history and the tools)
+    navigation = window.findChild(QToolBar, "navigation")
+    assert window.bar_ids(navigation) == ["a_back", "a_forward", "tool:selecttext", "tool:hand", "tool:zoomarea"]
     box, count = bar.findChild(QLineEdit, "page"), bar.findChild(QLabel, "count")
     assert box.text() == "1" and count.text() == "of 6"
     window.a_last.trigger()

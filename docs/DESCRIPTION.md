@@ -696,6 +696,11 @@ of Impose that asked for it and that nothing opened any more. The
 configuration file can still name one, which the tests use to put a script
 of their own in its place.
 
+With the new toolbar of the pages, the buttons Previous page and Next page
+were twice at the top and the bottom of the window; they stay only on Page
+navigation, and the toolbar Navigation keeps the history of the places
+jumped to and the tools to select text, move the pages and zoom to an area.
+
 Testing
 -------
 

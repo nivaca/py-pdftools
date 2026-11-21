@@ -744,8 +744,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
             self.toolbar_of("find", tr("Find"), [self.a_find]),
-            # (Select text and Hand: in every mode, Read too)
-            self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward, self.a_prev, self.a_next,
+            # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
+            self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],
                                                              self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
