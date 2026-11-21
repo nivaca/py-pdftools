@@ -130,6 +130,54 @@ class FilesMixin:
             made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
         return made
 
+    # ----------------------------------------------------------------- a smaller copy
+
+    def ask_reduce(self, found):
+        from PySide6.QtWidgets import QDialog
+
+        from .reduce_dialog import ReduceDialog
+
+        dialog = ReduceDialog(found, self)
+        return dialog.options() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def save_smaller_dialog(self) -> bool:
+        """File > Save a copy > Smaller: the document as saved, made smaller (see pages/reduce.py)."""
+        from ..pages import reduce
+        from .redact import background
+
+        if self.path is None:
+            return False
+        if self.is_modified():
+            # La copia se hace del archivo tal como está guardado: lo que no se guardó, antes.
+            answer = ask_save(self, tr("Unsaved changes"),
+                              tr("The copy is made from the file as it is saved. Save the changes first?"))
+            if answer == QMessageBox.StandardButton.Cancel or \
+                    answer == QMessageBox.StandardButton.Save and not self.save():
+                return False
+        try:
+            found = reduce.where(self.path, self.password)
+        except reduce.ReduceError:
+            found = None
+        options = self.ask_reduce(found)
+        if options is None:
+            return False
+        target = self.ask_new_pdf(tr("Save a smaller copy"), f"{self.path.stem}-smaller.pdf")
+        if target is None or self._same_file(target):
+            return False
+        try:
+            before, after = background.run(self, tr("Making the copy smaller…"), reduce.reduce, self.path, target,
+                                           options, self.password)
+        except reduce.ReduceError as e:
+            self.status(str(e), error=True)
+            return False
+        if after >= before:
+            self.status(tr("Saved {path}: it could not be made smaller", path=target))
+        else:
+            self.status(tr("Saved {path}: {before} → {after} ({percent} % less)", path=target,
+                           before=reduce.size_text(before), after=reduce.size_text(after),
+                           percent=round(100 * (before - after) / before)))
+        return True
+
     # ----------------------------------------------------------------- passwords
 
     def protection_dialog(self) -> bool:

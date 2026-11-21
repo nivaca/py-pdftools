@@ -433,6 +433,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_bare = self._action(sub, tr("Without annotations…"), self.save_without_dialog,
                                    tip=tr("The document as it is without any annotation (links and form fields "
                                           "stay)"))
+        self.a_smaller = self._action(sub, tr("Smaller…"), lambda: self.save_smaller_dialog(),
+                                      tip=tr("A copy that takes less space: its pictures at a lower resolution, "
+                                             "its fonts reduced, what nothing uses taken out"))
         self.a_ocr = self._action(sub, tr("Searchable (OCR)…"), self.save_searchable_dialog,
                                   tip=tr("The text of the scanned pages is read (with Tesseract) and written under "
                                          "their images, invisible: it can be found, copied and marked"))

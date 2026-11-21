@@ -27,6 +27,7 @@ positional arguments:
                        write it under them (OCR)
     combine            combine PDFs into one, or some of their pages
     from-images        make a PDF of pictures (photographs, scans)
+    reduce             make a smaller copy of a PDF
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -2757,6 +2758,33 @@ options:
   --portrait            the paper standing (else as each picture is)
   --landscape           the paper lying
   --margin MM           a margin, in millimetres
+.fi
+.SS reduce
+.nf
+usage: py-pdftools reduce [-h] -o FILE
+                          [--level {high,medium,small,lossless}] [--dpi DPI]
+                          [--quality QUALITY] [--gray] [--password PASSWORD]
+                          FILE
+
+Make a smaller copy of a PDF: its pictures at a lower resolution (those
+above it, as they are shown) and more compressed, its fonts reduced to the
+characters used, what nothing uses taken out.
+
+positional arguments:
+  FILE                  source PDF
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output FILE     the PDF made
+  --level {high,medium,small,lossless}
+                        high: pictures at 220 dpi; medium (default): 150
+                        dpi; small: 96 dpi, more compressed; lossless: the
+                        pictures untouched
+  --dpi DPI             the resolution of the pictures (instead of that of
+                        the level)
+  --quality QUALITY     the JPEG quality of the pictures, 1-100
+  --gray                pictures in grey
+  --password PASSWORD   the password of the PDFs, if they have one
 .fi
 .SS completion
 .nf

@@ -31,6 +31,7 @@ argumentos posicionales:
                        escribirlo bajo ellas (OCR)
     combine            combinar varios PDF en uno, o algunas de sus páginas
     from-images        hacer un PDF de imágenes (fotografías, escaneos)
+    reduce             hacer una copia más pequeña de un PDF
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
 
@@ -2925,6 +2926,33 @@ opciones:
   --portrait            el papel vertical (si no, como esté cada imagen)
   --landscape           el papel apaisado
   --margin MM           un margen, en milímetros
+.fi
+.SS reduce
+.nf
+uso: py-pdftools reduce [-h] -o ARCHIVO
+                        [--level {high,medium,small,lossless}] [--dpi DPI]
+                        [--quality QUALITY] [--gray] [--password PASSWORD]
+                        ARCHIVO
+
+Hacer una copia más pequeña de un PDF: sus imágenes a menor resolución (las
+que la superan, tal como se ven) y más comprimidas, sus fuentes reducidas a
+los caracteres usados, sin lo que nada usa.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --level {high,medium,small,lossless}
+                        high: imágenes a 220 ppp; medium (por omisión): 150
+                        ppp; small: 96 ppp, más comprimidas; lossless: las
+                        imágenes intactas
+  --dpi DPI             la resolución de las imágenes (en lugar de la del
+                        nivel)
+  --quality QUALITY     la calidad JPEG de las imágenes, 1-100
+  --gray                imágenes en gris
+  --password PASSWORD   la contraseña de los PDF, si la tienen
 .fi
 .SS completion
 .nf

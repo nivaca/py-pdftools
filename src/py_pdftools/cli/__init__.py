@@ -9,6 +9,7 @@
     py-pdftools ocr                                the text of scanned pages, read by tesseract
     py-pdftools combine                            several PDFs made one
     py-pdftools from-images                        a PDF made of pictures
+    py-pdftools reduce                             a PDF made smaller
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -103,6 +104,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["from-images"] = combine_cli.build_images_parser(f"{PROG} from-images")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "from-images", (), tr("make a PDF of pictures (photographs, scans)")))
+    sub._name_parser_map["reduce"] = combine_cli.build_reduce_parser(f"{PROG} reduce")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "reduce", (), tr("make a smaller copy of a PDF")))
     _graft(sub, pages, OWN)
     return parser
 
@@ -143,6 +147,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import combine as combine_cli
 
         return combine_cli.main_images(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} from-images")
+    if first and first[1] == "reduce":
+        from . import combine as combine_cli
+
+        return combine_cli.main_reduce(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} reduce")
     if first and first[1] == "impose":
         from ..impose import main as impose_main
 

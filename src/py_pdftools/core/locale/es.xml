@@ -10997,4 +10997,140 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} is not a picture</en>
     <tr>{path} no es una imagen</tr>
   </text>
+  <text>
+    <en>A copy that takes less space: its pictures at a lower resolution, its fonts reduced, what nothing uses taken out</en>
+    <tr>Una copia que ocupa menos: sus imágenes a menor resolución, sus fuentes reducidas, sin lo que nada usa</tr>
+  </text>
+  <text>
+    <en>Content of the pages</en>
+    <tr>Contenido de las páginas</tr>
+  </text>
+  <text>
+    <en>Fonts</en>
+    <tr>Fuentes</tr>
+  </text>
+  <text>
+    <en>For documents to be read or printed in black and white: much smaller</en>
+    <tr>Para documentos que se leen o imprimen en blanco y negro: mucho más pequeña</tr>
+  </text>
+  <text>
+    <en>Good quality</en>
+    <tr>Buena calidad</tr>
+  </text>
+  <text>
+    <en>How much smaller</en>
+    <tr>Cuánto más pequeña</tr>
+  </text>
+  <text>
+    <en>Make a smaller copy of a PDF: its pictures at a lower resolution (those above it, as they are shown) and more compressed, its fonts reduced to the characters used, what nothing uses taken out.</en>
+    <tr>Hacer una copia más pequeña de un PDF: sus imágenes a menor resolución (las que la superan, tal como se ven) y más comprimidas, sus fuentes reducidas a los caracteres usados, sin lo que nada usa.</tr>
+  </text>
+  <text>
+    <en>Making the copy smaller…</en>
+    <tr>Haciendo más pequeña la copia…</tr>
+  </text>
+  <text>
+    <en>Medium</en>
+    <tr>Media</tr>
+  </text>
+  <text>
+    <en>Only fonts, unused objects and compression: nothing changes in how it looks</en>
+    <tr>Solo fuentes, objetos sin uso y compresión: nada cambia en su aspecto</tr>
+  </text>
+  <text>
+    <en>Pictures</en>
+    <tr>Imágenes</tr>
+  </text>
+  <text>
+    <en>Pictures down to 150 dpi: good on screen and on most printers</en>
+    <tr>Imágenes a 150 ppp: bien en pantalla y en casi todas las impresoras</tr>
+  </text>
+  <text>
+    <en>Pictures down to 220 dpi: as good on paper, a little smaller</en>
+    <tr>Imágenes a 220 ppp: igual de buenas en papel, algo más pequeña</tr>
+  </text>
+  <text>
+    <en>Pictures down to 96 dpi, more compressed: for the screen, and to send by mail</en>
+    <tr>Imágenes a 96 ppp, más comprimidas: para la pantalla y para enviar por correo</tr>
+  </text>
+  <text>
+    <en>Pictures in grey</en>
+    <tr>Imágenes en gris</tr>
+  </text>
+  <text>
+    <en>Save a smaller copy</en>
+    <tr>Guardar una copia más pequeña</tr>
+  </text>
+  <text>
+    <en>Save the copy…</en>
+    <tr>Guardar la copia…</tr>
+  </text>
+  <text>
+    <en>Saved {path}: it could not be made smaller</en>
+    <tr>Se guardó {path}: no se pudo hacer más pequeña</tr>
+  </text>
+  <text>
+    <en>Saved {path}: {before} → {after} ({percent} % less)</en>
+    <tr>Se guardó {path}: {before} → {after} ({percent} % menos)</tr>
+  </text>
+  <text>
+    <en>Smaller…</en>
+    <tr>Más pequeña…</tr>
+  </text>
+  <text>
+    <en>Smallest</en>
+    <tr>La más pequeña</tr>
+  </text>
+  <text>
+    <en>The copy is made from the file as it is saved. Save the changes first?</en>
+    <tr>La copia se hace del archivo tal como está guardado. ¿Guardar antes los cambios?</tr>
+  </text>
+  <text>
+    <en>The rest</en>
+    <tr>El resto</tr>
+  </text>
+  <text>
+    <en>Where its {size} go:</en>
+    <tr>Dónde van sus {size}:</tr>
+  </text>
+  <text>
+    <en>Without touching the pictures</en>
+    <tr>Sin tocar las imágenes</tr>
+  </text>
+  <text>
+    <en>Wrote {path}: {before} → {after}</en>
+    <tr>Se escribió {path}: {before} → {after}</tr>
+  </text>
+  <text>
+    <en>high: pictures at 220 dpi; medium (default): 150 dpi; small: 96 dpi, more compressed; lossless: the pictures untouched</en>
+    <tr>high: imágenes a 220 ppp; medium (por omisión): 150 ppp; small: 96 ppp, más comprimidas; lossless: las imágenes intactas</tr>
+  </text>
+  <text>
+    <en>make a smaller copy of a PDF</en>
+    <tr>hacer una copia más pequeña de un PDF</tr>
+  </text>
+  <text>
+    <en>pictures in grey</en>
+    <tr>imágenes en gris</tr>
+  </text>
+  <text>
+    <en>the JPEG quality of the pictures, 1-100</en>
+    <tr>la calidad JPEG de las imágenes, 1-100</tr>
+  </text>
+  <text>
+    <en>the resolution of the pictures (instead of that of the level)</en>
+    <tr>la resolución de las imágenes (en lugar de la del nivel)</tr>
+  </text>
+  <text>
+    <en>{count} bytes</en>
+    <tr>{count} bytes</tr>
+  </text>
+  <text>
+    <en>{size} KB</en>
+    <tr>{size} KB</tr>
+  </text>
+  <text>
+    <en>{size} MB</en>
+    <tr>{size} MB</tr>
+  </text>
 </interface>
