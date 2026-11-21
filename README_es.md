@@ -253,7 +253,13 @@ como presentación. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
 documentos en pestañas de una ventana, y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Un documento que otro programa cambia se abre de
 nuevo solo. La barra espaciadora, mantenida, convierte cualquier
-herramienta en Mano, y el botón central desplaza solo.
+herramienta en Mano, y el botón central desplaza solo. La barra
+Navegación de páginas, abajo en la ventana, va a la primera, la anterior,
+la siguiente y la última página, y su casilla acepta un número o una
+etiqueta de página; como las demás barras, se cambia en Personalizar las
+barras de herramientas. Archivo > Propiedades del PDF muestra qué es un
+documento (sus metadatos, su archivo, sus páginas, su seguridad) y las
+fuentes que usa.
 
 Censurar > Buscar texto solo cubierto busca texto que solo parece
 censurado: sigue en el archivo bajo un recuadro negro o blanco, una imagen

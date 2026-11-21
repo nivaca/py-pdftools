@@ -246,7 +246,11 @@ black, or one's own), the gaps between the pages hidden, and Full screen
 in tabs of one window, and View > Split the view (`Ctrl+\`) shows two side
 by side. A document changed by another program opens again by itself.
 Space held turns any tool into Hand, and the middle button scrolls by
-itself.
+itself. The toolbar Page navigation, at the bottom of the window, goes to
+the first, previous, next and last page, and its box takes a page number
+or label; like the other toolbars, it can be changed in Customize the
+toolbars. File > PDF properties shows what a document is (its metadata,
+file, pages, security) and the fonts it uses.
 
 Redact > Find text only covered looks for text that only seems redacted:
 still in the file under a black or white box, a picture or an annotation
