@@ -11273,4 +11273,144 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{field} takes {count} digits ({mask})</en>
     <tr>{field} lleva {count} dígitos ({mask})</tr>
   </text>
+  <text>
+    <en>DATA</en>
+    <tr>DATOS</tr>
+  </text>
+  <text>
+    <en>Export the form</en>
+    <tr>Exportar el formulario</tr>
+  </text>
+  <text>
+    <en>Export…</en>
+    <tr>Exportar…</tr>
+  </text>
+  <text>
+    <en>Fill the form with the values of a file (JSON, CSV, XFDF, FDF)</en>
+    <tr>Rellenar el formulario con los valores de un archivo (JSON, CSV, XFDF, FDF)</tr>
+  </text>
+  <text>
+    <en>Form data (*.json *.csv *.xfdf *.fdf)</en>
+    <tr>Datos de formulario (*.json *.csv *.xfdf *.fdf)</tr>
+  </text>
+  <text>
+    <en>Import the form</en>
+    <tr>Importar el formulario</tr>
+  </text>
+  <text>
+    <en>Import…</en>
+    <tr>Importar…</tr>
+  </text>
+  <text>
+    <en>Not filled, as their values don't fit them: {fields}</en>
+    <tr>No se rellenaron, porque sus valores no les corresponden: {fields}</tr>
+  </text>
+  <text>
+    <en>Save a copy with the form flattened</en>
+    <tr>Guardar una copia con el formulario aplanado</tr>
+  </text>
+  <text>
+    <en>Saved {path}, with the form flattened</en>
+    <tr>Se guardó {path}, con el formulario aplanado</tr>
+  </text>
+  <text>
+    <en>The data of PDF forms: show it, fill a form from a file, put many filled forms in one table, or flatten the fields.</en>
+    <tr>Los datos de los formularios PDF: mostrarlos, rellenar un formulario desde un archivo, reunir muchos formularios rellenados en una tabla o aplanar los campos.</tr>
+  </text>
+  <text>
+    <en>The values of the fields, as JSON, CSV, XFDF or FDF</en>
+    <tr>Los valores de los campos, como JSON, CSV, XFDF o FDF</tr>
+  </text>
+  <text>
+    <en>Unknown format: {format}</en>
+    <tr>Formato desconocido: {format}</tr>
+  </text>
+  <text>
+    <en>What the fields of the form show becomes part of the pages: it can no longer be changed</en>
+    <tr>Lo que muestran los campos del formulario pasa a formar parte de las páginas: ya no se puede cambiar</tr>
+  </text>
+  <text>
+    <en>With the form flattened…</en>
+    <tr>Con el formulario aplanado…</tr>
+  </text>
+  <text>
+    <en>Wrote {path} ({count} fields filled)</en>
+    <tr>Se escribió {path} ({count} campos rellenados)</tr>
+  </text>
+  <text>
+    <en>Wrote {path} ({count} fields flattened)</en>
+    <tr>Se escribió {path} ({count} campos aplanados)</tr>
+  </text>
+  <text>
+    <en>Wrote {path} ({count} forms)</en>
+    <tr>Se escribió {path} ({count} formularios)</tr>
+  </text>
+  <text>
+    <en>a row of names and one of values are needed</en>
+    <tr>hacen falta una fila de nombres y otra de valores</tr>
+  </text>
+  <text>
+    <en>fill a form with the values of a file (JSON, CSV, XFDF, FDF)</en>
+    <tr>rellenar un formulario con los valores de un archivo (JSON, CSV, XFDF, FDF)</tr>
+  </text>
+  <text>
+    <en>flatten the fields once filled</en>
+    <tr>aplanar los campos una vez rellenados</tr>
+  </text>
+  <text>
+    <en>how they are written (default: json)</en>
+    <tr>cómo se escriben (por omisión: json)</tr>
+  </text>
+  <text>
+    <en>make the fields part of the pages</en>
+    <tr>hacer que los campos formen parte de las páginas</tr>
+  </text>
+  <text>
+    <en>not an object of names and values</en>
+    <tr>no es un objeto de nombres y valores</tr>
+  </text>
+  <text>
+    <en>the CSV made</en>
+    <tr>el CSV hecho</tr>
+  </text>
+  <text>
+    <en>the data of PDF forms: show, fill, table, flatten</en>
+    <tr>los datos de los formularios PDF: mostrar, rellenar, tabla, aplanar</tr>
+  </text>
+  <text>
+    <en>the file of values</en>
+    <tr>el archivo de valores</tr>
+  </text>
+  <text>
+    <en>the forms of many PDFs in one table (CSV), a row for each</en>
+    <tr>los formularios de muchos PDF en una tabla (CSV), una fila por cada uno</tr>
+  </text>
+  <text>
+    <en>the values of the fields of a form</en>
+    <tr>los valores de los campos de un formulario</tr>
+  </text>
+  <text>
+    <en>write the values as they are: no checks, formats or sums</en>
+    <tr>escribir los valores tal cual: sin comprobaciones, formatos ni sumas</tr>
+  </text>
+  <text>
+    <en>write them there, not on the screen</en>
+    <tr>escribirlos allí, no en la pantalla</tr>
+  </text>
+  <text>
+    <en>{count} field filled from {file}</en>
+    <tr>Se rellenó {count} campo desde {file}</tr>
+  </text>
+  <text>
+    <en>{count} fields filled from {file}</en>
+    <tr>Se rellenaron {count} campos desde {file}</tr>
+  </text>
+  <text>
+    <en>{file} has no values for this form</en>
+    <tr>{file} no tiene valores para este formulario</tr>
+  </text>
+  <text>
+    <en>{path} cannot be read as the data of a form: {error}</en>
+    <tr>{path} no se puede leer como datos de un formulario: {error}</tr>
+  </text>
 </interface>

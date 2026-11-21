@@ -433,6 +433,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_flat = self._action(sub, tr("Flattened…"), self.save_flattened_dialog,
                                    tip=tr("The annotations become part of the pages: they are seen and printed "
                                           "everywhere, but can no longer be edited or removed"))
+        self.a_flat_form = self._action(sub, tr("With the form flattened…"), lambda: self.save_flat_form_dialog(),
+                                        tip=tr("What the fields of the form show becomes part of the pages: it "
+                                               "can no longer be changed"))
         self.a_bare = self._action(sub, tr("Without annotations…"), self.save_without_dialog,
                                    tip=tr("The document as it is without any annotation (links and form fields "
                                           "stay)"))

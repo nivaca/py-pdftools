@@ -8,6 +8,8 @@ fields."""
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QKeySequence
 from PySide6.QtWidgets import (
@@ -57,8 +59,16 @@ class FormMixin:
         self.b_form_reset = QPushButton(tr("Reset the form"))
         self.b_form_reset.setToolTip(tr("Every field back to its first value (or empty)"))
         self.b_form_reset.clicked.connect(lambda: self.reset_form())
+        self.b_form_export = QPushButton(tr("Export…"))
+        self.b_form_export.setToolTip(tr("The values of the fields, as JSON, CSV, XFDF or FDF"))
+        self.b_form_export.clicked.connect(lambda: self.export_form_dialog())
+        self.b_form_import = QPushButton(tr("Import…"))
+        self.b_form_import.setToolTip(tr("Fill the form with the values of a file (JSON, CSV, XFDF, FDF)"))
+        self.b_form_import.clicked.connect(lambda: self.import_form_dialog())
         self.form_buttons = QHBoxLayout()
         self.form_buttons.addWidget(self.b_form_reset)
+        self.form_buttons.addWidget(self.b_form_export)
+        self.form_buttons.addWidget(self.b_form_import)
         self.form_buttons.addStretch(1)
         inner = QWidget()
         lay = QVBoxLayout(inner)
@@ -96,7 +106,10 @@ class FormMixin:
         filled = [f for f in found if f.kind in fields.FILLED]
         self.form_head.setText(ntr("{count} field", "{count} fields", len(filled)) if filled
                                else tr("This document has no form."))
-        self.b_form_reset.setEnabled(bool(filled))
+        for b in (self.b_form_reset, self.b_form_export, self.b_form_import):
+            b.setEnabled(bool(filled))
+        if hasattr(self, "a_flat_form"):
+            self.a_flat_form.setEnabled(bool(filled))
         if filled and self.path is not None and self._form_shown_for != self.path:
             self._form_shown_for = self.path
             self.form_dock.show()
@@ -270,3 +283,87 @@ class FormMixin:
             editor.setFocus(Qt.FocusReason.MouseFocusReason)
             if isinstance(editor, QLineEdit):
                 editor.selectAll()
+
+    # ----------------------------------------------------------------- the data of the form
+
+    def ask_form_file(self, saving: bool) -> Path | None:
+        """A file of form data to write (SAVING) or read; None if cancelled."""
+        from PySide6.QtWidgets import QFileDialog
+
+        kinds = tr("Form data (*.json *.csv *.xfdf *.fdf)")
+        start = str(Path(self.last_dir()) / f"{self.path.stem}.json") if saving else self.last_dir()
+        if saving:
+            name, _ = QFileDialog.getSaveFileName(self, tr("Export the form"), start, kinds)
+        else:
+            name, _ = QFileDialog.getOpenFileName(self, tr("Import the form"), start, kinds)
+        return Path(name) if name else None
+
+    def export_form_dialog(self) -> bool:
+        from ..forms import data
+
+        if not self.form_fields:
+            return False
+        target = self.ask_form_file(True)
+        if target is None:
+            return False
+        fmt = target.suffix.lower().lstrip(".")
+        if fmt not in data.FORMATS:
+            fmt, target = "json", target.with_suffix(".json")
+        values = {f.name: f.value for f in self.form_fields if f.kind in fields.FILLED}
+        buttons = {f.name for f in self.form_fields if f.kind in ("check", "radio")}
+        try:
+            target.write_text(data.dumps(values, fmt, self.path.name, buttons), encoding="utf-8")
+        except OSError as e:
+            self.status(str(e), error=True)
+            return False
+        self.status(tr("Saved {path}", path=target))
+        return True
+
+    def import_form_dialog(self, source: Path | None = None) -> bool:
+        """The form filled with the values of a file (those of fields it hasn't are left out; those a field
+        refuses are said), as one step of the history."""
+        from ..forms import data
+
+        source = source or self.ask_form_file(False)
+        if source is None:
+            return False
+        try:
+            values = data.load(source)
+        except data.DataError as e:
+            self.status(str(e), error=True)
+            return False
+        kept, refused = {}, []
+        for name, value in values.items():
+            f = self.field(name)
+            if f is None or f.kind not in fields.FILLED or f.read_only:
+                continue
+            try:
+                kept[name] = formats.check(f, value) if f.kind == "text" else value
+            except formats.Refused:
+                refused.append(f.title)
+        done = self.fill_fields(kept, ntr("{count} field filled from {file}", "{count} fields filled from {file}",
+                                          len(kept), file=source.name))
+        if refused:
+            self.status(tr("Not filled, as their values don't fit them: {fields}", fields=", ".join(refused)),
+                        error=True)
+        elif not done:
+            self.status(tr("{file} has no values for this form", file=source.name))
+        return done
+
+    def save_flat_form_dialog(self) -> bool:
+        """File > Save a copy > With the form flattened: the fields become part of the pages."""
+        from ..forms import data
+
+        if self.path is None:
+            return False
+        target = self.ask_new_pdf(tr("Save a copy with the form flattened"), f"{self.path.stem}-flattened.pdf")
+        if target is None or self._same_file(target):
+            return False
+        try:
+            # De la copia de trabajo, si la hay: con los campos rellenados aunque no se hayan guardado.
+            data.flatten_file(self.file, target, self.password)
+        except data.DataError as e:
+            self.status(str(e), error=True)
+            return False
+        self.status(tr("Saved {path}, with the form flattened", path=target))
+        return True

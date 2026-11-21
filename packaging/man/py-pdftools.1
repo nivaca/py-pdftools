@@ -27,6 +27,7 @@ positional arguments:
                        write it under them (OCR)
     combine            combine PDFs into one, or some of their pages
     from-images        make a PDF of pictures (photographs, scans)
+    form               the data of PDF forms: show, fill, table, flatten
     reduce             make a smaller copy of a PDF
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
@@ -2758,6 +2759,82 @@ options:
   --portrait            the paper standing (else as each picture is)
   --landscape           the paper lying
   --margin MM           a margin, in millimetres
+.fi
+.SS form
+.nf
+usage: py-pdftools form [-h] COMMAND ...
+
+The data of PDF forms: show it, fill a form from a file, put many filled
+forms in one table, or flatten the fields.
+
+positional arguments:
+  COMMAND
+    show      the values of the fields of a form
+    fill      fill a form with the values of a file (JSON, CSV, XFDF, FDF)
+    table     the forms of many PDFs in one table (CSV), a row for each
+    flatten   make the fields part of the pages
+
+options:
+  -h, --help  show this help message and exit
+.fi
+.SS form show
+.nf
+usage: py-pdftools form show [-h] [--format {json,csv,xfdf,fdf}] [-o FILE]
+                             [--password PASSWORD]
+                             FILE
+
+positional arguments:
+  FILE                  source PDF
+
+options:
+  -h, --help            show this help message and exit
+  --format {json,csv,xfdf,fdf}
+                        how they are written (default: json)
+  -o, --output FILE     write them there, not on the screen
+  --password PASSWORD   the password of the PDFs, if they have one
+.fi
+.SS form fill
+.nf
+usage: py-pdftools form fill [-h] -o FILE [--flatten] [--raw]
+                             [--password PASSWORD]
+                             FILE DATA
+
+positional arguments:
+  FILE                 source PDF
+  DATA                 the file of values
+
+options:
+  -h, --help           show this help message and exit
+  -o, --output FILE    the PDF made
+  --flatten            flatten the fields once filled
+  --raw                write the values as they are: no checks, formats or
+                       sums
+  --password PASSWORD  the password of the PDFs, if they have one
+.fi
+.SS form table
+.nf
+usage: py-pdftools form table [-h] -o FILE [--password PASSWORD]
+                              FILE [FILE ...]
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  -o, --output FILE    the CSV made
+  --password PASSWORD  the password of the PDFs, if they have one
+.fi
+.SS form flatten
+.nf
+usage: py-pdftools form flatten [-h] -o FILE [--password PASSWORD] FILE
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  -o, --output FILE    the PDF made
+  --password PASSWORD  the password of the PDFs, if they have one
 .fi
 .SS reduce
 .nf

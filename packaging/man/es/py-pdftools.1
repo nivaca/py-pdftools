@@ -31,6 +31,8 @@ argumentos posicionales:
                        escribirlo bajo ellas (OCR)
     combine            combinar varios PDF en uno, o algunas de sus páginas
     from-images        hacer un PDF de imágenes (fotografías, escaneos)
+    form               los datos de los formularios PDF: mostrar, rellenar,
+                       tabla, aplanar
     reduce             hacer una copia más pequeña de un PDF
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
@@ -2926,6 +2928,85 @@ opciones:
   --portrait            el papel vertical (si no, como esté cada imagen)
   --landscape           el papel apaisado
   --margin MM           un margen, en milímetros
+.fi
+.SS form
+.nf
+uso: py-pdftools form [-h] ORDEN ...
+
+Los datos de los formularios PDF: mostrarlos, rellenar un formulario desde
+un archivo, reunir muchos formularios rellenados en una tabla o aplanar los
+campos.
+
+argumentos posicionales:
+  ORDEN
+    show      los valores de los campos de un formulario
+    fill      rellenar un formulario con los valores de un archivo (JSON,
+              CSV, XFDF, FDF)
+    table     los formularios de muchos PDF en una tabla (CSV), una fila por
+              cada uno
+    flatten   hacer que los campos formen parte de las páginas
+
+opciones:
+  -h, --help  mostrar esta ayuda y terminar
+.fi
+.SS form show
+.nf
+uso: py-pdftools form show [-h] [--format {json,csv,xfdf,fdf}] [-o ARCHIVO]
+                           [--password PASSWORD]
+                           ARCHIVO
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --format {json,csv,xfdf,fdf}
+                        cómo se escriben (por omisión: json)
+  -o, --output ARCHIVO  escribirlos allí, no en la pantalla
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS form fill
+.nf
+uso: py-pdftools form fill [-h] -o ARCHIVO [--flatten] [--raw]
+                           [--password PASSWORD]
+                           ARCHIVO DATOS
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+  DATOS                 el archivo de valores
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --flatten             aplanar los campos una vez rellenados
+  --raw                 escribir los valores tal cual: sin comprobaciones,
+                        formatos ni sumas
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS form table
+.nf
+uso: py-pdftools form table [-h] -o ARCHIVO [--password PASSWORD]
+                            ARCHIVO [ARCHIVO ...]
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el CSV hecho
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS form flatten
+.nf
+uso: py-pdftools form flatten [-h] -o ARCHIVO [--password PASSWORD] ARCHIVO
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --password PASSWORD   la contraseña de los PDF, si la tienen
 .fi
 .SS reduce
 .nf
