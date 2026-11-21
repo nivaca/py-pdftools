@@ -11,3 +11,13 @@ wheels/
 
 .pytest_cache/
 local-only/
+
+# LaTeX: the editor cache and the build files of the manuals (docs/MANUAL_*.tex)
+.auctex-auto/
+docs/*.aux
+docs/*.log
+docs/*.out
+docs/*.toc
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
