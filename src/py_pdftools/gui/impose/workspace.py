@@ -411,11 +411,13 @@ class Workspace(QMainWindow):
     def _build_toolbar(self):
         tb = QToolBar(tr("Preferences"))
         tb.setObjectName("prefs")
+        tb.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        from ..window import icon
         self.addToolBar(tb)
         # Basic | Advanced
-        self.a_basic = QAction(tr("Basic"), self, checkable=True)
+        self.a_basic = QAction(icon("pdftools-settings-basic"), tr("Basic"), self, checkable=True)
         self.a_basic.setToolTip(tr("Basic mode: one imposition form with the usual options"))
-        self.a_advanced = QAction(tr("Advanced"), self, checkable=True)
+        self.a_advanced = QAction(icon("pdftools-settings-advanced"), tr("Advanced"), self, checkable=True)
         self.a_advanced.setToolTip(tr("Advanced mode: every command and option, sequences and the log"))
         modes = QActionGroup(self)
         modes.setExclusive(True)
@@ -424,11 +426,11 @@ class Workspace(QMainWindow):
             tb.addAction(act)
             act.triggered.connect(lambda _=False, m=mode: self.set_mode(m))
         tb.addSeparator()
-        self.a_save = QAction(tr("Save…"), self, triggered=self.save)
+        self.a_save = QAction(icon("document-save-as"), tr("Save…"), self, triggered=self.save)
         self.a_save.setToolTip(tr("Save the result shown on the right (if it isn't up to date, the command runs "
                                   "first)"))
         tb.addAction(self.a_save)
-        self.a_undo = QAction(tr("Undo apply"), self, triggered=self.undo)
+        self.a_undo = QAction(icon("edit-undo"), tr("Undo apply"), self, triggered=self.undo)
         tb.addAction(self.a_undo)
         # Units, registration, bleeds and PDF/X apply to every command and are passed as global options
         # (see pref_tokens); the basic mode hides them.

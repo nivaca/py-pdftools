@@ -158,6 +158,11 @@ def icon(name: str) -> QIcon:
     return QIcon.fromTheme(name, QIcon(str(own)) if own.is_file() else QIcon())
 
 
+# los iconos de los modos (icons/actions; 'pages' es Foliar), con nombres que ningún tema tiene
+MODE_ICONS = {"read": "pdftools-mode-read", "ocr": "pdftools-mode-ocr", "annotate": "pdftools-mode-annotate",
+              "redact": "pdftools-mode-redact", "pages": "pdftools-mode-foliate", "impose": "pdftools-mode-impose"}
+
+
 def tool_name(tool: str) -> str:
     # annots.OTHER is not a tool: it names the annotations the program only shows (links, form fields...).
     if tool == annots.OTHER:
@@ -765,12 +770,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         bar = QToolBar(tr("Modes"))
         self.modes_bar = bar
         bar.setObjectName("modes")
-        bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextOnly)
+        # Icono y nombre: los modos se reconocen por su nombre, y el icono los distingue de un vistazo.
+        bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        bar.setIconSize(QSize(20, 20))
         group = QActionGroup(self)
         self.mode_actions: dict[str, QAction] = {}
         # Ctrl+1 a Ctrl+6 siguen el orden del diccionario: leer, OCR, censurar, anotar, foliar, imponer.
         for n, key in enumerate(self.modes, 1):
-            act = QAction(tr(TITLES[key]), self, checkable=True)
+            act = QAction(icon(MODE_ICONS[key]), tr(TITLES[key]), self, checkable=True)
             act.setToolTip(tr(TIPS[key]))
             act.setShortcut(QKeySequence(f"Ctrl+{n}"))
             act.triggered.connect(lambda _=False, k=key: self.set_mode(k))
@@ -1294,6 +1301,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def show_labels(self, on: bool):
         """Icons with their names under them in the toolbars, or (by default) only icons."""
         for bar in self.toolbars():
+            if bar is getattr(self, "modes_bar", None):  # (always with its names: see _build_modes)
+                continue
             bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon if on
                                    else Qt.ToolButtonStyle.ToolButtonIconOnly)
         # Sin señales: setChecked volvería a llamar a show_labels.

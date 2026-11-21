@@ -34,6 +34,11 @@ class OcrMixin:
         self.a_ocr_languages = self._action(None, tr("Languages…"), self.manage_ocr_languages,
                                             tip=tr("The languages tesseract can read here; download, update or "
                                                    "remove its more accurate models (and osd, to turn pages)"))
+        from .window import icon
+
+        for act, name in ((self.a_recognise, "pdftools-ocr-recognise"), (self.a_ocr, "pdftools-ocr-searchable"),
+                          (self.a_ocr_languages, "pdftools-languages")):
+            act.setIcon(icon(name))
         m = QMenu(tr("&OCR"), self)
         for act in (self.a_recognise, self.a_ocr, self.a_ocr_languages):
             m.addAction(act)
