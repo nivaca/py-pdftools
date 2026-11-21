@@ -5,6 +5,18 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **File > Combine files** (and `py-pdftools combine`): one PDF made of
+  several, or of some of their pages in an order, one file after another,
+  with their links, annotations and form fields; their bookmarks under
+  one for each file, as they are, or none; their page labels kept if
+  wished. Protected files are read with their passwords.
+- **File > New PDF from pictures** (and `py-pdftools from-images`): a PDF
+  of photographs or scans, a page for each picture (each frame of a
+  TIFF), as big as it is or on paper with a margin; photographs are
+  turned as the camera says; it can then be opened in the mode OCR.
+
 ## 1.2.0 — 2026-11-20
 
 - **Redact > Find text only covered**: text that is still in the file

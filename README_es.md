@@ -251,6 +251,16 @@ las quita. Configuración > Personalizar las barras de herramientas (o el clic
 derecho sobre una barra) elige los botones de cada barra y su orden, y
 añade barras propias.
 
+Archivo > Combinar archivos hace un PDF de varios, o de algunas de sus
+páginas en un orden (`1-3, 7`), con sus enlaces, anotaciones, campos de
+formulario y marcadores; los archivos se sueltan en su lista o se añaden,
+y se ordenan arrastrándolos. Archivo > PDF nuevo a partir de imágenes hace
+un PDF de fotografías o escaneos, una página por cada una, tan grande como
+cada imagen o en papel con un margen, y puede abrirlo en el modo OCR para
+leer su texto. Desde la línea de órdenes: `py-pdftools combine a.pdf
+b.pdf:2-5 -o todo.pdf` y `py-pdftools from-images *.jpg -o escaneos.pdf
+--paper A4`.
+
 Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
 unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
 este modo (F1) lo muestra otra vez.
@@ -330,10 +340,11 @@ Pruebas
 
     $ uv run pytest
 
-Hay 495 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 508 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, las barras de
-herramientas, la interfaz en español, el empaquetado). Sus
+herramientas, la combinación de archivos y los PDF de imágenes, la
+interfaz en español, el empaquetado). Sus
 ventanas se dibujan en un servidor X propio (Xvfb), si está instalado, o
 si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el

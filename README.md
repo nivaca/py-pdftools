@@ -242,6 +242,15 @@ permissions password changes or removes them. Settings > Customize the
 toolbars (or a right click on a toolbar) chooses the buttons of each
 toolbar and their order, and adds toolbars of one's own.
 
+File > Combine files makes one PDF of several, or of some of their pages
+in an order (`1-3, 7`), with their links, annotations, form fields and
+bookmarks; the files are dropped on its list or added, and put in order
+by dragging them. File > New PDF from pictures makes a PDF of photographs
+or scans, a page for each, as big as each picture or on paper with a
+margin, and can open it in the mode OCR to read its text. From the
+command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
+`py-pdftools from-images *.jpg -o scans.pdf --paper A4`.
+
 When a mode is chosen, a hint on what can be done in it shows over the
 bottom of the pages for a few seconds; Help > Tips for this mode (F1)
 shows it again.
@@ -315,10 +324,10 @@ Tests
 
     $ uv run pytest
 
-There are 495 tests: those of the four programs, and those of what is new
+There are 508 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
-the working copies, OCR, navigation, security, the toolbars, the Spanish
-interface, the packaging). Their
+the working copies, OCR, navigation, security, the toolbars, combining
+files and PDFs of pictures, the Spanish interface, the packaging). Their
 windows are drawn on an X server of their own (Xvfb), if it is installed,
 else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See

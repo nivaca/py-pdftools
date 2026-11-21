@@ -6,7 +6,7 @@ redacts them, changes their page labels, headers, footers, watermarks and
 the order of their pages, and imposes them for printing. Nicolas Vaughan
 made it in November 2026 by bringing together four programs of his, each
 of which did one of those things: py-annotate, py-redact, py-foliation and
-py-imposition. Here I explain how it was made, in eighteen stages.
+py-imposition. Here I explain how it was made, in nineteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -458,10 +458,35 @@ language. The first icons I drew had names that the icon theme of the
 desktop also had, so the theme put its own in their place, the same gear
 for two different buttons; they have names of their own now.
 
+19. Combining files, and PDFs of pictures
+----------------------------------------
+
+The next two things from PDFCraft were about making a new PDF out of
+others. Combining files was simple with PyMuPDF, which copies the pages
+of one document into another with their links, annotations and form
+fields, and renames the fields when two files have one of the same name.
+What it does not carry over are the bookmarks and the page labels, so I
+made those myself. When only some pages of a file are taken, the file is
+first reduced to them in memory, which keeps the links between them; but
+that also drops all of its bookmarks, so they are read before and moved
+to the new places of their pages, and the levels are mended where a
+bookmark of a page left out had others under it. The page labels are
+read page by page and written again as ranges: numbers that follow one
+another make one range, and any other label a range of one page.
+
+A PDF of pictures was simpler than I expected. I meant to turn
+photographs by the orientation the camera writes in them, and found that
+MuPDF already does it when it opens a picture. Each picture becomes a
+page as big as itself, or is put on paper of a size, as large as fits
+within a margin; and the new PDF can be opened in the mode OCR, since a
+PDF of scans is usually wanted for its text. Both are also commands,
+`py-pdftools combine` and `py-pdftools from-images`; in the first,
+`book.pdf:1-3,7` takes only those pages of a file.
+
 Testing
 -------
 
-The program has 495 tests (`uv run pytest`): those of the four programs,
+The program has 508 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -469,13 +494,13 @@ the window, the boxes as redaction marks, the working copies with their
 undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
 the moving through a document (bookmarks, links, the history, the views,
 tabs, reloading), the security of documents (text only covered, hidden
-layers, passwords), the toolbars, the Spanish interface (every text translated, and none
+layers, passwords), the toolbars, combining files and PDFs of pictures, the Spanish interface (every text translated, and none
 left over) and the packaging. The windows of the four modes are tested as a user
 would use them, with mouse events on the pages; the redacted copy is also
 written in a process of its own, as the window does it, and imposition runs
 its commands in one. The window was checked by eye as well, with
 screenshots of each mode in both languages. The RPM runs all the tests
 again with Fedora's packages. The Linux installer was run in a home folder
-made for the test. The program has 125 files of Python, around 36,500
-lines (about a tenth of them comments), and 2,656 texts of the interface
+made for the test. The program has 128 files of Python, around 37,200
+lines (about a tenth of them comments), and 2,707 texts of the interface
 in Spanish.
