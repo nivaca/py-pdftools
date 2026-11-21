@@ -224,10 +224,6 @@
     <tr>Tipo</tr>
   </text>
   <text>
-    <en>Labels in the toolbar</en>
-    <tr>Etiquetas en la barra de herramientas</tr>
-  </text>
-  <text>
     <en>Language</en>
     <tr>Idioma</tr>
   </text>
@@ -11796,5 +11792,69 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>The annotations</en>
     <tr>Las anotaciones</tr>
+  </text>
+  <text>
+    <en>As all the toolbars</en>
+    <tr>Como todas las barras</tr>
+  </text>
+  <text>
+    <en>Huge (48)</en>
+    <tr>Enorme (48)</tr>
+  </text>
+  <text>
+    <en>Icon size</en>
+    <tr>Tamaño de los iconos</tr>
+  </text>
+  <text>
+    <en>Icon size:</en>
+    <tr>Tamaño de los iconos:</tr>
+  </text>
+  <text>
+    <en>Icons only</en>
+    <tr>Solo iconos</tr>
+  </text>
+  <text>
+    <en>Large (32)</en>
+    <tr>Grande (32)</tr>
+  </text>
+  <text>
+    <en>Lock the toolbars</en>
+    <tr>Bloquear las barras de herramientas</tr>
+  </text>
+  <text>
+    <en>Medium (22)</en>
+    <tr>Mediano (22)</tr>
+  </text>
+  <text>
+    <en>Small (16)</en>
+    <tr>Pequeño (16)</tr>
+  </text>
+  <text>
+    <en>Text alongside icons</en>
+    <tr>Texto junto a los iconos</tr>
+  </text>
+  <text>
+    <en>Text only</en>
+    <tr>Solo texto</tr>
+  </text>
+  <text>
+    <en>Text position</en>
+    <tr>Posición del texto</tr>
+  </text>
+  <text>
+    <en>Text position:</en>
+    <tr>Posición del texto:</tr>
+  </text>
+  <text>
+    <en>Text under icons</en>
+    <tr>Texto bajo los iconos</tr>
+  </text>
+  <text>
+    <en>The toolbars stay where they are: they can't be dragged elsewhere</en>
+    <tr>Las barras se quedan donde están: no se pueden arrastrar a otro lugar</tr>
+  </text>
+  <text>
+    <en>Toolbars</en>
+    <tr>Barras de herramientas</tr>
   </text>
 </interface>

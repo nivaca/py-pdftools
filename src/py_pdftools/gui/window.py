@@ -676,12 +676,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
         m = self.menuBar().addMenu(tr("&Settings"))
         self.a_settings = self._action(m, tr("Settings…"), self.settings_dialog, [QKeySequence("Ctrl+,")])
-        self.a_labels = QAction(tr("Labels in the toolbar"), self, checkable=True)
-        self.a_labels.toggled.connect(self.show_labels)
-        m.addAction(self.a_labels)
-        self.a_customize_bars = self._action(m, tr("Customize the toolbars…"), lambda: self.customize_toolbars(),
+        self.a_customize_bars = self._action(None, tr("Customize the toolbars…"), lambda: self.customize_toolbars(),
                                              tip=tr("Choose the buttons of each toolbar and their order, or add "
                                                     "toolbars of your own"))
+        # Barras: cómo se ven todas (el texto, el tamaño de los iconos), bloquearlas y personalizarlas; el menú se
+        # hace al abrirse, con lo que está elegido entonces.
+        self.m_toolbars = m.addMenu(tr("Toolbars"))
+        self.m_toolbars.aboutToShow.connect(lambda: (self.m_toolbars.clear(), self.looks_menu(self.m_toolbars)))
         lang = self.m_language = m.addMenu(tr("Language"))
         group = QActionGroup(self)
         for code, name in interface.names().items():
@@ -726,7 +727,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             if name == "notes":  # (la herramienta Enlace, que no hace anotaciones, va con las notas)
                 bar.addAction(self.tool_actions["link"])
         self.apply_shortcuts()
-        self.show_labels(self.settings.value("toolbar_labels", "false") == "true")
 
         from .menus import regroup
 
@@ -775,8 +775,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             for dock in mode.docks:
                 menu.addAction(dock.toggleViewAction())
         if hasattr(self, "a_customize_bars"):
+            # Como en KDE: la posición del texto y el tamaño de los iconos son los de la barra pulsada.
+            from PySide6.QtGui import QCursor
+
+            bar = self.toolbar_at(QCursor.pos())
             menu.addSeparator()
-            menu.addAction(self.a_customize_bars)
+            if bar is not None:
+                menu.addSection(bar.windowTitle())
+            self.looks_menu(menu, bar)
         return menu
 
     def apply_shortcuts(self):
@@ -1346,19 +1352,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.status(tr("The recovery copy could not be kept: {error}", error=e), error=True)
 
     # ----------------------------------------------------------------- the toolbar
-
-    def show_labels(self, on: bool):
-        """Icons with their names under them in the toolbars, or (by default) only icons."""
-        for bar in self.toolbars():
-            if bar is getattr(self, "modes_bar", None):  # (always with its names: see _build_modes)
-                continue
-            bar.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextUnderIcon if on
-                                   else Qt.ToolButtonStyle.ToolButtonIconOnly)
-        # Sin señales: setChecked volvería a llamar a show_labels.
-        self.a_labels.blockSignals(True)
-        self.a_labels.setChecked(on)
-        self.a_labels.blockSignals(False)
-        self.settings.setValue("toolbar_labels", "true" if on else "false")
 
     def _toolbar_tips(self):
         """The tooltip of each button of the toolbars: what it does, and its shortcut."""

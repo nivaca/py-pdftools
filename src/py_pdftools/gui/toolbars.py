@@ -11,17 +11,25 @@ from __future__ import annotations
 
 import json
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QInputDialog, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QPushButton, QToolBar, QVBoxLayout,
+    QLineEdit, QListWidget, QListWidgetItem, QMenu, QPushButton, QToolBar, QVBoxLayout,
 )
 
-from ..core.interface import tr
+from ..core.interface import N_, tr
 
 SEPARATOR = "|"
 SETTING = "toolbar_contents"
+LOOKS = "toolbar_looks"  # (the setting of how the toolbars look: see looks())
+# how the buttons show: (key, name, Qt's style)
+STYLES = [("icons", N_("Icons only"), Qt.ToolButtonStyle.ToolButtonIconOnly),
+          ("text", N_("Text only"), Qt.ToolButtonStyle.ToolButtonTextOnly),
+          ("beside", N_("Text alongside icons"), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
+          ("under", N_("Text under icons"), Qt.ToolButtonStyle.ToolButtonTextUnderIcon)]
+SIZES = [(16, N_("Small (16)")), (22, N_("Medium (22)")), (32, N_("Large (32)")), (48, N_("Huge (48)"))]
+DEFAULT_LOOKS = {"style": "icons", "size": 22, "locked": False, "bars": {"modes": {"style": "beside", "size": 20}}}
 
 
 def plain(text: str) -> str:
@@ -37,6 +45,7 @@ class ToolbarsMixin:
         self._tb_defaults = {bar.objectName(): self.bar_ids(bar) for bar in self.editable_bars()}
         self._tb_custom: list[QToolBar] = []
         self.apply_toolbar_layout(self.toolbar_layout(), keep=False)
+        self.apply_bar_looks()
 
     # ----------------------------------------------------------------- the actions, by name
 
@@ -101,7 +110,6 @@ class ToolbarsMixin:
         for name, title in layout["custom"]:
             if name not in have:
                 bar = self.toolbar_of(name, title, [])
-                bar.setToolButtonStyle(self._tb_style())
                 self._tb_custom.append(bar)
                 self.common_bars.append(bar)  # (of every mode)
         actions = self.action_ids()
@@ -117,20 +125,120 @@ class ToolbarsMixin:
                     bar.addAction(actions[name])
             self._tool_button_menus(bar)
         self._toolbar_tips()
+        if hasattr(self, "_tb_custom"):
+            self.apply_bar_looks()
         if keep:
             changed = {bar.objectName(): self.bar_ids(bar) for bar in self.editable_bars()
                        if self.bar_ids(bar) != self._tb_defaults.get(bar.objectName(), [])}
             self.settings.setValue(SETTING, json.dumps({"bars": changed, "custom": layout["custom"]}))
 
-    def _tb_style(self) -> Qt.ToolButtonStyle:
-        on = getattr(self, "a_labels", None) is not None and self.a_labels.isChecked()
-        return Qt.ToolButtonStyle.ToolButtonTextUnderIcon if on else Qt.ToolButtonStyle.ToolButtonIconOnly
+    # ----------------------------------------------------------------- how they look
+
+    def looks(self) -> dict:
+        """How the toolbars look: {'style': of STYLES, 'size': of the icons, 'locked': whether they stay where
+        they are, 'bars': {name: {'style', 'size'}} of those that look otherwise}. (An older setting, labels
+        under the icons, is read as the style 'under'.)"""
+        try:
+            found = json.loads(str(self.settings.value(LOOKS, "")))
+        except (TypeError, ValueError):
+            found = None
+        if not isinstance(found, dict):
+            found = json.loads(json.dumps(DEFAULT_LOOKS))
+            if str(self.settings.value("toolbar_labels", "false")) == "true":
+                found["style"] = "under"
+        found.setdefault("bars", {})
+        return found
+
+    def _keep_looks(self, looks: dict):
+        self.settings.setValue(LOOKS, json.dumps(looks))
+
+    def look_of(self, bar: QToolBar) -> tuple[str, int]:
+        """(style, size of the icons) of BAR: its own, or that of all."""
+        looks = self.looks()
+        own = looks["bars"].get(bar.objectName(), {})
+        return own.get("style", looks["style"]), int(own.get("size", looks["size"]))
+
+    def apply_bar_looks(self):
+        """Every toolbar as looks() says."""
+        looks = self.looks()
+        styles = {k: style for k, _, style in STYLES}
+        for bar in self.toolbars():
+            style, size = self.look_of(bar)
+            bar.setToolButtonStyle(styles.get(style, Qt.ToolButtonStyle.ToolButtonIconOnly))
+            bar.setIconSize(QSize(size, size))
+            bar.setMovable(not looks.get("locked"))
+
+    def set_bar_look(self, bar: QToolBar | None = None, style: str | None = None, size: int | None = None):
+        """STYLE and SIZE (those given) of BAR, or of all the toolbars (BAR None: then those of each go)."""
+        looks = self.looks()
+        for key, value in (("style", style), ("size", size)):
+            if value is None:
+                continue
+            if bar is None:
+                looks[key] = value
+                for own in looks["bars"].values():
+                    own.pop(key, None)
+            else:
+                looks["bars"].setdefault(bar.objectName(), {})[key] = value
+        looks["bars"] = {n: v for n, v in looks["bars"].items() if v}
+        self._keep_looks(looks)
+        self.apply_bar_looks()
+
+    def set_bars_locked(self, locked: bool):
+        looks = self.looks()
+        looks["locked"] = locked
+        self._keep_looks(looks)
+        self.apply_bar_looks()
+
+    def show_labels(self, on: bool):
+        """(As the setting of old:) the names under the icons of every toolbar, or only icons."""
+        self.set_bar_look(None, "under" if on else "icons")
+
+    def looks_menu(self, menu: QMenu, bar: QToolBar | None = None):
+        """In MENU, Text position and Icon size, of BAR (or of all the toolbars), Lock the toolbars, and
+        Customize the toolbars."""
+        from PySide6.QtGui import QActionGroup
+
+        style, size = self.look_of(bar) if bar is not None else (self.looks()["style"], self.looks()["size"])
+        for title, items, current, setter in (
+                (tr("Text position"), [(k, tr(n)) for k, n, _ in STYLES], style,
+                 lambda v: self.set_bar_look(bar, style=v)),
+                (tr("Icon size"), [(px, tr(n)) for px, n in SIZES], size, lambda v: self.set_bar_look(bar, size=v))):
+            sub = menu.addMenu(title)
+            group = QActionGroup(sub)
+            for value, name in items:
+                act = sub.addAction(name)
+                act.setCheckable(True)
+                act.setChecked(value == current)
+                group.addAction(act)
+                act.triggered.connect(lambda _=False, v=value, f=setter: f(v))
+        lock = menu.addAction(tr("Lock the toolbars"))
+        lock.setCheckable(True)
+        lock.setChecked(bool(self.looks().get("locked")))
+        lock.setToolTip(tr("The toolbars stay where they are: they can't be dragged elsewhere"))
+        lock.toggled.connect(self.set_bars_locked)
+        if hasattr(self, "a_customize_bars"):
+            menu.addAction(self.a_customize_bars)
+
+    def toolbar_at(self, pos) -> QToolBar | None:
+        """The toolbar of the window at POS (on the screen), if there is one."""
+        from PySide6.QtWidgets import QApplication
+
+        w = QApplication.widgetAt(pos)
+        while w is not None and not isinstance(w, QToolBar):
+            w = w.parentWidget()
+        return w if w is not None and w.parent() is self else None
 
     def customize_toolbars(self) -> bool:
         layout = self.ask_toolbars()
         if layout is None:
             return False
         self.apply_toolbar_layout(layout)
+        if "looks" in layout:
+            looks = self.looks()
+            looks["bars"] = layout["looks"]
+            self._keep_looks(looks)
+            self.apply_bar_looks()
         self.status(tr("The toolbars were changed"))
         return True
 
@@ -151,6 +259,7 @@ class ToolbarsDialog(QDialog):
         self.titles = {bar.objectName(): win.bar_title(bar) for bar in win.editable_bars()}
         self.contents = {bar.objectName(): win.bar_ids(bar) for bar in win.editable_bars()}
         self.custom = [[bar.objectName(), bar.windowTitle()] for bar in win._tb_custom]
+        self.bar_looks = {n: dict(v) for n, v in win.looks()["bars"].items()}
 
         self.bar = QComboBox()
         self.bar.currentIndexChanged.connect(lambda _i: self._show_bar())
@@ -199,11 +308,29 @@ class ToolbarsDialog(QDialog):
         top.addWidget(self.b_new)
         top.addWidget(self.b_delete)
         top.addWidget(self.b_reset)
+        # Cómo se ve la barra elegida: su texto y el tamaño de sus iconos, o como todas.
+        self.style = QComboBox()
+        self.style.addItem(tr("As all the toolbars"), None)
+        for key, name, _ in STYLES:
+            self.style.addItem(tr(name), key)
+        self.size = QComboBox()
+        self.size.addItem(tr("As all the toolbars"), None)
+        for px, name in SIZES:
+            self.size.addItem(tr(name), px)
+        self.style.activated.connect(lambda _i: self._set_look("style", self.style.currentData()))
+        self.size.activated.connect(lambda _i: self._set_look("size", self.size.currentData()))
+        looks_row = QHBoxLayout()
+        looks_row.addWidget(QLabel(tr("Text position:")))
+        looks_row.addWidget(self.style)
+        looks_row.addWidget(QLabel(tr("Icon size:")))
+        looks_row.addWidget(self.size)
+        looks_row.addStretch(1)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         lay = QVBoxLayout(self)
         lay.addLayout(top)
+        lay.addLayout(looks_row)
         lay.addLayout(grid, 1)
         lay.addWidget(buttons)
         self.resize(760, 520)
@@ -253,6 +380,9 @@ class ToolbarsDialog(QDialog):
         custom = any(name == self.current() for name, _ in self.custom)
         self.b_delete.setEnabled(custom)
         self.b_reset.setEnabled(not custom)
+        own = self.bar_looks.get(self.current(), {})
+        self.style.setCurrentIndex(max(0, self.style.findData(own.get("style"))) if "style" in own else 0)
+        self.size.setCurrentIndex(max(0, self.size.findData(own.get("size"))) if "size" in own else 0)
 
     def _read_chosen(self):
         self.contents[self.current()] = [self.chosen.item(r).data(Qt.ItemDataRole.UserRole)
@@ -320,7 +450,15 @@ class ToolbarsDialog(QDialog):
         self.contents.pop(name, None)
         self._fill_bars()
 
+    def _set_look(self, key: str, value):
+        own = self.bar_looks.setdefault(self.current(), {})
+        if value is None:
+            own.pop(key, None)
+        else:
+            own[key] = value
+
     def layout_chosen(self) -> dict:
         return {"bars": {n: ids for n, ids in self.contents.items()
                          if ids != self.defaults.get(n, []) or any(n == c[0] for c in self.custom)},
-                "custom": self.custom}
+                "custom": self.custom,
+                "looks": {n: v for n, v in self.bar_looks.items() if v}}

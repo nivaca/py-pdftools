@@ -32,10 +32,7 @@ def test_every_button_has_an_icon(window):
     for b in window.toolbars():
         for act in b.actions():
             assert act.isSeparator() or not act.icon().isNull(), (b.objectName(), act.text())
-    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"
-    window.show_labels(True)  # (the modes keep their names beside their icons)
-    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"
-    window.show_labels(False)
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"  # (de entrada)
 
 
 def test_the_dialog_changes_a_toolbar(window):
@@ -97,3 +94,62 @@ def test_the_bar_of_the_modes_is_not_offered(window):
     d = ToolbarsDialog(window)
     assert "modes" not in d.contents
     assert any(d.bar.itemText(i).endswith("(Annotate)") for i in range(d.bar.count()))
+
+
+def test_text_position_icon_size_and_lock(window, app):
+    """As in KDE: the text position and the size of the icons of all the toolbars, or of one (its own then
+    wins); the toolbars locked; kept for the next window; and the setting of old (labels under the icons)."""
+    file_bar, zoom = bar(window, "file"), bar(window, "zoom")
+    assert file_bar.toolButtonStyle().name == "ToolButtonIconOnly" and file_bar.iconSize().width() == 22
+    window.set_bar_look(None, style="beside", size=32)
+    assert file_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon" and zoom.iconSize().width() == 32
+    assert window.modes_bar.iconSize().width() == 32  # (all, the bar of the modes too)
+    window.set_bar_look(zoom, style="text")
+    assert zoom.toolButtonStyle().name == "ToolButtonTextOnly" and file_bar.toolButtonStyle().name != "ToolButtonTextOnly"
+    window.set_bars_locked(True)
+    assert not file_bar.isMovable()
+    window.settings.sync()
+    other = MainWindow()
+    try:
+        assert bar(other, "zoom").toolButtonStyle().name == "ToolButtonTextOnly"
+        assert bar(other, "file").iconSize().width() == 32 and not bar(other, "file").isMovable()
+    finally:
+        other.close()
+    # the menus that set them: Settings > Toolbars (all), and the right click on a toolbar (that one)
+    from PySide6.QtWidgets import QMenu
+
+    menu = QMenu()
+    window.looks_menu(menu, file_bar)
+    titles = [a.text() for a in menu.actions()]
+    assert titles[:3] == ["Text position", "Icon size", "Lock the toolbars"]
+    under = next(a for a in menu.actions()[0].menu().actions() if a.text() == "Text under icons")
+    under.trigger()
+    assert file_bar.toolButtonStyle().name == "ToolButtonTextUnderIcon"
+    assert zoom.toolButtonStyle().name == "ToolButtonTextOnly"
+    window.show_labels(False)  # (all, icons only: the own styles go)
+    assert zoom.toolButtonStyle().name == "ToolButtonIconOnly"
+
+
+def test_old_setting_read(app, tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    from PySide6.QtCore import QSettings
+
+    QSettings("py-pdftools", "py-pdftools").setValue("toolbar_labels", "true")
+    w = MainWindow()
+    try:
+        assert bar(w, "file").toolButtonStyle().name == "ToolButtonTextUnderIcon"
+    finally:
+        w.close()
+
+
+def test_looks_in_the_dialog(window):
+    d = ToolbarsDialog(window)
+    d.bar.setCurrentIndex(d.bar.findData("find"))
+    assert d.style.currentData() is None and d.size.currentData() is None
+    d.style.setCurrentIndex(d.style.findData("under"))
+    d._set_look("style", "under")
+    d._set_look("size", 48)
+    window.ask_toolbars = lambda: d.layout_chosen()
+    assert window.customize_toolbars()
+    assert bar(window, "find").toolButtonStyle().name == "ToolButtonTextUnderIcon"
+    assert bar(window, "find").iconSize().width() == 48
