@@ -436,6 +436,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     text_selected = Signal()  # the text selected with the tool Select text changed (see textselect.py)
     text_menu = Signal(object)  # QPoint (global): a right click on the text selected
     link_clicked = Signal(int, dict)  # page, the link clicked (see links.py)
+    field_clicked = Signal(str, str)  # the name of a form field clicked, and the state of its button (see forming.py)
     link_drawn = Signal(int, object)  # page, (x0, y0, x1, y1): the area of a new link, drawn with the tool Link
     link_edit = Signal(int, dict)  # page, a link of the document clicked with the tool Link
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
@@ -512,6 +513,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.horizontalScrollBar().valueChanged.connect(lambda _: self.render_timer.start())
 
     # ----------------------------------------------------------------- the document and its layout
+
+    field_at = None  # (set by the window: the form field at a place of a page; see forming.py)
 
     def set_document(self, doc: pymupdf.Document | None, page: int = 0):
         """Show DOC (None: nothing), at PAGE."""
@@ -1508,6 +1511,14 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             return
         if self.doc is not None and event.button() == Qt.MouseButton.LeftButton and self._editor is None:
             ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+            if self.mode in FOLLOWED_BY and self.field_at is not None:
+                # Un campo de formulario va antes que un enlace: se rellena (ver forming.py).
+                page, point = self.locate(event.position().toPoint())
+                hit = self.field_at(page.number, point.x(), point.y()) if page is not None else None
+                if hit is not None:
+                    self.field_clicked.emit(*hit)
+                    event.accept()
+                    return
             if self.mode in FOLLOWED_BY or (self.mode == "select" and ctrl):
                 page, point = self.locate(event.position().toPoint())
                 link = self.link_at(page.number, point) if page is not None else None

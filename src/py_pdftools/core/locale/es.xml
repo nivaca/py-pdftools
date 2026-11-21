@@ -11221,4 +11221,40 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} links removed</en>
     <tr>Se quitaron {count} enlaces</tr>
   </text>
+  <text>
+    <en>Every field back to its first value (or empty)</en>
+    <tr>Cada campo vuelve a su primer valor (o queda vacío)</tr>
+  </text>
+  <text>
+    <en>Form</en>
+    <tr>Formulario</tr>
+  </text>
+  <text>
+    <en>Reset the form</en>
+    <tr>Restablecer el formulario</tr>
+  </text>
+  <text>
+    <en>The fields of the document's form, to fill them in</en>
+    <tr>Los campos del formulario del documento, para rellenarlos</tr>
+  </text>
+  <text>
+    <en>The form was reset</en>
+    <tr>Se restableció el formulario</tr>
+  </text>
+  <text>
+    <en>This document has no form.</en>
+    <tr>Este documento no tiene formulario.</tr>
+  </text>
+  <text>
+    <en>{count} field</en>
+    <tr>{count} campo</tr>
+  </text>
+  <text>
+    <en>{count} fields</en>
+    <tr>{count} campos</tr>
+  </text>
+  <text>
+    <en>{field} filled in</en>
+    <tr>Se rellenó {field}</tr>
+  </text>
 </interface>

@@ -39,6 +39,7 @@ from . import reading
 from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin
+from .forming import FormMixin
 from .linking import LinkEditMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
@@ -173,7 +174,7 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
-                 WorkingMixin, FilesMixin, LinkEditMixin, ToolbarsMixin, QMainWindow):
+                 WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, ToolbarsMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -222,6 +223,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # barras (con su objectName) antes de que set_mode oculte las de los otros modos.
         self._build()
         self._build_outline()
+        self._build_form()
         self._build_menus()
         self._build_modes()
         self._init_toolbars()  # (antes de _restore: las barras añadidas por el usuario también se colocan)
@@ -577,6 +579,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_panel.setToolTip(tr("The list of the annotations, with their authors, on the right of the window"))
         m.addAction(self.a_panel)
         m.addAction(self.a_outline)
+        m.addAction(self.a_form)
         self.a_thumbs = QAction(tr("The thumbnails of the pages"), self, checkable=True, checked=True)
         self.a_thumbs.setShortcut(QKeySequence("F3"))
         self.a_thumbs.setToolTip(tr("The pages, small, on the left of the window"))
@@ -1196,6 +1199,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.set_document(doc, self.page)
         self._fill_pages()
         self.outline_refresh()
+        self.form_refresh()
         self.watch_file()
         return found
 
