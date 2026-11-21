@@ -167,3 +167,28 @@ def test_right_click_sets_all_the_toolbars(window, app):
     for name in ("file", "zoom", "find", "navigation"):
         assert bar(window, name).toolButtonStyle().name == "ToolButtonTextOnly", name
     assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextOnly"
+
+
+def test_a_change_reaches_every_window(app, tmp_path, monkeypatch):
+    """The look of the toolbars (a right click on them), their lock and their buttons (Customize the toolbars)
+    change in every window open, not only in the one where they were changed: the others would show them as
+    they were, until the program started again."""
+    from py_pdftools.gui.window import _WINDOWS
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    one, two = MainWindow(), MainWindow()
+    _WINDOWS.extend([one, two])
+    try:
+        menu = one.createPopupMenu()
+        sub = next(a.menu() for a in menu.actions() if a.menu() and a.text() == "Text position")
+        next(a for a in sub.actions() if a.text() == "Text alongside icons").trigger()
+        assert bar(two, "file").toolButtonStyle().name == "ToolButtonTextBesideIcon"
+        one.set_bars_locked(True)
+        assert not bar(two, "file").isMovable()
+        one.ask_toolbars = lambda: {"bars": {"file": ["a_open", "a_save"]}, "custom": []}
+        one.customize_toolbars()
+        assert two.bar_ids(bar(two, "file")) == ["a_open", "a_save"]
+    finally:
+        for w in (one, two):
+            _WINDOWS.remove(w)
+            w.close()

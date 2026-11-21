@@ -749,10 +749,18 @@ In the same menu, Extract to a new PDF wrote the new file and said where;
 it now also opens it, in a new tab beside the document, since one usually
 wants to see what was extracted.
 
+A change of the toolbars seemed not to be kept: text beside the icons,
+chosen with a right click, was gone after closing the window and opening
+another document. It was kept; but only the window where it was chosen
+showed it, and the others open, in tabs or windows of their own, went on
+showing the toolbars as they were, until the program started again. A
+change of their look, of their lock or of their buttons now goes to every
+window open, and is written to the disk at once.
+
 Testing
 -------
 
-The program has 603 tests (`uv run pytest`): those of the four programs,
+The program has 604 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

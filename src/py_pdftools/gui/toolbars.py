@@ -134,6 +134,7 @@ class ToolbarsMixin:
             changed = {bar.objectName(): self.bar_ids(bar) for bar in self.editable_bars()
                        if self.bar_ids(bar) != self._tb_defaults.get(bar.objectName(), [])}
             self.settings.setValue(SETTING, json.dumps({"bars": changed, "custom": layout["custom"]}))
+            self.settings.sync()
 
     # ----------------------------------------------------------------- how they look
 
@@ -154,6 +155,14 @@ class ToolbarsMixin:
 
     def _keep_looks(self, looks: dict):
         self.settings.setValue(LOOKS, json.dumps(looks))
+        self.settings.sync()  # (en el disco enseguida, no un momento después)
+
+    def _every_window(self) -> list:
+        """This window and the others open (in tabs too): a change of the toolbars goes to all of them, or the
+        others would keep showing them as they were."""
+        from .window import _WINDOWS
+
+        return [self] + [w for w in _WINDOWS if w is not self and hasattr(w, "apply_bar_looks")]
 
     def look_of(self, bar: QToolBar) -> tuple[str, int]:
         """(style, size of the icons) of BAR: its own, or that of all."""
@@ -185,13 +194,15 @@ class ToolbarsMixin:
                 looks["bars"].setdefault(bar.objectName(), {})[key] = value
         looks["bars"] = {n: v for n, v in looks["bars"].items() if v}
         self._keep_looks(looks)
-        self.apply_bar_looks()
+        for win in self._every_window():
+            win.apply_bar_looks()
 
     def set_bars_locked(self, locked: bool):
         looks = self.looks()
         looks["locked"] = locked
         self._keep_looks(looks)
-        self.apply_bar_looks()
+        for win in self._every_window():
+            win.apply_bar_looks()
 
     def show_labels(self, on: bool):
         """(As the setting of old:) the names under the icons of every toolbar, or only icons."""
@@ -228,11 +239,15 @@ class ToolbarsMixin:
         if layout is None:
             return False
         self.apply_toolbar_layout(layout)
+        others = self._every_window()[1:]
+        for win in others:
+            win.apply_toolbar_layout(layout, keep=False)  # (the buttons of each toolbar, in every window)
         if "looks" in layout:
             looks = self.looks()
             looks["bars"] = layout["looks"]
             self._keep_looks(looks)
-            self.apply_bar_looks()
+        for win in [self, *others]:
+            win.apply_bar_looks()
         self.status(tr("The toolbars were changed"))
         return True
 
