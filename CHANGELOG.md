@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.5 — 2026-11-21
 
 - **Bookmarks**: their panel is hidden by default. It opens only when asked
   for (View > Panels > Bookmarks, F5), not when a document asks for its
