@@ -10889,4 +10889,112 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>the PDF made</en>
     <tr>el PDF hecho</tr>
   </text>
+  <text>
+    <en>A PDF of photographs or scans, a page for each, and then, if wished, their text read (OCR)</en>
+    <tr>Un PDF de fotografías o escaneos, una página por cada una, y después, si se quiere, su texto leído (OCR)</tr>
+  </text>
+  <text>
+    <en>As big as each picture</en>
+    <tr>Tan grande como cada imagen</tr>
+  </text>
+  <text>
+    <en>As each picture is</en>
+    <tr>Como esté cada imagen</tr>
+  </text>
+  <text>
+    <en>By name</en>
+    <tr>Por nombre</tr>
+  </text>
+  <text>
+    <en>Folder</en>
+    <tr>Carpeta</tr>
+  </text>
+  <text>
+    <en>Make a PDF of pictures (photographs, scans): a page for each, in the order given, as big as the picture or on paper of a size.</en>
+    <tr>Hacer un PDF de imágenes (fotografías, escaneos): una página por cada una, en el orden dado, tan grande como la imagen o en papel de un tamaño.</tr>
+  </text>
+  <text>
+    <en>Making the PDF…</en>
+    <tr>Haciendo el PDF…</tr>
+  </text>
+  <text>
+    <en>Margin:</en>
+    <tr>Margen:</tr>
+  </text>
+  <text>
+    <en>New PDF from pictures</en>
+    <tr>PDF nuevo a partir de imágenes</tr>
+  </text>
+  <text>
+    <en>New PDF from pictures…</en>
+    <tr>PDF nuevo a partir de imágenes…</tr>
+  </text>
+  <text>
+    <en>Orientation:</en>
+    <tr>Orientación:</tr>
+  </text>
+  <text>
+    <en>PICTURE</en>
+    <tr>IMAGEN</tr>
+  </text>
+  <text>
+    <en>Page size:</en>
+    <tr>Tamaño de página:</tr>
+  </text>
+  <text>
+    <en>Picture</en>
+    <tr>Imagen</tr>
+  </text>
+  <text>
+    <en>Pictures ({patterns})</en>
+    <tr>Imágenes ({patterns})</tr>
+  </text>
+  <text>
+    <en>Put the pictures in the order of their names (as a camera or a scanner numbers them)</en>
+    <tr>Ordenar las imágenes por su nombre (como las numera una cámara o un escáner)</tr>
+  </text>
+  <text>
+    <en>The margin leaves no room for the pictures</en>
+    <tr>El margen no deja espacio para las imágenes</tr>
+  </text>
+  <text>
+    <en>Then read its text (OCR), so that it can be found and copied</en>
+    <tr>Después, leer su texto (OCR), para poder buscarlo y copiarlo</tr>
+  </text>
+  <text>
+    <en>There are no pictures</en>
+    <tr>No hay imágenes</tr>
+  </text>
+  <text>
+    <en>a margin, in millimetres</en>
+    <tr>un margen, en milímetros</tr>
+  </text>
+  <text>
+    <en>a picture (PNG, JPEG, TIFF…)</en>
+    <tr>una imagen (PNG, JPEG, TIFF…)</tr>
+  </text>
+  <text>
+    <en>make a PDF of pictures (photographs, scans)</en>
+    <tr>hacer un PDF de imágenes (fotografías, escaneos)</tr>
+  </text>
+  <text>
+    <en>put each picture on paper of this size</en>
+    <tr>poner cada imagen en papel de este tamaño</tr>
+  </text>
+  <text>
+    <en>the paper lying</en>
+    <tr>el papel apaisado</tr>
+  </text>
+  <text>
+    <en>the paper standing (else as each picture is)</en>
+    <tr>el papel vertical (si no, como esté cada imagen)</tr>
+  </text>
+  <text>
+    <en>{path} cannot be read as a picture: {error}</en>
+    <tr>{path} no se puede leer como imagen: {error}</tr>
+  </text>
+  <text>
+    <en>{path} is not a picture</en>
+    <tr>{path} no es una imagen</tr>
+  </text>
 </interface>

@@ -1,4 +1,4 @@
-"""File > Combine files: the list of the files (added with a button or dropped
+"""File > Combine files and File > New PDF from pictures: the list of the files (added with a button or dropped
 from the file manager, put in order by dragging them or with Up and Down), and how the result is made. See
 pages/combine.py."""
 
@@ -8,7 +8,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QFileDialog, QFormLayout,
+    QAbstractItemView, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDoubleSpinBox, QFileDialog, QFormLayout,
     QHBoxLayout, QHeaderView, QInputDialog, QLabel, QLineEdit, QPushButton, QTreeWidget, QTreeWidgetItem,
     QVBoxLayout,
 )
@@ -210,3 +210,51 @@ class CombineDialog(_ListDialog):
 
     def options(self) -> dict:
         return {"bookmarks": self.bookmarks.currentData(), "labels": self.labels.isChecked()}
+
+
+class ImagesDialog(_ListDialog):
+    title = N_("New PDF from pictures")
+    suffixes = tuple(s[1:] for s in combine.IMAGES)
+    filter_text = N_("Pictures ({patterns})")
+
+    def __init__(self, parent=None, ocr: bool = True):
+        self.title = tr(self.title)
+        self.filter_text = tr(self.filter_text, patterns=" ".join(combine.IMAGES))
+        super().__init__([tr("Picture"), tr("Folder")], parent)
+        sort = QPushButton(tr("By name"))
+        sort.setToolTip(tr("Put the pictures in the order of their names (as a camera or a scanner numbers them)"))
+        sort.clicked.connect(self.sort_by_name)
+        self.buttons_row.insertWidget(4, sort)
+        self.paper = QComboBox()
+        self.paper.addItem(tr("As big as each picture"), "")
+        for name in combine.PAPERS:
+            self.paper.addItem(name, name)
+        self.orientation = QComboBox()
+        for value, name in ((None, tr("As each picture is")), (False, tr("Portrait")), (True, tr("Landscape"))):
+            self.orientation.addItem(name, value)
+        self.margin = QDoubleSpinBox(suffix=" mm", decimals=1, maximum=100)
+        self.ocr = QCheckBox(tr("Then read its text (OCR), so that it can be found and copied"))
+        self.ocr.setChecked(ocr)
+        self.ocr.setVisible(ocr)
+        self.paper.currentIndexChanged.connect(lambda _i: self.orientation.setEnabled(bool(self.paper.currentData())))
+        self.orientation.setEnabled(False)
+        self.form.addRow(tr("Page size:"), self.paper)
+        self.form.addRow(tr("Orientation:"), self.orientation)
+        self.form.addRow(tr("Margin:"), self.margin)
+        self.form.addRow(self.ocr)
+        self._check()
+
+    def make_item(self, path: Path) -> QTreeWidgetItem | None:
+        item = QTreeWidgetItem([path.name, str(path.parent)])
+        item.setToolTip(0, str(path))
+        item.setData(0, PATH, str(path))
+        item.setFlags(item.flags() & ~Qt.ItemFlag.ItemIsDropEnabled)
+        return item
+
+    def sort_by_name(self):
+        self.tree.sortItems(0, Qt.SortOrder.AscendingOrder)
+        self.tree.setSortingEnabled(False)  # (y después, otra vez a mano)
+
+    def options(self) -> dict:
+        return {"paper": self.paper.currentData(), "landscape": self.orientation.currentData(),
+                "margin": self.margin.value()}

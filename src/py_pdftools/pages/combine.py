@@ -20,6 +20,11 @@ from ..core.interface import tr
 from ..core.pagesel import PageError, parse_pages
 
 BOOKMARKS = ("files", "keep", "none")  # one for each file (with its own under it), as they are, none
+PAPERS = {"A3": (297, 420), "A4": (210, 297), "A5": (148, 210), "Letter": (215.9, 279.4),
+          "Legal": (215.9, 355.6)}  # (milímetros)
+IMAGES = ("*.png", "*.jpg", "*.jpeg", "*.tif", "*.tiff", "*.bmp", "*.gif", "*.webp", "*.jxr", "*.pnm", "*.pbm",
+          "*.pgm", "*.ppm", "*.jp2")
+MM = 72 / 25.4
 
 
 class CombineError(Exception):
@@ -191,3 +196,57 @@ def _save(doc: pymupdf.Document, target: Path) -> None:
     except (OSError, RuntimeError, ValueError) as e:
         Path(tmp).unlink(missing_ok=True)
         raise CombineError(tr("{path} cannot be written: {error}", path=target, error=e)) from None
+
+
+# ----------------------------------------------------------------- from pictures
+
+def _frames(path: Path) -> pymupdf.Document:
+    """The picture at PATH as a PDF of one page for each of its frames, each as big as the frame is (at the
+    resolution the picture says; at 96 dpi if it says none)."""
+    try:
+        with pymupdf.open(path) as img:
+            if img.is_pdf:
+                raise CombineError(tr("{path} is not a picture", path=path))
+            return pymupdf.open("pdf", img.convert_to_pdf())
+    except CombineError:
+        raise
+    except Exception as e:  # (MuPDF tiene errores propios para cada formato que no entiende)
+        raise CombineError(tr("{path} cannot be read as a picture: {error}", path=path, error=e)) from None
+
+
+def from_images(images: list[Path], target: Path, paper: str = "", landscape: bool | None = None,
+                margin: float = 0, progress=None) -> int:
+    """A PDF of IMAGES, a page for each (or for each frame of one), saved as TARGET. PAPER: a size of PAPERS
+    on which each picture is put, as large as fits within MARGIN (millimetres), and centred; '' for pages as
+    big as the pictures (and MARGIN around them). LANDSCAPE: the paper lying (True) or standing (False);
+    None, as each picture is. Returns how many pages it has."""
+    if not images:
+        raise CombineError(tr("There are no pictures"))
+    out = pymupdf.open()
+    try:
+        for done, path in enumerate(images):
+            with _frames(path) as frames:
+                for n in range(frames.page_count):
+                    pic = frames[n].rect
+                    m = margin * MM
+                    if paper:
+                        w, h = (v * MM for v in PAPERS[paper])
+                        lying = pic.width > pic.height if landscape is None else landscape
+                        if lying:
+                            w, h = h, w
+                    else:
+                        w, h = pic.width + 2 * m, pic.height + 2 * m
+                    page = out.new_page(width=w, height=h)
+                    room = pymupdf.Rect(m, m, w - m, h - m)
+                    if room.is_empty:
+                        raise CombineError(tr("The margin leaves no room for the pictures"))
+                    # keep_proportion: la imagen tan grande como quepa, centrada en el espacio que deja el margen.
+                    page.show_pdf_page(room, frames, n, keep_proportion=True)
+            if progress is not None:
+                progress(done + 1, len(images))
+        count = out.page_count
+        _save(out, target)
+        return count
+    finally:
+        if not out.is_closed:
+            out.close()

@@ -26,6 +26,7 @@ positional arguments:
     ocr                read the text of scanned pages with tesseract, and
                        write it under them (OCR)
     combine            combine PDFs into one, or some of their pages
+    from-images        make a PDF of pictures (photographs, scans)
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -2734,6 +2735,28 @@ options:
                         those of the files as they are; or none
   --labels              keep the page labels of each file
   --password PASSWORD   the password of the PDFs, if they have one
+.fi
+.SS from-images
+.nf
+usage: py-pdftools from-images [-h] -o FILE
+                               [--paper {A3,A4,A5,Letter,Legal}]
+                               [--portrait | --landscape] [--margin MM]
+                               PICTURE [PICTURE ...]
+
+Make a PDF of pictures (photographs, scans): a page for each, in the order
+given, as big as the picture or on paper of a size.
+
+positional arguments:
+  PICTURE               a picture (PNG, JPEG, TIFF…)
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output FILE     the PDF made
+  --paper {A3,A4,A5,Letter,Legal}
+                        put each picture on paper of this size
+  --portrait            the paper standing (else as each picture is)
+  --landscape           the paper lying
+  --margin MM           a margin, in millimetres
 .fi
 .SS completion
 .nf

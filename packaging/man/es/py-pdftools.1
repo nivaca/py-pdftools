@@ -30,6 +30,7 @@ argumentos posicionales:
     ocr                leer con tesseract el texto de páginas escaneadas y
                        escribirlo bajo ellas (OCR)
     combine            combinar varios PDF en uno, o algunas de sus páginas
+    from-images        hacer un PDF de imágenes (fotografías, escaneos)
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
 
@@ -2902,6 +2903,28 @@ opciones:
                         los de los archivos tal como están; o ninguno
   --labels              conservar las etiquetas de página de cada archivo
   --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS from-images
+.nf
+uso: py-pdftools from-images [-h] -o ARCHIVO
+                             [--paper {A3,A4,A5,Letter,Legal}] [--portrait |
+                             --landscape] [--margin MM]
+                             IMAGEN [IMAGEN ...]
+
+Hacer un PDF de imágenes (fotografías, escaneos): una página por cada una,
+en el orden dado, tan grande como la imagen o en papel de un tamaño.
+
+argumentos posicionales:
+  IMAGEN                una imagen (PNG, JPEG, TIFF…)
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --paper {A3,A4,A5,Letter,Legal}
+                        poner cada imagen en papel de este tamaño
+  --portrait            el papel vertical (si no, como esté cada imagen)
+  --landscape           el papel apaisado
+  --margin MM           un margen, en milímetros
 .fi
 .SS completion
 .nf

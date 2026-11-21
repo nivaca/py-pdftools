@@ -414,6 +414,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_open = self._action(m, tr("Open…"), self.open_dialog, QKeySequence.StandardKey.Open)
         self.m_recent = m.addMenu(tr("Open recent"))
         self._recent_menu()
+        self.a_images = self._action(m, tr("New PDF from pictures…"), lambda: self.images_dialog(),
+                                     tip=tr("A PDF of photographs or scans, a page for each, and then, if wished, "
+                                            "their text read (OCR)"))
         self.a_combine = self._action(m, tr("Combine files…"), lambda: self.combine_dialog(),
                                       tip=tr("Make one PDF of several, or of some of their pages, one file after "
                                              "another"))

@@ -93,6 +93,43 @@ class FilesMixin:
             made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
         return made
 
+    def ask_images(self):
+        """(pictures, options, OCR afterwards) chosen in the dialog of New PDF from pictures; None if cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from ..core import ocr
+        from .combine_dialog import ImagesDialog
+
+        dialog = ImagesDialog(self, ocr=ocr.available())
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return None
+        return dialog.paths(), dialog.options(), dialog.ocr.isVisible() and dialog.ocr.isChecked()
+
+    def images_dialog(self):
+        """File > New PDF from pictures: the PDF made, opened (in the mode OCR, if asked). Returns its window."""
+        from ..pages import combine
+        from .redact import background
+
+        chosen = self.ask_images()
+        if chosen is None:
+            return None
+        images, options, read_text = chosen
+        target = self.ask_new_pdf(tr("New PDF from pictures"), f"{images[0].stem}.pdf")
+        if target is None or self.path is not None and self._same_file(target):
+            return None
+        try:
+            count = background.run(self, tr("Making the PDF…"), combine.from_images, images, target,
+                                   options["paper"], options["landscape"], options["margin"])
+        except combine.CombineError as e:
+            self.status(str(e), error=True)
+            return None
+        made = self.open_made(target)
+        if made is not None:
+            if read_text:  # (el modo OCR, con todas las páginas para leer)
+                made.set_mode("ocr")
+            made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
+        return made
+
     # ----------------------------------------------------------------- passwords
 
     def protection_dialog(self) -> bool:

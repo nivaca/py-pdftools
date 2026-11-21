@@ -1,4 +1,5 @@
-"""py-pdftools combine: several PDFs made one. See pages/combine.py."""
+"""py-pdftools combine and py-pdftools from-images: several PDFs made one, and a PDF made of pictures. See
+pages/combine.py."""
 
 from __future__ import annotations
 
@@ -34,11 +35,37 @@ def build_combine_parser(prog: str = "py-pdftools combine") -> argparse.Argument
     return p
 
 
+def build_images_parser(prog: str = "py-pdftools from-images") -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog=prog, description=tr("Make a PDF of pictures (photographs, scans): a page for each, in the order "
+                                  "given, as big as the picture or on paper of a size."))
+    p.add_argument("inputs", nargs="+", type=Path, metavar=tr("PICTURE"), help=tr("a picture (PNG, JPEG, TIFF…)"))
+    p.add_argument("-o", "--output", required=True, type=Path, metavar=tr("FILE"), help=tr("the PDF made"))
+    p.add_argument("--paper", choices=list(combine.PAPERS), help=tr("put each picture on paper of this size"))
+    g = p.add_mutually_exclusive_group()
+    g.add_argument("--portrait", dest="landscape", action="store_false", default=None,
+                   help=tr("the paper standing (else as each picture is)"))
+    g.add_argument("--landscape", dest="landscape", action="store_true", help=tr("the paper lying"))
+    p.add_argument("--margin", type=float, default=0, metavar="MM", help=tr("a margin, in millimetres"))
+    return p
+
+
 def main_combine(argv: list[str] | None = None, prog: str = "py-pdftools combine") -> int:
     a = build_combine_parser(prog).parse_args(argv)
     parts = [combine.Part(p.path, p.pages, a.password) for p in map(_part, a.inputs)]
     try:
         count = combine.combine(parts, a.output, a.bookmarks, a.labels)
+    except CombineError as e:
+        print(f"{prog}: {e}", file=sys.stderr)
+        return 1
+    print(tr("Wrote {path} ({count} pages)", path=a.output, count=count))
+    return 0
+
+
+def main_images(argv: list[str] | None = None, prog: str = "py-pdftools from-images") -> int:
+    a = build_images_parser(prog).parse_args(argv)
+    try:
+        count = combine.from_images(a.inputs, a.output, a.paper or "", a.landscape, a.margin)
     except CombineError as e:
         print(f"{prog}: {e}", file=sys.stderr)
         return 1
