@@ -377,7 +377,7 @@ Pruebas
 
     $ uv run pytest
 
-Hay 577 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+Hay 580 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, los menús y las
 barras de herramientas, la combinación de archivos, los PDF de imágenes,

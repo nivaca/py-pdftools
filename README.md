@@ -360,7 +360,7 @@ Tests
 
     $ uv run pytest
 
-There are 577 tests: those of the four programs, and those of what is new
+There are 580 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, OCR, navigation, security, the menus and toolbars,
 combining files and PDFs of pictures, smaller copies, links, forms,

@@ -23,6 +23,13 @@ RPM, the wheel and the source, are on
 - **The PDF version**: File > Save a copy > With another PDF version, and
   `py-pdftools pdf-version`; what the document uses that the version
   chosen doesn't have is named.
+- **Page labels under the thumbnails, in every mode**: a label changed
+  outside Foliate (Labels > Number this page, on the thumbnails' menu)
+  was not seen, since only Foliate showed labels; the status bar now says
+  which pages took which labels, or that they had them already.
+- **Ctrl+A in the thumbnails** selects every page (elsewhere it still
+  selects the annotations of the page); their menu has Select all the
+  pages.
 
 ## 1.4.0 — 2026-11-20
 
