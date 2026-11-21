@@ -12368,4 +12368,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Show the bar of the tabs with only one document open</en>
     <tr>Mostrar la barra de las pestañas con un solo documento abierto</tr>
   </text>
+  <text>
+    <en>Page and zoom</en>
+    <tr>Página y zoom</tr>
+  </text>
 </interface>

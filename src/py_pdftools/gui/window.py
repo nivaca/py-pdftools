@@ -163,6 +163,8 @@ def install_qt_translations():
 ACTIONS = Path(__file__).resolve().parent.parent / "icons" / "actions"
 
 
+PAGE_ZOOM = "pagezoom"  # (the object name of the toolbar Page and zoom: see MainWindow.page_zoom_bar)
+
 def icon(name: str) -> QIcon:
     """The icon NAME (a freedesktop name: document-open...) of the desktop's icon
     theme, so that it looks like the rest of the desktop; or else the program's own."""
@@ -343,15 +345,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.zoom_label.addItem(text, data)
         self.zoom_label.activated.connect(lambda i: self._choose_zoom(self.zoom_label.itemData(i)))
         self.zoom_label.lineEdit().returnPressed.connect(lambda: self._choose_zoom(self.zoom_label.currentText()))
-        top = QHBoxLayout()
-        top.addWidget(self.page_box)
-        top.addWidget(self.page_label)
-        top.addStretch(1)
-        top.addWidget(self.zoom_label)
+        # (the page box and the zoom go on a toolbar of their own, which can be moved: see page_zoom_bar)
         center = QWidget()
         lay = QVBoxLayout(center)
         lay.setContentsMargins(4, 4, 4, 4)
-        lay.addLayout(top)
         lay.addWidget(self.canvas, 1)
         # El consejo de cada modo flota un rato sobre las páginas al elegirlo (y con F1): ya no ocupa una franja
         # fija debajo de ellas.
@@ -749,6 +746,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                                              self.tool_actions["selecttext"],
                                                              self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
+            self.page_zoom_bar(),
             self.page_bar(),
         ]
         self.addToolBarBreak()
@@ -786,6 +784,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         from .docprops_dialog import DocumentPropertiesDialog
 
         DocumentPropertiesDialog(self.doc, self.path, self).exec()
+
+    def page_zoom_bar(self) -> QToolBar:
+        """The toolbar Page and zoom: the box of the page shown, how many pages there are, and the box of the
+        zoom, which were once fixed above the pages; as a toolbar, it can be moved anywhere or hidden. Its
+        widgets are always these, so it is not one of those changed in Customize the toolbars."""
+        bar = self.toolbar_of(PAGE_ZOOM, tr("Page and zoom"), [])
+        bar.addWidget(self.page_box)
+        bar.addWidget(self.page_label)
+        bar.addSeparator()
+        bar.addWidget(self.zoom_label)
+        return bar
 
     def page_bar(self) -> QToolBar:
         """The toolbar Page navigation (see pagebar.py), at the bottom of the window."""

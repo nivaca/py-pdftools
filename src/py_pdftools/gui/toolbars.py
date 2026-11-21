@@ -70,7 +70,9 @@ class ToolbarsMixin:
                 if a.isSeparator() or id(a) in names]
 
     def editable_bars(self) -> list[QToolBar]:
-        return [bar for bar in self.toolbars() if bar is not getattr(self, "modes_bar", None)]
+        # (ni la barra de los modos ni Página y zoom, que lleva widgets fijos, no acciones)
+        return [bar for bar in self.toolbars()
+                if bar is not getattr(self, "modes_bar", None) and bar.objectName() != "pagezoom"]
 
     def bar_title(self, bar: QToolBar) -> str:
         """The name of BAR, with that of its mode, if it is of one."""

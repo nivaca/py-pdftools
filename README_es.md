@@ -258,7 +258,8 @@ herramienta en Mano, y el botón central desplaza solo. La barra
 Navegación de páginas, abajo en la ventana, va a la primera, la anterior,
 la siguiente y la última página, y su casilla acepta un número o una
 etiqueta de página; como las demás barras, se cambia en Personalizar las
-barras de herramientas. Archivo > Propiedades del PDF muestra qué es un
+barras de herramientas. El cuadro de la página y el del zoom están en la
+barra Página y zoom, que puede moverse a cualquier lugar u ocultarse. Archivo > Propiedades del PDF muestra qué es un
 documento (sus metadatos, su archivo, sus páginas, su seguridad) y las
 fuentes que usa.
 

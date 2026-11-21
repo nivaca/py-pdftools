@@ -56,7 +56,7 @@ def test_the_modes_in_order(app, sample, monkeypatch):
     # (the first time, Read: only the pages, the hand, and the toolbars of every mode but Edit)
     assert w.mode == "read" and w.canvas.mode == "hand"
     assert not any(shown(b) for m in w.modes.values() for b in m.bars + m.docks)
-    assert [b.objectName() for b in w.common_bars if shown(b)] == ["file", "find", "navigation", "zoom", "pagenav"]
+    assert [b.objectName() for b in w.common_bars if shown(b)] == ["file", "find", "navigation", "zoom", "pagezoom", "pagenav"]
     close(w)
 
 
@@ -111,7 +111,7 @@ def test_the_hint_of_a_mode_over_the_pages(app, sample):
     hint = w.hint
     assert shown(hint) and hint.text() == w.hints["read"] and hint.parent() is w.canvas
     assert hint.geometry().bottom() <= w.canvas.height() and hint.geometry().top() > w.canvas.height() // 2
-    assert w.canvas.parentWidget().layout().count() == 2  # (only the page bar and the pages)
+    assert w.canvas.parentWidget().layout().count() == 1  # (only the pages: the page box is on a toolbar)
     press = QMouseEvent(QEvent.Type.MouseButtonPress, QPointF(20, 20), QPointF(20, 20), Qt.MouseButton.LeftButton,
                         Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
     QApplication.sendEvent(w.canvas.viewport(), press)

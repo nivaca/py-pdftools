@@ -249,7 +249,8 @@ Space held turns any tool into Hand, and the middle button scrolls by
 itself. The toolbar Page navigation, at the bottom of the window, goes to
 the first, previous, next and last page, and its box takes a page number
 or label; like the other toolbars, it can be changed in Customize the
-toolbars. File > PDF properties shows what a document is (its metadata,
+toolbars. The box of the page and that of the zoom are on the toolbar Page
+and zoom, which can be moved anywhere or hidden. File > PDF properties shows what a document is (its metadata,
 file, pages, security) and the fonts it uses.
 
 Redact > Find text only covered looks for text that only seems redacted:

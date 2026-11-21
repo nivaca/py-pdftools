@@ -707,6 +707,13 @@ itself), unless a new setting asks to show it always; with the view split
 it is always shown, since the menu of each tab, which takes it back to the
 other side, is on that bar.
 
+The box of the page and the box of the zoom were fixed above the pages, in
+a row of their own. They are now on a toolbar, Page and zoom, which can be
+moved anywhere or hidden like the others; the widgets are the same, so all
+that used them still does. Its contents can't be changed in Customize the
+toolbars, which works with actions and not with widgets; the box of the page
+can go on any toolbar through Page navigation.
+
 Testing
 -------
 

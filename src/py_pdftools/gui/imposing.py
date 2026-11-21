@@ -34,7 +34,7 @@ class ImposeMixin:
         # Impose owns no annotation: the pages are not shown, so there is nothing to select.
         # (the pages are not shown: nothing to find, to move through or to zoom)
         return Mode(KIND, lambda a: False, menus=[self.workspace.menu.menuAction()],
-                    without=("find", "navigation", "zoom", "pagenav"),
+                    without=("find", "navigation", "zoom", "pagezoom", "pagenav"),
                     entered=self._impose_entered, left=self._impose_left)
 
     def _impose_entered(self):
