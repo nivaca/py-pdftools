@@ -917,7 +917,7 @@ how it is read, not of what is shown).
 Testing
 -------
 
-The program has 612 tests (`uv run pytest`): those of the four programs,
+The program has 625 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -928,7 +928,7 @@ tabs, reloading), the security of documents (text only covered, hidden
 layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
-settings, the toolbar of the pages, the tooltips, quick find, the properties of a
+settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
 PDF, the word index, the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
@@ -938,5 +938,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 156 files of Python, around 42,900 lines (about a tenth of them
-comments), and 3,128 texts of the interface in Spanish.
+program has 158 files of Python, around 43,500 lines (about a tenth of them
+comments), and 3,197 texts of the interface in Spanish.
