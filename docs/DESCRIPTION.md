@@ -782,6 +782,30 @@ had open, one expected the place where Linux starts programs with the
 session, and one replaced, as another program would, a file the window
 had open, which Windows doesn't allow.
 
+29. A package for Debian and Ubuntu
+-----------------------------------
+
+The AppImage runs on Debian and Ubuntu, but it doesn't install itself: no
+menu entry, no manual, no command in the PATH. I made a `.deb` as well
+(`tools/bundle-deb.py`). The usual way, a package that depends on the
+system's Python, was closed: Debian 12 has Python 3.11 and Ubuntu 22.04
+has 3.10, and py-pdftools needs 3.14. So the package is made from the
+AppImage, unpacked: its Python, with Qt and the libraries, goes to
+`/opt/py-pdftools`, and two small scripts in `/usr/bin` start the command
+line and the window with it. The menu entry, the icons, the metainfo and
+the manual pages (in English and Spanish) go where Debian expects them. It
+depends only on the system libraries Qt needs, and recommends tesseract and
+Ghostscript.
+
+Debian's own tools aren't on Fedora, where I make the releases, so the
+script writes the package itself: a `.deb` is an ar archive of three
+members, the version of the format and two tars (the control files and the
+files to install), which GNU tar makes with root as the owner of every
+file. I installed it in containers of Debian 12 and Ubuntu 22.04: the
+command line imposed a booklet, the window opened a document, and removing
+the package left nothing behind. `tools/release.py` now makes it after the
+AppImage and attaches it to each release.
+
 Testing
 -------
 

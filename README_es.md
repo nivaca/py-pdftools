@@ -125,6 +125,7 @@ con estos archivos:
 
     py-pdftools-VERSIÓN.zip                 el código, con los instaladores
     py-pdftools-VERSIÓN-x86_64.AppImage     la AppImage (Linux)
+    py-pdftools_VERSIÓN-1_amd64.deb         el paquete de Debian y Ubuntu
     py-pdftools-VERSIÓN-1.fc45.noarch.rpm   el paquete de Fedora, firmado
     RPM-GPG-KEY-py-pdftools                 la clave que lo firma
     py_pdftools-VERSIÓN.tar.gz              el paquete fuente, para Python
@@ -141,6 +142,14 @@ reportlab y el PySide6 de Fedora, una entrada en el menú y el manual
 Las actualizaciones llegan luego con `sudo dnf upgrade`. El RPM de cada
 versión también puede instalarse a mano, después de importar su clave:
 `sudo rpm --import RPM-GPG-KEY-py-pdftools`.
+
+**Debian y Ubuntu.** El `.deb` de cada versión, para Debian 12, Ubuntu
+22.04 y posteriores, instala las órdenes `py-pdftools` y `py-pdftools-gui`,
+una entrada en el menú y el manual. Debian aún no tiene Python 3.14, así que
+el paquete trae el suyo, con Qt y las bibliotecas, en `/opt/py-pdftools`
+(como la AppImage):
+
+    $ sudo apt install ./py-pdftools_*_amd64.deb
 
 **AppImage (cualquier Linux).** No necesita nada más: lleva su propio
 Python, Qt y bibliotecas, y funciona con glibc 2.34 o posterior (Ubuntu

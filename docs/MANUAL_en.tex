@@ -203,6 +203,8 @@ the first page), with these files:
 \begin{itemize}
 \item \texttt{py-pdftools-VERSION-x86\_64.AppImage}: the AppImage, for any
   Linux;
+\item \texttt{py-pdftools\_VERSION-1\_amd64.deb}: the package for Debian and
+  Ubuntu;
 \item \texttt{py-pdftools-VERSION-1.fc45.noarch.rpm}: the Fedora package,
   signed, with the key that signs it, \texttt{RPM-GPG-KEY-py-pdftools};
 \item \texttt{py-pdftools-VERSION.zip}: the source, with the installers
@@ -230,6 +232,19 @@ each release can also be installed by hand, after importing its key with
 \texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora does not package
 pyHanko, the library of digital signatures, so the RPM goes without them;
 the menu \menu{File\then Security} then says how to add it.
+
+\subsection{Debian and Ubuntu}
+
+\index{debian and ubuntu@Debian and Ubuntu}%
+The \texttt{.deb} of each release is for Debian 12, Ubuntu 22.04 and
+later. It installs the commands \texttt{py-pdftools} and
+\texttt{py-pdftools-gui}, a menu entry and the manual page. Debian has no
+Python 3.14 yet, so the package brings its own, with Qt and the libraries
+(pyHanko among them), in \texttt{/opt/py-pdftools}, as the AppImage does:
+
+\begin{verbatim}
+$ sudo apt install ./py-pdftools_*_amd64.deb
+\end{verbatim}
 
 \subsection{The AppImage}
 

@@ -17,7 +17,7 @@
    ```
 
    This runs the tests; makes the wheel, the source package, the ZIP of the
-   source, the AppImage and the signed RPM; tags `vVERSION`; pushes to
+   source, the AppImage, the Debian package and the signed RPM; tags `vVERSION`; pushes to
    GitHub (`origin`) and Codeberg (`codeberg`); and attaches the files to the
    release on both; then it sends the signed source RPM to Copr
    (project nivaca/py-pdftools). `--dry-run` only shows the commands.

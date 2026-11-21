@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Publish a release of py-pdftools on GitHub (with gh) and Codeberg (with
 tea): the tag vVERSION (the version of pyproject.toml), with the wheel, the
-source package, a ZIP of the source and the AppImage attached, and (--rpm) the signed RPM and its
+source package, a ZIP of the source, the AppImage and the Debian package attached, and (--rpm) the signed RPM and its
 public key, also published on Copr, and (--pypi) the wheel and the source
 package on PyPI.
 
@@ -17,7 +17,8 @@ In order, each step only if it is needed:
    copr-cli);
 2. runs the tests (unless --no-tests);
 3. makes the wheel and the source package (uv build), the ZIP of the
-   source (git archive of HEAD) and the AppImage (tools/bundle-appimage.py)
+   source (git archive of HEAD), the AppImage (tools/bundle-appimage.py)
+   and the Debian package made from it (tools/bundle-deb.py)
    in dist/, unless --no-build (then those in
    dist/ are used); with --rpm, also the signed RPM and its public key in
    build/rpm/ (packaging/build-rpm.sh --sign; gpg asks for the passphrase);
@@ -64,6 +65,7 @@ WHEEL = f"dist/py_pdftools-{VERSION}-py3-none-any.whl"
 SDIST = f"dist/py_pdftools-{VERSION}.tar.gz"
 ZIP = f"dist/py-pdftools-{VERSION}.zip"
 APPIMAGE = f"dist/py-pdftools-{VERSION}-x86_64.AppImage"
+DEB = f"dist/py-pdftools_{VERSION}-1_amd64.deb"  # (hecho de la AppImage, va con ella)
 SPEC = "packaging/py-pdftools.spec"
 RPM_KEY = "build/rpm/RPM-GPG-KEY-py-pdftools"
 COPR_PROJECT = "py-pdftools"  # (of the copr-cli user, nivaca)
@@ -206,6 +208,7 @@ class Release:
                   "--output", ZIP, "HEAD")
         if APPIMAGE in self.files:
             self.plan("Make the AppImage", "uv", "run", "python", "tools/bundle-appimage.py")
+            self.plan("Make the Debian package", "uv", "run", "python", "tools/bundle-deb.py")
         if self.args.rpm:
             self.plan("Make the signed RPM", "packaging/build-rpm.sh", "--sign")
 
@@ -287,7 +290,7 @@ class Release:
     def __call__(self):
         a = self.args
         self.forges = [a.only] if a.only else ["github", "codeberg"]
-        self.files = [WHEEL, SDIST, ZIP] + ([] if a.no_appimage else [APPIMAGE])
+        self.files = [WHEEL, SDIST, ZIP] + ([] if a.no_appimage else [APPIMAGE, DEB])
         if a.rpm:
             self.files += [rpm(), RPM_KEY]
         self.check()
@@ -318,7 +321,7 @@ def main(argv=None):
     parser.add_argument("--pypi", action="store_true",
                         help="also upload the wheel and the source package to PyPI ($UV_PUBLISH_TOKEN)")
     parser.add_argument("--no-build", action="store_true", help="use the files in dist/ (and build/rpm/) as they are")
-    parser.add_argument("--no-appimage", action="store_true", help="without the AppImage")
+    parser.add_argument("--no-appimage", action="store_true", help="without the AppImage (nor the Debian package)")
     parser.add_argument("--no-tests", action="store_true", help="don't run the tests first")
     parser.add_argument("--redo", action="store_true",
                         help=f"move {TAG} to HEAD if it is on another commit (here and on the remotes), and "

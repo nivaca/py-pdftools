@@ -1,9 +1,18 @@
 # Changelog
 
 All notable changes to py-pdftools. The releases, with the AppImage, the
-RPM, the wheel and the source, are on
+Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
+
+## Unreleased
+
+- **Debian and Ubuntu**: each release now has a `.deb`
+  (`py-pdftools_VERSION-1_amd64.deb`), for Debian 12, Ubuntu 22.04 and
+  later, installed with `sudo apt install ./py-pdftools_*_amd64.deb`. It
+  brings its own Python 3.14, Qt and libraries in `/opt/py-pdftools`, as
+  the AppImage does, with the commands `py-pdftools` and
+  `py-pdftools-gui`, a menu entry and the manual pages.
 
 ## 1.8.3 — 2026-11-21
 
