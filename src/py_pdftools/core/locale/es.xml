@@ -2500,10 +2500,6 @@
     <tr>Quitar también metadatos, texto oculto, adjuntos y scripts</tr>
   </text>
   <text>
-    <en>Remove as well what the document holds besides its pages: its title, author and other metadata, text that isn't shown, attached files, JavaScript and links</en>
-    <tr>Quitar también lo que el documento guarda además de sus páginas: el título, el autor y otros metadatos, el texto que no se ve, los archivos adjuntos, el JavaScript y los enlaces</tr>
-  </text>
-  <text>
     <en>Save the redacted copy</en>
     <tr>Guardar la copia censurada</tr>
   </text>
@@ -2820,10 +2816,6 @@
   <text>
     <en>Sanitize the document…</en>
     <tr>Sanear el documento…</tr>
-  </text>
-  <text>
-    <en>Save a copy without metadata, hidden text, attachments, scripts and links, and with nothing else changed (the boxes aren't applied)</en>
-    <tr>Guardar una copia sin metadatos, texto oculto, adjuntos, scripts ni enlaces, y sin ningún otro cambio (los recuadros no se aplican)</tr>
   </text>
   <text>
     <en>Save as default for new boxes</en>
@@ -10568,5 +10560,21 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>This text is covered by something drawn over it, but it is still in the file: it can be selected, copied or found. It was found in {count} places</en>
     <tr>Este texto está cubierto por algo dibujado encima, pero sigue en el archivo: se puede seleccionar, copiar o encontrar. Se encontró en {count} lugares</tr>
+  </text>
+  <text>
+    <en>Hidden layers</en>
+    <tr>Capas ocultas</tr>
+  </text>
+  <text>
+    <en>Layers switched off, which a viewer doesn't show until they are switched on: what they hold is removed, and so are their names</en>
+    <tr>Capas apagadas, que un visor no muestra hasta que se encienden: se quita lo que contienen, y también sus nombres</tr>
+  </text>
+  <text>
+    <en>Remove as well what the document holds besides its pages: its title, author and other metadata, text that isn't shown, layers switched off, attached files, JavaScript and links</en>
+    <tr>Quitar también lo que el documento guarda además de sus páginas: el título, el autor y otros metadatos, el texto que no se ve, las capas apagadas, los archivos adjuntos, el JavaScript y los enlaces</tr>
+  </text>
+  <text>
+    <en>Save a copy without metadata, hidden text and layers, attachments, scripts and links, and with nothing else changed (the boxes aren't applied)</en>
+    <tr>Guardar una copia sin metadatos, texto ni capas ocultos, adjuntos, scripts ni enlaces, y sin ningún otro cambio (los recuadros no se aplican)</tr>
   </text>
 </interface>

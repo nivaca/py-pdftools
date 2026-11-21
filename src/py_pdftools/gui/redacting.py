@@ -121,8 +121,8 @@ class RedactMixin:
         self.a_redact_clean = QAction(tr("Also remove metadata, hidden text, attachments and scripts"), self,
                                       checkable=True, checked=self.redact_prefs.clean)
         self.a_redact_clean.setToolTip(tr("Remove as well what the document holds besides its pages: its title, "
-                                          "author and other metadata, text that isn't shown, attached files, "
-                                          "JavaScript and links"))
+                                          "author and other metadata, text that isn't shown, layers switched "
+                                          "off, attached files, JavaScript and links"))
         self.a_redact_clean.toggled.connect(
             lambda on: self.set_redact_prefs(dataclasses.replace(self.redact_prefs, clean=on)))
         m.addAction(self.a_redact_clean)
@@ -135,9 +135,9 @@ class RedactMixin:
                                                    "attachments, bookmarks, comments, hidden text…), and save a "
                                                    "copy without what you choose"))
         self.a_redact_sanitize = self._action(m, tr("Sanitize the document…"), lambda: self.sanitize_dialog(),
-                                              tip=tr("Save a copy without metadata, hidden text, attachments, "
-                                                     "scripts and links, and with nothing else changed (the boxes "
-                                                     "aren't applied)"))
+                                              tip=tr("Save a copy without metadata, hidden text and layers, "
+                                                     "attachments, scripts and links, and with nothing else "
+                                                     "changed (the boxes aren't applied)"))
         m.addSeparator()
         self._action(m, tr("Settings of redaction…"), self.redact_settings_dialog)
         # Placed just before the Layers menu.

@@ -188,6 +188,9 @@ def redact(doc: pymupdf.Document, boxes: list[Box], clean: bool = False, images:
         # unificarlos para que las dos opciones quiten lo mismo.
         doc.scrub()
         doc.set_metadata({})
+        from .hidden import remove_hidden_layers
+
+        remove_hidden_layers(doc)  # (which scrub() leaves: the layers switched off, and what they hold)
     return done
 
 
