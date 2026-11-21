@@ -10793,4 +10793,100 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>← Remove</en>
     <tr>← Quitar</tr>
   </text>
+  <text>
+    <en>Bookmarks:</en>
+    <tr>Marcadores:</tr>
+  </text>
+  <text>
+    <en>Combine PDFs into one: their pages one file after another, with their links, annotations and form fields. FILE:PAGES takes only those pages, in that order (book.pdf:1-3,7).</en>
+    <tr>Combinar varios PDF en uno: sus páginas, un archivo tras otro, con sus enlaces, anotaciones y campos de formulario. ARCHIVO:PÁGINAS toma solo esas páginas, en ese orden (libro.pdf:1-3,7).</tr>
+  </text>
+  <text>
+    <en>Combine files</en>
+    <tr>Combinar archivos</tr>
+  </text>
+  <text>
+    <en>Combine files…</en>
+    <tr>Combinar archivos…</tr>
+  </text>
+  <text>
+    <en>Combining the files…</en>
+    <tr>Combinando los archivos…</tr>
+  </text>
+  <text>
+    <en>Drop files here, or add them; drag them to put them in order.</en>
+    <tr>Suelte aquí los archivos, o añádalos; arrástrelos para ordenarlos.</tr>
+  </text>
+  <text>
+    <en>Keep the page labels of each file</en>
+    <tr>Conservar las etiquetas de página de cada archivo</tr>
+  </text>
+  <text>
+    <en>Make one PDF of several, or of some of their pages, one file after another</en>
+    <tr>Hacer un PDF de varios, o de algunas de sus páginas, un archivo tras otro</tr>
+  </text>
+  <text>
+    <en>Make the PDF…</en>
+    <tr>Hacer el PDF…</tr>
+  </text>
+  <text>
+    <en>It has</en>
+    <tr>Tiene</tr>
+  </text>
+  <text>
+    <en>Pages (empty: all)</en>
+    <tr>Páginas (vacío: todas)</tr>
+  </text>
+  <text>
+    <en>One for each file, with its own under it</en>
+    <tr>Uno por archivo, con los suyos debajo</tr>
+  </text>
+  <text>
+    <en>Pages: which pages of each file, in their order ('1-3, 7', 'last-1'); empty for all. Double-click to change them</en>
+    <tr>Páginas: qué páginas de cada archivo, en su orden ('1-3, 7', 'last-1'); vacío para todas. Doble clic para cambiarlas</tr>
+  </text>
+  <text>
+    <en>The files are combined as they are saved. Save the changes of this one first?</en>
+    <tr>Los archivos se combinan tal como están guardados. ¿Guardar antes los cambios de este?</tr>
+  </text>
+  <text>
+    <en>The numbers a viewer shows for the pages (i, ii, 1, 2…), as each file has them; else the pages are numbered 1, 2, 3… from the start</en>
+    <tr>Los números que un visor muestra para las páginas (i, ii, 1, 2…), como los tiene cada archivo; si no, las páginas se numeran 1, 2, 3… desde el principio</tr>
+  </text>
+  <text>
+    <en>The pages of {file} can't be read: {error}</en>
+    <tr>Las páginas de {file} no se pueden leer: {error}</tr>
+  </text>
+  <text>
+    <en>There are no files to combine</en>
+    <tr>No hay archivos que combinar</tr>
+  </text>
+  <text>
+    <en>There are no pages to combine</en>
+    <tr>No hay páginas que combinar</tr>
+  </text>
+  <text>
+    <en>Those of the files, as they are</en>
+    <tr>Los de los archivos, tal como están</tr>
+  </text>
+  <text>
+    <en>a PDF, or PDF:PAGES</en>
+    <tr>un PDF, o PDF:PÁGINAS</tr>
+  </text>
+  <text>
+    <en>combine PDFs into one, or some of their pages</en>
+    <tr>combinar varios PDF en uno, o algunas de sus páginas</tr>
+  </text>
+  <text>
+    <en>keep the page labels of each file</en>
+    <tr>conservar las etiquetas de página de cada archivo</tr>
+  </text>
+  <text>
+    <en>one for each file, with its own under it (default); those of the files as they are; or none</en>
+    <tr>uno por archivo, con los suyos debajo (por omisión); los de los archivos tal como están; o ninguno</tr>
+  </text>
+  <text>
+    <en>the PDF made</en>
+    <tr>el PDF hecho</tr>
+  </text>
 </interface>

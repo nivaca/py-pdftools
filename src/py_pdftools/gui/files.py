@@ -33,6 +33,66 @@ def ask_save(parent, title: str, text: str) -> QMessageBox.StandardButton:
 class FilesMixin:
     """Methods of MainWindow (which has the document, its annotations and the status line)."""
 
+    # ----------------------------------------------------------------- new documents, from others
+
+    def ask_new_pdf(self, title: str, name: str) -> Path | None:
+        """Where to write a new PDF (NAME, in the last folder used, at first)."""
+        chosen, _ = QFileDialog.getSaveFileName(self, title, str(Path(self.last_dir()) / name),
+                                                tr("PDF files (*.pdf)"))
+        if not chosen:
+            return None
+        target = Path(chosen)
+        return target if target.suffix.lower() == ".pdf" else target.with_suffix(".pdf")
+
+    def open_made(self, target: Path):
+        """The PDF just made (TARGET), opened here if this window has no document, else in another."""
+        if self.doc is None:
+            return self if self.open_path(target) else None
+        from . import open_window
+
+        return open_window(target)
+
+    def ask_combine(self):
+        """(parts, options) chosen in the dialog of Combine files; None if cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from .combine_dialog import CombineDialog
+
+        dialog = CombineDialog(self, (self.path, self.password) if self.path is not None else None)
+        return (dialog.parts(), dialog.options()) if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def combine_dialog(self):
+        """File > Combine files: the PDF made of those chosen, opened. Returns its window (None if not made)."""
+        from ..pages import combine
+        from .redact import background
+
+        chosen = self.ask_combine()
+        if chosen is None:
+            return None
+        parts, options = chosen
+        if self.path is not None and self.is_modified() and any(p.path == self.path for p in parts):
+            # Se combina el archivo tal como está guardado: lo que no se guardó, antes.
+            answer = ask_save(self, tr("Unsaved changes"),
+                              tr("The files are combined as they are saved. Save the changes of this one first?"))
+            if answer == QMessageBox.StandardButton.Cancel or \
+                    answer == QMessageBox.StandardButton.Save and not self.save():
+                return None
+        target = self.ask_new_pdf(tr("Combine files"), "combined.pdf")
+        if target is None:
+            return None
+        if self.path is not None and self._same_file(target):
+            return None
+        try:
+            count = background.run(self, tr("Combining the files…"), combine.combine, parts, target,
+                                   options["bookmarks"], options["labels"])
+        except combine.CombineError as e:
+            self.status(str(e), error=True)
+            return None
+        made = self.open_made(target)
+        if made is not None:
+            made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
+        return made
+
     # ----------------------------------------------------------------- passwords
 
     def protection_dialog(self) -> bool:

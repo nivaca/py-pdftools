@@ -29,6 +29,7 @@ argumentos posicionales:
                        incluido; necesita Ghostscript)
     ocr                leer con tesseract el texto de páginas escaneadas y
                        escribirlo bajo ellas (OCR)
+    combine            combinar varios PDF en uno, o algunas de sus páginas
     completion         imprimir el script de completado de un shell
     interface          mostrar o elegir el idioma de la interfaz
 
@@ -2879,6 +2880,28 @@ opciones:
                         descargar los modelos más precisos de tesseract para
                         estos idiomas (y osd, para girar páginas) en la
                         carpeta propia de py-pdftools, y terminar
+.fi
+.SS combine
+.nf
+uso: py-pdftools combine [-h] -o ARCHIVO [--bookmarks {files,keep,none}]
+                         [--labels] [--password PASSWORD]
+                         ARCHIVO [ARCHIVO ...]
+
+Combinar varios PDF en uno: sus páginas, un archivo tras otro, con sus
+enlaces, anotaciones y campos de formulario. ARCHIVO:PÁGINAS toma solo esas
+páginas, en ese orden (libro.pdf:1-3,7).
+
+argumentos posicionales:
+  ARCHIVO               un PDF, o PDF:PÁGINAS
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --bookmarks {files,keep,none}
+                        uno por archivo, con los suyos debajo (por omisión);
+                        los de los archivos tal como están; o ninguno
+  --labels              conservar las etiquetas de página de cada archivo
+  --password PASSWORD   la contraseña de los PDF, si la tienen
 .fi
 .SS completion
 .nf

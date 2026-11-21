@@ -414,6 +414,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_open = self._action(m, tr("Open…"), self.open_dialog, QKeySequence.StandardKey.Open)
         self.m_recent = m.addMenu(tr("Open recent"))
         self._recent_menu()
+        self.a_combine = self._action(m, tr("Combine files…"), lambda: self.combine_dialog(),
+                                      tip=tr("Make one PDF of several, or of some of their pages, one file after "
+                                             "another"))
         self.a_save = self._action(m, tr("Save"), self.save, QKeySequence.StandardKey.Save,
                                    tr("Write the annotations in the document (its signatures stay valid for what "
                                       "they signed)"))

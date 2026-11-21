@@ -25,6 +25,7 @@ positional arguments:
                        included; it needs Ghostscript)
     ocr                read the text of scanned pages with tesseract, and
                        write it under them (OCR)
+    combine            combine PDFs into one, or some of their pages
     completion         print the completion script of a shell
     interface          show or choose the language of the interface
 
@@ -2711,6 +2712,28 @@ options:
                         download tesseract's most accurate models of these
                         languages (and osd, to turn pages) into py-pdftools'
                         own folder, and stop
+.fi
+.SS combine
+.nf
+usage: py-pdftools combine [-h] -o FILE [--bookmarks {files,keep,none}]
+                           [--labels] [--password PASSWORD]
+                           FILE [FILE ...]
+
+Combine PDFs into one: their pages one file after another, with their links,
+annotations and form fields. FILE:PAGES takes only those pages, in that
+order (book.pdf:1-3,7).
+
+positional arguments:
+  FILE                  a PDF, or PDF:PAGES
+
+options:
+  -h, --help            show this help message and exit
+  -o, --output FILE     the PDF made
+  --bookmarks {files,keep,none}
+                        one for each file, with its own under it (default);
+                        those of the files as they are; or none
+  --labels              keep the page labels of each file
+  --password PASSWORD   the password of the PDFs, if they have one
 .fi
 .SS completion
 .nf

@@ -7,6 +7,7 @@
     py-pdftools impose COMMAND                     imposition (booklet, nup, step-repeat ...)
     py-pdftools pdf2iso                            PDF/A and PDF/X (the author's pdf2iso, included)
     py-pdftools ocr                                the text of scanned pages, read by tesseract
+    py-pdftools combine                            several PDFs made one
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -93,6 +94,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["ocr"] = ocr_cli.build_parser(f"{PROG} ocr")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "ocr", (), tr("read the text of scanned pages with tesseract, and write it under them (OCR)")))
+    from . import combine as combine_cli
+
+    sub._name_parser_map["combine"] = combine_cli.build_combine_parser(f"{PROG} combine")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "combine", (), tr("combine PDFs into one, or some of their pages")))
     _graft(sub, pages, OWN)
     return parser
 
@@ -125,6 +131,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import ocr as ocr_cli
 
         return ocr_cli.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} ocr")
+    if first and first[1] == "combine":
+        from . import combine as combine_cli
+
+        return combine_cli.main_combine(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} combine")
     if first and first[1] == "impose":
         from ..impose import main as impose_main
 
