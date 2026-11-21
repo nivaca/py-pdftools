@@ -474,6 +474,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self._build_sign_menu(m)
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
+        self.a_doc_props = self._action(m, tr("PDF properties…"), self.document_properties,
+                                        tip=tr("What the document is: its title, author and dates, its PDF version, "
+                                               "pages and size, its security, and the fonts it uses"))
+        self.a_doc_props.setIcon(icon("document-properties"))
         m.addSeparator()
         self.a_export_pages = self._action(None, tr("Pages as pictures…"), lambda: self.export_pages_dialog(),
                                            tip=tr("The pages drawn as PNG, JPEG or TIFF pictures, at a resolution"))
@@ -774,6 +778,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def document_properties(self):
+        """File > PDF properties: what the document is, and its fonts (see docprops_dialog.py)."""
+        if self.doc is None:
+            return
+        from .docprops_dialog import DocumentPropertiesDialog
+
+        DocumentPropertiesDialog(self.doc, self.path, self).exec()
 
     def page_bar(self) -> QToolBar:
         """The toolbar Page navigation (see pagebar.py), at the bottom of the window."""
@@ -3214,7 +3226,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.page_box, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_find, self.a_compare, *self.tool_actions.values()):
+                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_find, self.a_compare,
+                  *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:
             self.a_page_number.show_page("", 0)

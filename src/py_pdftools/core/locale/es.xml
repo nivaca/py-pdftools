@@ -12312,4 +12312,92 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Show tooltips: what a button, menu or field does, when the mouse rests on it</en>
     <tr>Mostrar las ayudas emergentes: lo que hace un botón, un menú o un campo cuando el ratón se detiene sobre él</tr>
   </text>
+  <text>
+    <en>Contents</en>
+    <tr>Contenido</tr>
+  </text>
+  <text>
+    <en>Embedded</en>
+    <tr>Incrustada</tr>
+  </text>
+  <text>
+    <en>Encoding</en>
+    <tr>Codificación</tr>
+  </text>
+  <text>
+    <en>Encrypted</en>
+    <tr>Cifrado</tr>
+  </text>
+  <text>
+    <en>Fonts ({count})</en>
+    <tr>Fuentes ({count})</tr>
+  </text>
+  <text>
+    <en>Layers</en>
+    <tr>Capas</tr>
+  </text>
+  <text>
+    <en>Linearized (fast web view)</en>
+    <tr>Linealizado (vista web rápida)</tr>
+  </text>
+  <text>
+    <en>Made with</en>
+    <tr>Hecho con</tr>
+  </text>
+  <text>
+    <en>No</en>
+    <tr>No</tr>
+  </text>
+  <text>
+    <en>Not allowed</en>
+    <tr>No permitido</tr>
+  </text>
+  <text>
+    <en>PDF properties</en>
+    <tr>Propiedades del PDF</tr>
+  </text>
+  <text>
+    <en>PDF properties…</en>
+    <tr>Propiedades del PDF…</tr>
+  </text>
+  <text>
+    <en>PDF version</en>
+    <tr>Versión de PDF</tr>
+  </text>
+  <text>
+    <en>Page size</en>
+    <tr>Tamaño de página</tr>
+  </text>
+  <text>
+    <en>Tagged (structure for accessibility)</en>
+    <tr>Etiquetado (estructura para accesibilidad)</tr>
+  </text>
+  <text>
+    <en>Turned into PDF by</en>
+    <tr>Convertido a PDF con</tr>
+  </text>
+  <text>
+    <en>What the document is: its title, author and dates, its PDF version, pages and size, its security, and the fonts it uses</en>
+    <tr>Qué es el documento: su título, autor y fechas, su versión de PDF, sus páginas y su tamaño, su seguridad y las fuentes que usa</tr>
+  </text>
+  <text>
+    <en>Yes</en>
+    <tr>Sí</tr>
+  </text>
+  <text>
+    <en>Yes, a subset</en>
+    <tr>Sí, un subconjunto</tr>
+  </text>
+  <text>
+    <en>{count} byte</en>
+    <tr>{count} byte</tr>
+  </text>
+  <text>
+    <en>{size}, and others</en>
+    <tr>{size}, y otros</tr>
+  </text>
+  <text>
+    <en>Last changed</en>
+    <tr>Último cambio</tr>
+  </text>
 </interface>

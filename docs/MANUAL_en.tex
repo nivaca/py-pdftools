@@ -132,6 +132,9 @@
 \graphicspath{{img/manual/}}
 \usepackage{longtable}
 
+% the title and the author in the PDF's own metadata
+\hypersetup{pdftitle={py-pdftools User Manual}, pdfauthor={Nicolás Vaughan}}
+
 % the index (makeindex, with the style manual.ist: see latexmkrc)
 \makeindex
 
@@ -482,6 +485,14 @@ PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
 \item[Compare with another version] marks on this document what differs
   from another version of the same text (another edition, a draft): its
   words, in reading order.
+\item[PDF properties] shows what the document is: its title, author,
+  subject, keywords and dates, the program that made it, its file (name,
+  folder, size, PDF version, whether it is linearized for fast web view),
+  its contents (pages, page size, whether it is tagged, has a form, layers,
+  attached files, signatures, bookmarks), its encryption and what it
+  doesn't allow; and, in a second tab, the fonts it uses, with their type,
+  their encoding, whether they are embedded (whole or a subset) and the
+  pages they are used on. \menu{Copy} puts all of it on the clipboard.
 \item[Print] (\key{Ctrl+P}) prints the pages with their annotations.
 \item[Close window] (\key{Ctrl+W}) and \textup{\textit{Quit}}
   (\key{Ctrl+Q}).

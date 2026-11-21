@@ -132,6 +132,9 @@
 \graphicspath{{img/manual/}}
 \usepackage{longtable}
 
+% the title and the author in the PDF's own metadata
+\hypersetup{pdftitle={py-pdftools: manual de usuario}, pdfauthor={Nicolás Vaughan}}
+
 % the index (makeindex, with the style manual.ist: see latexmkrc)
 \makeindex
 
@@ -498,6 +501,15 @@ Tiene también:
 \item[Comparar con otra versión] marca en este documento lo que difiere de
   otra versión del mismo texto (otra edición, un borrador): sus palabras,
   en el orden de lectura.
+\item[Propiedades del PDF] muestra qué es el documento: su título, autor,
+  asunto, palabras clave y fechas, el programa que lo hizo, su archivo
+  (nombre, carpeta, tamaño, versión de PDF, si está linealizado para la
+  vista web rápida), su contenido (páginas, tamaño de página, si está
+  etiquetado, si tiene formulario, capas, archivos adjuntos, firmas,
+  marcadores), su cifrado y lo que no permite; y, en una segunda pestaña,
+  las fuentes que usa, con su tipo, su codificación, si están incrustadas
+  (enteras o un subconjunto) y las páginas en que se usan. \menu{Copiar} lo
+  pone todo en el portapapeles.
 \item[Imprimir] (\key{Ctrl+P}) imprime las páginas con sus anotaciones.
 \item[Cerrar la ventana] (\key{Ctrl+W}) y \textup{\textit{Salir}}
   (\key{Ctrl+Q}).

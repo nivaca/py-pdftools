@@ -72,7 +72,7 @@ def regroup(window):
         "a_open", "a_open_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
         "a_save", "a_save_as", "m_save_copy", "m_export", "m_import", SEP,
         (tr("Security"), ["a_protect", SEP, "a_sign", "a_check_signatures", "a_make_id"]),
-        "a_compare", "a_print", SEP, "a_close", "a_quit"])
+        "a_compare", "a_doc_props", "a_print", SEP, "a_close", "a_quit"])
     _fill(window, window.m_edit, [
         "a_undo", "a_redo", SEP, "a_copy", "a_paste", "a_duplicate", SEP,
         "a_props", "a_comment", "a_delete", SEP,
