@@ -153,3 +153,15 @@ def test_looks_in_the_dialog(window):
     assert window.customize_toolbars()
     assert bar(window, "find").toolButtonStyle().name == "ToolButtonTextUnderIcon"
     assert bar(window, "find").iconSize().width() == 48
+
+
+def test_right_click_sets_all_the_toolbars(window, app):
+    """The right click on a toolbar sets how all of them look, not that one only."""
+    menu = window.createPopupMenu()
+    titles = [a.text() for a in menu.actions()]
+    assert "Text position" in titles and "Icon size" in titles
+    position = next(a for a in menu.actions() if a.text() == "Text position").menu()
+    next(a for a in position.actions() if a.text() == "Text only").trigger()
+    for name in ("file", "zoom", "find", "navigation"):
+        assert bar(window, name).toolButtonStyle().name == "ToolButtonTextOnly", name
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextOnly"

@@ -1,8 +1,9 @@
-"""Toolbars made to measure (mixed into MainWindow): Settings > Customize the toolbars (or a right click on a
-toolbar) chooses the buttons of each toolbar and their order, from every action of the window that has a name
-(those of the menus, the tools, the modes); separators go between them; new toolbars are added, and those
-added are removed. What is changed is kept (the setting 'toolbar_contents'), and each toolbar can go back to
-what it had at first.
+"""Toolbars made to measure (mixed into MainWindow): Settings > Toolbars (or a right click on a toolbar) sets
+how all of them look (the position of the text, the size of the icons, whether they are locked); Customize
+the toolbars sets it for each one, and chooses the buttons of each toolbar and their order, from every
+action of the window that has a name (those of the menus, the tools, the modes); separators go between them;
+new toolbars are added, and those added are removed. What is changed is kept (the setting
+'toolbar_contents'), and each toolbar can go back to what it had at first.
 
 Each action is known by a name that doesn't change with the language: that of its attribute in the window
 ('a_save'), 'tool:KEY' for a tool, 'mode:KEY' for a mode. The bar of the modes is not changed here."""
@@ -219,15 +220,6 @@ class ToolbarsMixin:
         lock.toggled.connect(self.set_bars_locked)
         if hasattr(self, "a_customize_bars"):
             menu.addAction(self.a_customize_bars)
-
-    def toolbar_at(self, pos) -> QToolBar | None:
-        """The toolbar of the window at POS (on the screen), if there is one."""
-        from PySide6.QtWidgets import QApplication
-
-        w = QApplication.widgetAt(pos)
-        while w is not None and not isinstance(w, QToolBar):
-            w = w.parentWidget()
-        return w if w is not None and w.parent() is self else None
 
     def customize_toolbars(self) -> bool:
         layout = self.ask_toolbars()

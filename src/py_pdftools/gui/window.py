@@ -790,14 +790,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             for dock in mode.docks:
                 menu.addAction(dock.toggleViewAction())
         if hasattr(self, "a_customize_bars"):
-            # Como en KDE: la posición del texto y el tamaño de los iconos son los de la barra pulsada.
-            from PySide6.QtGui import QCursor
-
-            bar = self.toolbar_at(QCursor.pos())
+            # La posición del texto y el tamaño de los iconos, de todas las barras (como en Configuración >
+            # Barras de herramientas); cada una por separado, en el diálogo de personalizarlas.
             menu.addSeparator()
-            if bar is not None:
-                menu.addSection(bar.windowTitle())
-            self.looks_menu(menu, bar)
+            self.looks_menu(menu)
         return menu
 
     def apply_shortcuts(self):
