@@ -311,9 +311,11 @@ digitales firma el documento con un ID digital, de forma visible o no (y
 crea un ID propio), y comprueba sus firmas: si cada una está intacta y es
 válida, quién firmó y si es de confianza, y qué cambió después.
 
-Al elegir un modo, un consejo sobre lo que se puede hacer en él aparece
-unos segundos sobre la parte de abajo de las páginas; Ayuda > Consejos de
-este modo (F1) lo muestra otra vez.
+Ayuda > Consejos de este modo (F1) muestra, sobre la parte de abajo de las
+páginas, un consejo sobre lo que se puede hacer en el modo elegido;
+Configuración > Aspecto puede mostrarlo cada vez que se elige un modo, y
+activar las ayudas emergentes (al principio, ambas cosas están
+desactivadas).
 
 El modo OCR (Ctrl+Mayús+O, o su botón Reconocer el texto) lee con
 tesseract el texto de las páginas escaneadas y lo escribe en el documento, invisible,

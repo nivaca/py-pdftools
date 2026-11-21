@@ -29,7 +29,7 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             "tabs": False,
             "reload": True,  # (reload: a document changed by another program, opened again: see gui/watching.py)
             # (Settings > Appearance and Documents: see gui/appearance.py)
-            "theme": "system", "scale": 100, "hints": True, "sharpness": "sharper",
+            "theme": "system", "scale": 100, "hints": False, "tooltips": False, "sharpness": "sharper",
             "opening": "document", "places": True, "ask_links": True, "recent": 10, "dialogs": "last"}
 
 

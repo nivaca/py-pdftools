@@ -301,9 +301,10 @@ document with a digital ID, visibly or not (and makes an ID of one's own),
 and checks its signatures: whether each is intact and valid, who signed
 and whether they are trusted, and what changed after it.
 
-When a mode is chosen, a hint on what can be done in it shows over the
-bottom of the pages for a few seconds; Help > Tips for this mode (F1)
-shows it again.
+Help > Tips for this mode (F1) shows, over the bottom of the pages, a hint
+on what can be done in the mode chosen; Settings > Appearance can show it
+whenever a mode is chosen, and can turn on the tooltips (both are off at
+first).
 
 The mode OCR (Ctrl+Shift+O, or its button Recognise text) reads the text of
 scanned pages with tesseract and writes it into the document, invisible, under their

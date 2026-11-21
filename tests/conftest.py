@@ -49,6 +49,10 @@ def own_config(tmp_path, monkeypatch):
     from py_pdftools.core import interface
 
     interface.use(None)
+    yield
+    from py_pdftools.gui import appearance
+
+    appearance.apply_tooltips(True)  # (a test that applied the settings leaves the tooltips as Qt has them)
 
 
 @pytest.fixture(autouse=True)

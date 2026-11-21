@@ -298,6 +298,9 @@ class SettingsDialog(QDialog):
         self.hints.setChecked(bool(appearance.value("hints")))
         self.hints.setToolTip(tr("Over the pages, for a few seconds; Help > Tips for this mode (F1) shows it always"))
         form.addRow("", self.hints)
+        self.tooltips = QCheckBox(tr("Show tooltips: what a button, menu or field does, when the mouse rests on it"))
+        self.tooltips.setChecked(bool(appearance.value("tooltips")))
+        form.addRow("", self.tooltips)
         looks = window.looks() if window is not None and hasattr(window, "looks") else {}
         self.bar_style = QComboBox()
         for key, name, _ in STYLES:
@@ -364,7 +367,8 @@ class SettingsDialog(QDialog):
 
         values = {"theme": self.theme.currentData(), "scale": self.scale.currentData(),
                   "sharpness": self.sharpness.currentData(),
-                  "hints": self.hints.isChecked(), "opening": self.opening.currentData(),
+                  "hints": self.hints.isChecked(), "tooltips": self.tooltips.isChecked(),
+                  "opening": self.opening.currentData(),
                   "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
                   "recent": self.recent.value(), "dialogs": self.dialogs.currentData()}
         changed = {k: v for k, v in values.items() if v != appearance.value(k)}
@@ -377,6 +381,8 @@ class SettingsDialog(QDialog):
             appearance.apply_theme()
         if "scale" in changed:
             appearance.apply_scale()
+        if "tooltips" in changed:
+            appearance.apply_tooltips()
         if "sharpness" in changed and appearance.apply_sharpness():
             for win in _WINDOWS:  # (drawn again, with the text as sharp as chosen)
                 win.redraw_pages()

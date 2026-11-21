@@ -103,6 +103,9 @@ def test_the_hint_of_a_mode_over_the_pages(app, sample):
     from PySide6.QtCore import QEvent, QPointF, Qt
     from PySide6.QtGui import QMouseEvent
 
+    from py_pdftools.core import config
+
+    config.set_many({"hints": True})  # (off at first: Settings > Appearance)
     w = make(app, sample)
     w.set_mode("read")
     hint = w.hint

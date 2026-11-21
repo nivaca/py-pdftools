@@ -12308,4 +12308,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>of {count}</en>
     <tr>de {count}</tr>
   </text>
+  <text>
+    <en>Show tooltips: what a button, menu or field does, when the mouse rests on it</en>
+    <tr>Mostrar las ayudas emergentes: lo que hace un botón, un menú o un campo cuando el ratón se detiene sobre él</tr>
+  </text>
 </interface>

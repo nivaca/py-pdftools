@@ -35,8 +35,37 @@ def doc(path, pages=3):
 
 
 def test_defaults():
-    assert [appearance.value(k) for k in ("theme", "scale", "hints", "opening", "places", "ask_links", "recent",
-                                          "dialogs")] == ["system", 100, True, "document", True, True, 10, "last"]
+    # (the hints of the modes and the tooltips: off at first)
+    assert [appearance.value(k) for k in ("theme", "scale", "hints", "tooltips", "opening", "places", "ask_links",
+                                          "recent", "dialogs")] == ["system", 100, False, False, "document", True,
+                                                                    True, 10, "last"]
+
+
+def test_tooltips(window):
+    """Settings > Appearance > Show tooltips: without it (at first), the events that ask for a tooltip are
+    dropped; with it, they reach the widgets."""
+    from PySide6.QtCore import QEvent, QPoint
+    from PySide6.QtGui import QHelpEvent
+
+    def asks():  # (whether a widget gets the event that asks for its tooltip)
+        got = []
+        button = window.toolbars()[0]
+        original = button.event
+        button.event = lambda e: got.append(e.type()) or original(e)
+        QApplication.sendEvent(button, QHelpEvent(QEvent.Type.ToolTip, QPoint(5, 5), QPoint(5, 5)))
+        button.event = original
+        return QEvent.Type.ToolTip in got
+
+    try:
+        appearance.apply_tooltips()
+        assert not asks()
+        d = SettingsDialog(window.prefs, window)
+        assert not d.tooltips.isChecked()
+        d.tooltips.setChecked(True)
+        d.accept()
+        assert config.get("tooltips") is True and asks()
+    finally:
+        appearance.apply_tooltips(True)
 
 
 def test_appearance(window):
@@ -45,17 +74,23 @@ def test_appearance(window):
     d = SettingsDialog(window.prefs, window)
     d.scale.setCurrentIndex(d.scale.findData(125))
     d.theme.setCurrentIndex(d.theme.findData("dark"))
-    d.hints.setChecked(False)
+    d.hints.setChecked(True)
     d.bar_style.setCurrentIndex(d.bar_style.findData("beside"))
     d.bar_size.setCurrentIndex(d.bar_size.findData(32))
     d.accept()
-    assert config.get("scale") == 125 and config.get("theme") == "dark" and config.get("hints") is False
+    assert config.get("scale") == 125 and config.get("theme") == "dark" and config.get("hints") is True
     assert abs(app.font().pointSizeF() - points * 1.25) < 0.2
     bar = next(b for b in window.toolbars() if b.objectName() == "file")
     assert bar.toolButtonStyle().name == "ToolButtonTextBesideIcon" and bar.iconSize().width() == 32
+    window.set_mode("redact")
+    assert not window.hint.isHidden() and window.hint.text()  # (the hint of the mode: the setting says so)
+    d = SettingsDialog(window.prefs, window)
+    d.hints.setChecked(False)
+    d.accept()
     window.hint.show_text("")
-    window.set_mode("annotate")
-    assert not window.hint.isVisible()  # (no hint: the setting says so)
+    window.hint.hide()
+    window.set_mode("read")
+    assert window.hint.isHidden()  # (no hint: the setting says so)
     appearance.apply_scale(100)
     appearance.apply_theme("system")
 
