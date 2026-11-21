@@ -5,7 +5,7 @@ RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.3.0 — 2026-11-20
 
 - **File > Combine files** (and `py-pdftools combine`): one PDF made of
   several, or of some of their pages in an order, one file after another,
