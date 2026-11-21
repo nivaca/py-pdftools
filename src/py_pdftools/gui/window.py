@@ -2862,7 +2862,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         a = menu.addAction(tr("Recognise the text of these pages (OCR)…") if len(pages) > 1
                            else tr("Recognise the text of this page (OCR)…"),
                            lambda: self.recognise_dialog(chosen=True))
-        a.setEnabled(self.a_recognise.isEnabled())
+        # (en cualquier modo: no se mira la acción del modo OCR, que se desactiva mientras otro modo está activo)
+        from ..annotate import ocr
+
+        a.setEnabled(self.path is not None and ocr.available())
         self.show_menu(menu, self.pages.viewport().mapToGlobal(pos))
 
     def select_all_pages(self):

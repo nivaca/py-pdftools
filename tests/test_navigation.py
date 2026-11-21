@@ -718,3 +718,22 @@ def test_the_page_navigation_bar(window):
     assert not bar.isVisible()
     window.set_mode("read")
     assert bar.isVisible()
+
+
+def test_ocr_from_the_thumbnails_in_every_mode(window, monkeypatch):
+    """The right click on the thumbnails offers to read the pages chosen (OCR) in every mode, not only in OCR,
+    whose own action is turned off while another mode is on."""
+    from py_pdftools.annotate import ocr
+
+    monkeypatch.setattr(ocr, "available", lambda: True)
+    shown = []
+    monkeypatch.setattr(window, "show_menu", lambda menu, pos: shown.append(menu))
+    for mode in ("read", "annotate", "ocr"):
+        window.set_mode(mode)
+        rect = window.pages.visualItemRect(window.pages.item(0))
+        window.thumbs_menu(rect.center())
+        item = next(a for a in shown[-1].actions() if "(OCR)" in a.text())
+        assert item.isEnabled(), mode
+    monkeypatch.setattr(ocr, "available", lambda: False)
+    window.thumbs_menu(window.pages.visualItemRect(window.pages.item(0)).center())
+    assert not next(a for a in shown[-1].actions() if "(OCR)" in a.text()).isEnabled()

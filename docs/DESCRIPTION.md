@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in twenty-six stages.
+I explain how it was made, in twenty-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -734,6 +734,16 @@ they are in English, translated as the rest. And its window, in tkinter,
 became a dialog of the window, Edit > Word index, while its command line
 became py-pdftools find-words, with the same options. Its tests came with
 it, on a document made with PyMuPDF instead of pypdf.
+
+27. The menu of the thumbnails, in every mode
+---------------------------------------------
+
+The right click on the thumbnails offers to read the pages chosen with OCR
+in every mode, as the READMEs said; but the item was grey everywhere except
+in the mode OCR. It took its state from the action Recognise text, which
+belongs to that mode, and the window turns off the actions of a mode while
+another one is on. It now looks at what it needs, a document and tesseract.
+A test opens the menu in three modes.
 
 Testing
 -------
