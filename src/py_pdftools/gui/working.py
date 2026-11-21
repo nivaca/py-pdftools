@@ -143,6 +143,8 @@ class WorkingMixin:
         if found is not None:
             # Loading the document's own file (undo back to the start) means there is no working copy any more.
             self.work = None if file == path else file
+            # (los rótulos de las miniaturas se leyeron cuando la ventana aún no sabía qué archivo muestra)
+            self.refresh_captions()
         return found
 
     def _state(self) -> DocState:

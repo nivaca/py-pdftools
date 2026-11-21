@@ -315,10 +315,28 @@ class PagesMixin:
         ranges = labels.normalize(ranges)
         if ranges == self.ranges:
             self.fill_pages_panel(select)
+            # (antes, nada lo decía: parecía que la orden no había hecho nada)
+            self.status(tr("The pages have those labels already"))
             return False
+        before = self.page_labels()
         done = self.edit_document(lambda doc: write_page_labels(doc, ranges), message=tr("Labels changed"))
         self.fill_pages_panel(select)
+        if done:
+            self.refresh_captions()
+            self.status(self._labels_said(before, self.page_labels()))
         return done
+
+    def _labels_said(self, before: list[str], after: list[str]) -> str:
+        """What changed in the labels, in a few words: 'Labels changed: page 5 is now i' (the first pages that
+        changed, and how many)."""
+        changed = [n for n in range(min(len(before), len(after))) if before[n] != after[n]]
+        if not changed:
+            return tr("Labels changed")
+        shown = ", ".join(tr("page {page} is now {label}", page=n + 1, label=after[n] or tr("(no label)"))
+                          for n in changed[:3])
+        more = len(changed) - 3
+        return tr("Labels changed: {what}", what=shown) + (
+            " " + ntr("and {count} more page", "and {count} more pages", more) if more > 0 else "")
 
     def _edit(self, row: int, **changes):
         """Change one field of the range in ROW (later, out of the signal of the widget)."""
@@ -380,7 +398,12 @@ class PagesMixin:
         if not pages or dlg.exec() != QDialog.DialogCode.Accepted:
             return False
         style, prefix, start, suffix = dlg.values()
-        return self.set_ranges(labels.number_pages(self.ranges, self.count, pages, style, prefix, start, suffix))
+        ranges = labels.number_pages(self.ranges, self.count, pages, style, prefix, start, suffix)
+        # Numerar como ya están (desde 1 un documento sin etiquetas) no cambia lo que se ve: se dice, y nada más.
+        if labels.page_labels(labels.normalize(ranges), self.count) == self.page_labels():
+            self.status(tr("The pages have those labels already"))
+            return False
+        return self.set_ranges(ranges)
 
     def continue_selected(self) -> bool:
         try:

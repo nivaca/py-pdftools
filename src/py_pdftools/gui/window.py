@@ -252,8 +252,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.pages.setWrapping(False)
         self.pages.setMovement(QListView.Movement.Static)
         self.pages.setUniformItemSizes(True)
-        self.pages.setToolTip(tr("The pages; the number after ● is how many annotations a page has. Ctrl+click "
-                                 "or Shift+click chooses several; right-click for what can be done with them"))
+        self.pages.setToolTip(tr("The pages, with their labels when they are not their numbers; the number after ● "
+                                 "is how many annotations a page has. Ctrl+click or Shift+click chooses several; "
+                                 "right-click for what can be done with them"))
         # Varias a la vez: Ctrl y Mayúsculas eligen páginas sin moverse a ellas; un clic solo va a la página.
         self.pages.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         # La fila -1 llega cuando se vacía la lista (se abre otro documento): no hay nada que mostrar.
@@ -2877,6 +2878,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             self.pages.addItem(item)
         self.thumb_timer.start()
 
+    def refresh_captions(self):
+        """The captions of the thumbnails as the labels are now (see _label_pages)."""
+        self._label_pages()
+
     def show_thumbnails(self, on: bool):
         """Show or hide the thumbnails of the pages (View menu)."""
         self.thumbs_box.setVisible(on)
@@ -3008,15 +3013,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for i, a in enumerate(self.annotations):
             if 0 <= a.page < self.count and i in shown and self.owns(a):
                 self._by_page[a.page].append(a)
-        shown_labels = self.page_labels() if self.mode == "pages" else None
+        # En todos los modos, cada página con su etiqueta, si no es su número (antes, solo en Foliar: un cambio de
+        # etiqueta hecho desde otro modo no se veía); y cuántas anotaciones tiene.
+        try:
+            shown_labels = self.page_labels()
+        except Exception:  # (unas etiquetas que no se pueden leer no impiden mostrar las páginas)
+            shown_labels = []
         for n in range(min(self.count, self.pages.count())):
             item = self.pages.item(n)
             count = len(self._by_page[n])
-            if shown_labels is not None:  # (in the mode Pages, each page with its label)
-                text = f"{n + 1}  {shown_labels[n]}" if shown_labels[n] and shown_labels[n] != str(n + 1) \
-                    else str(n + 1)
-            else:
-                text = f"{n + 1}  ● {count}" if count else str(n + 1)
+            label = shown_labels[n] if n < len(shown_labels) else ""
+            text = f"{n + 1}  {label}" if label and label != str(n + 1) else str(n + 1)
+            if count:
+                text += f"  ● {count}"
             # setText solo si cambia: cada llamada vuelve a pintar el elemento.
             if item.text() != text:
                 item.setText(text)

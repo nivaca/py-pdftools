@@ -9341,10 +9341,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>La página a la vista: escriba la etiqueta de una página (como iv) o un número, y pulse Intro</tr>
   </text>
   <text>
-    <en>The pages; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several; right-click for what can be done with them</en>
-    <tr>Las páginas; el número después de ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic eligen varias; el botón derecho, lo que se puede hacer con ellas</tr>
-  </text>
-  <text>
     <en>Afrikaans</en>
     <tr>Afrikáans</tr>
   </text>
@@ -12147,5 +12143,29 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>the version of the copy: {versions}</en>
     <tr>la versión de la copia: {versions}</tr>
+  </text>
+  <text>
+    <en>Labels changed: {what}</en>
+    <tr>Etiquetas cambiadas: {what}</tr>
+  </text>
+  <text>
+    <en>The pages have those labels already</en>
+    <tr>Las páginas ya tienen esas etiquetas</tr>
+  </text>
+  <text>
+    <en>The pages, with their labels when they are not their numbers; the number after ● is how many annotations a page has. Ctrl+click or Shift+click chooses several; right-click for what can be done with them</en>
+    <tr>Las páginas, con sus etiquetas cuando no son sus números; el número tras ● es cuántas anotaciones tiene una página. Ctrl+clic o Mayús+clic elige varias; clic derecho para lo que se puede hacer con ellas</tr>
+  </text>
+  <text>
+    <en>and {count} more page</en>
+    <tr>y {count} página más</tr>
+  </text>
+  <text>
+    <en>and {count} more pages</en>
+    <tr>y {count} páginas más</tr>
+  </text>
+  <text>
+    <en>page {page} is now {label}</en>
+    <tr>la página {page} es ahora {label}</tr>
   </text>
 </interface>
