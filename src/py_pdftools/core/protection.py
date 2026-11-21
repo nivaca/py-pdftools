@@ -16,6 +16,7 @@ from pathlib import Path
 import pikepdf
 
 from .interface import N_, tr
+from .replacing import replace
 
 # (clave en pikepdf.Permissions, nombre mostrado); imprimir en alta calidad incluye imprimir. Leer el texto
 # para la accesibilidad siempre se permite: AES-256 no deja negarlo.
@@ -74,7 +75,7 @@ def _write(source: Path, password: str, target: Path, encryption) -> None:
     try:
         with pikepdf.open(source, password=password) as pdf:
             pdf.save(tmp, encryption=encryption)
-        os.replace(tmp, target)
+        replace(tmp, target)
     except pikepdf.PasswordError:
         Path(tmp).unlink(missing_ok=True)
         raise ProtectionError(tr("{path} is protected by a password", path=source)) from None

@@ -921,6 +921,23 @@ OpenGL is done in software: a capture of the screen showed the pages as
 usual (a capture of the surface itself came out white, which is a matter of
 how it is read, not of what is shown).
 
+36. Replacing a file on Windows
+-------------------------------
+
+A test of the passwords failed on Windows now and then: the same commit
+passed on one run and failed on the next. It protects a file, which the
+window opens again, and at once writes over it again. Every write over a
+file is made as a new file in the same folder, renamed over the old one
+(`os.replace`), so that a failure never leaves half a file. On Windows that
+rename fails while another process holds the old file, even for a moment;
+here it was probably the processes that draw the pages, which read the
+document just opened into memory, and it could as well be the antivirus.
+The rename is now tried again, for up to two seconds, on Windows only
+(`core/replacing.py`), wherever a document of the user is written over:
+saving, passwords, combining, PDF/A and PDF/X, form data, the codes of
+redaction. On Linux and macOS a refusal is a real one, and is reported at
+once.
+
 Testing
 -------
 

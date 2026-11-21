@@ -19,6 +19,7 @@ import tempfile
 from pathlib import Path
 
 from .interface import N_, tr
+from .replacing import replace
 
 # What must be installed for PDF/A and PDF/X (named in the messages): pdf2iso is part of py-pdftools now,
 # but Ghostscript does the conversion
@@ -161,7 +162,7 @@ def convert(source: Path, target: Path, standard: str, password: str = "") -> st
             raise ConformError(tr("{command} could not make {standard}: {error}", command=COMMAND,
                                   standard=label(standard),
                                   error=(r.stderr or r.stdout).strip() or r.returncode))
-        os.replace(tmp, target)
+        replace(tmp, target)
     except subprocess.TimeoutExpired:
         raise ConformError(tr("{command} took too long", command=COMMAND)) from None
     except OSError as e:

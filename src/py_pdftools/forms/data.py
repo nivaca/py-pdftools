@@ -19,6 +19,7 @@ import pymupdf
 from ..core import pdfdoc
 from ..core.interface import tr
 from . import fields
+from ..core.replacing import replace
 
 FORMATS = ("json", "csv", "xfdf", "fdf")
 XFDF_NS = "http://ns.adobe.com/xfdf/"  # (el espacio de nombres que la norma XFDF fija)
@@ -193,7 +194,7 @@ def _save(doc: pymupdf.Document, target: Path):
     try:
         doc.save(tmp, garbage=3, deflate=True, encryption=pdfdoc.kept_encryption(doc))
         doc.close()
-        os.replace(tmp, target)
+        replace(tmp, target)
     except (OSError, RuntimeError, ValueError) as e:
         Path(tmp).unlink(missing_ok=True)
         raise DataError(tr("{path} cannot be written: {error}", path=target, error=e)) from None

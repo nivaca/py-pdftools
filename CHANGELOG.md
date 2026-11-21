@@ -5,6 +5,14 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **Windows**: writing over a file (saving, protecting with passwords,
+  combining, PDF/A and PDF/X, form data) waits a moment, up to about two
+  seconds, when another process holds the file briefly (the antivirus, or
+  the processes that draw the pages reading it), instead of failing at once
+  (found by the tests on GitHub, which failed now and then).
+
 ## 1.8.7 — 2026-11-21
 
 - **Check the configuration** stopped with an error when an OCR language

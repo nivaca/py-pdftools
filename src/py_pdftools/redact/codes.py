@@ -17,11 +17,11 @@ the files exported and imported:
 
 from __future__ import annotations
 
-import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from ..core import config
+from ..core.replacing import replace
 
 BUILT_IN = {
     "U.S. FOIA": ["(b)(1)", "(b)(2)", "(b)(3)", "(b)(4)", "(b)(5)", "(b)(6)", "(b)(7)(A)", "(b)(7)(B)",
@@ -95,7 +95,7 @@ def save_user_sets(sets: dict[str, list[str]]) -> None:
     # Written aside and then renamed, so a failure halfway never leaves codes.xml cut short.
     tmp = target.with_name(target.name + ".tmp")
     tmp.write_text(dump(sets), encoding="utf-8")
-    os.replace(tmp, target)
+    replace(tmp, target)
 
 
 def codes_of(text: str) -> list[str]:

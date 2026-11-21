@@ -51,6 +51,7 @@ import pymupdf
 from ..core import pdfdoc
 from ..core.interface import N_, tr
 from ..core.pdfdoc import nearest_word, normalized, rgb  # noqa: F401  (also annots.rgb ... for the others)
+from ..core.replacing import replace
 
 Rect = tuple[float, float, float, float]  # x0, y0, x1, y1
 Point = tuple[float, float]
@@ -1421,7 +1422,7 @@ def save_doc(doc: pymupdf.Document, target: Path) -> None:
                  encryption=pdfdoc.kept_encryption(doc))
         if doc.name and Path(doc.name).resolve() == target.resolve():
             doc.close()
-        os.replace(tmp, target)
+        replace(tmp, target)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise

@@ -19,6 +19,7 @@ import pymupdf
 from ..core.interface import tr
 from ..annotate.exchange import doc_labels
 from ..core.pagesel import PageError, parse_pages
+from ..core.replacing import replace
 
 BOOKMARKS = ("files", "keep", "none")  # one for each file (with its own under it), as they are, none
 PAPERS = {"A3": (297, 420), "A4": (210, 297), "A5": (148, 210), "Letter": (215.9, 279.4),
@@ -195,7 +196,7 @@ def _save(doc: pymupdf.Document, target: Path) -> None:
     try:
         doc.save(tmp, garbage=3, deflate=True)
         doc.close()
-        os.replace(tmp, target)
+        replace(tmp, target)
     except (OSError, RuntimeError, ValueError) as e:
         Path(tmp).unlink(missing_ok=True)
         raise CombineError(tr("{path} cannot be written: {error}", path=target, error=e)) from None
