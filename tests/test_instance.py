@@ -119,10 +119,18 @@ def test_ping_opens_nothing(app, tmp_path):
     assert not instance.running()
     before = len(_WINDOWS)
     assert gui.background(True)
-    pinger = subprocess.Popen([sys.executable, "-c", "from py_pdftools.gui import instance; "
-                                                     "print(instance.running())"], stdout=subprocess.PIPE, text=True)
-    wait(app, lambda: pinger.poll() is not None, seconds=30)
-    assert pinger.stdout.read().strip() == "True"
+    # (up to three times: on a busy machine, as GitHub's runners of Windows, an answer may take more than the
+    # second and a half instance.running waits for it, and that would say nothing about the program)
+    answers = []
+    for _ in range(3):
+        pinger = subprocess.Popen([sys.executable, "-c", "from py_pdftools.gui import instance; "
+                                                         "print(instance.running())"],
+                                  stdout=subprocess.PIPE, text=True)
+        wait(app, lambda: pinger.poll() is not None, seconds=30)
+        answers.append(pinger.stdout.read().strip())
+        if answers[-1] == "True":
+            break
+    assert answers[-1] == "True", answers
     for _ in range(20):
         app.processEvents()
     assert len(_WINDOWS) == before  # (asked whether it runs: no window opened)
