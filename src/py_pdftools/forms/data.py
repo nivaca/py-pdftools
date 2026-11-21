@@ -60,7 +60,9 @@ def dumps(values: dict[str, str], fmt: str, source: str = "", names=()) -> str:
         return json.dumps(values, ensure_ascii=False, indent=2) + "\n"
     if fmt == "csv":
         out = io.StringIO()
-        w = csv.writer(out)
+        # (\n: the text is saved as text, which writes \r\n on Windows; csv's own \r\n would
+        # become \r\r\n, an empty line after each row)
+        w = csv.writer(out, lineterminator="\n")
         w.writerow(values.keys())
         w.writerow(values.values())
         return out.getvalue()
@@ -90,7 +92,9 @@ def table(rows: list[tuple[str, dict[str, str]]]) -> str:
     for _, values in rows:
         names.update(dict.fromkeys(values))
     out = io.StringIO()
-    w = csv.writer(out)
+    # (\n: the text is saved as text, which writes \r\n on Windows; csv's own \r\n would
+    # become \r\r\n, an empty line after each row)
+    w = csv.writer(out, lineterminator="\n")
     w.writerow(["file", *names])
     for file, values in rows:
         w.writerow([file, *(values.get(n, "") for n in names)])

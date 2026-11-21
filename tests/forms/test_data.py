@@ -106,3 +106,12 @@ def test_in_the_window(form, tmp_path, monkeypatch):
     finally:
         w.drop_work()
         w.close()
+
+
+def test_csv_lines_end_plainly():
+    """The CSVs are saved as text, which ends their lines as the system does (\\r\\n on Windows): they must not
+    have csv's own \\r\\n, which would become \\r\\r\\n there, an empty line after each row."""
+    from py_pdftools.forms import data
+
+    assert "\r" not in data.dumps({"a": "1", "b": "2"}, "csv")
+    assert "\r" not in data.table([("x.pdf", {"a": "1"}), ("y.pdf", {"b": "2"})])
