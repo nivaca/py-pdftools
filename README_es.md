@@ -102,7 +102,7 @@ que hace las copias como PDF/A y PDF/X. Ya no es un programa que haya que
 instalar aparte: la ventana, las órdenes con `--conform` y `py-pdftools
 pdf2iso`, que es la línea de órdenes del propio pdf2iso, usan el que trae
 py-pdftools. Solo hace falta tener instalado Ghostscript, que hace la
-conversión. En la configuración todavía puede indicarse otro pdf2iso.
+conversión.
 
 Los documentos que hicieron los programas anteriores se leen como antes:
 las claves que escribían en un PDF (etiquetas y categorías de las

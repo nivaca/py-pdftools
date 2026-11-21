@@ -689,6 +689,13 @@ tab made of a form is now in a scroll area: when the window is too short, it
 scrolls; it is never narrower than its checkboxes, so it only scrolls up and
 down.
 
+The settings still had a field to name another pdf2iso, from the time when
+it was a program apart; it is part of py-pdftools now, so the field was
+taken out of Settings and of the settings of redaction, with a small dialog
+of Impose that asked for it and that nothing opened any more. The
+configuration file can still name one, which the tests use to put a script
+of their own in its place.
+
 Testing
 -------
 

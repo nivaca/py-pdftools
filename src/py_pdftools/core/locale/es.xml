@@ -1348,10 +1348,6 @@
     <tr>Ghostscript no pudo conservar estas anotaciones en {standard} y las dejó fuera: {kinds}. Se pueden hacer parte de las páginas: se verán e imprimirán, pero ya no se podrán editar. Las demás anotaciones quedan como están.</tr>
   </text>
   <text>
-    <en>It will be {path}</en>
-    <tr>Será {path}</tr>
-  </text>
-  <text>
     <en>Leave them out</en>
     <tr>Dejarlas fuera</tr>
   </text>
@@ -1406,22 +1402,6 @@
   <text>
     <en>The panel of the annotations</en>
     <tr>El panel de las anotaciones</tr>
-  </text>
-  <text>
-    <en>Another pdf2iso to use instead of the one of py-pdftools (a script, with or without the .py extension); empty for its own</en>
-    <tr>Otro pdf2iso que usar en lugar del de py-pdftools (un script, con o sin la extensión .py); vacío para el propio</tr>
-  </text>
-  <text>
-    <en>There is no such file</en>
-    <tr>No existe ese archivo</tr>
-  </text>
-  <text>
-    <en>Where is pdf2iso?</en>
-    <tr>¿Dónde está pdf2iso?</tr>
-  </text>
-  <text>
-    <en>pdf2iso:</en>
-    <tr>pdf2iso:</tr>
   </text>
   <text>
     <en>some annotations were made part of the pages</en>
@@ -3188,10 +3168,6 @@
   <text>
     <en>{name} (copy)</en>
     <tr>{name} (copia)</tr>
-  </text>
-  <text>
-    <en>pdf2iso (pdf2iso pdf2iso.py);;All files (*)</en>
-    <tr>pdf2iso (pdf2iso pdf2iso.py);;Todos los archivos (*)</tr>
   </text>
   <text>
     <en>Save the redacted copy as {standard}</en>
@@ -9031,18 +9007,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel zoom. Choose another mode, above, to annotate, redact, foliate or impose the document.</en>
     <tr>Recorra las páginas, o arrástrelas con el ratón; Ctrl y la rueda del ratón cambian el tamaño. Elija otro modo, arriba, para anotar, censurar, foliar o imponer el documento.</tr>
-  </text>
-  <text>
-    <en>Empty: the one of py-pdftools</en>
-    <tr>Vacío: el de py-pdftools</tr>
-  </text>
-  <text>
-    <en>The one of py-pdftools, with Ghostscript</en>
-    <tr>El de py-pdftools, con Ghostscript</tr>
-  </text>
-  <text>
-    <en>The one of py-pdftools; but PDF/A and PDF/X can't be made: {error}</en>
-    <tr>El de py-pdftools; pero no se pueden hacer PDF/A ni PDF/X: {error}</tr>
   </text>
   <text>
     <en>it took longer than {seconds:g} seconds to draw</en>

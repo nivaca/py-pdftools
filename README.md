@@ -100,8 +100,7 @@ A fifth program of mine came in whole:
 PDF/A and PDF/X. It is no longer a program to install apart: the window,
 the commands with `--conform`, and `py-pdftools pdf2iso`, which is pdf2iso's
 own command line, all use the one in py-pdftools. Only Ghostscript, which
-does the conversion, must be installed. Settings can still name another
-pdf2iso to use instead.
+does the conversion, must be installed.
 
 The documents the old programs made are read as before: the keys they wrote
 in a PDF (tags and categories of annotations, layers of headers, footers

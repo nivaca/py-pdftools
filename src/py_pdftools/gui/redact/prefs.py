@@ -12,7 +12,6 @@ from PySide6.QtWidgets import (
 
 from ...core.interface import N_, tr
 from ...redact.settings import DEFAULTS, Settings
-from ..conform_field import Pdf2isoField
 
 IMAGES = [("pixels", N_("Blank the part under the box")), ("whole", N_("Remove the whole image")),
           ("none", N_("Leave the images as they are"))]
@@ -43,14 +42,12 @@ class SettingsDialog(QDialog):
         self.drawings = QComboBox()
         for value, name in DRAWINGS:
             self.drawings.addItem(tr(name), value)
-        self.conform_field = Pdf2isoField(self)
         self.clean = QCheckBox(tr("Also remove metadata, hidden text, attachments and scripts"))
         form = QFormLayout()
         form.addRow(tr("Colour of new boxes:"), self.color_button)
         form.addRow(tr("Images under a box:"), self.images)
         form.addRow(tr("Drawings under a box:"), self.drawings)
         form.addRow("", self.clean)
-        self.conform_field.add_to(form)
         form.addRow(QLabel("<b>" + tr("Boxes not yet applied") + "</b>"))
         form.addRow(tr("Outline:"), self.outline_button)
         form.addRow(tr("Fill opacity:"), self.opacity)
@@ -82,7 +79,6 @@ class SettingsDialog(QDialog):
         self.outline_button.setIcon(self._swatch(self.outline))
         self.outline_button.setText(self.outline)
         self.opacity.setValue(settings.mark_opacity)
-        self.conform_field.edit.setText(settings.pdfconform)
 
     def _show_color(self):
         self.color_button.setIcon(self._swatch(self.color))
@@ -108,5 +104,4 @@ class SettingsDialog(QDialog):
         return dataclasses.replace(self.original, color=self.color, clean=self.clean.isChecked(),
                                    images=self.images.currentData(), drawings=self.drawings.currentData(),
                                    mark_outline=self.outline,
-                                   pdfconform=self.conform_field.text(),
                                    mark_opacity=self.opacity.value())

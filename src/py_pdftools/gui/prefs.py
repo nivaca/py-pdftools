@@ -38,7 +38,6 @@ from ..core import config
 from ..annotate import settings
 from ..annotate.annots import NAMES
 from ..core.interface import N_, tr
-from .conform_field import Pdf2isoField
 from .props import ColorButton
 
 # the actions with a shortcut that aren't tools
@@ -129,9 +128,6 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             self.reload.setChecked(True)
         form.addRow("", self.reload)
-        # Al escribir la ruta se dice enseguida qué pdf2iso se usaría, o que no existe.
-        self.conform_field = Pdf2isoField(self, prefs.pdfconform)
-        self.conform_field.add_to(form)
         # Imported here, not at the top: finding the Tesseract languages runs a program, only worth it
         # when the dialog opens.
         from ..annotate import ocr
@@ -518,7 +514,6 @@ class SettingsDialog(QDialog):
             same = color == usual_color and text == (tr(usual_meaning) if usual_meaning else "")
             palette.append((color, None if same else text))
         prefs = dataclasses.replace(self.prefs, author=author, autosave=self.autosave.value(),
-                                    pdfconform=self.conform_field.text(),
                                     ocr_language=self._ocr_language(),
                                     pen_pressure=self.pen_pressure.currentData(),
                                     pen_curve=self.pen_curve.currentData(),
