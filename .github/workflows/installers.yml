@@ -29,6 +29,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       QT_QPA_PLATFORM: offscreen
+      # (the tests choose their display by this, not by QT_QPA_PLATFORM: without it, where Xvfb is installed, as
+      # on Ubuntu's runners, they start an X server and Qt's xcb plugin, which lacks libraries there and aborts)
+      PY_PDFTOOLS_TEST_DISPLAY: offscreen
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -80,6 +83,9 @@ jobs:
     runs-on: windows-latest
     env:
       QT_QPA_PLATFORM: offscreen
+      # (the tests choose their display by this, not by QT_QPA_PLATFORM: without it, where Xvfb is installed, as
+      # on Ubuntu's runners, they start an X server and Qt's xcb plugin, which lacks libraries there and aborts)
+      PY_PDFTOOLS_TEST_DISPLAY: offscreen
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
