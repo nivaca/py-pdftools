@@ -89,7 +89,9 @@ def plan(spec: dict, source: Path | bytes, password: str = "") -> list[Part]:
         if "bookmarks" in spec:
             return at_bookmarks(doc.get_toc(simple=True), n, int(spec["bookmarks"]))
         if spec.get("every") == 1:
-            labels = [doc[i].get_label() for i in range(n)]
+            from ..annotate.exchange import doc_labels
+
+            labels = doc_labels(doc)  # (como las lee pikepdf: el PyMuPDF de algunas distribuciones las lee mal)
             return [(i + 1, i + 1, safe_name(labels[i]) if labels[i] and labels[i] != str(i + 1) else "")
                     for i in range(n)]
     if "size" in spec:

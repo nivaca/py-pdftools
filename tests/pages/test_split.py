@@ -68,7 +68,9 @@ def test_command_line(book, tmp_path):
     assert sorted(p.name for p in out.iterdir()) == ["book-1.pdf", "book-2-Prologue.pdf", "book-3-Chapter One Two.pdf",
                                                      "book-4-End.pdf"]
     with pymupdf.open(out / "book-3-Chapter One Two.pdf") as d:
-        assert d.page_count == 6 and d[0].get_label() == "2"
+        from py_pdftools.annotate.exchange import doc_labels
+
+        assert d.page_count == 6 and doc_labels(d)[0] == "2"  # (leídas con pikepdf, como el programa las lee)
     assert main(["pages", str(book), "--split-size", "0.2", "--output-dir", str(tmp_path / "s")]) == 0
     assert all(p.stat().st_size <= 260_000 for p in (tmp_path / "s").iterdir())
 

@@ -17,6 +17,7 @@ from pathlib import Path
 import pymupdf
 
 from ..core.interface import tr
+from ..annotate.exchange import doc_labels
 from ..core.pagesel import PageError, parse_pages
 
 BOOKMARKS = ("files", "keep", "none")  # one for each file (with its own under it), as they are, none
@@ -153,7 +154,9 @@ def combine(parts: list[Part], target: Path, bookmarks: str = "files", labels: b
                 if not pages:
                     continue
                 old_toc = doc.get_toc(simple=True)
-                page_labels = [doc[n].get_label() or str(n + 1) for n in pages]
+                # (las etiquetas como las lee pikepdf: el PyMuPDF de algunas distribuciones las lee mal)
+                read = doc_labels(doc)
+                page_labels = [read[n] or str(n + 1) for n in pages]
                 title = _title(doc, part.path)
                 if pages != list(range(doc.page_count)):
                     doc.select(pages)  # (en memoria: los enlaces entre las páginas que quedan las siguen)

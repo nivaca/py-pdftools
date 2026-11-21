@@ -31,10 +31,13 @@ def _open(path: Path, password: str) -> pymupdf.Document:
 def _names(doc: pymupdf.Document, pages: list[int]) -> dict[int, str]:
     """A part of a file name for each of PAGES: its number, with zeros to sort well (and its label, if it has
     another one)."""
+    from ..annotate.exchange import doc_labels
+
     width = len(str(doc.page_count))
+    read = doc_labels(doc)  # (como las lee pikepdf: el PyMuPDF de algunas distribuciones las lee mal)
     out = {}
     for n in pages:
-        label = doc[n].get_label() or ""
+        label = read[n] if n < len(read) else ""
         safe = re.sub(r"[^\w.-]+", "_", label).strip("_")
         out[n] = f"{n + 1:0{width}}" + (f"-{safe}" if safe and safe != str(n + 1) else "")
     return out
