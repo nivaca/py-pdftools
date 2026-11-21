@@ -1,6 +1,7 @@
 """Filling forms (mixed into MainWindow): the panel Form (View > Form fields, F6) has an editor for each field
 of the document (a text, a check box, a choice of radio buttons, a list), in the order of the form, so that
-Tab goes from one to the next; on the page, a click on a check box or a radio button sets it, and one on
+Tab goes from one to the next; what is typed is checked, shown and summed as the form says (numbers, dates,
+sums: see forms/formats.py); on the page, a click on a check box or a radio button sets it, and one on
 another field takes the panel to it. Each value written is a step of the history (see
 working.edit_document); Edit > Undo takes it back. The panel opens by itself with a document that has
 fields."""
@@ -15,7 +16,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.interface import ntr, tr
-from ..forms import fields
+from ..forms import fields, formats
 from ..forms.fields import OFF, Field
 
 
@@ -38,6 +39,7 @@ class FormMixin:
 
     def _build_form(self):
         self.form_fields: list[Field] = []
+        self._form_order: list[str] = []  # (el orden de cálculo del formulario)
         self._form_editors: dict[str, QWidget] = {}
         self._form_shown_for = None  # (el documento para el que el panel se abrió solo, una vez)
         self.form_head = QLabel()
@@ -82,6 +84,7 @@ class FormMixin:
         """The fields of the document as it is now: the editors made again if the fields are others, else only
         their values (the one being filled keeps the focus)."""
         found = fields.read(self.doc) if self.doc is not None else []
+        self._form_order = formats.calculation_order(self.doc) if found else []
         same = [(f.name, f.kind, f.options) for f in found] == \
             [(f.name, f.kind, f.options) for f in self.form_fields] and bool(self._form_editors)
         self.form_fields = found
@@ -182,8 +185,28 @@ class FormMixin:
 
     def form_values(self, name: str, value: str) -> tuple[dict[str, str], dict[str, str]] | None:
         """What writing VALUE into the field NAME writes: ({field: value}, {field: text shown}); None if it
-        can't be written (the value refused)."""
-        return {name: value}, {}
+        can't be written (the value refused by the field's checks: the reason is said). See forms/formats.py:
+        the value as the field keeps it, the fields calculated from it, and how each is shown."""
+        f = self.field(name)
+        try:
+            value = formats.check(f, value) if f is not None and f.kind == "text" else value
+        except formats.Refused as e:
+            self.status(str(e), error=True)
+            return None
+        return self._formatted({name: value})
+
+    def _formatted(self, values: dict[str, str]) -> tuple[dict[str, str], dict[str, str]]:
+        """VALUES with the calculations they bring, and the text each of them shows."""
+        current = {f.name: f.value for f in self.form_fields} | values
+        values = values | formats.calculate(self.form_fields, current, self._form_order)
+        shown = {}
+        for n, v in values.items():
+            f = self.field(n)
+            if f is not None and f.kind == "text":
+                text = formats.shown(f, v)
+                if text != v:
+                    shown[n] = text
+        return values, shown
 
     def set_field(self, name: str, value: str) -> bool:
         """VALUE written into the field NAME, as a step of the history (nothing, if it has it already)."""
@@ -206,7 +229,8 @@ class FormMixin:
         values = {n: v for n, v in values.items() if (f := self.field(n)) is not None and f.value != v}
         if not values:
             return False
-        done = self.edit_document(lambda doc: fields.fill(doc, values), message=message)
+        values, shown = self._formatted(values)
+        done = self.edit_document(lambda doc: fields.fill(doc, values, shown), message=message)
         if done:
             self.form_refresh()
         return done

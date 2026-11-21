@@ -11257,4 +11257,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{field} filled in</en>
     <tr>Se rellenó {field}</tr>
   </text>
+  <text>
+    <en>{field} must be between {low} and {high}</en>
+    <tr>{field} debe estar entre {low} y {high}</tr>
+  </text>
+  <text>
+    <en>{field} takes a date written as {format}</en>
+    <tr>{field} lleva una fecha escrita como {format}</tr>
+  </text>
+  <text>
+    <en>{field} takes a number</en>
+    <tr>{field} lleva un número</tr>
+  </text>
+  <text>
+    <en>{field} takes {count} digits ({mask})</en>
+    <tr>{field} lleva {count} dígitos ({mask})</tr>
+  </text>
 </interface>

@@ -97,3 +97,37 @@ def test_in_the_window(form, tmp_path, monkeypatch):
     finally:
         w.drop_work()
         w.close()
+
+
+def test_formats_checks_and_sums(tmp_path, monkeypatch):
+    """A number typed is kept plainly and shown with its format; a date refused or written in its format; the
+    total summed whenever a price or the tax changes; a value out of range refused."""
+    app = QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    form = make(tmp_path / "f.pdf")
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    try:
+        assert w.open_path(form)
+        assert w.set_field("price", "$1,234.5")
+        assert w.field("price").value == "1234.5" and w.field("total").value == "1234.5"
+        assert w.set_field("tax", "10")
+        assert w.field("total").value == "1244.5"
+        text = w.doc[0].get_text()
+        assert "$1,234.50" in text and "$1,244.50" in text
+        assert not w.set_field("when", "32/13/2026")
+        assert "date" in w.statusBar().currentMessage()
+        assert w.set_field("when", "3/7/2026") and w.field("when").value == "03/07/2026"
+        assert not w.set_field("share", "2")
+        assert w.set_field("share", "0.5") and "50.0%" in w.doc[0].get_text()
+        assert w.set_field("phone", "555 123 4567") and "(555) 123-4567" in w.doc[0].get_text()
+        w.undo()
+        w.undo()
+        assert w.field("share").value == ""
+        assert w.save()
+        saved = {f.name: f.value for f in fields.read(pymupdf.open(form))}
+        assert saved["total"] == "1244.5" and saved["price"] == "1234.5"
+    finally:
+        w.drop_work()
+        w.close()
+        app.processEvents()
