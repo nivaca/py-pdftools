@@ -159,8 +159,10 @@ class NavigationMixin:
 
     def remember_file_place(self):
         """Keep the place shown of the document (its page, the height at the top of the view, the zoom), to
-        open it there the next time (the last PLACES files)."""
-        if self.doc is None or self.path is None:
+        open it there the next time (the last PLACES files); not if Settings > Documents says not to."""
+        from .appearance import value
+
+        if self.doc is None or self.path is None or not value("places"):
             return
         places = self._places()
         key = self._file_key(self.path)
@@ -181,7 +183,10 @@ class NavigationMixin:
                 self._follow_named({"name": place["name"]})
                 self.reset_history()
             return
-        last = self._places().get(self._file_key(self.path)) if self.path is not None else None
+        from .appearance import value
+
+        last = self._places().get(self._file_key(self.path)) if self.path is not None and value("places") \
+            else None
         if isinstance(last, list) and len(last) == 4:
             page, top, zoom, fit = last
             if fit in ("page", "width"):
@@ -191,6 +196,12 @@ class NavigationMixin:
             self.go_place(max(0, min(int(page), self.count - 1)), top, remember=False)
             return
         self._open_as_asked()
+        # (Settings > Documents: a zoom of its own, instead of the document's)
+        how = value("opening")
+        if how in ("page", "width"):
+            self._fit(how)
+        elif how == "actual":
+            self.canvas.set_zoom(1.0)
 
     def _open_as_asked(self):
         """The document's own view on opening: its page, its zoom, and the panel it asks for."""
@@ -281,10 +292,13 @@ class NavigationMixin:
 
     def open_address(self, uri: str) -> bool:
         """A web or mail address, opened by the desktop's program for it, once the user says so."""
+        from .appearance import value
+
         if not uri:
             return False
-        answer = QMessageBox.question(self, tr("Open the address"),
-                                      tr("Open this address, outside py-pdftools?") + "\n\n" + uri)
-        if answer != QMessageBox.StandardButton.Yes:
-            return False
+        if value("ask_links"):  # (Settings > Documents)
+            answer = QMessageBox.question(self, tr("Open the address"),
+                                          tr("Open this address, outside py-pdftools?") + "\n\n" + uri)
+            if answer != QMessageBox.StandardButton.Yes:
+                return False
         return QDesktopServices.openUrl(QUrl(uri))

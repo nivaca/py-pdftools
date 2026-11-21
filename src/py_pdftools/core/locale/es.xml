@@ -12180,4 +12180,104 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>py-pdftools starts when you log in, without a window, and waits in the background (so this needs the setting above, which is turned on with it)</en>
     <tr>py-pdftools empieza al iniciar la sesión, sin ventana, y espera en segundo plano (así que necesita el ajuste de arriba, que se activa con este)</tr>
   </text>
+  <text>
+    <en>A document opens showing:</en>
+    <tr>Un documento se abre mostrando:</tr>
+  </text>
+  <text>
+    <en>Actual size (100 %)</en>
+    <tr>El tamaño real (100 %)</tr>
+  </text>
+  <text>
+    <en>As the document asks</en>
+    <tr>Lo que pide el documento</tr>
+  </text>
+  <text>
+    <en>As the system</en>
+    <tr>Como el sistema</tr>
+  </text>
+  <text>
+    <en>Ask before opening a web or mail address</en>
+    <tr>Preguntar antes de abrir una dirección web o de correo</tr>
+  </text>
+  <text>
+    <en>Clear the list of recent documents</en>
+    <tr>Vaciar la lista de documentos recientes</tr>
+  </text>
+  <text>
+    <en>Colours of the interface:</en>
+    <tr>Colores de la interfaz:</tr>
+  </text>
+  <text>
+    <en>Dark</en>
+    <tr>Oscuros</tr>
+  </text>
+  <text>
+    <en>Documents</en>
+    <tr>Documentos</tr>
+  </text>
+  <text>
+    <en>Light</en>
+    <tr>Claros</tr>
+  </text>
+  <text>
+    <en>Open and save dialogs start in:</en>
+    <tr>Los diálogos de abrir y guardar empiezan en:</tr>
+  </text>
+  <text>
+    <en>Open each document where it was left (its page and zoom)</en>
+    <tr>Abrir cada documento donde se dejó (su página y su zoom)</tr>
+  </text>
+  <text>
+    <en>Over the pages, for a few seconds; Help &gt; Tips for this mode (F1) shows it always</en>
+    <tr>Sobre las páginas, unos segundos; Ayuda &gt; Consejos de este modo (F1) lo muestra siempre</tr>
+  </text>
+  <text>
+    <en>Recent documents in the menu:</en>
+    <tr>Documentos recientes en el menú:</tr>
+  </text>
+  <text>
+    <en>Show a hint of what can be done when a mode is chosen</en>
+    <tr>Mostrar un consejo de lo que se puede hacer al elegir un modo</tr>
+  </text>
+  <text>
+    <en>Size of the interface:</en>
+    <tr>Tamaño de la interfaz:</tr>
+  </text>
+  <text>
+    <en>The folder of the document</en>
+    <tr>La carpeta del documento</tr>
+  </text>
+  <text>
+    <en>The last folder used</en>
+    <tr>La última carpeta usada</tr>
+  </text>
+  <text>
+    <en>The size of the letters of the menus, panels and dialogs</en>
+    <tr>El tamaño de las letras de los menús, paneles y diálogos</tr>
+  </text>
+  <text>
+    <en>The whole page</en>
+    <tr>La página entera</tr>
+  </text>
+  <text>
+    <en>The width of the page</en>
+    <tr>El ancho de la página</tr>
+  </text>
+  <text>
+    <en>The zoom of a document opened for the first time (one opened before opens where it was left, if that is remembered)</en>
+    <tr>El zoom de un documento abierto por primera vez (uno abierto antes se abre donde se dejó, si eso se recuerda)</tr>
+  </text>
+  <text>
+    <en>Toolbars, icons:</en>
+    <tr>Barras, iconos:</tr>
+  </text>
+  <text>
+    <en>Toolbars, text:</en>
+    <tr>Barras, texto:</tr>
+  </text>
+  <text>
+    <en>none</en>
+    <tr>ninguno</tr>
+  </text>
 </interface>

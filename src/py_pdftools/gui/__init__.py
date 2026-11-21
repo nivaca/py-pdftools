@@ -62,6 +62,9 @@ def main(argv: list[str] | None = None) -> int:
     from . import performance
 
     performance.apply()  # (the memory profile, the transparency, the antialiasing: Settings > Performance)
+    from . import appearance
+
+    appearance.apply()  # (the colours and the size of the interface: Settings > Appearance)
     if hidden:
         # Solo el icono de la bandeja; una ventana se prepara, oculta, para el primer documento (ver spare).
         if not background(True):

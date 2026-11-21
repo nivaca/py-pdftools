@@ -1,6 +1,8 @@
-"""The Settings dialog: the author written in new annotations and the
-recovery copies; the colours offered in the menus, with what each means; and
-the keyboard shortcuts."""
+"""The Settings dialog: General (the author of new annotations, the recovery copies, running in the background
+and starting with the session, tabs, OCR, the pen), Appearance (the colours and size of the interface, its
+language, the hints, the toolbars), Documents (how they open, their places, links, the recent ones, the file
+dialogs), the colours offered in the menus with what each means, the keyboard shortcuts, the categories, and
+Performance."""
 
 from __future__ import annotations
 
@@ -56,7 +58,7 @@ class SettingsDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle(tr("Settings"))
         self.prefs = prefs
-        # Cuatro pestañas: General, Colores, Atajos y Categorías. Nada se guarda hasta pulsar Aceptar.
+        # Siete pestañas (véase el texto del módulo). Nada se guarda hasta pulsar Aceptar.
         tabs = QTabWidget()
 
         general = QWidget()
@@ -163,6 +165,8 @@ class SettingsDialog(QDialog):
         where.setStyleSheet("color: palette(placeholder-text);")
         form.addRow(where)
         tabs.addTab(general, tr("General"))
+        tabs.addTab(self._appearance_tab(parent), tr("Appearance"))
+        tabs.addTab(self._documents_tab(), tr("Documents"))
 
         colours = QWidget()
         form = QFormLayout(colours)
@@ -255,6 +259,127 @@ class SettingsDialog(QDialog):
         outer.addWidget(buttons)
         self.resize(560, 620)
 
+    # ----------------------------------------------------------------- Appearance and Documents
+
+    def _appearance_tab(self, window) -> QWidget:
+        """The colours and the size of the interface, its language, the hints of the modes, and how the toolbars
+        look (see appearance.py, toolbars.py)."""
+        from ..core import interface
+        from . import appearance
+        from .toolbars import SIZES, STYLES
+
+        page = QWidget()
+        form = QFormLayout(page)
+        self.theme = QComboBox()
+        for key, name in (("system", N_("As the system")), ("light", N_("Light")), ("dark", N_("Dark"))):
+            self.theme.addItem(tr(name), key)
+        self.theme.setCurrentIndex(max(0, self.theme.findData(appearance.value("theme"))))
+        form.addRow(tr("Colours of the interface:"), self.theme)
+        self.scale = QComboBox()
+        for percent in appearance.SCALES:
+            self.scale.addItem(f"{percent} %", percent)
+        self.scale.setCurrentIndex(max(0, self.scale.findData(int(appearance.value("scale") or 100))))
+        self.scale.setToolTip(tr("The size of the letters of the menus, panels and dialogs"))
+        form.addRow(tr("Size of the interface:"), self.scale)
+        self.language = QComboBox()
+        for code, name in interface.names().items():
+            self.language.addItem(name, code)
+        self.language.setCurrentIndex(max(0, self.language.findData(interface.code())))
+        form.addRow(tr("Language:"), self.language)
+        self.hints = QCheckBox(tr("Show a hint of what can be done when a mode is chosen"))
+        self.hints.setChecked(bool(appearance.value("hints")))
+        self.hints.setToolTip(tr("Over the pages, for a few seconds; Help > Tips for this mode (F1) shows it always"))
+        form.addRow("", self.hints)
+        looks = window.looks() if window is not None and hasattr(window, "looks") else {}
+        self.bar_style = QComboBox()
+        for key, name, _ in STYLES:
+            self.bar_style.addItem(tr(name), key)
+        self.bar_style.setCurrentIndex(max(0, self.bar_style.findData(looks.get("style", "icons"))))
+        self.bar_size = QComboBox()
+        for px, name in SIZES:
+            self.bar_size.addItem(tr(name), px)
+        self.bar_size.setCurrentIndex(max(0, self.bar_size.findData(looks.get("size", 22))))
+        self.bar_lock = QCheckBox(tr("Lock the toolbars"))
+        self.bar_lock.setChecked(bool(looks.get("locked")))
+        self._bars_before = (self.bar_style.currentData(), self.bar_size.currentData(), self.bar_lock.isChecked())
+        form.addRow(tr("Toolbars, text:"), self.bar_style)
+        form.addRow(tr("Toolbars, icons:"), self.bar_size)
+        form.addRow("", self.bar_lock)
+        return page
+
+    def _documents_tab(self) -> QWidget:
+        """How documents open, what is remembered of them, links, the recent files, the file dialogs."""
+        from . import appearance
+
+        page = QWidget()
+        form = QFormLayout(page)
+        self.opening = QComboBox()
+        for key, name in (("document", N_("As the document asks")), ("page", N_("The whole page")),
+                          ("width", N_("The width of the page")), ("actual", N_("Actual size (100 %)"))):
+            self.opening.addItem(tr(name), key)
+        self.opening.setCurrentIndex(max(0, self.opening.findData(appearance.value("opening"))))
+        self.opening.setToolTip(tr("The zoom of a document opened for the first time (one opened before opens "
+                                   "where it was left, if that is remembered)"))
+        form.addRow(tr("A document opens showing:"), self.opening)
+        self.places = QCheckBox(tr("Open each document where it was left (its page and zoom)"))
+        self.places.setChecked(bool(appearance.value("places")))
+        form.addRow("", self.places)
+        self.ask_links = QCheckBox(tr("Ask before opening a web or mail address"))
+        self.ask_links.setChecked(bool(appearance.value("ask_links")))
+        form.addRow("", self.ask_links)
+        self.recent = QSpinBox(minimum=0, maximum=30)
+        self.recent.setValue(int(appearance.value("recent") or 0))
+        self.recent.setSpecialValueText(tr("none"))
+        form.addRow(tr("Recent documents in the menu:"), self.recent)
+        clear = QPushButton(tr("Clear the list of recent documents"))
+        clear.clicked.connect(self._clear_recent)
+        form.addRow("", clear)
+        self.dialogs = QComboBox()
+        for key, name in (("last", N_("The last folder used")), ("document", N_("The folder of the document"))):
+            self.dialogs.addItem(tr(name), key)
+        self.dialogs.setCurrentIndex(max(0, self.dialogs.findData(appearance.value("dialogs"))))
+        form.addRow(tr("Open and save dialogs start in:"), self.dialogs)
+        return page
+
+    def _clear_recent(self):
+        from .window import _WINDOWS
+
+        for win in _WINDOWS:
+            win.clear_recent()
+
+    def _keep_appearance(self) -> bool:
+        """The settings of Appearance and Documents kept and applied (to every window). Whether the language
+        changed (the windows are then built again, after the dialog)."""
+        from ..core import interface
+        from . import appearance
+        from .window import _WINDOWS
+
+        values = {"theme": self.theme.currentData(), "scale": self.scale.currentData(),
+                  "hints": self.hints.isChecked(), "opening": self.opening.currentData(),
+                  "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
+                  "recent": self.recent.value(), "dialogs": self.dialogs.currentData()}
+        changed = {k: v for k, v in values.items() if v != appearance.value(k)}
+        if changed:
+            try:
+                config.set_many(changed)
+            except OSError as e:
+                QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
+        if "theme" in changed:
+            appearance.apply_theme()
+        if "scale" in changed:
+            appearance.apply_scale()
+        if "recent" in changed:
+            for win in _WINDOWS:
+                win._recent_menu()
+        bars = (self.bar_style.currentData(), self.bar_size.currentData(), self.bar_lock.isChecked())
+        if bars != self._bars_before:
+            for win in [w for w in _WINDOWS if hasattr(w, "set_bar_look")] or [self.parent()]:
+                if win is None:
+                    continue
+                win.set_bar_look(None, style=bars[0], size=bars[1])
+                win.set_bars_locked(bars[2])
+        return self.language.currentData() != interface.code()
+
     def _usual_colours(self):
         # zip relies on the palette rows being made from the same PALETTE, in the same order.
         for (button, edit), (color, _, meaning) in zip(self.palette_rows, settings.PALETTE):
@@ -337,6 +462,7 @@ class SettingsDialog(QDialog):
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
             else:
                 background(on)
+        self.language_changed = self._keep_appearance()
         from . import autostart
 
         if self.login.isChecked() != autostart.enabled():

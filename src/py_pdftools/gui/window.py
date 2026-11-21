@@ -40,6 +40,7 @@ from .textselect import TEXT_SELECT
 from .ocring import OcrMixin
 from .navigation import NavigationMixin, SelectAllPages
 from .forming import FormMixin
+from . import appearance
 from .linking import LinkEditMixin
 from .signing import SignMixin
 from .toolbars import ToolbarsMixin
@@ -58,7 +59,15 @@ from .renderer import renderer
 from .modes import TIPS, TITLES, Mode
 from .stamps import text_stamp
 
-RECENT = 10  # documents in File ▸ Open recent
+RECENT_KEPT = 30  # (documents kept in the list, whatever File ▸ Open recent shows: see recent_count)
+
+
+def recent_count() -> int:
+    """How many documents File ▸ Open recent shows (Settings > Documents)."""
+    try:
+        return max(0, min(int(appearance.value("recent")), RECENT_KEPT))
+    except (TypeError, ValueError):
+        return 10
 AUTHOR = '<a href="https://nicolasvaughan.org">Nicolas Vaughan</a>'
 THUMB_SIZES = (60, 300, 112)  # the height of the thumbnails: smallest, largest, usual
 # thumbnails kept at most (those farthest from the ones in view are forgotten, and made again if the list
@@ -906,7 +915,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # La disposición propia del modo, si ya tiene una: dónde están sus barras y paneles, cuáles se ven.
         self.arrange(key)
         self.mode_actions[key].setChecked(True)
-        self.hint.show_text(self.hints.get(key, ""))
+        if appearance.value("hints"):  # (Settings > Appearance; F1 shows it all the same)
+            self.hint.show_text(self.hints.get(key, ""))
         self._mode_enable()
         # El lienzo solo deja seleccionar o mover las anotaciones del modo; las demás se ven, pero no se tocan.
         self.canvas.touchable = mode.owns
@@ -1077,6 +1087,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.show_page(state["page"])
 
     def last_dir(self) -> str:
+        """Where the file dialogs start: the last folder used, or the document's (Settings > Documents)."""
+        if appearance.value("dialogs") == "document" and self.path is not None:
+            return str(self.path.parent)
         return self.settings.value("last_dir", str(Path.home()))
 
     # ----------------------------------------------------------------- language
@@ -1459,10 +1472,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             names = json.loads(self.settings.value("recent", "[]"))
         except (TypeError, ValueError):
             names = []
-        return [Path(n) for n in names if isinstance(n, str)][:RECENT]
+        return [Path(n) for n in names if isinstance(n, str)][:recent_count()]
 
     def _set_recent(self, paths: list[Path]):
-        self.settings.setValue("recent", json.dumps([str(p) for p in paths[:RECENT]]))
+        self.settings.setValue("recent", json.dumps([str(p) for p in paths[:max(recent_count(), RECENT_KEPT)]]))
         self._recent_menu()
 
     def add_recent(self, path: Path):
@@ -2081,6 +2094,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         dialog = SettingsDialog(self.prefs, self)
         if dialog.exec() == QDialog.DialogCode.Accepted:
             self.set_prefs(dialog.settings())
+            if getattr(dialog, "language_changed", False):  # (after the dialog: the windows are built again)
+                QTimer.singleShot(0, lambda code=dialog.language.currentData(): self.change_language(code))
             if getattr(dialog, "performance_changed", False):
                 # (drawn anew: with the antialiasing chosen, and caches of the new size)
                 self.canvas.clear_cache()
