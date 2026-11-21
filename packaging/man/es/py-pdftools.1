@@ -31,6 +31,8 @@ argumentos posicionales:
                        escribirlo bajo ellas (OCR)
     combine            combinar varios PDF en uno, o algunas de sus páginas
     from-images        hacer un PDF de imágenes (fotografías, escaneos)
+    export             exportar las páginas como imágenes, las imágenes o el
+                       texto
     form               los datos de los formularios PDF: mostrar, rellenar,
                        tabla, aplanar
     reduce             hacer una copia más pequeña de un PDF
@@ -2928,6 +2930,76 @@ opciones:
   --portrait            el papel vertical (si no, como esté cada imagen)
   --landscape           el papel apaisado
   --margin MM           un margen, en milímetros
+.fi
+.SS export
+.nf
+uso: py-pdftools export [-h] ORDEN ...
+
+Exportar las páginas de un PDF como imágenes, las imágenes que contiene o su
+texto.
+
+argumentos posicionales:
+  ORDEN
+    pages     las páginas dibujadas como imágenes (PNG, JPEG, TIFF)
+    images    las imágenes que muestran las páginas, cada una en un archivo
+    text      el texto, como Markdown, HTML o texto simple
+
+opciones:
+  -h, --help  mostrar esta ayuda y terminar
+.fi
+.SS export pages
+.nf
+uso: py-pdftools export pages [-h] [--pages PÁGINAS] [--password PASSWORD]
+                              -o CARPETA [--format {png,jpg,tiff}]
+                              [--dpi DPI] [--gray] [--quality QUALITY]
+                              ARCHIVO
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --pages PÁGINAS       qué páginas (por omisión: todas)
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+  -o, --output CARPETA  la carpeta de las imágenes
+  --format {png,jpg,tiff}
+                        por omisión: png
+  --dpi DPI             la resolución (por omisión: 150)
+  --gray                en gris
+  --quality QUALITY     de un JPEG, 1-100 (por omisión: 90)
+.fi
+.SS export images
+.nf
+uso: py-pdftools export images [-h] [--pages PÁGINAS] [--password PASSWORD]
+                               -o CARPETA [--smallest PX]
+                               ARCHIVO
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --pages PÁGINAS       qué páginas (por omisión: todas)
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+  -o, --output CARPETA  la carpeta de las imágenes
+  --smallest PX         dejar fuera las menores que esto de lado (por
+                        omisión: 32)
+.fi
+.SS export text
+.nf
+uso: py-pdftools export text [-h] [--pages PÁGINAS] [--password PASSWORD]
+                             -o ARCHIVO
+                             ARCHIVO
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  --pages PÁGINAS       qué páginas (por omisión: todas)
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+  -o, --output ARCHIVO  el archivo hecho (.md, .html o .txt: su extensión
+                        dice el formato)
 .fi
 .SS form
 .nf

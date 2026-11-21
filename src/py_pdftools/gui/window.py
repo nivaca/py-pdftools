@@ -460,6 +460,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
         m.addSeparator()
+        self.a_export_pages = self._action(None, tr("Pages as pictures…"), lambda: self.export_pages_dialog(),
+                                           tip=tr("The pages drawn as PNG, JPEG or TIFF pictures, at a resolution"))
+        self.a_export_images = self._action(None, tr("The pictures of the document…"),
+                                            lambda: self.export_images_dialog(),
+                                            tip=tr("The pictures the pages show, each in a file, as they are "
+                                                   "stored"))
+        self.a_export_text = self._action(None, tr("The text…"), lambda: self.export_text_dialog(),
+                                          tip=tr("The text of the pages as Markdown (headings and lists "
+                                                 "guessed), HTML or plain text"))
         sub = self.m_export_annots = m.addMenu(tr("Export the annotations"))
         sub.setToolTipsVisible(True)
         self.a_export_md = self._action(sub, tr("As a report (Markdown)…"), lambda: self.export_dialog("md"))

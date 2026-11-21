@@ -63,7 +63,8 @@ def regroup(window):
     window.m_import_annots.setTitle(tr("Annotations"))
     window.m_export = QMenu(tr("Export"), window)
     window.m_export.setToolTipsVisible(True)
-    _fill(window, window.m_export, ["m_export_annots"])
+    _fill(window, window.m_export, ["a_export_pages", "a_export_images", "a_export_text", SEP,
+                                    "m_export_annots"])
     window.m_import = QMenu(tr("Import"), window)
     window.m_import.setToolTipsVisible(True)
     _fill(window, window.m_import, ["m_import_annots"])

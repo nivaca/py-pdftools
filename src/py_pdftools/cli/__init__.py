@@ -11,6 +11,7 @@
     py-pdftools from-images                        a PDF made of pictures
     py-pdftools reduce                             a PDF made smaller
     py-pdftools form show | fill | table | flatten the data of forms
+    py-pdftools export pages | images | text       pages as pictures, the pictures, the text
     py-pdftools completion | interface
 
 The commands come from py-foliation (pages/cli.py) and py-imposition
@@ -105,6 +106,11 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["from-images"] = combine_cli.build_images_parser(f"{PROG} from-images")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "from-images", (), tr("make a PDF of pictures (photographs, scans)")))
+    from . import export as export_cli
+
+    sub._name_parser_map["export"] = export_cli.build_parser(f"{PROG} export")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "export", (), tr("export the pages as pictures, the pictures, or the text")))
     from . import form as form_cli
 
     sub._name_parser_map["form"] = form_cli.build_parser(f"{PROG} form")
@@ -157,6 +163,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import combine as combine_cli
 
         return combine_cli.main_reduce(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} reduce")
+    if first and first[1] == "export":
+        from . import export as export_cli
+
+        return export_cli.main(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} export")
     if first and first[1] == "form":
         from . import form as form_cli
 

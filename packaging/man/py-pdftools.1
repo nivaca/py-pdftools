@@ -27,6 +27,8 @@ positional arguments:
                        write it under them (OCR)
     combine            combine PDFs into one, or some of their pages
     from-images        make a PDF of pictures (photographs, scans)
+    export             export the pages as pictures, the pictures, or the
+                       text
     form               the data of PDF forms: show, fill, table, flatten
     reduce             make a smaller copy of a PDF
     completion         print the completion script of a shell
@@ -2759,6 +2761,75 @@ options:
   --portrait            the paper standing (else as each picture is)
   --landscape           the paper lying
   --margin MM           a margin, in millimetres
+.fi
+.SS export
+.nf
+usage: py-pdftools export [-h] COMMAND ...
+
+Export the pages of a PDF as pictures, the pictures it holds, or its text.
+
+positional arguments:
+  COMMAND
+    pages     the pages drawn as pictures (PNG, JPEG, TIFF)
+    images    the pictures the pages show, each in a file
+    text      the text, as Markdown, HTML or plain text
+
+options:
+  -h, --help  show this help message and exit
+.fi
+.SS export pages
+.nf
+usage: py-pdftools export pages [-h] [--pages PAGES] [--password PASSWORD]
+                                -o FOLDER [--format {png,jpg,tiff}]
+                                [--dpi DPI] [--gray] [--quality QUALITY]
+                                FILE
+
+positional arguments:
+  FILE                  source PDF
+
+options:
+  -h, --help            show this help message and exit
+  --pages PAGES         which pages (default: all)
+  --password PASSWORD   the password of the PDFs, if they have one
+  -o, --output FOLDER   the folder of the pictures
+  --format {png,jpg,tiff}
+                        default: png
+  --dpi DPI             the resolution (default: 150)
+  --gray                in grey
+  --quality QUALITY     of a JPEG, 1-100 (default: 90)
+.fi
+.SS export images
+.nf
+usage: py-pdftools export images [-h] [--pages PAGES] [--password PASSWORD]
+                                 -o FOLDER [--smallest PX]
+                                 FILE
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  --pages PAGES        which pages (default: all)
+  --password PASSWORD  the password of the PDFs, if they have one
+  -o, --output FOLDER  the folder of the pictures
+  --smallest PX        leave out those smaller than this on a side (default:
+                       32)
+.fi
+.SS export text
+.nf
+usage: py-pdftools export text [-h] [--pages PAGES] [--password PASSWORD]
+                               -o FILE
+                               FILE
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  --pages PAGES        which pages (default: all)
+  --password PASSWORD  the password of the PDFs, if they have one
+  -o, --output FILE    the file made (.md, .html or .txt: its extension says
+                       the format)
 .fi
 .SS form
 .nf

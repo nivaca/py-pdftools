@@ -11857,4 +11857,168 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Toolbars</en>
     <tr>Barras de herramientas</tr>
   </text>
+  <text>
+    <en>All ({count})</en>
+    <tr>Todas ({count})</tr>
+  </text>
+  <text>
+    <en>Choose the folder…</en>
+    <tr>Elegir la carpeta…</tr>
+  </text>
+  <text>
+    <en>Drawing the pages…</en>
+    <tr>Dibujando las páginas…</tr>
+  </text>
+  <text>
+    <en>Export the pages as pictures</en>
+    <tr>Exportar las páginas como imágenes</tr>
+  </text>
+  <text>
+    <en>Export the pages of a PDF as pictures, the pictures it holds, or its text.</en>
+    <tr>Exportar las páginas de un PDF como imágenes, las imágenes que contiene o su texto.</tr>
+  </text>
+  <text>
+    <en>Export the pictures of the document</en>
+    <tr>Exportar las imágenes del documento</tr>
+  </text>
+  <text>
+    <en>Export the text</en>
+    <tr>Exportar el texto</tr>
+  </text>
+  <text>
+    <en>For example 1-3, 7, last; odd, even. Empty: all the pages. This page is {page}</en>
+    <tr>Por ejemplo 1-3, 7, last; odd, even. Vacío: todas las páginas. Esta página es la {page}</tr>
+  </text>
+  <text>
+    <en>Format:</en>
+    <tr>Formato:</tr>
+  </text>
+  <text>
+    <en>HTML (*.html)</en>
+    <tr>HTML (*.html)</tr>
+  </text>
+  <text>
+    <en>In grey</en>
+    <tr>En gris</tr>
+  </text>
+  <text>
+    <en>JPEG quality:</en>
+    <tr>Calidad JPEG:</tr>
+  </text>
+  <text>
+    <en>Leave out those smaller than:</en>
+    <tr>Dejar fuera las menores de:</tr>
+  </text>
+  <text>
+    <en>Pages as pictures…</en>
+    <tr>Las páginas como imágenes…</tr>
+  </text>
+  <text>
+    <en>Pictures smaller than this on a side (rules, bullets, marks) are left out</en>
+    <tr>Las imágenes menores que esto de lado (filetes, viñetas, marcas) se dejan fuera</tr>
+  </text>
+  <text>
+    <en>Plain text (*.txt)</en>
+    <tr>Texto simple (*.txt)</tr>
+  </text>
+  <text>
+    <en>Resolution:</en>
+    <tr>Resolución:</tr>
+  </text>
+  <text>
+    <en>Saved {path}, but the document has no text (scanned pages: OCR first)</en>
+    <tr>Se guardó {path}, pero el documento no tiene texto (páginas escaneadas: primero el OCR)</tr>
+  </text>
+  <text>
+    <en>The document has no pictures (of that size)</en>
+    <tr>El documento no tiene imágenes (de ese tamaño)</tr>
+  </text>
+  <text>
+    <en>The folder to export to</en>
+    <tr>La carpeta adonde exportar</tr>
+  </text>
+  <text>
+    <en>The pages drawn as PNG, JPEG or TIFF pictures, at a resolution</en>
+    <tr>Las páginas dibujadas como imágenes PNG, JPEG o TIFF, a una resolución</tr>
+  </text>
+  <text>
+    <en>The pictures of the document…</en>
+    <tr>Las imágenes del documento…</tr>
+  </text>
+  <text>
+    <en>The pictures the pages show, each in a file, as they are stored</en>
+    <tr>Las imágenes que muestran las páginas, cada una en un archivo, tal como están guardadas</tr>
+  </text>
+  <text>
+    <en>The text of the pages as Markdown (headings and lists guessed), HTML or plain text</en>
+    <tr>El texto de las páginas como Markdown (títulos y listas deducidos), HTML o texto simple</tr>
+  </text>
+  <text>
+    <en>The text…</en>
+    <tr>El texto…</tr>
+  </text>
+  <text>
+    <en>Wrote {count} pictures in {folder}</en>
+    <tr>Se escribieron {count} imágenes en {folder}</tr>
+  </text>
+  <text>
+    <en>default: png</en>
+    <tr>por omisión: png</tr>
+  </text>
+  <text>
+    <en>dpi</en>
+    <tr>ppp</tr>
+  </text>
+  <text>
+    <en>export the pages as pictures, the pictures, or the text</en>
+    <tr>exportar las páginas como imágenes, las imágenes o el texto</tr>
+  </text>
+  <text>
+    <en>in grey</en>
+    <tr>en gris</tr>
+  </text>
+  <text>
+    <en>leave out those smaller than this on a side (default: 32)</en>
+    <tr>dejar fuera las menores que esto de lado (por omisión: 32)</tr>
+  </text>
+  <text>
+    <en>of a JPEG, 1-100 (default: 90)</en>
+    <tr>de un JPEG, 1-100 (por omisión: 90)</tr>
+  </text>
+  <text>
+    <en>the file made (.md, .html or .txt: its extension says the format)</en>
+    <tr>el archivo hecho (.md, .html o .txt: su extensión dice el formato)</tr>
+  </text>
+  <text>
+    <en>the folder of the pictures</en>
+    <tr>la carpeta de las imágenes</tr>
+  </text>
+  <text>
+    <en>the pages drawn as pictures (PNG, JPEG, TIFF)</en>
+    <tr>las páginas dibujadas como imágenes (PNG, JPEG, TIFF)</tr>
+  </text>
+  <text>
+    <en>the pictures the pages show, each in a file</en>
+    <tr>las imágenes que muestran las páginas, cada una en un archivo</tr>
+  </text>
+  <text>
+    <en>the resolution (default: 150)</en>
+    <tr>la resolución (por omisión: 150)</tr>
+  </text>
+  <text>
+    <en>the text, as Markdown, HTML or plain text</en>
+    <tr>el texto, como Markdown, HTML o texto simple</tr>
+  </text>
+  <text>
+    <en>which pages (default: all)</en>
+    <tr>qué páginas (por omisión: todas)</tr>
+  </text>
+  <text>
+    <en>{count} picture saved in {folder}</en>
+    <tr>Se guardó {count} imagen en {folder}</tr>
+  </text>
+  <text>
+    <en>{count} pictures saved in {folder}</en>
+    <tr>Se guardaron {count} imágenes en {folder}</tr>
+  </text>
 </interface>

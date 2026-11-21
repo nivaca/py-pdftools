@@ -130,6 +130,94 @@ class FilesMixin:
             made.status(tr("Saved {path}", path=target) + " (" + ntr("{count} page", "{count} pages", count) + ")")
         return made
 
+    # ----------------------------------------------------------------- exports
+
+    def ask_export(self, kind: str):
+        """(options, folder) for exporting the pages as pictures ('pages') or the pictures ('images'); None if
+        cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from .export_dialog import ExportDialog
+
+        dialog = ExportDialog(kind, self.count, self.page, self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return None
+        folder = QFileDialog.getExistingDirectory(self, tr("The folder to export to"), self.last_dir())
+        return (dialog.options(), Path(folder)) if folder else None
+
+    def export_pages_dialog(self) -> list[Path]:
+        """File > Export > Pages as pictures (with the annotations as last saved)."""
+        from ..pages import export
+        from .redact import background
+
+        if self.path is None:
+            return []
+        chosen = self.ask_export("pages")
+        if chosen is None:
+            return []
+        options, folder = chosen
+        try:
+            made = background.run(self, tr("Drawing the pages…"), export.export_pages, self.file, folder,
+                                  options["pages"], options["fmt"], options["dpi"], options["gray"],
+                                  options["quality"], self.password, self.path.stem)
+        except export.ExportError as e:
+            self.status(str(e), error=True)
+            return []
+        self.status(ntr("{count} picture saved in {folder}", "{count} pictures saved in {folder}", len(made),
+                        folder=folder))
+        return made
+
+    def export_images_dialog(self) -> list[Path]:
+        """File > Export > The pictures of the document."""
+        from ..pages import export
+
+        if self.path is None:
+            return []
+        chosen = self.ask_export("images")
+        if chosen is None:
+            return []
+        options, folder = chosen
+        try:
+            made = export.export_images(self.file, folder, options["pages"], options["smallest"], self.password,
+                                        self.path.stem)
+        except export.ExportError as e:
+            self.status(str(e), error=True)
+            return []
+        self.status(ntr("{count} picture saved in {folder}", "{count} pictures saved in {folder}", len(made),
+                        folder=folder) if made else tr("The document has no pictures (of that size)"))
+        return made
+
+    def ask_text_target(self) -> Path | None:
+        name, chosen = QFileDialog.getSaveFileName(
+            self, tr("Export the text"), str(Path(self.last_dir()) / f"{self.path.stem}.md"),
+            ";;".join((tr("Markdown (*.md)"), tr("HTML (*.html)"), tr("Plain text (*.txt)"))))
+        if not name:
+            return None
+        target = Path(name)
+        if target.suffix.lower() not in (".md", ".markdown", ".html", ".htm", ".txt"):
+            ext = ".html" if "html" in chosen else ".txt" if "txt" in chosen else ".md"
+            target = target.with_suffix(ext)
+        return target
+
+    def export_text_dialog(self) -> Path | None:
+        """File > Export > The text (Markdown, HTML or plain, by the type chosen)."""
+        from ..pages import export
+
+        if self.path is None:
+            return None
+        target = self.ask_text_target()
+        if target is None:
+            return None
+        try:
+            count = export.export_text(self.file, target, password=self.password)
+        except export.ExportError as e:
+            self.status(str(e), error=True)
+            return None
+        self.status(tr("Saved {path}", path=target) if count else
+                    tr("Saved {path}, but the document has no text (scanned pages: OCR first)", path=target),
+                    error=not count)
+        return target
+
     # ----------------------------------------------------------------- a smaller copy
 
     def ask_reduce(self, found):
