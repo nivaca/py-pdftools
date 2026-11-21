@@ -1150,8 +1150,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.search.clear()
         self.refresh()
         self.open_at_start(place)
+        signed = self.signature_count()
         self.status(tr("Opened {path}", path=path) + " (" + ntr("{count} page", "{count} pages", self.count) + ", "
-                    + ntr("{count} annotation", "{count} annotations", len(found)) + ")")
+                    + ntr("{count} annotation", "{count} annotations", len(found)) + ")"
+                    + (" — " + ntr("signed once: File > Digital signatures > Check the signatures",
+                                   "signed {count} times: File > Digital signatures > Check the signatures", signed)
+                       if signed else ""))
         # Una copia de recuperación igual a lo que tiene el archivo no se ofrece: se guardó después.
         kept = recovery.find(path)
         if kept is not None and kept[1] != found:

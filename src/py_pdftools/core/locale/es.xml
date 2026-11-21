@@ -11629,4 +11629,136 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} cannot be signed: {error}</en>
     <tr>{path} no se puede firmar: {error}</tr>
   </text>
+  <text>
+    <en>(unknown)</en>
+    <tr>(desconocido)</tr>
+  </text>
+  <text>
+    <en>Check the signatures…</en>
+    <tr>Comprobar las firmas…</tr>
+  </text>
+  <text>
+    <en>Comments were added after it, or the form was filled in</en>
+    <tr>Después se añadieron comentarios, o se rellenó el formulario</tr>
+  </text>
+  <text>
+    <en>Field</en>
+    <tr>Campo</tr>
+  </text>
+  <text>
+    <en>Invalid</en>
+    <tr>No válida</tr>
+  </text>
+  <text>
+    <en>Invalid: what it signed was changed</en>
+    <tr>No válida: lo que firmó se cambió</tr>
+  </text>
+  <text>
+    <en>It certifies the document</en>
+    <tr>Certifica el documento</tr>
+  </text>
+  <text>
+    <en>Keep the signer's certificate among those trusted: their signatures will be said to be trusted (do it only if you know the certificate is theirs)</en>
+    <tr>Guardar el certificado del firmante entre los de confianza: sus firmas se darán por confiables (hágalo solo si sabe que el certificado es suyo)</tr>
+  </text>
+  <text>
+    <en>Nothing has changed since it was signed</en>
+    <tr>Nada ha cambiado desde que se firmó</tr>
+  </text>
+  <text>
+    <en>Only data to check it in the long term was added after it</en>
+    <tr>Después solo se añadieron datos para comprobarla a largo plazo</tr>
+  </text>
+  <text>
+    <en>Open the signed version</en>
+    <tr>Abrir la versión firmada</tr>
+  </text>
+  <text>
+    <en>Place: {place}</en>
+    <tr>Lugar: {place}</tr>
+  </text>
+  <text>
+    <en>Reason: {reason}</en>
+    <tr>Motivo: {reason}</tr>
+  </text>
+  <text>
+    <en>Signatures</en>
+    <tr>Firmas</tr>
+  </text>
+  <text>
+    <en>Signed by</en>
+    <tr>Firmado por</tr>
+  </text>
+  <text>
+    <en>Signed by: {who}</en>
+    <tr>Firmado por: {who}</tr>
+  </text>
+  <text>
+    <en>Signed on: {when}</en>
+    <tr>Firmado el: {when}</tr>
+  </text>
+  <text>
+    <en>The document as this signature signed it, in a window of its own</en>
+    <tr>El documento tal como lo firmó esta firma, en una ventana propia</tr>
+  </text>
+  <text>
+    <en>The document was changed after it in ways the signature does not allow</en>
+    <tr>Después el documento se cambió de maneras que la firma no permite</tr>
+  </text>
+  <text>
+    <en>The form was filled in or signed again after it</en>
+    <tr>Después se rellenó el formulario o se volvió a firmar</tr>
+  </text>
+  <text>
+    <en>This document has no signatures</en>
+    <tr>Este documento no tiene firmas</tr>
+  </text>
+  <text>
+    <en>This signature has no certificate to trust</en>
+    <tr>Esta firma no tiene certificado en que confiar</tr>
+  </text>
+  <text>
+    <en>Time vouched for by a server: {when}</en>
+    <tr>Hora de la que da fe un servidor: {when}</tr>
+  </text>
+  <text>
+    <en>Trust this signer</en>
+    <tr>Confiar en este firmante</tr>
+  </text>
+  <text>
+    <en>Valid, and the signer is trusted</en>
+    <tr>Válida, y el firmante es de confianza</tr>
+  </text>
+  <text>
+    <en>Valid, but the document was changed after it</en>
+    <tr>Válida, pero el documento se cambió después</tr>
+  </text>
+  <text>
+    <en>Valid, but the signer is not among those trusted</en>
+    <tr>Válida, pero el firmante no está entre los de confianza</tr>
+  </text>
+  <text>
+    <en>When</en>
+    <tr>Cuándo</tr>
+  </text>
+  <text>
+    <en>Whether each signature is valid, who signed and whether they are trusted, and what changed after it</en>
+    <tr>Si cada firma es válida, quién firmó y si es de confianza, y qué cambió después</tr>
+  </text>
+  <text>
+    <en>signed once: File &gt; Digital signatures &gt; Check the signatures</en>
+    <tr>firmado una vez: Archivo &gt; Firmas digitales &gt; Comprobar las firmas</tr>
+  </text>
+  <text>
+    <en>signed {count} times: File &gt; Digital signatures &gt; Check the signatures</en>
+    <tr>firmado {count} veces: Archivo &gt; Firmas digitales &gt; Comprobar las firmas</tr>
+  </text>
+  <text>
+    <en>{good} of {count} signatures valid and trusted</en>
+    <tr>{good} de {count} firmas válidas y de confianza</tr>
+  </text>
+  <text>
+    <en>{who} is now trusted</en>
+    <tr>{who} es ahora de confianza</tr>
+  </text>
 </interface>
