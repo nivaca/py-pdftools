@@ -146,3 +146,18 @@ def test_the_dialog(labelled, tmp_path):
     d.close()
     w.drop_work()
     w.close()
+
+
+def test_the_button_on_the_toolbar_find():
+    """Word index is also on the toolbar Find, with its own icon (a name no theme has, so it is always that)."""
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui.window import MainWindow
+
+    QApplication.instance() or QApplication([])
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    bar = next(b for b in w.toolbars() if b.objectName() == "find")
+    assert w.a_word_index in bar.actions() and not w.a_word_index.icon().isNull()
+    assert "a_word_index" in w._tb_defaults["find"]  # (and Customize the toolbars can put it back there)
+    w.close()

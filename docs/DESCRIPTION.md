@@ -1071,10 +1071,17 @@ Fedora's Python and its own cryptography. The hint changed with it: for the
 RPM, `python3 -m pip install --user pyhanko`, not the extra of a package
 that pip doesn't know.
 
+Last, the word index got a button. It had been only in the menu Edit since
+it came from pdf-word-finder; it now sits on the toolbar Find, beside the
+quick find box, with an icon of the program's own: a list of terms with
+their pages in blue, which shows on a light toolbar and on a dark one, and a
+magnifier. Its name is one no icon theme has, so the desktop's theme can't
+put another in its place.
+
 Testing
 -------
 
-The program has 644 tests (`uv run pytest`): those of the four programs,
+The program has 645 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -273,7 +273,8 @@ anywhere or hidden. File > PDF properties
 shows what a document is (its metadata, file, pages, security) and the
 fonts it uses.
 
-Edit > Word index (from pdf-word-finder) finds the words, phrases or
+Edit > Word index (from pdf-word-finder; also a button on the toolbar
+Find) finds the words, phrases or
 regular expressions of a list, typed or read from a file, and gives the
 pages where each appears, by their labels, as lines ready for the index of
 a book (`Sharahzad 3, 5, 23, 34`), or in detail, with how many times and

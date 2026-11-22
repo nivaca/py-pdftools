@@ -475,6 +475,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_word_index = self._action(None, tr("Word index…"), self.word_index,
                                          tip=tr("On which pages each word, phrase or pattern of a list appears, by "
                                                 "the labels of the pages: lines ready for an index"))
+        # (un icono propio, con un nombre que ningún tema tiene: va en la barra Buscar)
+        self.a_word_index.setIcon(icon("pdftools-word-index"))
         m.addSeparator()
         self.a_export_pages = self._action(None, tr("Pages as pictures…"), lambda: self.export_pages_dialog(),
                                            tip=tr("The pages drawn as PNG, JPEG or TIFF pictures, at a resolution"))
@@ -750,7 +752,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.common_bars = [
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
-            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_quick_find]),
+            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_quick_find, self.a_word_index]),
             # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],

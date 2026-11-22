@@ -285,7 +285,8 @@ zoom, que puede moverse a cualquier lugar u ocultarse.
 Archivo > Propiedades del PDF muestra qué es un documento (sus metadatos,
 su archivo, sus páginas, su seguridad) y las fuentes que usa.
 
-Editar > Índice de palabras (de pdf-word-finder) busca las palabras, frases
+Editar > Índice de palabras (de pdf-word-finder; también un botón de la
+barra Buscar) busca las palabras, frases
 o expresiones regulares de una lista, escrita o leída de un archivo, e
 informa las páginas en que aparece cada una, según sus etiquetas, en
 renglones listos para el índice de un libro (`Sharahzad 3, 5, 23, 34`), o
