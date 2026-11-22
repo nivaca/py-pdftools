@@ -164,6 +164,10 @@ later. From the folder of the source:
     > install\install.bat -Desktop      also a shortcut on the desktop
     > install\install.bat -Uninstall
 
+On Windows the options can also be written as for install.sh (`--uninstall`,
+`--desktop`, `--python C:\...\python.exe`), and `install.ps1` can be run
+instead of `install.bat`.
+
 Each one makes a Python environment of its own for py-pdftools, installs it
 there with PyMuPDF, pikepdf, reportlab and PySide6 (downloaded from PyPI, so
 it needs internet the first time), links the commands `py-pdftools` and

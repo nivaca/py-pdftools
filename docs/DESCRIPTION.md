@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-three stages.
+I explain how it was made, in forty-four stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1128,6 +1128,23 @@ APPIMAGE set it is the AppImage, under /usr/lib it is the RPM (not
 it was made by the installers, and in a clone with its pyproject.toml it is
 the source. Each gets its own instruction, with the name of the file to
 download where there is one.
+
+44. Options, as on Linux
+------------------------
+
+The first time the installer for Windows was run by someone other than the
+tests, it was run with `--uninstall`, as install.sh is, and it answered that
+py-pdftools needs Python 3.14, which was installed. PowerShell knows options
+only by a single dash; a word it doesn't know is given to the first
+parameter that takes one by its position, and the first one was the Python
+to use. The script then tried to run a program called `--uninstall`. The
+parameters are no longer taken by position. The words left over are read
+by the script itself: `--uninstall`, `--desktop`, `--python` and `--help`
+do what their PowerShell forms do, and any other word is said to be an
+unknown option, by its name. A Python given and not usable is now named as
+such, instead of being reported as Python missing. The tests on GitHub's
+Windows now uninstall with `--uninstall`, and give the installer the same
+misspelt option, to see that it says so.
 
 Testing
 -------

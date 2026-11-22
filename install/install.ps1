@@ -7,7 +7,8 @@ Windows, to run with Python (3.14 or later): no binaries are built.
     install\install.bat -Desktop            also a shortcut on the desktop
     install\install.bat -Uninstall          remove what it installed
 
-(install.bat runs this script, install.ps1, with PowerShell.)
+(install.bat runs this script, install.ps1, with PowerShell. The options
+may also be written as with install.sh: --uninstall, --desktop, --python.)
 
 It makes a virtual environment of its own, %LOCALAPPDATA%\py-pdftools\venv,
 and installs py-pdftools in it, with PyMuPDF, pikepdf, reportlab and PySide6 from PyPI (so it
@@ -19,14 +20,41 @@ py-pdftools: Copyright (C) 2026 Nicolas Vaughan <nicolasvaughan@proton.me>
 SPDX-License-Identifier: GPL-3.0-or-later (see LICENSE)
 #>
 
+# (PositionalBinding off: a word that is not one of these options, such as --uninstall written as for
+# install.sh, would otherwise be taken as the Python to use, and the script would say Python is missing)
+[CmdletBinding(PositionalBinding = $false)]
 param(
     [string]$Python = "",
     [switch]$Desktop,
     [switch]$Uninstall,
-    [switch]$Help
+    [switch]$Help,
+    [Parameter(ValueFromRemainingArguments = $true)]
+    [string[]]$Rest = @()
 )
 
 $ErrorActionPreference = "Stop"
+
+# The options as install.sh writes them (--uninstall, --desktop, --python X, --help); any other word is an error.
+for ($i = 0; $i -lt $Rest.Count; $i++) {
+    switch ($Rest[$i].ToLowerInvariant()) {
+        { $_ -in "--uninstall", "/uninstall" } { $Uninstall = $true; continue }
+        { $_ -in "--desktop", "/desktop" } { $Desktop = $true; continue }
+        { $_ -in "--help", "-h", "/?", "/help" } { $Help = $true; continue }
+        { $_ -in "--python", "/python" } {
+            if ($i + 1 -ge $Rest.Count) {
+                Write-Host "install.ps1: --python needs the path of a python.exe" -ForegroundColor Red
+                exit 1
+            }
+            $i++
+            $Python = $Rest[$i]
+            continue
+        }
+        default {
+            Write-Host "install.ps1: unknown option: $($Rest[$i]) (see install\install.bat -Help)" -ForegroundColor Red
+            exit 1
+        }
+    }
+}
 $Name = "py-pdftools"
 $Root = Split-Path -Parent $PSScriptRoot
 $Data = Join-Path $env:LOCALAPPDATA $Name
@@ -113,7 +141,9 @@ function Install-PyPdftools {
     }
     if ($Python) {
         $found = Test-Python @($Python)
-        if (-not $found) { No-Python }
+        if (-not $found) {
+            Fail "$Python, given with -Python, is not a Python 3.14 or later with venv and pip"
+        }
     } else {
         $found = Find-Python
         if (-not $found) { No-Python }
@@ -168,7 +198,7 @@ function Uninstall-PyPdftools {
 }
 
 if ($Help) {
-    Get-Content $PSCommandPath | Select-Object -Skip 1 -First 18
+    Get-Content $PSCommandPath | Select-Object -Skip 1 -First 19
     exit 0
 }
 if ($Uninstall) { Uninstall-PyPdftools } else { Install-PyPdftools }

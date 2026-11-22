@@ -22,6 +22,12 @@ Debian package, the RPM, the wheel and the source, are on
   there is a newer one, says how to install it for the way this copy was
   installed (RPM, `.deb`, AppImage, installers, source or pip), with a
   button to the page of the release.
+- **The installer for Windows** took an option written as for install.sh,
+  `--uninstall`, as the Python to use, and said that Python 3.14 was
+  missing; it now takes `--uninstall`, `--desktop` and `--python` as well
+  as `-Uninstall`, `-Desktop` and `-Python`, says that any other word is an
+  unknown option, and that a Python given with `-Python` isn't usable when
+  it isn't.
 
 ## 1.8.11 — 2026-11-22
 

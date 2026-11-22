@@ -169,6 +169,10 @@ posterior. Desde la carpeta del código:
     > install\install.bat -Desktop      también un acceso en el escritorio
     > install\install.bat -Uninstall
 
+En Windows las opciones también pueden escribirse como en install.sh
+(`--uninstall`, `--desktop`, `--python C:\...\python.exe`), y puede
+ejecutarse `install.ps1` en lugar de `install.bat`.
+
 Cada uno hace un entorno de Python propio para py-pdftools, lo instala en él
 con PyMuPDF, pikepdf, reportlab y PySide6 (descargados de PyPI, así que la
 primera vez necesita internet), enlaza las órdenes `py-pdftools` y

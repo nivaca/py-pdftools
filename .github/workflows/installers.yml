@@ -117,9 +117,15 @@ jobs:
           & "$env:VENV\Scripts\python.exe" -m pip install --quiet pytest
           & "$env:VENV\Scripts\python.exe" -m pytest -q -p no:cacheprovider tests --ignore=tests/test_packaging.py
           if ($LASTEXITCODE -ne 0) { exit 1 }
-      - name: Uninstall
+      - name: An unknown option is said to be one (not taken as the Python to use)
+        shell: pwsh
+        run: |
+          $out = & powershell -NoProfile -ExecutionPolicy Bypass -File install\install.ps1 --unisntall 2>&1 | Out-String
+          if ($LASTEXITCODE -eq 0) { throw "an unknown option was accepted" }
+          if ($out -notmatch "unknown option: --unisntall") { throw "it said: $out" }
+      - name: Uninstall (written as for install.sh)
         shell: cmd
-        run: install\install.bat -Uninstall < nul
+        run: install\install.bat --uninstall < nul
       - name: Nothing left
         shell: pwsh
         run: |
