@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.8 — 2026-11-21
 
 - **Long documents, faster**: fitting the zoom (at every resize of the
   window, and when a panel opens or closes) went through every row of pages
@@ -31,20 +31,17 @@ Debian package, the RPM, the wheel and the source, are on
   converted to the format of the screen; it is now converted once, as it
   arrives (1.3 ms instead of 3 for a page at 300 %). The thumbnails stay in
   the smaller format.
-
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its
   portal); they now set a whole palette of the program's own, the view
   behind the pages follows at once, and the icons take the light or dark
   variant of the desktop's icon theme where it is installed. System gives
   the desktop's colours and icons back.
-
 - **The box of the page** was shown twice, on Page navigation and on the
   toolbar at the top, beside the zoom. It is now only on Page navigation
   (or wherever it is put in Customize the toolbars); the toolbar at the top,
   now Zoom box, has the zoom alone. The details of the page (its size and
   orientation) are the tip of the count, "of 180".
-
 - **Windows**: writing over a file (saving, protecting with passwords,
   combining, PDF/A and PDF/X, form data) waits a moment, up to about two
   seconds, when another process holds the file briefly (the antivirus, or
