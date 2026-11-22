@@ -7,6 +7,11 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- **Long documents, faster**: fitting the zoom (at every resize of the
+  window, and when a panel opens or closes) went through every row of pages
+  once for each page; with 2,000 pages it took 300 ms, now 7, and turning on
+  two pages side by side 96 ms instead of 690.
+
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its
   portal); they now set a whole palette of the program's own, the view

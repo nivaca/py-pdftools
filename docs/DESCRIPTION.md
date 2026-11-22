@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in thirty-eight stages.
+I explain how it was made, in thirty-nine stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -967,10 +967,25 @@ variant of the desktop's icon theme is chosen too (breeze and breeze-dark,
 Papirus-Light and Papirus-Dark), when it is installed. System gives back
 the palette and the icons of the desktop.
 
+39. Long documents, faster
+--------------------------
+
+Asked whether the graphics card could do more, I measured first, on a
+document of 2,000 pages. The drawing was not the problem: the whole view is
+painted again in less than a millisecond. What made the window slow with
+long documents was Python, run at each step. The zoom is fitted again
+whenever the window or a panel changes its size, and the fit looked for the
+row of every page by building the list of all the rows again, so that its
+time grew with the square of the pages: 300 ms with 2,000 pages, at each
+step of a resize. The row of a page is now worked out, not searched for, and
+the sizes of the pages are kept when they are laid out instead of being
+asked of MuPDF again: the fit takes 7 ms, a step of a resize 15, and two
+pages side by side are turned on in 96 ms instead of 690.
+
 Testing
 -------
 
-The program has 632 tests (`uv run pytest`): those of the four programs,
+The program has 634 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

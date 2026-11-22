@@ -544,6 +544,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         # others are shown, but the mouse goes through them)
         self.touchable = lambda annotation: True
         self.pages: dict[int, PageItem] = {}  # (those laid out)
+        self.shown_sizes: dict[int, QRectF] = {}  # (their sizes as the view shows them: see layout)
         self.items_: list[AnnotItem] = []
         self._shown_items: list[tuple[int, Annotation]] = []
         self._selected: list[int] = []
@@ -615,6 +616,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         scene = self.scene()
         scene.clear()
         self.pages, self.items_ = {}, []
+        self.shown_sizes = {}
         if self.doc is None:
             scene.setSceneRect(QRectF())
             return
@@ -623,6 +625,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         rows = self.rows() if self.continuous else [self.row_of(min(self.page, self.doc.page_count - 1))]
         sizes = {n: self.page_rect(n) for row in rows for n in row}
         shown = {n: self.shown_rect(n) for n in sizes}  # (as the view turns them)
+        # (kept: the fit reads them, instead of asking MuPDF for every page again at each resize)
+        self.shown_sizes = shown
         widest = max(self._row_width(row, shown) for row in rows)
         y = self.gap
         for row in rows:
@@ -679,14 +683,47 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         out += [list(range(n, min(n + 2, count))) for n in range(start, count, 2)]
         return out
 
+    def _row_count(self) -> int:
+        count = self.doc.page_count if self.doc is not None else 0
+        if not self.spread or not count:
+            return count
+        return 1 + count // 2 if self.cover else (count + 1) // 2
+
+    def _row_index(self, page: int) -> int:
+        """The row PAGE is in (as rows() numbers them), worked out instead of searched for."""
+        if not self.spread:
+            return page
+        if self.cover:
+            return 0 if page == 0 else (page - 1) // 2 + 1
+        return page // 2
+
+    def _row_at(self, i: int) -> list[int]:
+        count = self.doc.page_count if self.doc is not None else 0
+        if not self.spread:
+            return [i]
+        if self.cover:
+            if i == 0:
+                return [0]
+            start = 1 + 2 * (i - 1)
+        else:
+            start = 2 * i
+        return list(range(start, min(start + 2, count)))
+
     def row_of(self, page: int) -> list[int]:
-        return next((row for row in self.rows() if page in row), [page])
+        # (en tiempo constante: antes se buscaba en rows(), que se rehacía entera para cada página)
+        count = self.doc.page_count if self.doc is not None else 0
+        if not 0 <= page < count:
+            return [page]
+        return self._row_at(self._row_index(page))
 
     def neighbour(self, page: int, step: int) -> int:
         """The page STEP rows after (or before) that of PAGE: its first page (with spread, a row is two pages)."""
-        rows = self.rows()
-        i = next((k for k, row in enumerate(rows) if page in row), 0)
-        return rows[max(0, min(i + step, len(rows) - 1))][0]
+        rows = self._row_count()
+        if not rows:
+            return 0
+        count = self.doc.page_count
+        i = self._row_index(page) if 0 <= page < count else 0
+        return self._row_at(max(0, min(i + step, rows - 1)))[0]
 
     def _row_width(self, row: list[int], sizes: dict) -> float:
         if len(row) == 1:
@@ -1054,10 +1091,15 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         room = self.viewport().size()
         # Ajustar al ancho usa la fila más ancha (una página, o dos lado a lado), no la actual: así el zoom no salta
         # al pasar de una página vertical a una apaisada.
-        sizes = {n: self.shown_rect(n) for n in self.pages}
-        rows = {tuple(r) for r in (self.row_of(n) for n in self.pages) if all(m in sizes for m in r)}
-        widest = max((self._row_width(list(r), sizes) for r in rows), default=max(s.width() for s in sizes.values()))
-        size = QRectF(0, 0, 0, max(self.shown_rect(n).height() for n in self.row_of(self.page)))
+        # Una sola pasada por las filas, con los tamaños guardados por layout(): ajustar era cuadrático en el
+        # número de páginas (row_of rehacía todas las filas para cada página), y se hace a cada cambio de tamaño.
+        sizes = self.shown_sizes if self.shown_sizes.keys() >= self.pages.keys() else {
+            n: self.shown_rect(n) for n in self.pages}
+        rows = [r for r in (self.rows() if self.continuous else [self.row_of(self.page)])
+                if all(m in sizes for m in r)]
+        widest = max((self._row_width(r, sizes) for r in rows), default=max(s.width() for s in sizes.values()))
+        size = QRectF(0, 0, 0, max(sizes[n].height() if n in sizes else self.shown_rect(n).height()
+                                   for n in self.row_of(self.page)))
         # Los 4 píxeles dejan sitio al borde de la vista, para que el ajuste no haga aparecer barras.
         by_width = (room.width() - 4) / (widest + 2 * self.gap)
         by_height = (room.height() - 4) / (size.height() + 2 * self.gap)
