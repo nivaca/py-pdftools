@@ -5,6 +5,7 @@ when they need it (see value)."""
 
 from __future__ import annotations
 
+import os
 import pathlib
 
 from ..core import config
@@ -58,8 +59,17 @@ def palette(name: str):
 def _icon_theme_exists(name: str) -> bool:
     from PySide6.QtGui import QIcon
 
-    return any(pathlib.Path(folder, name, "index.theme").is_file() for folder in QIcon.themeSearchPaths()
-               if not folder.startswith(":"))
+    # El nombre, con sus mayúsculas: en Windows y macOS, breeze-Dark también hallaría la carpeta breeze-dark
+    for folder in QIcon.themeSearchPaths():
+        if folder.startswith(":"):
+            continue
+        try:
+            names = os.listdir(folder)
+        except OSError:
+            continue
+        if name in names and pathlib.Path(folder, name, "index.theme").is_file():
+            return True
+    return False
 
 
 def icon_theme(name: str, dark: bool) -> str:

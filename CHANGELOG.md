@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **Icons on Windows and macOS**: the light or dark variant of the icon
+  theme was looked for without minding capitals, which their file systems
+  ignore, so a name not quite right could be taken (found by the tests on
+  GitHub's Windows).
+
 ## 1.8.8 — 2026-11-21
 
 - **Long documents, faster**: fitting the zoom (at every resize of the
