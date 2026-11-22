@@ -100,6 +100,8 @@ def test_scrolling_finds_the_page_by_bisection(window, monkeypatch):
         canvas.set_zoom(0.4)
         for i in range(0, 101, 7):
             bar.setValue(bar.maximum() * i // 100)
+            # (a bar already at that value sends no signal: the page is worked out again, as a scroll would)
+            canvas._scrolled(bar.value())
             assert canvas.page == _page_in_view_slowly(canvas), (spread, turn, gaps, i)
             view = canvas.mapToScene(canvas.viewport().rect()).boundingRect()
             view = view.adjusted(0, -view.height() / 2, 0, view.height() / 2)
