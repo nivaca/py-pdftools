@@ -262,7 +262,7 @@ class OutlineMixin:
             return False
         if title is None:
             title, ok = QInputDialog.getText(self, tr("Add a bookmark"), tr("Its title:"),
-                                             text=tr("Page {page}", page=self.page_box.text() or self.page + 1))
+                                             text=tr("Page {page}", page=self.a_page_number.text_shown or self.page + 1))
             if not ok or not title.strip():
                 return False
         item = QTreeWidgetItem([title.strip(), ""])

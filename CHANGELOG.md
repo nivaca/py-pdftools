@@ -7,6 +7,12 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- **The box of the page** was shown twice, on Page navigation and on the
+  toolbar at the top, beside the zoom. It is now only on Page navigation
+  (or wherever it is put in Customize the toolbars); the toolbar at the top,
+  now Zoom box, has the zoom alone. The details of the page (its size and
+  orientation) are the tip of the count, "of 180".
+
 - **Windows**: writing over a file (saving, protecting with passwords,
   combining, PDF/A and PDF/X, form data) waits a moment, up to about two
   seconds, when another process holds the file briefly (the antivirus, or

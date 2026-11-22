@@ -7,7 +7,7 @@ import sys
 
 import pymupdf
 import pytest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QLabel
 
 from py_pdftools.gui.window import MainWindow
 
@@ -230,8 +230,9 @@ def test_the_history_of_jumps(window, book):
     assert not window.a_back.isEnabled() and not window.a_forward.isEnabled()
     window._outline_go(window.outline_tree.topLevelItem(1))  # (Chapter 2: page 4)
     assert window.page == 3 and window.a_back.isEnabled()
-    window.page_box.setText("6")
-    window.page_box.returnPressed.emit()
+    box = window.a_page_number.boxes()[0]
+    box.setText("6")
+    box.returnPressed.emit()
     assert window.page == 5
     window.a_back.trigger()
     assert window.page == 3 and window.a_forward.isEnabled()
@@ -633,7 +634,9 @@ def test_the_details_of_a_page_on_hover(window, tmp_path, monkeypatch):
     assert "Page 1 of 2" in text and "210 × 297 mm" in text and "A4" in text and "portrait" in text
     text = window.page_details(1)
     assert "Letter" in text and "portrait" in text and "Turned 90°" in text  # (as it shows: upright)
-    assert "A4" in window.page_label.toolTip()
+    window.show_page(0)
+    count = window.a_page_number.createdWidgets()[0].findChild(QLabel, "count")
+    assert "A4" in count.toolTip()
     shown = []
     monkeypatch.setattr(QToolTip, "showText", staticmethod(lambda pos, text, *a: shown.append(text)))
     rect = window.pages.visualItemRect(window.pages.item(1))

@@ -329,18 +329,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.page_changed.connect(self._page_shown)
         self.canvas.text_done.connect(self.text_done)
         self.canvas.zoom_changed.connect(self._show_zoom)
-        # La casilla de la página muestra su etiqueta (iv, 12v, 12) y acepta una etiqueta o un número.
-        self.page_box = QLineEdit()
-        self.page_box.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.page_box.setMaximumWidth(90)
-        self.page_box.setToolTip(tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
-        self.page_box.returnPressed.connect(lambda: self.go_to_typed(self.page_box.text()))
-        self.page_box.editingFinished.connect(lambda: self._page_shown(self.page) if self.doc is not None else None)
-        # (beside it, how many pages there are; or 3/180, where the label is not the place of the page)
-        self.page_label = QLabel("")
-        # (a little room between the box of the page and the count, which otherwise touch)
-        self.page_label.setStyleSheet("color: palette(placeholder-text); padding-left: 6px;")
-        self.page_label.setToolTip(tr("How many pages the document has"))
         # La casilla del zoom: un porcentaje escrito, o uno de la lista, o un ajuste (página, ancho, alto...).
         self.zoom_label = QComboBox()
         self.zoom_label.setEditable(True)
@@ -812,13 +800,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         DocumentPropertiesDialog(self.doc, self.path, self).exec()
 
     def page_zoom_bar(self) -> QToolBar:
-        """The toolbar Page and zoom: the box of the page shown, how many pages there are, and the box of the
-        zoom, which were once fixed above the pages; as a toolbar, it can be moved anywhere or hidden. Its
-        widgets are always these, so it is not one of those changed in Customize the toolbars."""
-        bar = self.toolbar_of(PAGE_ZOOM, tr("Page and zoom"), [])
-        bar.addWidget(self.page_box)
-        bar.addWidget(self.page_label)
-        bar.addSeparator()
+        """The toolbar Zoom box: the box of the zoom, once fixed above the pages; as a toolbar, it can be moved
+        anywhere or hidden. Its widget is always this one, so it is not one of those changed in Customize the
+        toolbars. (The box of the page is in Page navigation only: it was here too, which showed it twice.)"""
+        # (el nombre de objeto sigue siendo "pagezoom", para que la barra conserve su lugar guardado)
+        bar = self.toolbar_of(PAGE_ZOOM, tr("Zoom box"), [])
         bar.addWidget(self.zoom_label)
         return bar
 
@@ -2935,16 +2921,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.page = page
         found = self.page_labels() if self.doc is not None else []
         label = found[page] if page < len(found) else ""
-        # La casilla muestra la etiqueta (o el número, sin etiqueta), salvo mientras se escribe en ella.
-        if not self.page_box.hasFocus():
-            self.page_box.setText(label or str(page + 1))
-        self.a_page_number.show_page(label or str(page + 1), self.count)
-        # (only the count: the box already says which page, by its label or else its number, never both)
-        self.page_label.setText(str(self.count))
-        self.page_label.setToolTip(self.page_details(page) if self.doc is not None
-                                   else tr("How many pages the document has"))
-        self.page_box.setToolTip(tr("Page {page} of {count}", page=page + 1, count=self.count) + "\n"
-                                 + tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
+        # La casilla muestra la etiqueta (o el número, sin etiqueta); junto a ella, cuántas páginas hay, con los
+        # detalles de la página (tamaño, orientación) como consejo.
+        self.a_page_number.show_page(label or str(page + 1), self.count,
+                                     self.page_details(page) if self.doc is not None else "")
         self.pages.blockSignals(True)
         if len(self.pages.selectedIndexes()) > 1:
             # (several pages chosen: they stay chosen, and only the current one follows the page shown)
@@ -3286,7 +3266,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def _enable(self):
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
-                  self.a_zoom_out, self.page_box, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
+                  self.a_zoom_out, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
                   self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_find, self.a_quick_find, self.quick_find_key, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)

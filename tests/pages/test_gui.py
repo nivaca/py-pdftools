@@ -9,7 +9,7 @@ from pathlib import Path
 import pikepdf
 import pymupdf
 import pytest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QLabel
 
 from py_pdftools.gui.window import MainWindow
 from py_pdftools.pages import labels, stamps
@@ -147,20 +147,30 @@ def test_the_page_actions_belong_to_the_mode(window):
 
 
 def test_the_page_box_shows_and_takes_labels(window, app):
-    """The page box shows the label of the page shown, and goes to a page by its label, by (n) or by a
-    number; beside it, how many pages there are, or n/N where the label isn't the place of the page."""
+    """The page box (of Page navigation, the only one) shows the label of the page shown, and goes to a page
+    by its label, by (n) or by a number; beside it, how many pages there are, with the page's details as tip."""
     window.set_ranges([Range(1, "r"), Range(5, "D")])
     window.show_page(2)
-    assert window.page_box.text() == "iii" and window.page_label.text() == "100"
-    assert "Page 3 of 100" in window.page_box.toolTip()
+    box = window.a_page_number.boxes()[0]
+    count = window.a_page_number.createdWidgets()[0].findChild(QLabel, "count")
+    assert box.text() == "iii" and count.text() == "of 100"
+    assert "Page 3 of 100" in count.toolTip()
     for typed, page in (("IV", 3), ("1", 4), ("(2)", 1), ("100", 99)):  # (no page is labelled 100)
-        window.page_box.setText(typed)
-        window.page_box.returnPressed.emit()
+        box.setText(typed)
+        box.returnPressed.emit()
         assert window.page == page, typed
     window.show_page(6)
-    assert window.page_box.text() == "3" and window.page_label.text() == "100"
-    window.page_box.setText("nothing")
-    assert not window.go_to_typed("nothing") and window.page == 6 and window.page_box.text() == "3"
+    assert box.text() == "3" and count.text() == "of 100"
+    assert not window.go_to_typed("nothing") and window.page == 6 and box.text() == "3"
+
+
+def test_the_page_box_is_shown_once(window):
+    """Only Page navigation has a box of the page: the toolbar at the top has the zoom alone."""
+    from PySide6.QtWidgets import QComboBox, QLineEdit
+
+    bar = next(b for b in window.toolbars() if b.objectName() == "pagezoom")
+    assert bar.findChildren(QComboBox) == [window.zoom_label]
+    assert [e for e in bar.findChildren(QLineEdit) if e is not window.zoom_label.lineEdit()] == []
 
 
 def test_several_thumbnails_chosen_in_any_mode(window, app, monkeypatch):

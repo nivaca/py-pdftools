@@ -24,6 +24,7 @@ class PageNumberAction(QWidgetAction):
         self.setToolTip(tr("The page shown: type a page label (such as iv) or a number, and press Enter"))
         self.text_shown = ""
         self.count = 0
+        self.details = ""  # (los detalles de la página mostrada: el consejo del número de páginas)
 
     def createWidget(self, parent) -> QWidget:
         """A box for a toolbar PARENT (Qt asks for one for each toolbar the action is put on)."""
@@ -42,6 +43,8 @@ class PageNumberAction(QWidgetAction):
         box.editingFinished.connect(lambda: box.setText(self.text_shown))
         of = QLabel(widget)
         of.setObjectName("count")
+        # (gris: un dato, no un control)
+        of.setStyleSheet("color: palette(placeholder-text);")
         lay.addWidget(box)
         lay.addWidget(of)
         self._fill(widget)
@@ -60,9 +63,15 @@ class PageNumberAction(QWidgetAction):
         of = widget.findChild(QLabel, "count")
         if of is not None:
             of.setText(tr("of {count}", count=self.count) if self.count else "")
+            of.setToolTip(self.details or tr("How many pages the document has"))
 
-    def show_page(self, text: str, count: int):
-        """The page in view is TEXT (its label, or its number) of COUNT pages: every box shows it."""
-        self.text_shown, self.count = text, count
+    def boxes(self) -> list[QLineEdit]:
+        """The boxes of the page, one for each toolbar the action is on."""
+        return [b for w in self.createdWidgets() if (b := w.findChild(QLineEdit, "page")) is not None]
+
+    def show_page(self, text: str, count: int, details: str = ""):
+        """The page in view is TEXT (its label, or its number) of COUNT pages, whose DETAILS (size,
+        orientation) are the tip of the count: every box shows it."""
+        self.text_shown, self.count, self.details = text, count, details
         for widget in self.createdWidgets():
             self._fill(widget)

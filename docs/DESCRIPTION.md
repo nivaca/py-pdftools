@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in twenty-eight stages.
+I explain how it was made, in thirty-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -938,10 +938,22 @@ saving, passwords, combining, PDF/A and PDF/X, form data, the codes of
 redaction. On Linux and macOS a refusal is a real one, and is reported at
 once.
 
+37. One box of the page
+----------------------
+
+The box of the page was on two toolbars: Page navigation, at the bottom,
+and Page and zoom, at the top, which had kept it since it was moved out of
+its fixed row above the pages. The same page in two boxes, with two counts,
+only took room. The one at the top is gone; the toolbar keeps its object
+name, so that it stays where it was put, but it is now called Zoom box and
+has the zoom alone. The details of the page that its count gave as a tip
+(the label, the size and paper, the orientation) are now the tip of the
+count of Page navigation.
+
 Testing
 -------
 
-The program has 625 tests (`uv run pytest`): those of the four programs,
+The program has 630 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
