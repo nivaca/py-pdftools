@@ -877,3 +877,7 @@ def test_floating_parts_go_with_their_tab(window, tmp_path):
     QApplication.processEvents()
     assert not dock.isVisible()
     assert not [w for w in QApplication.topLevelWidgets() if w.isVisible() and w.parent() is window]
+    # Back in its window: a panel left floating is a window of its own, which PySide destroys when Python
+    # ends, and the offscreen display of the tests (Linux, macOS, Windows) then crashes.
+    dock.setFloating(False)
+    QApplication.processEvents()
