@@ -12957,11 +12957,11 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>En uso</tr>
   </text>
   <text>
-    <en>Animate zooming</en>
-    <tr>Animar el zoom</tr>
+    <en>Animate zooming and scrolling with the wheel</en>
+    <tr>Animar el zoom y el desplazamiento con la rueda</tr>
   </text>
   <text>
-    <en>The zoom grows or shrinks in a few steps, instead of jumping; smoother still with the graphics card</en>
-    <tr>El zoom crece o se reduce en unos pocos pasos, en lugar de saltar; más suave aún con la tarjeta gráfica</tr>
+    <en>The zoom grows or shrinks in a few steps, and the wheel glides, instead of jumping; smoother still with the graphics card</en>
+    <tr>El zoom crece o se reduce en unos pocos pasos, y la rueda se desliza, en lugar de saltar; más suave aún con la tarjeta gráfica</tr>
   </text>
 </interface>

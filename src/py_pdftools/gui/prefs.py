@@ -270,10 +270,10 @@ class SettingsDialog(QDialog):
         self.text_antialias.setChecked(current["text_antialias"])
         self.graphics_antialias = QCheckBox(tr("Smooth the graphics (antialiasing)"))
         self.graphics_antialias.setChecked(current["graphics_antialias"])
-        self.smooth = QCheckBox(tr("Animate zooming"))
+        self.smooth = QCheckBox(tr("Animate zooming and scrolling with the wheel"))
         self.smooth.setChecked(current.get("smooth", True))
-        self.smooth.setToolTip(tr("The zoom grows or shrinks in a few steps, instead of jumping; smoother still "
-                                  "with the graphics card"))
+        self.smooth.setToolTip(tr("The zoom grows or shrinks in a few steps, and the wheel glides, instead of "
+                                  "jumping; smoother still with the graphics card"))
         self.gpu = QCheckBox(tr("Draw the pages with the graphics card (OpenGL)"))
         self.gpu.setChecked(bool(config.get("gpu")))
         self.gpu.setToolTip(tr("Smoother scrolling and zooming: the pictures of the pages are moved and scaled "

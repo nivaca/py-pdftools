@@ -1010,13 +1010,20 @@ moving the scroll bars after each frame, instead of relying on Qt's anchor,
 which only knows the real place of the mouse and would not do for the
 keys. A second step asked during the first goes on from where the first
 was going, so that three quick turns of the wheel make three steps, not
-fewer. Any zoom or jump of the program ends the animation first. It can be
-turned off in Settings > Performance.
+fewer. Any zoom or jump of the program ends the animation first.
+
+The wheel got the same treatment. A turn of it scrolled three lines at
+once; it now glides there in a seventh of a second, and further turns add
+to where it is going. Only the wheel of a mouse is animated: a touchpad
+sends pixels, already smooth, and goes on to Qt as before, as do Shift and
+Ctrl with the wheel. The keys that go a page at a time are left as jumps,
+since they are a way of going somewhere, not of scrolling. Both animations
+are one setting, in Settings > Performance.
 
 Testing
 -------
 
-The program has 637 tests (`uv run pytest`): those of the four programs,
+The program has 638 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

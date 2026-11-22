@@ -5,7 +5,7 @@
   goes, faster the farther it is from where it was pressed, until the next click; held down and dragged, only
   while it is held.
 - (One page at a time, the wheel goes on to the next page past the end of one: see PageCanvas.wheelEvent.)
-- El zoom (Ctrl+rueda, Acercar, Alejar) se anima: unas pocas imágenes en
+- La rueda desplaza con suavidad, y el zoom (Ctrl+rueda, Acercar, Alejar) se anima: unas pocas imágenes en
   las que la tarjeta gráfica, o el procesador, escala la imagen que ya hay; la nítida se pide al terminar.
   Configuración > Rendimiento puede apagarlo (SMOOTH)."""
 
@@ -13,13 +13,14 @@ from __future__ import annotations
 
 from PySide6.QtCore import QEasingCurve, QPointF, Qt, QTimer, QVariantAnimation
 from PySide6.QtGui import QCursor, QTransform
-from PySide6.QtWidgets import QGraphicsView
+from PySide6.QtWidgets import QApplication, QGraphicsView
 
 DEAD_ZONE = 8  # pixels around the place pressed where the autoscroll stands still
 SPEED = 1 / 6  # (pixels scrolled at each step, for each pixel away from that place)
 STEP_MS = 16
-SMOOTH = True  # (zooming animated: Settings > Performance, see performance.py)
+SMOOTH = True  # (zooming and scrolling with the wheel animated: Settings > Performance, see performance.py)
 ZOOM_MS = 160  # how long a step of the zoom takes
+SCROLL_MS = 140  # how long a turn of the wheel takes to scroll
 MIN_ZOOM, MAX_ZOOM = 0.05, 16  # (5 % to 1600 %, as set_zoom)
 
 
@@ -39,6 +40,12 @@ class ScrollingMixin:
         self._zoom_anim.valueChanged.connect(lambda z: self._zoom_about(float(z), self._zoom_point))
         self._zoom_anim.finished.connect(self._zoom_done)
         self._zoom_point = QPointF()
+        # (the scroll of the wheel: towards a goal that each further turn moves on)
+        self._scroll_anim = QVariantAnimation(self)
+        self._scroll_anim.setDuration(SCROLL_MS)
+        self._scroll_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._scroll_anim.valueChanged.connect(lambda v: self.verticalScrollBar().setValue(round(float(v))))
+        self.verticalScrollBar().sliderPressed.connect(self._scroll_anim.stop)
 
     # ----------------------------------------------------------------- zoom and wheel, animated
 
@@ -86,6 +93,30 @@ class ScrollingMixin:
             self._zoom_anim.stop()
             self._zoom_about(goal, self._zoom_point)
             self._zoom_done()
+        if self._animating(self._scroll_anim):
+            goal = round(float(self._scroll_anim.endValue()))
+            self._scroll_anim.stop()
+            self.verticalScrollBar().setValue(goal)
+
+    def scroll_smoothly(self, event) -> bool:
+        """A turn of the wheel (not of a touchpad, which already scrolls by pixels) scrolls with an animation,
+        as far as it would at once; whether it was taken."""
+        dy = event.angleDelta().y()
+        if (not SMOOTH or not self.isVisible() or not dy or not event.pixelDelta().isNull()
+                or event.modifiers() != Qt.KeyboardModifier.NoModifier):
+            return False
+        bar = self.verticalScrollBar()
+        # (lo mismo que la barra haría sola: líneas de la rueda por el paso de la barra, por cada 120 de giro)
+        step = bar.singleStep() * QApplication.wheelScrollLines() * -dy / 120
+        start = float(self._scroll_anim.endValue()) if self._animating(self._scroll_anim) else bar.value()
+        goal = max(bar.minimum(), min(start + step, bar.maximum()))
+        self._scroll_anim.stop()
+        if round(goal) == bar.value():
+            return True
+        self._scroll_anim.setStartValue(float(bar.value()))
+        self._scroll_anim.setEndValue(float(goal))
+        self._scroll_anim.start()
+        return True
 
     # ----------------------------------------------------------------- Space: Hand for a moment
 

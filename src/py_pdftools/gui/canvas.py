@@ -1213,6 +1213,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 bar.setValue(bar.maximum())
             else:
                 super().wheelEvent(event)
+        elif self.scroll_smoothly(event):  # (a turn of the wheel, animated: see scrolling.py)
+            event.accept()
         else:
             super().wheelEvent(event)
 

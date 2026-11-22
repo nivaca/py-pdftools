@@ -190,3 +190,29 @@ def test_the_zoom_animated_about_a_point(window):
     finally:
         scrolling.SMOOTH = True
 
+
+def test_the_wheel_glides(window):
+    """A turn of the wheel scrolls as far as it did, in a few frames; turns meanwhile add up; a touchpad
+    (pixels) and Shift are left to Qt; a jump ends the glide."""
+    from PySide6.QtCore import QPoint, QPointF, Qt
+    from PySide6.QtGui import QWheelEvent
+
+    canvas = window.canvas
+    window.show()
+    canvas.set_zoom(1.0)
+    bar = canvas.verticalScrollBar()
+    bar.setValue(1000)
+    step = bar.singleStep() * QApplication.wheelScrollLines()
+    canvas.wheelEvent(_wheel(canvas, -120))
+    canvas.wheelEvent(_wheel(canvas, -120))
+    assert canvas._animating(canvas._scroll_anim) and bar.value() < 1000 + 2 * step
+    _wait(canvas._scroll_anim)
+    assert bar.value() == 1000 + 2 * step
+    assert canvas.page == _page_in_view_slowly(canvas)
+    pad = QWheelEvent(QPointF(300, 300), QPointF(300, 300), QPoint(0, -40), QPoint(0, -120), Qt.MouseButton.NoButton,
+                      Qt.KeyboardModifier.NoModifier, Qt.ScrollPhase.NoScrollPhase, False)
+    assert not canvas.scroll_smoothly(pad)
+    assert not canvas.scroll_smoothly(_wheel(canvas, -120, Qt.KeyboardModifier.ShiftModifier))
+    canvas.wheelEvent(_wheel(canvas, -120))
+    window.show_page(PAGES - 1)
+    assert not canvas._animating(canvas._scroll_anim) and window.page == PAGES - 1

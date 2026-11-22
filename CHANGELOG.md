@@ -22,7 +22,11 @@ Debian package, the RPM, the wheel and the source, are on
 - **Animated zoom**: Zoom in and Zoom out, and Ctrl with the wheel, grow or
   shrink the pages in a few frames instead of jumping (with the wheel, the
   place under the pointer stays under it); the sharp picture comes when the
-  zoom stops. Settings > Performance > Animate zooming turns it off.
+  zoom stops.
+- **Smooth wheel**: a turn of the mouse wheel glides as far as it jumped,
+  in a few frames; turns meanwhile add up, and a touchpad, which already
+  scrolls by pixels, is left as it is. Both are turned off in Settings >
+  Performance > Animate zooming and scrolling with the wheel.
 
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its
