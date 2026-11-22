@@ -12,6 +12,7 @@ from __future__ import annotations
 import getpass
 import json
 import os
+import sys
 from pathlib import Path
 
 from PySide6.QtCore import QObject
@@ -87,6 +88,16 @@ def send(files: list[str]) -> bool:
     return ok
 
 
+def tray_icon():
+    """The icon of the menu bar of macOS: in black, a template that the system colours for the bar (light or
+    dark), as the others there; the icon in colour looked out of place."""
+    from PySide6.QtGui import QIcon
+
+    icon = QIcon(str(Path(__file__).resolve().parent.parent / "icons" / "macos" / "tray.svg"))
+    icon.setIsMask(True)
+    return icon
+
+
 class Instance(QObject):
     """The program running in the background: its server (see send) and its tray icon. OPEN(path or None)
     opens a window (with the document at path)."""
@@ -160,7 +171,7 @@ class Instance(QObject):
 
         if self.tray is not None or not QSystemTrayIcon.isSystemTrayAvailable():
             return
-        self.tray = QSystemTrayIcon(app_icon(), self)
+        self.tray = QSystemTrayIcon(tray_icon() if sys.platform == "darwin" else app_icon(), self)
         self.tray.setToolTip(tr("py-pdftools (in the background)"))
         menu = QMenu()
         menu.addAction(tr("New window"), lambda: self.open_window(None))

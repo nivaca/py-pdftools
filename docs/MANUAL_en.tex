@@ -352,7 +352,17 @@ tray opens a window or ends the program; \menu{File\then Quit}
 With \menu{Settings\then General\then Start with the session} the program
 also starts when you log in, in the tray and without a window
 (\texttt{py-pdftools-gui --background}), so that the first document of the
-day opens at once as well.
+day opens at once as well. On Windows the setting is a value in the key
+\texttt{Run} of the user's registry, on Linux a file in the autostart
+folder of the desktop, and on macOS a launch agent.
+
+\index{macOS}%
+On macOS the icon of the program is in the menu bar, in black, as the
+others there are. A click on the icon of the Dock, with no window open,
+opens one. The application made by the installer,
+\texttt{\textasciitilde/Applications/py-pdftools.app}, is offered by the
+Finder for PDFs (\menu{Open With}), and a document opened from the Finder,
+or dropped on the icon in the Dock, goes to the program already running.
 
 \section{The window}
 \label{sec:window}

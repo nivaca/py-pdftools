@@ -11,7 +11,7 @@
 #   Linux:  ~/.local/share/py-pdftools/venv, a menu entry and its icons;
 #   macOS:  ~/Library/Application Support/py-pdftools/venv, and
 #           ~/Applications/py-pdftools.app, to start it from the Finder,
-#           Launchpad or Spotlight.
+#           Launchpad or Spotlight, and to open PDFs with it (Open With).
 # On both, the commands py-pdftools (the command line) and py-pdftools-gui
 # (the window) are linked in ~/bin, if that folder
 # exists, or else in ~/.local/bin. Nothing needs root, and nothing is put
@@ -26,6 +26,7 @@ NAME=py-pdftools
 HERE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)
 ROOT=$(dirname -- "$HERE")
 ICONS="$ROOT/src/py_pdftools/icons/linux/hicolor"
+LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
 
 usage() {
     sed -n '2,18s/^# \{0,1\}//p' "${BASH_SOURCE[0]}"
@@ -163,6 +164,16 @@ EOF
     <key>CFBundleIconFile</key><string>$NAME</string>
     <key>LSMinimumSystemVersion</key><string>11.0</string>
     <key>NSHighResolutionCapable</key><true/>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleTypeName</key><string>PDF document</string>
+            <key>CFBundleTypeRole</key><string>Editor</string>
+            <key>LSHandlerRank</key><string>Alternate</string>
+            <key>CFBundleTypeExtensions</key><array><string>pdf</string></array>
+            <key>CFBundleTypeMIMETypes</key><array><string>application/pdf</string></array>
+        </dict>
+    </array>
 </dict>
 </plist>
 EOF
@@ -181,6 +192,8 @@ EOF
         rm -rf -- "$(dirname -- "$set")"
     fi
     touch -- "$APP"  # (so that the Finder shows the new icon)
+    # (the Finder then offers it to open PDFs, in Open With; the documents come to it as Apple events)
+    [[ -x "$LSREGISTER" ]] && "$LSREGISTER" -f "$APP" || true
     echo "  the application: $APP"
 }
 
@@ -232,6 +245,7 @@ uninstall() {
     rmdir -- "$DATA" 2>/dev/null || true  # (on macOS, the settings are there too: kept)
     if [[ "$SYSTEM" == macos ]]; then
         if [[ -d "$APP" ]]; then
+            [[ -x "$LSREGISTER" ]] && "$LSREGISTER" -u "$APP" || true
             rm -rf -- "$APP" && echo "  $APP"
         fi
     else

@@ -70,6 +70,10 @@ def main(argv: list[str] | None = None) -> int:
     from . import appearance
 
     appearance.apply()  # (the colours and the size of the interface: Settings > Appearance)
+    if sys.platform == "darwin":  # (los documentos del Finder y el clic en el Dock: ver appevents.py)
+        from . import appevents
+
+        appevents.install(app, open_window, any_window_shown, hidden)
     if hidden:
         # Solo el icono de la bandeja; una ventana se prepara, oculta, para el primer documento (ver spare).
         if not background(True):
@@ -155,6 +159,14 @@ def open_window(path=None):
     win.raise_()
     win.activateWindow()
     return win
+
+
+def any_window_shown() -> bool:
+    """Whether a window of the program (or of tabs) is on the screen."""
+    from .tabs import _HOSTS
+    from .window import _WINDOWS
+
+    return any(w.isVisible() for w in (*_WINDOWS, *_HOSTS))
 
 
 def quit_all() -> bool:

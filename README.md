@@ -171,8 +171,11 @@ instead of `install.bat`.
 Each one makes a Python environment of its own for py-pdftools, installs it
 there with PyMuPDF, pikepdf, reportlab and PySide6 (downloaded from PyPI, so
 it needs internet the first time), links the commands `py-pdftools` and
-`py-pdftools-gui`, and adds the window to the menu of the system. Nothing
-needs administrator rights, and the settings are never touched.
+`py-pdftools-gui`, and adds the window to the menu of the system. On macOS
+this is `~/Applications/py-pdftools.app`, which the Finder also offers for
+PDFs (Open With); the documents opened from there, or dropped on its icon
+in the Dock, go to the program already running. Nothing needs
+administrator rights, and the settings are never touched.
 
 **From the source**, with [uv](https://docs.astral.sh/uv/):
 
@@ -237,7 +240,10 @@ File > Quit ends it. A window is kept ready, hidden, for the next document,
 which then opens in a few hundredths of a second. With Settings > General >
 Start with the session, py-pdftools starts when you log in, in the tray and
 without a window (`py-pdftools-gui --background`), so that the first
-document of the day opens at once too.
+document of the day opens at once too. On Windows this setting is a value
+in the key Run of the user's registry; on macOS it is a launch agent, the
+icon is in the menu bar (in black, as the others there), and a click on the
+icon of the Dock, with no window open, opens one.
 
 Settings > Performance sets how much memory the window may use (Low,
 Normal, High, or All pages, which keeps every page and thumbnail drawn,

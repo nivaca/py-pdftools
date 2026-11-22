@@ -176,8 +176,11 @@ ejecutarse `install.ps1` en lugar de `install.bat`.
 Cada uno hace un entorno de Python propio para py-pdftools, lo instala en él
 con PyMuPDF, pikepdf, reportlab y PySide6 (descargados de PyPI, así que la
 primera vez necesita internet), enlaza las órdenes `py-pdftools` y
-`py-pdftools-gui` y añade la ventana al menú del sistema. Nada necesita
-permisos de administrador, y la configuración nunca se toca.
+`py-pdftools-gui` y añade la ventana al menú del sistema. En macOS esta es
+`~/Applications/py-pdftools.app`, que el Finder ofrece también para los PDF
+(Abrir con); los documentos abiertos desde allí, o soltados en su icono del
+Dock, van al programa que ya está funcionando. Nada necesita permisos de
+administrador, y la configuración nunca se toca.
 
 **Desde el código**, con [uv](https://docs.astral.sh/uv/):
 
@@ -245,7 +248,11 @@ queda lista, oculta, para el siguiente documento, que entonces se abre en
 unas centésimas de segundo. Con Configuración > General > Empezar con la
 sesión, py-pdftools arranca al iniciar la sesión, en la bandeja y sin
 ventana (`py-pdftools-gui --background`), de modo que también el primer
-documento del día se abre al instante.
+documento del día se abre al instante. En Windows, esta opción es un valor
+de la clave Run del registro del usuario; en macOS es un agente de
+arranque, el icono está en la barra de menús (en negro, como los demás de
+allí), y un clic en el icono del Dock, sin ninguna ventana abierta, abre
+una.
 
 Configuración > Rendimiento fija cuánta memoria puede usar la ventana
 (Baja, Normal, Alta, o Todas las páginas, que guarda dibujadas todas las

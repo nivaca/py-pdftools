@@ -177,18 +177,24 @@ def test_start_with_the_session(app, tmp_path, monkeypatch):
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
     monkeypatch.setenv("HOME", str(tmp_path))
-    expected = {"win32": tmp_path / "appdata" / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
-                / "py-pdftools.cmd",
-                "darwin": tmp_path / "Library" / "LaunchAgents" / "io.github.nivaca.py-pdftools.plist"}.get(
-        sys.platform, tmp_path / "xdg" / "autostart" / "py-pdftools.desktop")
-    assert not autostart.enabled()
-    path = autostart.enable(True)
-    assert path == expected and "--background" in path.read_text()
-    if sys.platform.startswith("linux"):
-        text = path.read_text()
-        assert "Exec=" in text and text.split("Exec=")[1].split("\n")[0].endswith("--background")
-    autostart.enable(False)
-    assert not path.exists()
+    if sys.platform == "win32":  # (a key of the test's own, never the user's Run)
+        monkeypatch.setattr(autostart, "RUN_KEY", rf"Software\py-pdftools-tests\{uuid.uuid4().hex[:8]}\Run")
+        assert not autostart.enabled()
+        autostart.enable(True)
+        assert autostart._run_value().endswith(" --background")
+        autostart.enable(False)
+        assert autostart._run_value() is None
+    else:
+        expected = {"darwin": tmp_path / "Library" / "LaunchAgents" / "io.github.nivaca.py-pdftools.plist"}.get(
+            sys.platform, tmp_path / "xdg" / "autostart" / "py-pdftools.desktop")
+        assert not autostart.enabled()
+        path = autostart.enable(True)
+        assert path == expected and "--background" in path.read_text()
+        if sys.platform.startswith("linux"):
+            text = path.read_text()
+            assert "Exec=" in text and text.split("Exec=")[1].split("\n")[0].endswith("--background")
+        autostart.enable(False)
+        assert not path.exists()
     if sys.platform.startswith("linux"):
         monkeypatch.setenv("APPIMAGE", "/opt/My Apps/py-pdftools.AppImage")
         assert "Exec='/opt/My Apps/py-pdftools.AppImage' --background" in autostart.enable(True).read_text()
@@ -206,3 +212,115 @@ def test_start_with_the_session(app, tmp_path, monkeypatch):
     assert not dialog.login.isChecked()
     dialog.accept()
     assert not autostart.enabled()
+
+
+class FakeRegistry:
+    """winreg, for the tests of Windows on any system: the keys of HKEY_CURRENT_USER, in a dictionary."""
+
+    HKEY_CURRENT_USER, KEY_SET_VALUE, REG_SZ = "HKCU", 2, 1
+
+    def __init__(self):
+        self.keys: dict[str, dict] = {}
+
+    class Key:
+        def __init__(self, values):
+            self.values = values
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+    def CreateKey(self, root, name):
+        return self.Key(self.keys.setdefault(name, {}))
+
+    def OpenKey(self, root, name, reserved=0, access=0):
+        if name not in self.keys:
+            raise FileNotFoundError(name)
+        return self.Key(self.keys[name])
+
+    def QueryValueEx(self, key, name):
+        if name not in key.values:
+            raise FileNotFoundError(name)
+        return key.values[name], self.REG_SZ
+
+    def SetValueEx(self, key, name, reserved, kind, value):
+        key.values[name] = value
+
+    def DeleteValue(self, key, name):
+        del key.values[name]
+
+
+def test_start_with_the_session_on_windows(tmp_path, monkeypatch):
+    """On Windows, a value in the key Run of the user's registry (a .cmd in the folder Startup showed a
+    console for a moment); the .cmd of an older version is removed."""
+    from py_pdftools.gui import autostart
+
+    registry = FakeRegistry()
+    monkeypatch.setitem(sys.modules, "winreg", registry)
+    monkeypatch.setattr(autostart, "_windows", lambda: True)
+    monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
+    monkeypatch.setattr(autostart, "command", lambda: [r"C:\Program Files\py\py-pdftools-gui.exe"])
+    old = autostart.startup_cmd()
+    old.parent.mkdir(parents=True)
+    old.write_text("@echo off\r\n")
+    assert autostart.enabled()  # (the older way counts: the setting shows it on)
+    autostart.enable(True)
+    assert not old.exists()
+    value = registry.keys[autostart.RUN_KEY]["py-pdftools"]
+    assert value == '"C:\\Program Files\\py\\py-pdftools-gui.exe" --background'
+    assert autostart.enabled()
+    autostart.enable(False)
+    assert not autostart.enabled() and registry.keys[autostart.RUN_KEY] == {}
+    autostart.enable(False)  # (nothing to remove: no error)
+
+
+def test_the_launch_agent_takes_any_path(monkeypatch):
+    import types
+
+    from py_pdftools.gui import autostart
+
+    # (solo el sys de autostart: cambiar el de todos rompe a otros módulos)
+    monkeypatch.setattr(autostart, "sys", types.SimpleNamespace(platform="darwin"))
+    text = autostart._contents(["/Users/a&b/<py>/py-pdftools-gui", "--background"])
+    assert "<string>/Users/a&amp;b/&lt;py&gt;/py-pdftools-gui</string>" in text
+
+
+def test_what_macos_says_to_the_program(app, tmp_path, monkeypatch):
+    """The documents of the Finder come as FileOpen events; a click on the Dock, without a window, asks for
+    one (not just after a start with the session)."""
+    from PySide6.QtCore import QEvent
+    from PySide6.QtGui import QFileOpenEvent
+
+    from py_pdftools.gui import appevents
+
+    opened, shown = [], [False]
+    events = appevents.AppEvents(opened.append, lambda: shown[0])
+    target = pdf(tmp_path / "finder.pdf")
+    assert events.eventFilter(app, QFileOpenEvent(str(target)))
+    activate = QEvent(QEvent.Type.ApplicationActivate)
+    events.eventFilter(app, activate)
+    shown[0] = True
+    events.eventFilter(app, activate)  # (a window on the screen: nothing)
+    assert opened == [str(target), None]
+    quiet = appevents.AppEvents(opened.append, lambda: False, hidden=True)
+    quiet.eventFilter(app, activate)
+    assert opened == [str(target), None]
+    monkeypatch.setattr(appevents, "QUIET_S", 0)
+    later = appevents.AppEvents(opened.append, lambda: False, hidden=True)
+    later.eventFilter(app, activate)
+    assert opened == [str(target), None, None]
+    # through the application, the window opens with the document
+    filt = appevents.install(app, gui.open_window, gui.any_window_shown)
+    try:
+        QApplication.sendEvent(app, QFileOpenEvent(str(target)))
+        assert any(w.path is not None and w.path.name == "finder.pdf" for w in _WINDOWS)
+    finally:
+        app.removeEventFilter(filt)
+
+
+def test_the_tray_icon_of_macos():
+    QApplication.instance() or QApplication([])
+    icon = instance.tray_icon()
+    assert icon.isMask() and not icon.pixmap(18, 18).isNull()

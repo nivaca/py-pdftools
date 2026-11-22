@@ -5,6 +5,21 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **The RPM on Copr**, which 1.8.13 didn't reach: one test made Python
+  crash when it ended, after all of them had passed (the program was not
+  affected); the test is mended.
+- **Windows**: Start with the session (Settings > General) is now a value in
+  the key Run of the user's registry, so no console shows for a moment at
+  login; the .cmd file that older versions put in the folder Startup is
+  removed.
+- **macOS**: the application made by the installer opens PDFs from the
+  Finder (Open With), and a document opened from there, or dropped on its
+  icon in the Dock, goes to the program already running; a click on the
+  Dock with no window open (in the background) opens one; the icon in the
+  menu bar is in black, as the others there.
+
 ## 1.8.13 — 2026-11-22
 
 - **The toolbars, at first**: all in one row, Page navigation among them

@@ -362,7 +362,18 @@ termina \menu{Archivo\then Salir} (\key{Ctrl+Q}).
 Con \menu{Configuración\then General\then Empezar con la sesión}, el
 programa arranca además al iniciar la sesión, en la bandeja y sin ventana
 (\texttt{py-pdftools-gui --background}), para que también el primer
-documento del día se abra al instante.
+documento del día se abra al instante. En Windows, la opción es un valor de
+la clave \texttt{Run} del registro del usuario; en Linux, un archivo en la
+carpeta de arranque automático del escritorio, y en macOS, un agente de
+arranque.
+
+\index{macOS}%
+En macOS, el icono del programa está en la barra de menús, en negro, como
+los demás de allí. Un clic en el icono del Dock, sin ninguna ventana
+abierta, abre una. La aplicación que hace el instalador,
+\texttt{\textasciitilde/Applications/py-pdftools.app}, la ofrece el Finder
+para los PDF (\menu{Abrir con}), y un documento abierto desde el Finder, o
+soltado en el icono del Dock, va al programa que ya está funcionando.
 
 \section{La ventana}
 \label{sec:window}

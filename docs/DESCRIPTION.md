@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-six stages.
+I explain how it was made, in forty-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1176,10 +1176,48 @@ of each document now hides its floating parts when it is hidden as a tab,
 and shows them again when it comes back; the place saved for the next time
 is taken before, so the bar still opens floating where it was.
 
+The test of this cost me a release. All the tests passed, here and on
+GitHub, and then Python crashed when it ended, on Linux, macOS and Windows,
+and in the build of the RPM on Copr, so 1.8.13 never reached Fedora. Here
+it did not happen with uv, only with the program installed as the
+installers install it, which is how GitHub runs the tests. The cause was in
+the test, not in the program: it used the window of a fixture, shown first
+as a window of its own and then put in a tab, and the offscreen display of
+the tests crashed when PySide destroyed that window at the end. I had first
+blamed the panel left floating, and then the window's hideEvent, and
+changed both for nothing; what found it was installing the program as
+GitHub does and cutting the test down, step by step. The test now makes
+its windows as tabs from the start.
+
+47. Windows and macOS, each in its own way
+------------------------------------------
+
+Running in the background used Qt's pieces only, the tray icon and a local
+socket, and these work on the three systems. What was not the same was the
+way each system starts a program and gives it its documents. On Windows,
+the start with the session was a .cmd file in the folder Startup, which
+showed a console for a moment at every login; it is now a value in the key
+Run of the user's registry, which starts the window directly, and the .cmd
+of an older version is removed. The tests use a key of their own, and a
+small registry made in the test checks the same code on Linux.
+
+macOS needed more. The application made by the installer did not say that
+it opens PDFs, so the Finder never offered it; now its Info.plist declares
+them, and the installer registers it. And macOS does not start a second
+copy to hand a document over, as the others do: it sends the document, as
+an event, to the program already running, which ignored it. The program now
+listens for these events, and also for the click on the icon of the Dock,
+which opens a window if none is on the screen; an activation in the first
+two seconds after a start with the session is the start's own, and opens
+nothing. The tray icon, in colour, looked out of place in the menu bar,
+where the icons are black and the system colours them; there is now one
+drawn for it. I could test the events in the tests, but not the Finder
+itself, which needs a real Mac.
+
 Testing
 -------
 
-The program has 671 tests (`uv run pytest`): those of the four programs,
+The program has 675 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1191,7 +1229,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, the start with the session on Windows (in a registry made in the test) and the events of macOS, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -1200,5 +1238,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 163 files of Python, around 44,200 lines (about a tenth of them
+program has 164 files of Python, around 44,300 lines (about a tenth of them
 comments), and 3,197 texts of the interface in Spanish.
