@@ -991,10 +991,19 @@ the view; only their pages are looked at, and the step takes 0.01 ms. A test
 compares the answer with the old one, page by page, with one or two pages in
 a row, turned and without gaps.
 
+Laying the pages out, when a document opens or the view changes, cost
+133 ms. Three quarters of it was MuPDF loading every page twice to read its
+size: once for the size and once more to turn it, if the view is turned. It
+is now read once. The rest was items: each page had, from the start, an item
+for its rendering and a layer for the tiles of a deep zoom, which a page far
+down a long document never uses. They are now made when the page is first
+drawn, with their order set by their z values, since they may no longer be
+made in order. The layout takes 31 ms, and two pages side by side 37.
+
 Testing
 -------
 
-The program has 635 tests (`uv run pytest`): those of the four programs,
+The program has 636 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

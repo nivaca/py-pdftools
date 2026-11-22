@@ -294,16 +294,36 @@ class PageItem(QGraphicsRectItem):
         self.setPen(QPen(Qt.PenStyle.NoPen))
         # (white; or the page colour of the reading colours, while the page is drawn)
         self.setBrush(QBrush(QColor(reading.page_colour())))
-        # La imagen renderizada es hija del rectángulo blanco: mientras no llega, la página se ve en blanco.
-        self.pixmap = QGraphicsPixmapItem(self)
-        self.pixmap.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+        # La imagen renderizada y la capa de las teselas se crean al hacer falta (ver pixmap y tiles_layer): un
+        # documento de miles de páginas no paga por las que nunca se ven.
+        self._pixmap: QGraphicsPixmapItem | None = None
+        self._tiles_layer: QGraphicsRectItem | None = None
         self.scale_shown = 0.0  # (of the rendering it shows; 0: none, or a stand-in)
         self.wanted: tuple | None = None  # (the key of the rendering asked for)
-        # Las teselas de un zoom profundo van en una capa propia: encima de la imagen entera, debajo de las
-        # anotaciones (que se añaden después, con un z mayor).
-        self.tiles_layer = QGraphicsRectItem(self)
-        self.tiles_layer.setPen(QPen(Qt.PenStyle.NoPen))
         self.tiles: dict[tuple, QGraphicsPixmapItem] = {}  # (scale, column, row) -> its picture
+
+    @property
+    def pixmap(self) -> QGraphicsPixmapItem:
+        """The rendering of the page, a child of the white rectangle (white while it hasn't come)."""
+        if self._pixmap is None:
+            self._pixmap = QGraphicsPixmapItem(self)
+            self._pixmap.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
+            # (under the tiles and the annotations, whichever is made first)
+            self._pixmap.setZValue(0.1)
+        return self._pixmap
+
+    @property
+    def tiles_layer(self) -> QGraphicsRectItem:
+        """The layer of the tiles of a deep zoom: over the whole rendering, under the annotations (z 1 up)."""
+        if self._tiles_layer is None:
+            self._tiles_layer = QGraphicsRectItem(self)
+            self._tiles_layer.setPen(QPen(Qt.PenStyle.NoPen))
+            self._tiles_layer.setZValue(0.2)
+        return self._tiles_layer
+
+    def shows_nothing(self) -> bool:
+        """Whether no rendering (nor stand-in) is shown yet."""
+        return self._pixmap is None or self._pixmap.pixmap().isNull()
 
     def show_tile(self, key: tuple, pixmap: QPixmap, clip: tuple, scale: float):
         """Show the tile KEY ((scale, column, row)): PIXMAP, of the part CLIP of the page at SCALE."""
@@ -628,7 +648,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         # que perdió páginas.
         rows = self.rows() if self.continuous else [self.row_of(min(self.page, self.doc.page_count - 1))]
         sizes = {n: self.page_rect(n) for row in rows for n in row}
-        shown = {n: self.shown_rect(n) for n in sizes}  # (as the view turns them)
+        # (as the view turns them; from SIZES, not asking MuPDF for each page a second time)
+        across = self.turn in (90, 270)
+        shown = {n: QRectF(0, 0, r.height(), r.width()) if across else r for n, r in sizes.items()}
         # (kept: the fit reads them, instead of asking MuPDF for every page again at each resize)
         self.shown_sizes = shown
         widest = max(self._row_width(row, shown) for row in rows)
@@ -947,7 +969,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self._cache.move_to_end(key)
                 item.show(self._cache[key], scale)
                 continue
-            if item.pixmap.pixmap().isNull():  # (meanwhile, an older rendering, or the thumbnail)
+            if item.shows_nothing():  # (meanwhile, an older rendering, or the thumbnail)
                 old = next((k for k in reversed(self._cache) if k[:2] == key[:2]), None)
                 if old is not None:
                     item.show(self._cache[old], old[2], final=False)

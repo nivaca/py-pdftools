@@ -111,3 +111,25 @@ def test_scrolling_finds_the_page_by_bisection(window, monkeypatch):
     monkeypatch.setattr(type(canvas.pages[0]), "sceneBoundingRect", lambda self: looked.append(1) or real(self))
     canvas._scrolled(0)
     assert 0 < len(looked) < 40
+
+
+def test_pages_get_their_pictures_when_drawn(window, monkeypatch):
+    """Laying out asks MuPDF for each page's size once, and a page gets the items of its rendering and its
+    tiles only when it is drawn: under the tiles, and both under the annotations."""
+    canvas = window.canvas
+    asked = []
+    page_rect = canvas.page_rect
+    monkeypatch.setattr(canvas, "page_rect", lambda n: asked.append(n) or page_rect(n))
+    canvas.set_turn(90)
+    assert sorted(asked) == list(range(PAGES))  # (once each, turned as they are)
+    canvas.set_turn(0)
+    far = canvas.pages[PAGES - 1]
+    assert far._pixmap is None and far._tiles_layer is None and far.shows_nothing()
+    window.show()
+    canvas._render_visible()
+    canvas.local_timer.timeout.emit()
+    QApplication.processEvents()
+    first = canvas.pages[canvas.page]
+    assert first._pixmap is not None
+    assert first.tiles_layer.zValue() > first.pixmap.zValue() and first.tiles_layer.zValue() < 1
+    assert far._pixmap is None  # (still: it was never in view)
