@@ -176,9 +176,11 @@ def test_the_zoom_animated_about_a_point(window):
     assert canvas.render_timer.isActive() and canvas.fit == ""
     point = QPointF(250, 180)
     spot = canvas.mapToScene(point.toPoint())
-    canvas.wheelEvent(_wheel(canvas, 120, Qt.KeyboardModifier.ControlModifier, point.x(), point.y()))
-    _wait(canvas._zoom_anim)
-    assert abs(canvas.zoom() - 1.5625 * 1.15) < 1e-6
+    # (several turns, to see that the frames don't add up their roundings: within a pixel each way)
+    for _ in range(3):
+        canvas.wheelEvent(_wheel(canvas, 120, Qt.KeyboardModifier.ControlModifier, point.x(), point.y()))
+        _wait(canvas._zoom_anim)
+    assert abs(canvas.zoom() - 1.5625 * 1.15 ** 3) < 1e-6
     assert (canvas.mapFromScene(spot) - point.toPoint()).manhattanLength() <= 2
     # A zoom of the program, meanwhile, ends the animation first: its own zoom is the one that stays.
     canvas.zoom_by(2)

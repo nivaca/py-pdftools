@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **Animated zoom** with Ctrl and the wheel: the place under the pointer
+  drifted a pixel or two at each turn, the roundings of the scroll bars
+  adding up frame by frame; it is now fixed when the zoom starts and stays
+  put (found by the tests on GitHub's macOS).
+
 ## 1.8.9 — 2026-11-22
 
 - **Left and Right** turn the pages in the view of the pages: the previous

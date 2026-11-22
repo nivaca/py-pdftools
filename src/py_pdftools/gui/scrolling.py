@@ -37,9 +37,12 @@ class ScrollingMixin:
         self._zoom_anim = QVariantAnimation(self)
         self._zoom_anim.setDuration(ZOOM_MS)
         self._zoom_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self._zoom_anim.valueChanged.connect(lambda z: self._zoom_about(float(z), self._zoom_point))
+        self._zoom_anim.valueChanged.connect(lambda z: self._zoom_about(float(z), self._zoom_point, self._zoom_spot))
         self._zoom_anim.finished.connect(self._zoom_done)
         self._zoom_point = QPointF()
+        # (lo que está bajo ese punto, en la escena, fijado al empezar: recalcularlo en cada cuadro sumaba los
+        # redondeos de las barras, unos píxeles al final)
+        self._zoom_spot = QPointF()
         # (the scroll of the wheel: towards a goal that each further turn moves on)
         self._scroll_anim = QVariantAnimation(self)
         self._scroll_anim.setDuration(SCROLL_MS)
@@ -58,18 +61,19 @@ class ScrollingMixin:
         start = float(self._zoom_anim.endValue()) if self._animating(self._zoom_anim) else self.zoom()
         goal = max(MIN_ZOOM, min(start * factor, MAX_ZOOM))
         self._zoom_point = QPointF(self.viewport().rect().center()) if point is None else QPointF(point)
+        self._zoom_spot = self.mapToScene(self._zoom_point.toPoint())
         self._zoom_anim.stop()
         if not SMOOTH or not self.isVisible():
-            self._zoom_about(goal, self._zoom_point)
+            self._zoom_about(goal, self._zoom_point, self._zoom_spot)
             self._zoom_done()
             return
         self._zoom_anim.setStartValue(self.zoom())
         self._zoom_anim.setEndValue(goal)
         self._zoom_anim.start()
 
-    def _zoom_about(self, z: float, point: QPointF):
-        """The scale Z, with what is at POINT of the view left there."""
-        spot = self.mapToScene(point.toPoint())
+    def _zoom_about(self, z: float, point: QPointF, spot: QPointF | None = None):
+        """The scale Z, with what is at POINT of the view left there (SPOT, in the scene, if known)."""
+        spot = self.mapToScene(point.toPoint()) if spot is None else spot
         anchor = self.transformationAnchor()
         # (sin ancla: Qt no mueve la vista por su cuenta; se mueve abajo, para que SPOT siga bajo POINT)
         self.setTransformationAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
@@ -91,7 +95,7 @@ class ScrollingMixin:
         if self._animating(self._zoom_anim):
             goal = float(self._zoom_anim.endValue())
             self._zoom_anim.stop()
-            self._zoom_about(goal, self._zoom_point)
+            self._zoom_about(goal, self._zoom_point, self._zoom_spot)
             self._zoom_done()
         if self._animating(self._scroll_anim):
             goal = round(float(self._scroll_anim.endValue()))
