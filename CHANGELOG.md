@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.11 — 2026-11-22
 
 - **Word index** is also a button on the toolbar Find, with an icon of its
   own (a list of terms with their pages, and a magnifier).

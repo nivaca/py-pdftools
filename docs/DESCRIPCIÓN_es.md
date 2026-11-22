@@ -1,4 +1,4 @@
-# py-pdftools 1.8.10: descripción
+# py-pdftools 1.8.11: descripción
 
 ## Análisis
 
