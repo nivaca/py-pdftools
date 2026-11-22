@@ -13,6 +13,10 @@ Debian package, the RPM, the wheel and the source, are on
   the key and what the mode is for in their tip; and File without Print,
   which stays in the menu File (Ctrl+P). A toolbar already moved or changed
   keeps its place and its buttons.
+- **Toolbars and panels dragged out of a window in tabs** stayed on the
+  screen, each with its icon in the taskbar, after the window was closed,
+  and when another tab came to the front; they now hide with their tab, and
+  come back with it.
 
 ## 1.8.12 — 2026-11-22
 

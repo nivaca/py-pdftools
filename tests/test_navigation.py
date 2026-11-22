@@ -7,7 +7,7 @@ import sys
 
 import pymupdf
 import pytest
-from PySide6.QtWidgets import QApplication, QLabel
+from PySide6.QtWidgets import QApplication, QDockWidget, QLabel
 
 from py_pdftools.gui.window import MainWindow
 
@@ -843,3 +843,37 @@ def test_left_and_right_turn_the_pages(window):
     page = window.page
     press(Qt.Key.Key_Right)
     assert window.page == page and bar.value() > 0  # (scrolled sideways)
+
+
+def test_floating_parts_go_with_their_tab(window, tmp_path):
+    """A panel (or a toolbar) dragged out of a window that is a tab is hidden with it: when another tab comes
+    to the front, and when the window of tabs is closed (they stayed on the screen, each with its icon in
+    the taskbar); it comes back with its tab."""
+    from py_pdftools.gui.tabs import open_in_tab
+
+    other = tmp_path / "other.pdf"
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(other)
+    window.set_mode("ocr")
+    second = open_in_tab(other, near=window)
+    host = window.host
+    host.show_window(window)
+    QApplication.processEvents()
+    dock = next(d for d in window.findChildren(QDockWidget) if d.objectName() == "ocr")
+    dock.setFloating(True)
+    dock.show()
+    QApplication.processEvents()
+    assert dock.isVisible() and dock in window.floating_parts()
+    host.show_window(second)  # (the other tab in front)
+    QApplication.processEvents()
+    assert not dock.isVisible()
+    host.show_window(window)
+    QApplication.processEvents()
+    assert dock.isVisible() and dock.isFloating()
+    window.annotations = window.saved = []
+    second.annotations = second.saved = []
+    host.close()
+    QApplication.processEvents()
+    assert not dock.isVisible()
+    assert not [w for w in QApplication.topLevelWidgets() if w.isVisible() and w.parent() is window]

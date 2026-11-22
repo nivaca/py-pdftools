@@ -1105,6 +1105,30 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.keep_arrangement()  # (that of the mode on, to come back with it)
         self.settings.sync()
 
+    _floating_hidden: list = []  # (the toolbars and panels out of the window, hidden with it: see hideEvent)
+
+    def floating_parts(self) -> list:
+        """The toolbars and panels of this window dragged out of it (each a window of its own)."""
+        return [w for w in (*self.findChildren(QToolBar), *self.findChildren(QDockWidget))
+                if w.parent() is self and w.isFloating()]
+
+    def hideEvent(self, event):
+        super().hideEvent(event)
+        # Como ventana propia, Qt oculta con ella sus barras y paneles sueltos; como pestaña (o al cerrarse su
+        # ventana de pestañas) no: quedaban a la vista, con su icono en la barra de tareas, sin la ventana.
+        if self.isWindow() or event.spontaneous():
+            return
+        self._floating_hidden = [w for w in self.floating_parts() if w.isVisible()]
+        for part in self._floating_hidden:
+            part.hide()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        hidden, self._floating_hidden = self._floating_hidden, []
+        for part in hidden:
+            if part.isFloating():  # (back, as they were: unless they were docked meanwhile)
+                part.show()
+
     def closeEvent(self, event):
         self.canvas.commit_text()
         self.keep_comment()
