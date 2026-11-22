@@ -283,7 +283,11 @@ $ install/install.sh --uninstall
 \noindent\index{instaladores}\index{modos}\index{contrasenas@contraseñas!permisos}\index{macos y windows@macOS y Windows}%
 Las dos primeras líneas lo instalan (o lo actualizan) y lo
 desinstalan en Linux y macOS; las demás, en Windows, donde
-\texttt{-Desktop} pone además un acceso directo en el escritorio. Cada
+\texttt{-Desktop} pone además un acceso directo en el escritorio. En
+Windows las opciones también pueden escribirse como en \texttt{install.sh}
+(\texttt{-{}-uninstall}, \texttt{-{}-desktop}, \texttt{-{}-python} seguido
+de la ruta de un \texttt{python.exe}); una palabra que no sea ninguna de
+ellas se informa como opción desconocida. Cada
 instalador crea un entorno de Python propio para \texttt{py-pdftools}, lo
 instala allí con sus bibliotecas (descargadas de PyPI, de modo que la
 primera instalación necesita internet), enlaza las órdenes

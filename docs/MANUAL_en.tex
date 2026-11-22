@@ -277,7 +277,10 @@ $ install/install.sh --uninstall
 \noindent\index{links}\index{macos and windows@macOS and Windows}%
 The first two lines install (or update) and uninstall it on
 Linux and macOS, the others on Windows, where \texttt{-Desktop} also puts
-a shortcut on the desktop. Each one makes a Python environment of its own for
+a shortcut on the desktop. On Windows the options may also be written as
+for \texttt{install.sh} (\texttt{-{}-uninstall}, \texttt{-{}-desktop},
+\texttt{-{}-python} followed by the path of a \texttt{python.exe}); a word
+that is none of them is reported as an unknown option. Each one makes a Python environment of its own for
 \texttt{py-pdftools}, installs it there with its libraries (downloaded from
 PyPI, so the first installation needs the internet), links the commands
 \texttt{py-pdftools} and \texttt{py-pdftools-gui}, and adds the window to
