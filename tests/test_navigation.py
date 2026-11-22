@@ -708,14 +708,17 @@ def test_hiding_the_gaps_between_pages(window):
 
 def test_the_page_navigation_bar(window):
     """The toolbar Page navigation (gui/pagebar.py): First, Previous, the box of the page, Next, Last, at the
-    bottom of the window; the box takes a number, shows the page in view and how many there are; the bar can
+    top of the window, after Navigation; the box takes a number, shows the page in view and how many there are; the bar can
     be customized as the others; Impose, which has no pages to move through, hides it."""
     from PySide6.QtCore import Qt
     from PySide6.QtWidgets import QLabel, QLineEdit, QToolBar
 
     bar = window.findChild(QToolBar, "pagenav")
     assert bar is not None and bar.isVisible()
-    assert window.toolBarArea(bar) == Qt.ToolBarArea.BottomToolBarArea
+    # (in the row of the toolbars of every mode, between Navigation and Zoom)
+    assert window.toolBarArea(bar) == Qt.ToolBarArea.TopToolBarArea
+    row = [b.objectName() for b in window.common_bars]
+    assert row.index("navigation") + 1 == row.index("pagenav") == row.index("zoom") - 1
     assert window.bar_ids(bar) == ["a_first", "a_prev", "a_page_number", "a_next", "a_last"]
     # (and they are not also on the toolbar Navigation, which keeps the history and the tools)
     navigation = window.findChild(QToolBar, "navigation")

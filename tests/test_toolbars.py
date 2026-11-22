@@ -34,15 +34,16 @@ def test_every_button_has_an_icon(window):
             # (the box of the page, a widget, is no button)
             assert act.isSeparator() or isinstance(act, QWidgetAction) or not act.icon().isNull(), (
                 b.objectName(), act.text())
-    assert window.modes_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon"  # (de entrada)
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonIconOnly"  # (de entrada, como las demás)
 
 
 def test_the_dialog_changes_a_toolbar(window):
     d = ToolbarsDialog(window)
     d.bar.setCurrentIndex(d.bar.findData("file"))
-    assert d.contents["file"] == ["a_open", "a_save", "a_print"]
-    d.chosen.setCurrentRow(2)
-    d.remove()  # (Print)
+    assert d.contents["file"] == ["a_open", "a_save"]  # (Print: in the menu File, not on the bar)
+    d.chosen.setCurrentRow(1)
+    d.add(["a_print"])
+    d.remove()  # (Print, added and taken away)
     d.chosen.setCurrentRow(0)
     d.add(["a_find"])  # (after Open)
     d.add_separator()
@@ -102,7 +103,8 @@ def test_text_position_icon_size_and_lock(window, app):
     """As in KDE: the text position and the size of the icons of all the toolbars, or of one (its own then
     wins); the toolbars locked; kept for the next window; and the setting of old (labels under the icons)."""
     file_bar, zoom = bar(window, "file"), bar(window, "zoom")
-    assert file_bar.toolButtonStyle().name == "ToolButtonIconOnly" and file_bar.iconSize().width() == 22
+    assert file_bar.toolButtonStyle().name == "ToolButtonIconOnly" and file_bar.iconSize().width() == 16
+    assert window.modes_bar.toolButtonStyle().name == "ToolButtonIconOnly" and window.modes_bar.iconSize().width() == 16
     window.set_bar_look(None, style="beside", size=32)
     assert file_bar.toolButtonStyle().name == "ToolButtonTextBesideIcon" and zoom.iconSize().width() == 32
     assert window.modes_bar.iconSize().width() == 32  # (all, the bar of the modes too)

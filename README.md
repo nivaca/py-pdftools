@@ -269,7 +269,7 @@ or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
 side by side. A document changed by another program opens again by itself.
 Left and Right go to the previous and next page (while the pages fit across
 the view). Space held turns any tool into Hand, and the middle button scrolls by
-itself. The toolbar Page navigation, at the bottom of the window, goes to
+itself. The toolbar Page navigation, at the top between Navigation and Zoom, goes to
 the first, previous, next and last page, and its box takes a page number
 or label; like the other toolbars, it can be changed in Customize the
 toolbars. The box of the zoom is on the toolbar Zoom box, which can be moved

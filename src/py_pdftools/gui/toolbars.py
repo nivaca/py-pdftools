@@ -30,7 +30,9 @@ STYLES = [("icons", N_("Icons only"), Qt.ToolButtonStyle.ToolButtonIconOnly),
           ("beside", N_("Text alongside icons"), Qt.ToolButtonStyle.ToolButtonTextBesideIcon),
           ("under", N_("Text under icons"), Qt.ToolButtonStyle.ToolButtonTextUnderIcon)]
 SIZES = [(16, N_("Small (16)")), (22, N_("Medium (22)")), (32, N_("Large (32)")), (48, N_("Huge (48)"))]
-DEFAULT_LOOKS = {"style": "icons", "size": 22, "locked": False, "bars": {"modes": {"style": "beside", "size": 20}}}
+# (iconos pequeños, todas las barras igual, la de los modos también: sus iconos los distinguen, y su nombre está
+# en la pista)
+DEFAULT_LOOKS = {"style": "icons", "size": 16, "locked": False, "bars": {}}
 
 
 def plain(text: str) -> str:

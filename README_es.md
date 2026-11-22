@@ -281,7 +281,7 @@ nuevo solo. Las flechas izquierda y derecha van a la página anterior y a
 la siguiente (mientras las páginas quepan a lo ancho). La barra
 espaciadora, mantenida, convierte cualquier
 herramienta en Mano, y el botón central desplaza solo. La barra
-Navegación de páginas, abajo en la ventana, va a la primera, la anterior,
+Navegación de páginas, arriba entre Navegación y Zoom, va a la primera, la anterior,
 la siguiente y la última página, y su casilla acepta un número o una
 etiqueta de página; como las demás barras, se cambia en Personalizar las
 barras de herramientas. El cuadro del zoom está en la barra Cuadro del

@@ -754,18 +754,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                           (self.a_find, "edit-find"), (self.a_print, "document-print")):
             act.setIcon(icon(name))
         # the toolbars of every mode, one for each kind of work: the file, editing, finding, moving through
-        # the pages, and zooming (each mode adds its own, on the row below)
+        # the pages, and zooming (each mode adds its own, on the row below). All in one row, in this order:
+        # Page navigation between Navigation and Zoom. (Print is in the menu File, Ctrl+P, not on the bar.)
         self.common_bars = [
-            self.toolbar_of("file", tr("File"), [self.a_open, self.a_save, self.a_print]),
+            self.toolbar_of("file", tr("File"), [self.a_open, self.a_save]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
             self.toolbar_of("find", tr("Find"), [self.a_find, self.a_quick_find, self.a_word_index]),
             # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],
                                                              self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
+            self.page_bar(),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
             self.page_zoom_bar(),
-            self.page_bar(),
         ]
         self.addToolBarBreak()
         # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
@@ -833,13 +834,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         return bar
 
     def page_bar(self) -> QToolBar:
-        """The toolbar Page navigation (see pagebar.py), at the bottom of the window."""
+        """The toolbar Page navigation (see pagebar.py), in the row of the toolbars of every mode, after
+        Navigation. (It was at the bottom of the window until 1.8.12: a place kept from then stays.)"""
         from .pagebar import NAME
 
-        bar = self.toolbar_of(NAME, tr("Page navigation"), [self.a_first, self.a_prev, self.a_page_number,
-                                                             self.a_next, self.a_last])
-        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, bar)
-        return bar
+        return self.toolbar_of(NAME, tr("Page navigation"), [self.a_first, self.a_prev, self.a_page_number,
+                                                              self.a_next, self.a_last])
 
     def toolbar_of(self, name: str, title: str, actions: list) -> QToolBar:
         """A new toolbar NAME (its object name, which keeps its place between sessions), with ACTIONS."""
@@ -922,6 +922,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for n, key in enumerate(self.modes, 1):
             act = QAction(icon(MODE_ICONS[key]), tr(TITLES[key]), self, checkable=True)
             act.setToolTip(tr(TIPS[key]))
+            # (en la barra, la pista del botón dice el nombre del modo, su tecla y esto: ver _toolbar_tips)
+            act.setStatusTip(tr(TIPS[key]))
             act.setShortcut(QKeySequence(f"Ctrl+{n}"))
             act.triggered.connect(lambda _=False, k=key: self.set_mode(k))
             group.addAction(act)

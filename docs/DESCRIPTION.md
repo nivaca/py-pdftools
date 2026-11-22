@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-four stages.
+I explain how it was made, in forty-five stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1145,6 +1145,21 @@ unknown option, by its name. A Python given and not usable is now named as
 such, instead of being reported as Python missing. The tests on GitHub's
 Windows now uninstall with `--uninstall`, and give the installer the same
 misspelt option, to see that it says so.
+
+45. The toolbars, as I use them
+-------------------------------
+
+After some weeks with the program, my own toolbars had settled, and I made
+them the ones it starts with. The icons are small (16 points), the bar of
+the modes too: it showed the name of each mode beside its icon, which made
+it as long as half the row, and the icons are told apart easily; the tip of
+each button says the name of the mode, its key and what it is for. Page
+navigation moved from the bottom of the window to the row of the toolbars
+of every mode, between Navigation and Zoom, where the eye already is. Print
+left the toolbar File: it is in the menu, with Ctrl+P, and nobody prints
+often enough to want a button. A toolbar that was moved or changed keeps
+its place and its buttons, since those are saved; only a new configuration
+starts with these. The pictures of the manuals were made again.
 
 Testing
 -------

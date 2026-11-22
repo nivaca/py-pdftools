@@ -5,6 +5,15 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **The toolbars, at first**: all in one row, Page navigation among them
+  (between Navigation and Zoom, no longer at the bottom of the window);
+  small icons (16), the bar of the modes too, whose buttons say the name,
+  the key and what the mode is for in their tip; and File without Print,
+  which stays in the menu File (Ctrl+P). A toolbar already moved or changed
+  keeps its place and its buttons.
+
 ## 1.8.12 — 2026-11-22
 
 - **A quicker start**: the workspace of Impose is made the first time the
