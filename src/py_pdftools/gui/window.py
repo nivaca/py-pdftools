@@ -214,7 +214,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.selected: list[int] = []  # indices in self.annotations
         self.prefs = settings.load()
         colors.set_palette(self.prefs.palette)
-        self._have_conform = conform.available(self.prefs.pdfconform)  # (pdf2iso, for PDF/A and PDF/X)
+        # (pdf2iso, for PDF/A and PDF/X: looked for when the menu Save as first opens, see _standards_menu;
+        # finding Ghostscript runs it, which would slow every start)
+        self._have_conform: bool | None = None
         self._thumbs: dict[int, QImage] = {}  # page -> its picture, without the annotations
         self._thumb_shown: dict[int, tuple] = {}  # page -> the annotations its thumbnail shows
         self._thumb_asked: set[int] = set()  # pages whose thumbnail is being made in the other processes
@@ -461,6 +463,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for value, name in conform.STANDARDS:
             act = self._action(sub, tr(name) + "…", lambda _=False, v=value: self.save_standard_dialog(v))
             self.standard_actions[value] = act
+        sub.aboutToShow.connect(self._standards_menu)
         self.a_protect = self._action(m, tr("Protect with passwords…"), self.protection_dialog,
                                       tip=tr("A password to open the document, and one for what may be done with "
                                              "it (printing, copying, changing it); or its protection removed"))
@@ -1110,7 +1113,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             save_session([self.path])
         # Removes the temporary folder of the working copies; unsaved changes of the document itself go with it.
         self.drop_work()
-        self.workspace.close_down()
+        if self._workspace is not None:  # (made only if the mode Impose was entered)
+            self._workspace.close_down()
         self.save_settings()
         super().closeEvent(event)
         if self.host is not None:  # (its tab goes: see tabs.py)
@@ -3275,6 +3279,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         for w in (p.tags, p.replies, p.reply_edit, p.reply_button, p.status):
             w.setEnabled(one is not None)
 
+    def _standards_menu(self):
+        """(The menu Save as opens.) Whether PDF/A and PDF/X can be made, looked for the first time now."""
+        if self._have_conform is None:
+            self._have_conform = conform.available(self.prefs.pdfconform)
+        self._enable_standards()
+
+    def _enable_standards(self):
+        for act in self.standard_actions.values():
+            act.setEnabled(self.doc is not None and bool(self._have_conform))
+            act.setToolTip("" if self._have_conform else tr("Needs {command}: install it, or say where it is in "
+                                                            "Settings", command=conform.COMMAND))
+
     def _enable(self):
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
@@ -3291,10 +3307,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_ocr.setEnabled(has and ocr.available())
         self.a_recognise.setEnabled(has and ocr.available())
         self.a_ocr.setToolTip(self.a_ocr.toolTip() if ocr.available() else tr("Needs Tesseract: install it"))
-        for act in self.standard_actions.values():
-            act.setEnabled(has and self._have_conform)
-            act.setToolTip("" if self._have_conform else tr("Needs {command}: install it, or say where it is in "
-                                                            "Settings", command=conform.COMMAND))
+        if self._have_conform is not None:
+            self._enable_standards()
         for w in (self.a_export_md, self.a_export_csv, self.a_export_apparatus, self.a_export_json, self.a_export_xfdf, self.a_summary,
                   self.a_next_annot, self.a_prev_annot):
             w.setEnabled(has and bool(self._rows))

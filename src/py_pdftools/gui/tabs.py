@@ -64,11 +64,7 @@ class TabHost(QMainWindow):
         win.host = self
         win.setWindowFlags(Qt.WindowType.Widget)
         win.menuBar().setNativeMenuBar(False)
-        # (its shortcuts act only where the focus is: see the module's text)
-        for act in win.findChildren(QAction):
-            if act.shortcuts():
-                act.setShortcutContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-                win.addAction(act)
+        keep_shortcuts_inside(win)
         tabs = self.sides[side]
         index = tabs.addTab(win, self._tab_text(win))
         tabs.setTabToolTip(index, str(win.path) if win.path is not None else "")
@@ -265,3 +261,12 @@ def apply_tab_bars():
     """The setting of the bars of the tabs, in every window of tabs (when it changes)."""
     for host in list(_HOSTS):
         host.tab_bars()
+
+
+def keep_shortcuts_inside(win, part=None):
+    """The shortcuts of WIN (of PART of it, if given: one made after it became a tab) act only where the focus
+    is: see the module's text."""
+    for act in (part or win).findChildren(QAction):
+        if act.shortcuts():
+            act.setShortcutContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+            win.addAction(act)

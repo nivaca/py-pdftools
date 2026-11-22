@@ -44,6 +44,11 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if not hidden and instance.enabled() and instance.send(files):
         return 0
+    # Tesseract (sus idiomas) y Ghostscript se buscan ya, en otro hilo, mientras se carga lo demás: buscarlos
+    # los ejecuta, y la ventana los necesita (el menú OCR, Guardar como PDF/A).
+    from ..core import conform, ocr, once
+
+    once.ahead(ocr.system_tessdata, conform.ghostscript)
     # El idioma configurado se fija antes de crear la ventana: sus textos se traducen al construirse.
     from ..core import interface
 

@@ -5,6 +5,18 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **A quicker start**: the workspace of Impose is made the first time the
+  mode is entered, not at every start; tesseract is looked for in another
+  thread while the rest loads, and Ghostscript when the menu Save as opens.
+  Without a document, the window shows in about 240 ms instead of 330.
+- **Documents with many links open faster**: where each link goes is read
+  from the link itself (PyMuPDF listed the annotations of the page again for
+  every link); the manual, with 590 links, is read three times as fast.
+  Links with addresses PyMuPDF doesn't take as web addresses, which showed
+  nothing in the list of annotations, now show the address.
+
 ## 1.8.11 — 2026-11-22
 
 - **Word index** is also a button on the toolbar Find, with an icon of its

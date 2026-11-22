@@ -57,6 +57,8 @@ def shortcuts(window) -> list[Check]:
     from ..annotate import settings
 
     title = tr("Keyboard shortcuts")
+    # (those of the mode Impose too, whose workspace is otherwise made only when the mode is first entered)
+    getattr(window, "workspace", None)
     # (only the shortcuts of the window: those of a widget, such as Delete in the bookmarks, can't clash)
     actions = [a for a in window.findChildren(QAction)
                if a.shortcutContext() in (Qt.ShortcutContext.WindowShortcut, Qt.ShortcutContext.ApplicationShortcut)]

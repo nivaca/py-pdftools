@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-one stages.
+I explain how it was made, in forty-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1078,10 +1078,41 @@ their pages in blue, which shows on a light toolbar and on a dark one, and a
 magnifier. Its name is one no icon theme has, so the desktop's theme can't
 put another in its place.
 
+42. A quicker start
+------------------
+
+I measured where the start went, without a document: about a third of a
+second before the window could be shown, half of it loading modules and the
+rest building the window. Much of that building was for things a user may
+never open. The workspace of Impose, with a form for each of its commands and
+the parser of its command line, was made at every start, and pikepdf was
+loaded for it; it is now made the first time the mode is entered, and until
+then its menu waits in the menu bar, empty, where only that mode shows it.
+The window also ran two programs before it appeared: tesseract, to know
+where its languages are, and Ghostscript, to know whether PDF/A and PDF/X can
+be made. Tesseract is now asked in another thread as soon as the program
+starts, while Python loads the rest, and Ghostscript only when the menu Save
+as opens. The names of the languages of the interface were found by parsing
+each file of translations whole, three times; only its first element is read
+now. The start went from about 330 to 240 milliseconds.
+
+Opening a document had its own cost. To list the links with the other
+annotations, the program asked PyMuPDF for the links of each page, and
+PyMuPDF, to say which object each link is, lists the annotations of the page
+again for every link: on a page with a hundred links, ten thousand steps.
+The links are now read from their own objects, their address or the page
+they go to, and the named destinations are resolved only if a link uses
+one. On the manual of the program, with 590 links, reading the annotations
+went from 55 to 18 milliseconds. I compared the old reading with the new on
+every PDF of my machine, 21 files with more than twelve thousand links. They
+gave the same, except a few links whose addresses PyMuPDF doesn't take as
+web addresses (`file://…`, or written oddly): these showed nothing, and now
+show the address.
+
 Testing
 -------
 
-The program has 645 tests (`uv run pytest`): those of the four programs,
+The program has 652 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1093,7 +1124,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -1102,5 +1133,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 158 files of Python, around 43,500 lines (about a tenth of them
+program has 161 files of Python, around 44,000 lines (about a tenth of them
 comments), and 3,197 texts of the interface in Spanish.

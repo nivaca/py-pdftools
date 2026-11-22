@@ -10,7 +10,6 @@ unprotected (pdf2iso is given its password).
 
 from __future__ import annotations
 
-import functools
 import os
 import shutil
 import subprocess
@@ -19,6 +18,7 @@ import tempfile
 from pathlib import Path
 
 from .interface import N_, tr
+from .once import once
 from .replacing import replace
 
 # What must be installed for PDF/A and PDF/X (named in the messages): pdf2iso is part of py-pdftools now,
@@ -112,7 +112,7 @@ def command(path: str | None = None) -> list[str] | None:
     return [python, str(script)]
 
 
-@functools.cache
+@once
 def ghostscript() -> str:
     """Why Ghostscript can't make PDF/A and PDF/X here ('' if it can: it is installed, and recent enough).
     Looked for once: the window asks each time it shows its menus."""

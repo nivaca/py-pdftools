@@ -351,10 +351,12 @@ class SequencePanel(QWidget):
 
 
 class Workspace(QMainWindow):
-    def __init__(self, host):
-        """HOST: the window of py-pdftools, whose document this imposes."""
+    def __init__(self, host, menu: QMenu | None = None):
+        """HOST: the window of py-pdftools, whose document this imposes; MENU: its menu Impose, already in its
+        menu bar (one is made otherwise)."""
         super().__init__(host)
         self.host = host
+        self._host_menu = menu
         # The workspace is a QMainWindow so that it can have its own toolbars and docks, but this flag makes it
         # an ordinary widget inside the host window.
         self.setWindowFlags(Qt.WindowType.Widget)
@@ -606,7 +608,7 @@ class Workspace(QMainWindow):
     def _build_menus(self):
         """The menu Impose of the window (see ImposeMixin), in place of py-imposition's menus."""
         # The menu belongs to the host window (it is its parent), which adds it to its menu bar while this mode is on.
-        m = QMenu(tr("&Impose"), self.host)
+        m = self._host_menu if self._host_menu is not None else QMenu(tr("&Impose"), self.host)
         self.menu = m
         m.setToolTipsVisible(True)
         m.addAction(QAction(tr("Preview"), self, shortcut="F5", triggered=self.preview))

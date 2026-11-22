@@ -5,6 +5,7 @@ those installed and those downloaded."""
 from __future__ import annotations
 
 import io
+import urllib.request
 from pathlib import Path
 
 import pymupdf
@@ -120,7 +121,7 @@ def test_download(own, monkeypatch):
             raise OSError("HTTP Error 404: Not Found")
         return Answer(b"model bytes")
 
-    monkeypatch.setattr(ocr.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(urllib.request, "urlopen", urlopen)
     sizes = []
     (made,) = ocr.download(["lat"], progress=lambda done, total: sizes.append((done, total)) or True)
     assert made == own / "lat.traineddata" and made.read_bytes() == b"model bytes" and sizes[-1] == (11, 11)

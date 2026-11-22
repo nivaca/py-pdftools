@@ -13,9 +13,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from PySide6.QtWidgets import QMenu
+
 from ..annotate import annots
 from ..annotate.annots import AnnotateError
-from .impose.workspace import Workspace
+from ..core.interface import tr
 from .modes import Mode
 
 KIND = "impose"
@@ -24,18 +26,39 @@ KIND = "impose"
 class ImposeMixin:
     """(Mixed into MainWindow: it uses its attributes.)"""
 
+    _workspace = None  # (made the first time it is needed: see workspace)
+
     def _build_impose(self) -> Mode:
-        self.workspace = Workspace(self)
-        self.central.addWidget(self.workspace)
+        # El espacio de trabajo (sus formularios, sus comandos, pikepdf) se hace la primera vez que se entra en el
+        # modo, no al abrir la ventana: es lo más caro de construir, y muchos no lo usan nunca. Su menú, vacío
+        # hasta entonces, guarda ya su lugar en la barra, donde solo se ve con el modo puesto.
+        self.impose_menu = QMenu(tr("&Impose"), self)
+        self.impose_menu.setToolTipsVisible(True)
         self._impose_key = None  # (what the source given to the workspace was made from)
         # El menú de Imponer va justo antes de Capas en la barra de menús.
-        self.menuBar().insertMenu(self.m_layers.menuAction(), self.workspace.menu)
+        self.menuBar().insertMenu(self.m_layers.menuAction(), self.impose_menu)
         self.hints[KIND] = ""
         # Impose owns no annotation: the pages are not shown, so there is nothing to select.
         # (the pages are not shown: nothing to find, to move through or to zoom)
-        return Mode(KIND, lambda a: False, menus=[self.workspace.menu.menuAction()],
+        return Mode(KIND, lambda a: False, menus=[self.impose_menu.menuAction()],
                     without=("find", "navigation", "zoom", "pagezoom", "pagenav"),
                     entered=self._impose_entered, left=self._impose_left)
+
+    @property
+    def workspace(self):
+        """The workspace of the mode, made the first time it is asked for."""
+        if self._workspace is None:
+            from .impose.workspace import Workspace
+
+            self._workspace = Workspace(self, self.impose_menu)
+            self.central.addWidget(self._workspace)
+            if self.host is not None:
+                # La ventana ya es una pestaña: sus atajos nuevos, como los demás, solo donde está el foco
+                # (ver tabs.py).
+                from .tabs import keep_shortcuts_inside
+
+                keep_shortcuts_inside(self, self._workspace)
+        return self._workspace
 
     def _impose_entered(self):
         # El área central pasa de las páginas al espacio de trabajo de Imponer, y vuelve al salir.

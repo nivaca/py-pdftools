@@ -56,11 +56,23 @@ def names() -> dict[str, str]:
     for code, path in files().items():
         # A broken file is skipped here; use() tells the error when that language is chosen.
         try:
-            root = ET.parse(path).getroot()
+            root = _root(path)
         except (OSError, ET.ParseError):
             continue
         out[code] = root.get("native") or root.get("name") or code
     return out
+
+
+def _root(path: Path):
+    """The root element of the XML at PATH, read without the rest: its attributes say the language's name,
+    and a whole file of the interface takes a few milliseconds to parse, each time the window starts."""
+    events = ET.iterparse(path, events=("start",))
+    try:
+        for _event, element in events:
+            return element
+    finally:
+        events.close()  # (el archivo se cierra ya, no cuando el recolector pase)
+    raise ET.ParseError("no root element")
 
 
 def key_of(english: str) -> str:

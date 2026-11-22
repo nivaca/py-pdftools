@@ -803,6 +803,7 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
     {xref: annotation} of those known to be as they were read before (they are not read again)."""
     known = known or {}
     out = []
+    targets = _Targets(doc)  # (where the links go: see _others)
     for page in doc:
         # A page without annotations is skipped before any object is loaded: most pages of a book have none.
         items = page.annot_xrefs()
@@ -826,7 +827,7 @@ def read(doc: pymupdf.Document, known: dict[int, Annotation] | None = None) -> l
             if a is not None:
                 found.append(a)
         # Las de otros tipos (enlaces, sonidos, adjuntos ajenos...) van al final de su página.
-        found += _others(doc, page)
+        found += _others(doc, page, items, targets)
         for a in found:
             if a.xref in replies and a.xref not in known:
                 # Replies in the order they were made; the xref decides between equal or missing dates.
@@ -860,25 +861,85 @@ def critical_of(data) -> Critical | None:
     return Critical(**{k: str(v) for k, v in values.items() if k in names})
 
 
-def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
-    """The annotations of PAGE of other kinds (see OTHER), to be listed: what each one is, where."""
+class _Targets:
+    """Where the links of a document go, read from their own objects. (PyMuPDF's get_links says it too, but
+    finds each link's object by listing the page's annotations again, for every link: on a page with a
+    hundred links, ten thousand steps, and a book full of references took seconds to open.)"""
+
+    def __init__(self, doc: pymupdf.Document):
+        self.doc = doc
+        self._pages: dict[int, int] | None = None  # (the object of each page -> its number)
+        self._names: dict | None = None  # (the named destinations)
+
+    def page_of(self, xref: int) -> int | None:
+        """The number (0-based) of the page of the object XREF, if it is one."""
+        if self._pages is None:
+            self._pages = {self.doc.page_xref(n): n for n in range(self.doc.page_count)}
+        return self._pages.get(xref)
+
+    def named(self, name: str) -> int | None:
+        """The page (0-based) of the named destination NAME."""
+        if self._names is None:
+            # Solo si un enlace usa un destino con nombre: resolverlos todos lleva su tiempo en un libro grande.
+            try:
+                self._names = self.doc.resolve_names() or {}
+            except (RuntimeError, ValueError):
+                self._names = {}
+        page = self._names.get(name, {}).get("page")
+        return page if isinstance(page, int) and page >= 0 else None
+
+    def dest(self, kind: str, value: str) -> int | None:
+        """The page (0-based) of a destination, as xref_get_key gives it (KIND, VALUE)."""
+        if kind == "xref":  # (the destination is in another object: an array, or a dictionary with /D)
+            target = int(value.split()[0])
+            inner = self.doc.xref_get_key(target, "D")
+            if inner[0] != "null":
+                return self.dest(*inner)
+            return self.dest("array", self.doc.xref_object(target, compressed=True))
+        if kind == "array":  # [12 0 R /XYZ 72 720 0]
+            words = value.strip("[] ").replace("/", " /").split()
+            if len(words) >= 3 and words[2] == "R" and words[0].isdigit():
+                return self.page_of(int(words[0]))
+            return None
+        if kind in ("string", "name"):
+            return self.named(value.lstrip("/") if kind == "name" else value)
+        return None
+
+    def of(self, xref: int) -> str:
+        """What the link XREF goes to, to show: its address, or its page ('' if neither)."""
+        doc = self.doc
+        action = doc.xref_get_key(xref, "A/S")[1]
+        if action == "/URI":
+            return doc.xref_get_key(xref, "A/URI")[1]
+        if action == "/GoTo":
+            page = self.dest(*doc.xref_get_key(xref, "A/D"))
+        elif action == "null":  # (no action: the link has its destination itself, /Dest)
+            page = self.dest(*doc.xref_get_key(xref, "Dest"))
+        else:
+            page = None  # (another file, a program, a named action...)
+        return tr("Page {page}", page=page + 1) if page is not None else ""
+
+
+def _others(doc: pymupdf.Document, page: pymupdf.Page, items: list | None = None,
+            targets: _Targets | None = None) -> list[Annotation]:
+    """The annotations of PAGE of other kinds (see OTHER), to be listed: what each one is, where. ITEMS: its
+    annot_xrefs(), if read already; TARGETS: where the links of DOC go (see _Targets)."""
     out = []
-    # get_links() gives where each link goes (URI or page), which the annotation objects don't say directly.
-    links = {link.get("xref"): link for link in page.get_links()}
-    for xref, kind, name in page.annot_xrefs():
+    targets = targets or _Targets(doc)
+    shown = None  # (from the PDF's space to the page as shown: the same for all the links of the page)
+    for xref, kind, name in page.annot_xrefs() if items is None else items:
         if kind in _TYPES or kind in (pymupdf.PDF_ANNOT_POPUP, pymupdf.PDF_ANNOT_WIDGET):
             continue
-        other = doc.xref_get_key(xref, "Subtype")[1].lstrip("/")
         try:
             if kind == pymupdf.PDF_ANNOT_LINK:
-                link = links.get(xref, {})
-                # Si PyMuPDF no da el rectángulo del enlace, se lee la /Rect del objeto.
-                rect = pymupdf.Rect(link["from"]) if link.get("from") else _pdf_rect_of(doc, page, xref)
-                text = link.get("uri") or (tr("Page {page}", page=link["page"] + 1)
-                                           if isinstance(link.get("page"), int) and link["page"] >= 0 else "")
-                out.append(Annotation(OTHER, page.number, _shown_rect(page, rect), "#808080", contents=text,
-                                      locked=True, other=other, xref=xref))
+                if shown is None:
+                    shown = page.transformation_matrix * page.rotation_matrix
+                x0, y0, x1, y1 = (float(v) for v in doc.xref_get_key(xref, "Rect")[1].strip("[]").split())
+                r = (pymupdf.Rect(x0, y0, x1, y1) * shown).normalize()
+                out.append(Annotation(OTHER, page.number, (_r(r.x0), _r(r.y0), _r(r.x1), _r(r.y1)), "#808080",
+                                      contents=targets.of(xref), locked=True, other="Link", xref=xref))
                 continue
+            other = doc.xref_get_key(xref, "Subtype")[1].lstrip("/")
             annot = page.load_annot(xref)
             info = annot.info or {}
             text = info.get("content", "") or ""
@@ -892,13 +953,6 @@ def _others(doc: pymupdf.Document, page: pymupdf.Page) -> list[Annotation]:
         except (RuntimeError, ValueError, KeyError, TypeError):
             continue
     return out
-
-
-def _pdf_rect_of(doc: pymupdf.Document, page: pymupdf.Page, xref: int) -> pymupdf.Rect:
-    """The /Rect of the annotation XREF, in PyMuPDF's coordinates of PAGE (unturned)."""
-    # /Rect está en el espacio del PDF; transformation_matrix lo pasa al de MuPDF.
-    x0, y0, x1, y1 = (float(v) for v in doc.xref_get_key(xref, "Rect")[1].strip("[]").split())
-    return pymupdf.Rect(x0, y0, x1, y1) * page.transformation_matrix
 
 
 TYPEWRITER = "FreeTextTypeWriter"  # (the intent of a text box written as with a typewriter: no border, no fill)

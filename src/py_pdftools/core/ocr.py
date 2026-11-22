@@ -31,7 +31,6 @@ import re
 import shutil
 import subprocess
 import tempfile
-import urllib.request
 from collections.abc import Callable
 from concurrent.futures import FIRST_COMPLETED, ProcessPoolExecutor, wait
 from pathlib import Path
@@ -39,6 +38,7 @@ from pathlib import Path
 import pymupdf
 
 from .interface import N_, tr
+from .once import once
 
 DPI = 300  # (at which the pages are read)
 DOUBTFUL = 60  # words read with a confidence below this are doubtful
@@ -134,7 +134,7 @@ def available() -> bool:
     return program() is not None and system_tessdata() is not None
 
 
-@functools.cache
+@once
 def system_tessdata() -> Path | None:
     """The folder of the languages installed with tesseract (as it says, or TESSDATA_PREFIX)."""
     exe = program()
@@ -400,6 +400,8 @@ def write_words(page: pymupdf.Page, result: PageResult, corrections: dict[int, s
 def download(names: list[str], progress: Callable[[int, int], bool] | None = None) -> list[Path]:
     """Download the most accurate models (tessdata_best) of NAMES ('lat', 'osd'...) into own_tessdata.
     PROGRESS(bytes so far, bytes in all, or 0 if not known), if given, stops it by returning False."""
+    import urllib.request  # (aquí: cargarlo cuesta unos milisegundos a cada arranque de la ventana)
+
     folder = own_tessdata()
     folder.mkdir(parents=True, exist_ok=True)
     made = []
