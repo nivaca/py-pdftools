@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.13 — 2026-11-22
 
 - **The toolbars, at first**: all in one row, Page navigation among them
   (between Navigation and Zoom, no longer at the bottom of the window);
