@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.8.11
+Version:        1.8.12
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Sun Nov 22 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.12-1
+- A quicker start; documents with many links open faster; Help > Check for
+  a new version; the Windows installer takes --uninstall and the like
+
 * Sun Nov 22 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.11-1
 - Word index also on the toolbar Find, with an icon of its own
 
