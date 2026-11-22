@@ -982,10 +982,19 @@ the sizes of the pages are kept when they are laid out instead of being
 asked of MuPDF again: the fit takes 7 ms, a step of a resize 15, and two
 pages side by side are turned on in 96 ms instead of 690.
 
+Scrolling had the same fault on a smaller scale. At each step, the page in
+view (the one under the middle of the window) and the pages to draw were
+found by asking every page for its place: 3.3 ms with 2,000 pages, a fifth
+of the time a frame has at 60 per second. The tops of the rows are now kept,
+in order, when the pages are laid out, and a bisection finds the rows about
+the view; only their pages are looked at, and the step takes 0.01 ms. A test
+compares the answer with the old one, page by page, with one or two pages in
+a row, turned and without gaps.
+
 Testing
 -------
 
-The program has 634 tests (`uv run pytest`): those of the four programs,
+The program has 635 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

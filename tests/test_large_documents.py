@@ -74,3 +74,40 @@ def test_fitting_goes_through_the_rows_once(window, monkeypatch):
     made.clear()
     canvas.apply_fit()
     assert len(made) <= 1
+
+
+def _page_in_view_slowly(canvas) -> int:
+    # (lo que _scrolled hacía antes: recorrer todas las páginas)
+    middle = canvas.mapToScene(canvas.viewport().rect().center()).y()
+
+    def far(p):
+        r = p.sceneBoundingRect()
+        return 0 if r.top() <= middle <= r.bottom() else min(abs(r.top() - middle), abs(r.bottom() - middle))
+
+    return min(canvas.pages.values(), key=far).number
+
+
+def test_scrolling_finds_the_page_by_bisection(window, monkeypatch):
+    """The page in view, and those to draw, are found among the rows near the view only: the same as going
+    through every page, with one page or two in a row, turned or not, with gaps or without."""
+    canvas = window.canvas
+    window.show()
+    bar = canvas.verticalScrollBar()
+    for spread, turn, gaps in ((False, 0, True), (True, 0, True), (False, 90, True), (True, 0, False)):
+        canvas.set_spread(spread)
+        canvas.set_turn(turn)
+        canvas.set_gaps(gaps)
+        canvas.set_zoom(0.4)
+        for i in range(0, 101, 7):
+            bar.setValue(bar.maximum() * i // 100)
+            assert canvas.page == _page_in_view_slowly(canvas), (spread, turn, gaps, i)
+            view = canvas.mapToScene(canvas.viewport().rect()).boundingRect()
+            view = view.adjusted(0, -view.height() / 2, 0, view.height() / 2)
+            slow = {n for n, p in canvas.pages.items() if p.sceneBoundingRect().intersects(view)}
+            assert set(canvas.visible_pages()) == slow
+    # (and few pages are looked at: those of the rows about the middle, not all of them)
+    looked = []
+    real = type(canvas.pages[0]).sceneBoundingRect
+    monkeypatch.setattr(type(canvas.pages[0]), "sceneBoundingRect", lambda self: looked.append(1) or real(self))
+    canvas._scrolled(0)
+    assert 0 < len(looked) < 40

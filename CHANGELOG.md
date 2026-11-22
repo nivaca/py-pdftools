@@ -11,6 +11,10 @@ Debian package, the RPM, the wheel and the source, are on
   window, and when a panel opens or closes) went through every row of pages
   once for each page; with 2,000 pages it took 300 ms, now 7, and turning on
   two pages side by side 96 ms instead of 690.
+- **Scrolling long documents**: the page in view, and the pages to draw,
+  were found by going through every page at each step of the scroll (3.3 ms
+  with 2,000 pages, a fifth of the time of a frame); they are now found by
+  bisection on the rows, in 0.01 ms.
 
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its

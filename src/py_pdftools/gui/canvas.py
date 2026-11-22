@@ -12,6 +12,7 @@ points, as the page is shown. Only the pages in view are rendered."""
 
 from __future__ import annotations
 
+import bisect
 import dataclasses
 import math
 import time
@@ -544,6 +545,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         # others are shown, but the mouse goes through them)
         self.touchable = lambda annotation: True
         self.pages: dict[int, PageItem] = {}  # (those laid out)
+        self._row_tops: list[float] = []  # (the top of each row laid out, in the scene, and its pages)
+        self._row_pages: list[list[int]] = []
         self.shown_sizes: dict[int, QRectF] = {}  # (their sizes as the view shows them: see layout)
         self.items_: list[AnnotItem] = []
         self._shown_items: list[tuple[int, Annotation]] = []
@@ -617,6 +620,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         scene.clear()
         self.pages, self.items_ = {}, []
         self.shown_sizes = {}
+        self._row_tops, self._row_pages = [], []
         if self.doc is None:
             scene.setSceneRect(QRectF())
             return
@@ -636,6 +640,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 xs = [-shown[row[0]].width() / 2]
             else:
                 xs = [-shown[row[0]].width() - self.gap / 2, self.gap / 2]
+            # (the top of each row, in order: the pages near a place are found by bisection, see near_pages)
+            self._row_tops.append(y)
+            self._row_pages.append(row)
             for n, x in zip(row, xs):
                 item = PageItem(n, sizes[n])
                 scene.addItem(item)
@@ -819,13 +826,22 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._quiet = False
         self.render_timer.start()
 
+    def near_pages(self, top: float, bottom: float) -> list[PageItem]:
+        """The pages of the rows between TOP and BOTTOM (scene coordinates), and of the row on each side:
+        found by bisection on the tops of the rows, not by going through every page."""
+        if not self._row_tops:
+            return list(self.pages.values())
+        first = max(0, bisect.bisect_right(self._row_tops, top) - 2)
+        last = min(len(self._row_tops), bisect.bisect_right(self._row_tops, bottom) + 1)
+        return [self.pages[n] for row in self._row_pages[first:last] for n in row if n in self.pages]
+
     def _scrolled(self, _value):
         self.render_timer.start()
         if self._quiet or not self.continuous or not self.pages:
             return
         # The page in view is the one under the middle of the window or, in the gap between two, the nearest.
         middle = self.mapToScene(self.viewport().rect().center()).y()
-        here = min(self.pages.values(), key=lambda p: 0 if p.sceneBoundingRect().top() <= middle
+        here = min(self.near_pages(middle, middle), key=lambda p: 0 if p.sceneBoundingRect().top() <= middle
                    <= p.sceneBoundingRect().bottom() else min(abs(p.sceneBoundingRect().top() - middle),
                                                               abs(p.sceneBoundingRect().bottom() - middle)))
         if here.number != self.page:
@@ -897,7 +913,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         ahead = AHEAD if ahead is None else ahead
         view = self.mapToScene(self.viewport().rect()).boundingRect()
         view = view.adjusted(0, -view.height() * ahead, 0, view.height() * ahead)
-        found = [n for n, item in self.pages.items() if item.sceneBoundingRect().intersects(view)]
+        found = [item.number for item in self.near_pages(view.top(), view.bottom())
+                 if item.sceneBoundingRect().intersects(view)]
         return sorted(found, key=lambda n: abs(n - self.page))
 
     def _render_visible(self):
