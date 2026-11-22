@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.14 — 2026-11-22
 
 - **The RPM on Copr**, which 1.8.13 didn't reach: one test made Python
   crash when it ended, after all of them had passed (the program was not
