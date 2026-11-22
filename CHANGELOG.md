@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.10 — 2026-11-22
 
 - **Check the configuration** went unseen at the foot of Settings >
   General, under a long list; it is now a button on the row of OK and
@@ -18,7 +18,6 @@ Debian package, the RPM, the wheel and the source, are on
   packages; the program now looks there for it (after the system's), and
   Check the configuration and the menu say how to install it for each kind
   of installation.
-
 - **Animated zoom** with Ctrl and the wheel: the place under the pointer
   drifted a pixel or two at each turn, the roundings of the scroll bars
   adding up frame by frame; it is now fixed when the zoom starts and stays
