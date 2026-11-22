@@ -5,13 +5,12 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.9 — 2026-11-22
 
 - **Left and Right** turn the pages in the view of the pages: the previous
   and the next one (a pair, with two side by side), while the pages fit
   across the view; zoomed in wider, they scroll sideways as before, and
   with annotations selected they still move them.
-
 - **Icons on Windows and macOS**: the light or dark variant of the icon
   theme was looked for without minding capitals, which their file systems
   ignore, so a name not quite right could be taken (found by the tests on
