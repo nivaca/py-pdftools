@@ -731,6 +731,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         m = self.menuBar().addMenu(tr("&Help"))
         self.a_tips = self._action(m, tr("Tips for this mode"), self.show_tips, "F1",
                                    tip=tr("What can be done in this mode, and how, shown over the pages"))
+        # (también en Configuración, en la fila de los botones)
+        self.a_check = self._action(m, tr("Check the configuration…"), self.check_configuration,
+                                    tip=tr("Whether py-pdftools has what it needs (Python, its libraries, "
+                                           "tesseract, Ghostscript), and whether its settings are right"))
         self._action(m, tr("About"), self.about)
 
         for act, name in ((self.a_open, "document-open"), (self.a_save, "document-save"),
@@ -782,6 +786,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def check_configuration(self):
+        """Help > Check the configuration (see health_dialog.py), with the shortcuts of this window."""
+        from .health_dialog import HealthDialog
+
+        HealthDialog(self, self).exec()
 
     def word_index(self):
         """Edit > Word index: the pages of each term of a list (see wordindex_dialog.py)."""

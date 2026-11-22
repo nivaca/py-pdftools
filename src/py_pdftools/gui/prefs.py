@@ -181,12 +181,6 @@ class SettingsDialog(QDialog):
         where.setWordWrap(True)
         where.setStyleSheet("color: palette(placeholder-text);")
         form.addRow(where)
-        # Revisar la configuración: lo que el programa necesita, y si los ajustes guardados valen
-        self.check = QPushButton(tr("Check the configuration…"))
-        self.check.setToolTip(tr("Whether py-pdftools has what it needs (Python, its libraries, tesseract, "
-                                 "Ghostscript), and whether its settings are right"))
-        self.check.clicked.connect(lambda: self.check_configuration(parent))
-        form.addRow("", self.check)
         tabs.addTab(_scrolled(general), tr("General"))
         tabs.addTab(_scrolled(self._appearance_tab(parent)), tr("Appearance"))
         tabs.addTab(_scrolled(self._documents_tab()), tr("Documents"))
@@ -284,6 +278,12 @@ class SettingsDialog(QDialog):
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        # Revisar la configuración: en la fila de los botones, a la vista desde cualquier pestaña (al pie de
+        # General, bajo una lista larga, no se veía)
+        self.check = buttons.addButton(tr("Check the configuration…"), QDialogButtonBox.ButtonRole.HelpRole)
+        self.check.setToolTip(tr("Whether py-pdftools has what it needs (Python, its libraries, tesseract, "
+                                 "Ghostscript), and whether its settings are right"))
+        self.check.clicked.connect(lambda: self.check_configuration(parent))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         outer = QVBoxLayout(self)

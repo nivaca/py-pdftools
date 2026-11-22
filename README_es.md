@@ -434,7 +434,7 @@ empiezan los diálogos de archivos. La configuración se guarda en un archivo,
 en macOS y `%APPDATA%\py-pdftools\` en Windows (o la carpeta que diga
 `$PY_PDFTOOLS_CONFIG`). Cada ajuste se comprueba al leerlo, de modo que un
 archivo editado a mano no puede detener el programa.
-Configuración > General > Revisar la configuración muestra lo que
+Ayuda > Revisar la configuración (también un botón al pie de Configuración) muestra lo que
 py-pdftools necesita y si lo tiene (Python y sus bibliotecas, pyHanko,
 tesseract y los idiomas del OCR elegidos, Ghostscript, el espacio de la
 carpeta temporal), qué ajustes del archivo no son válidos o no se conocen y

@@ -148,3 +148,21 @@ def test_the_graphics_card_when_asked_for(tmp_path, monkeypatch):
         assert not w.canvas.gpu and health_dialog.graphics(w) is None
     finally:
         w.close()
+
+
+def test_where_the_check_is(window, monkeypatch):
+    """The check is in Help, and on the row of buttons of Settings, seen from every tab (at the foot of
+    General, under a long list, it went unseen)."""
+    from PySide6.QtWidgets import QDialogButtonBox
+
+    from py_pdftools.gui import health_dialog
+    from py_pdftools.gui.prefs import SettingsDialog
+
+    opened = []
+    monkeypatch.setattr(health_dialog.HealthDialog, "exec", lambda self: opened.append(self) or 0)
+    assert window.a_check in window.menuBar().actions()[-1].menu().actions()
+    window.a_check.trigger()
+    d = SettingsDialog(window.prefs, window)
+    assert isinstance(d.check.parent(), QDialogButtonBox)
+    d.check.click()
+    assert len(opened) == 2
