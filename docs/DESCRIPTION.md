@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in thirty-nine stages.
+I explain how it was made, in forty stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1031,10 +1031,22 @@ background came out transparent, and the sharpening and the reading colours
 work on RGB; I left it. The thumbnails keep RGB, a quarter smaller, since
 many of them are kept at once.
 
+40. Left and Right
+-----------------
+
+Left and Right now turn the pages, as in most readers. They are keys of the
+view of the pages, not shortcuts of the window: as shortcuts they would be
+taken from the list of thumbnails and from the tables, where the arrows move
+the current row. They give way to what used them before: with annotations
+selected they still move them, a point or ten at a time, and when the zoom
+makes the pages wider than the view they still scroll sideways, since
+otherwise nothing would reach the sides of the page. With two pages side by
+side, they go a pair at a time, like PgUp and PgDown.
+
 Testing
 -------
 
-The program has 639 tests (`uv run pytest`): those of the four programs,
+The program has 640 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

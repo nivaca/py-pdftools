@@ -262,7 +262,8 @@ black, or one's own), the gaps between the pages hidden, and Full screen
 in tabs of one window (the bar of the tabs shows from the second one on,
 or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
 side by side. A document changed by another program opens again by itself.
-Space held turns any tool into Hand, and the middle button scrolls by
+Left and Right go to the previous and next page (while the pages fit across
+the view). Space held turns any tool into Hand, and the middle button scrolls by
 itself. The toolbar Page navigation, at the bottom of the window, goes to
 the first, previous, next and last page, and its box takes a page number
 or label; like the other toolbars, it can be changed in Customize the

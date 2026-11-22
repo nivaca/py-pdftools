@@ -1632,10 +1632,22 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             dx = {Qt.Key.Key_Left: -step, Qt.Key.Key_Right: step}.get(key, 0.0)
             dy = {Qt.Key.Key_Up: -step, Qt.Key.Key_Down: step}.get(key, 0.0)
             self.nudged.emit(dx, dy)
+        elif key in (Qt.Key.Key_Left, Qt.Key.Key_Right) and self.turns_pages(event):
+            # La flecha izquierda, la página anterior; la derecha, la siguiente (con dos lado a lado, un par)
+            self.go_to(self.neighbour(self.page, -1 if key == Qt.Key.Key_Left else 1))
         else:
             super().keyPressEvent(event)
             return
         event.accept()
+
+    def turns_pages(self, event) -> bool:
+        """Whether Left or Right (EVENT) turns the page: without modifiers, and while the pages fit across
+        the view; zoomed in wider than it, they scroll sideways, as before."""
+        if self.doc is None or event.modifiers() not in (Qt.KeyboardModifier.NoModifier,
+                                                         Qt.KeyboardModifier.KeypadModifier):
+            return False
+        bar = self.horizontalScrollBar()
+        return bar.maximum() <= bar.minimum()
 
     def keyReleaseEvent(self, event):
         if self.space_released(event):

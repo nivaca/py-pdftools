@@ -802,3 +802,41 @@ def test_f5_is_preview_in_impose_and_the_bookmarks_elsewhere(window):
     assert not window.a_outline.isEnabled() and not window.outline_dock.isVisibleTo(window)
     window.set_mode("read")
     assert window.a_outline.isEnabled() and window.outline_dock.isVisibleTo(window)
+
+
+def test_left_and_right_turn_the_pages(window):
+    """In the view of the pages, Left goes to the previous page and Right to the next (a pair, with two side
+    by side); zoomed in wider than the view, they scroll sideways; with annotations chosen, they move them."""
+    from PySide6.QtCore import QEvent, Qt
+    from PySide6.QtGui import QKeyEvent
+
+    canvas = window.canvas
+
+    def press(key, modifiers=Qt.KeyboardModifier.NoModifier):
+        canvas.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, key, modifiers))
+
+    window.show()
+    window._fit("page")
+    window.show_page(1)
+    press(Qt.Key.Key_Right)
+    assert window.page == 2
+    press(Qt.Key.Key_Left)
+    press(Qt.Key.Key_Left)
+    assert window.page == 0
+    press(Qt.Key.Key_Left)  # (the first page: it stays)
+    assert window.page == 0
+    press(Qt.Key.Key_Right, Qt.KeyboardModifier.ShiftModifier)  # (with a modifier: not a page)
+    assert window.page == 0
+    window.a_spread.setChecked(True)
+    window._fit("page")
+    window.show_page(0)
+    press(Qt.Key.Key_Right)
+    assert window.page == 2  # (a pair at a time)
+    window.a_spread.setChecked(False)
+    canvas.set_zoom(4.0)
+    bar = canvas.horizontalScrollBar()
+    assert bar.maximum() > 0
+    bar.setValue(0)
+    page = window.page
+    press(Qt.Key.Key_Right)
+    assert window.page == page and bar.value() > 0  # (scrolled sideways)

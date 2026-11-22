@@ -272,7 +272,9 @@ como presentación. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
 documentos en pestañas de una ventana (la barra de las pestañas aparece
 desde la segunda, o siempre, con una opción), y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Un documento que otro programa cambia se abre de
-nuevo solo. La barra espaciadora, mantenida, convierte cualquier
+nuevo solo. Las flechas izquierda y derecha van a la página anterior y a
+la siguiente (mientras las páginas quepan a lo ancho). La barra
+espaciadora, mantenida, convierte cualquier
 herramienta en Mano, y el botón central desplaza solo. La barra
 Navegación de páginas, abajo en la ventana, va a la primera, la anterior,
 la siguiente y la última página, y su casilla acepta un número o una
