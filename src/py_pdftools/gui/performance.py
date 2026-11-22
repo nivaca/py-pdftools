@@ -41,7 +41,8 @@ ANTIALIAS: tuple[int, int] = (AA_ON, AA_ON)  # (text, graphics)
 
 def settings() -> dict:
     """The settings of performance in the configuration file, with their usual values."""
-    out = {"memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True}
+    out = {"memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True,
+           "smooth": True}
     for key in out:
         try:
             value = config.get(key)
@@ -69,7 +70,7 @@ def available_memory() -> int:
 def apply(values: dict | None = None) -> dict:
     """Put VALUES (else those of the configuration file) in effect: the caches, the transparency of
     selections, the antialiasing. Returns the values."""
-    from . import canvas, renderer, textselect, window
+    from . import canvas, renderer, scrolling, textselect, window
 
     global ANTIALIAS
     values = values or settings()
@@ -88,6 +89,7 @@ def apply(values: dict | None = None) -> dict:
     canvas.TRANSPARENT = textselect.TRANSPARENT = values["transparency"]
     ANTIALIAS = (AA_ON if values["text_antialias"] else AA_OFF, AA_ON if values["graphics_antialias"] else AA_OFF)
     set_antialias(ANTIALIAS)
+    scrolling.SMOOTH = values.get("smooth", True)
     return values
 
 

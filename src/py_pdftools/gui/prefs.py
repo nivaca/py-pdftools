@@ -270,12 +270,16 @@ class SettingsDialog(QDialog):
         self.text_antialias.setChecked(current["text_antialias"])
         self.graphics_antialias = QCheckBox(tr("Smooth the graphics (antialiasing)"))
         self.graphics_antialias.setChecked(current["graphics_antialias"])
+        self.smooth = QCheckBox(tr("Animate zooming"))
+        self.smooth.setChecked(current.get("smooth", True))
+        self.smooth.setToolTip(tr("The zoom grows or shrinks in a few steps, instead of jumping; smoother still "
+                                  "with the graphics card"))
         self.gpu = QCheckBox(tr("Draw the pages with the graphics card (OpenGL)"))
         self.gpu.setChecked(bool(config.get("gpu")))
         self.gpu.setToolTip(tr("Smoother scrolling and zooming: the pictures of the pages are moved and scaled "
                                "by the graphics card. It changes the next time py-pdftools starts. If the pages "
                                "then show black or flicker, turn it off again."))
-        for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.gpu):
+        for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.smooth, self.gpu):
             form.addRow("", box)
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
@@ -485,7 +489,7 @@ class SettingsDialog(QDialog):
 
         values = {"memory": self.memory.currentData(), "transparency": self.transparency.isChecked(),
                   "text_antialias": self.text_antialias.isChecked(),
-                  "graphics_antialias": self.graphics_antialias.isChecked()}
+                  "graphics_antialias": self.graphics_antialias.isChecked(), "smooth": self.smooth.isChecked()}
         before = performance.settings()
         self.performance_changed = values != before
         if self.performance_changed:

@@ -19,6 +19,10 @@ Debian package, the RPM, the wheel and the source, are on
   of each page twice, and gave every page the items of its rendering even if
   it was never seen; with 2,000 pages, 31 ms instead of 133, and two pages
   side by side are turned on in 37 ms.
+- **Animated zoom**: Zoom in and Zoom out, and Ctrl with the wheel, grow or
+  shrink the pages in a few frames instead of jumping (with the wheel, the
+  place under the pointer stays under it); the sharp picture comes when the
+  zoom stops. Settings > Performance > Animate zooming turns it off.
 
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its

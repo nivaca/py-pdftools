@@ -133,3 +133,60 @@ def test_pages_get_their_pictures_when_drawn(window, monkeypatch):
     assert first._pixmap is not None
     assert first.tiles_layer.zValue() > first.pixmap.zValue() and first.tiles_layer.zValue() < 1
     assert far._pixmap is None  # (still: it was never in view)
+
+
+def _wheel(canvas, dy, modifiers=None, x=300, y=300):
+    from PySide6.QtCore import QPoint, QPointF, Qt
+    from PySide6.QtGui import QWheelEvent
+
+    return QWheelEvent(QPointF(x, y), canvas.viewport().mapToGlobal(QPointF(x, y)), QPoint(), QPoint(0, dy),
+                       Qt.MouseButton.NoButton, modifiers or Qt.KeyboardModifier.NoModifier,
+                       Qt.ScrollPhase.NoScrollPhase, False)
+
+
+def _wait(animation):
+    import time
+
+    from PySide6.QtCore import QVariantAnimation
+
+    end = time.monotonic() + 3
+    while animation.state() == QVariantAnimation.State.Running and time.monotonic() < end:
+        QApplication.processEvents()
+
+
+def test_the_zoom_animated_about_a_point(window):
+    """Zoom in goes there in a few frames, and the point under the mouse (for Ctrl+wheel) stays under it;
+    a second step asked meanwhile goes on from where the first goes; the sharp rendering is asked at the end."""
+    from PySide6.QtCore import QPointF, Qt
+
+    from py_pdftools.gui import scrolling
+
+    canvas = window.canvas
+    window.show()
+    canvas.set_zoom(1.0)
+    seen = []
+    canvas.zoom_changed.connect(seen.append)
+    canvas.zoom_by(1.25)
+    canvas.zoom_by(1.25)  # (meanwhile: from 1.25 on, not from where the zoom was then)
+    assert canvas._animating(canvas._zoom_anim)
+    _wait(canvas._zoom_anim)
+    assert abs(canvas.zoom() - 1.5625) < 1e-6 and len(seen) > 2 and abs(seen[-1] - 1.5625) < 1e-6
+    assert canvas.render_timer.isActive() and canvas.fit == ""
+    point = QPointF(250, 180)
+    spot = canvas.mapToScene(point.toPoint())
+    canvas.wheelEvent(_wheel(canvas, 120, Qt.KeyboardModifier.ControlModifier, point.x(), point.y()))
+    _wait(canvas._zoom_anim)
+    assert abs(canvas.zoom() - 1.5625 * 1.15) < 1e-6
+    assert (canvas.mapFromScene(spot) - point.toPoint()).manhattanLength() <= 2
+    # A zoom of the program, meanwhile, ends the animation first: its own zoom is the one that stays.
+    canvas.zoom_by(2)
+    canvas.set_zoom(0.5)
+    assert not canvas._animating(canvas._zoom_anim) and abs(canvas.zoom() - 0.5) < 1e-6
+    # Without the animations (Settings > Performance), at once.
+    scrolling.SMOOTH = False
+    try:
+        canvas.zoom_by(2)
+        assert abs(canvas.zoom() - 1.0) < 1e-6
+    finally:
+        scrolling.SMOOTH = True
+

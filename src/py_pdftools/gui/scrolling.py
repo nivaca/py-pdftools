@@ -4,17 +4,23 @@
 - The middle button scrolls by itself (autoscroll): pressed and let go, the pages run towards where the pointer
   goes, faster the farther it is from where it was pressed, until the next click; held down and dragged, only
   while it is held.
-- (One page at a time, the wheel goes on to the next page past the end of one: see PageCanvas.wheelEvent.)"""
+- (One page at a time, the wheel goes on to the next page past the end of one: see PageCanvas.wheelEvent.)
+- El zoom (Ctrl+rueda, Acercar, Alejar) se anima: unas pocas imágenes en
+  las que la tarjeta gráfica, o el procesador, escala la imagen que ya hay; la nítida se pide al terminar.
+  Configuración > Rendimiento puede apagarlo (SMOOTH)."""
 
 from __future__ import annotations
 
-from PySide6.QtCore import QPointF, Qt, QTimer
-from PySide6.QtGui import QCursor
+from PySide6.QtCore import QEasingCurve, QPointF, Qt, QTimer, QVariantAnimation
+from PySide6.QtGui import QCursor, QTransform
 from PySide6.QtWidgets import QGraphicsView
 
 DEAD_ZONE = 8  # pixels around the place pressed where the autoscroll stands still
 SPEED = 1 / 6  # (pixels scrolled at each step, for each pixel away from that place)
 STEP_MS = 16
+SMOOTH = True  # (zooming animated: Settings > Performance, see performance.py)
+ZOOM_MS = 160  # how long a step of the zoom takes
+MIN_ZOOM, MAX_ZOOM = 0.05, 16  # (5 % to 1600 %, as set_zoom)
 
 
 class ScrollingMixin:
@@ -26,6 +32,60 @@ class ScrollingMixin:
         self._auto_held = False  # (the middle button dragged: the autoscroll ends when it is let go)
         self._auto_timer = QTimer(self, interval=STEP_MS)
         self._auto_timer.timeout.connect(self._auto_step)
+        # El zoom animado: de la escala de ahora a la buscada, alrededor de un punto de la vista que no se mueve
+        self._zoom_anim = QVariantAnimation(self)
+        self._zoom_anim.setDuration(ZOOM_MS)
+        self._zoom_anim.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._zoom_anim.valueChanged.connect(lambda z: self._zoom_about(float(z), self._zoom_point))
+        self._zoom_anim.finished.connect(self._zoom_done)
+        self._zoom_point = QPointF()
+
+    # ----------------------------------------------------------------- zoom and wheel, animated
+
+    def _animating(self, animation: QVariantAnimation) -> bool:
+        return animation.state() == QVariantAnimation.State.Running
+
+    def zoom_smoothly(self, factor: float, point: QPointF | None = None):
+        """Zoom by FACTOR about POINT of the view (its centre, if None), which stays where it is: animated if
+        the settings say so, else at once. A step asked while another runs goes on from where that one goes."""
+        start = float(self._zoom_anim.endValue()) if self._animating(self._zoom_anim) else self.zoom()
+        goal = max(MIN_ZOOM, min(start * factor, MAX_ZOOM))
+        self._zoom_point = QPointF(self.viewport().rect().center()) if point is None else QPointF(point)
+        self._zoom_anim.stop()
+        if not SMOOTH or not self.isVisible():
+            self._zoom_about(goal, self._zoom_point)
+            self._zoom_done()
+            return
+        self._zoom_anim.setStartValue(self.zoom())
+        self._zoom_anim.setEndValue(goal)
+        self._zoom_anim.start()
+
+    def _zoom_about(self, z: float, point: QPointF):
+        """The scale Z, with what is at POINT of the view left there."""
+        spot = self.mapToScene(point.toPoint())
+        anchor = self.transformationAnchor()
+        # (sin ancla: Qt no mueve la vista por su cuenta; se mueve abajo, para que SPOT siga bajo POINT)
+        self.setTransformationAnchor(QGraphicsView.ViewportAnchor.NoAnchor)
+        self.setTransform(QTransform.fromScale(z, z))
+        moved = self.mapFromScene(spot) - point.toPoint()
+        self.horizontalScrollBar().setValue(self.horizontalScrollBar().value() + moved.x())
+        self.verticalScrollBar().setValue(self.verticalScrollBar().value() + moved.y())
+        self.setTransformationAnchor(anchor)
+        self.fit = ""
+        self.render_timer.start()  # (the sharp rendering, once the zoom stands still)
+        self.zoom_changed.emit(z)
+
+    def _zoom_done(self):
+        self.render_timer.start()
+        self.zoom_changed.emit(self.zoom())
+
+    def stop_animations(self):
+        """End the animations at once, where they were going (before a zoom or a jump of the program)."""
+        if self._animating(self._zoom_anim):
+            goal = float(self._zoom_anim.endValue())
+            self._zoom_anim.stop()
+            self._zoom_about(goal, self._zoom_point)
+            self._zoom_done()
 
     # ----------------------------------------------------------------- Space: Hand for a moment
 

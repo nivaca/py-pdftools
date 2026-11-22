@@ -1000,10 +1000,23 @@ down a long document never uses. They are now made when the page is first
 drawn, with their order set by their z values, since they may no longer be
 made in order. The layout takes 31 ms, and two pages side by side 37.
 
+What the graphics card can really add is movement. The page pictures are
+already drawn; scaling them on the way to a new zoom costs it nothing, and
+the processor not much more. So a step of the zoom is now an animation of a
+sixth of a second: the transform of the view goes from one scale to the
+other, eased, and the sharp pictures are asked for only when it stops, as
+before. With the wheel, the point under the pointer is kept under it by
+moving the scroll bars after each frame, instead of relying on Qt's anchor,
+which only knows the real place of the mouse and would not do for the
+keys. A second step asked during the first goes on from where the first
+was going, so that three quick turns of the wheel make three steps, not
+fewer. Any zoom or jump of the program ends the animation first. It can be
+turned off in Settings > Performance.
+
 Testing
 -------
 
-The program has 636 tests (`uv run pytest`): those of the four programs,
+The program has 637 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

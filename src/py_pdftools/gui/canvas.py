@@ -809,6 +809,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         """Bring PAGE into view (its top; or, if given, RECT on it)."""
         if self.doc is None:
             return
+        self.stop_animations()  # (a jump: the wheel or the zoom that was running is finished first)
         page = max(0, min(page, self.doc.page_count - 1))
         changed = page != self.page
         self.page = page
@@ -1110,6 +1111,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     # ----------------------------------------------------------------- zoom
 
     def set_zoom(self, factor: float, fit: str = ""):
+        # (a zoom of the program, or a fit: an animation that was running is ended first, where it went)
+        self.stop_animations()
         factor = max(0.05, min(factor, 16))
         # El centro de la vista, en coordenadas de escena, para volver a él después de cambiar la escala.
         anchor = self.mapToScene(self.viewport().rect().center())
@@ -1185,7 +1188,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         return self._ink[key]
 
     def zoom_by(self, factor: float):
-        self.set_zoom(self.zoom() * factor)
+        """Zoom in or out by FACTOR (Zoom in, Zoom out): about the centre of the view, animated."""
+        self.zoom_smoothly(factor)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -1194,16 +1198,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
 
     def wheelEvent(self, event):
         if event.modifiers() & Qt.KeyboardModifier.ControlModifier:
-            # Ctrl+rueda acerca alrededor del puntero; después el ancla vuelve al centro, que es lo que espera set_zoom.
-            self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorUnderMouse)
-            factor = 1.15 if event.angleDelta().y() > 0 else 1 / 1.15
-            # The same limits as set_zoom (5 % to 1600 %), applied here because this path scales directly.
-            z = max(0.05, min(self.zoom() * factor, 16))
-            self.scale(z / self.zoom(), z / self.zoom())
-            self.setTransformationAnchor(QGraphicsView.ViewportAnchor.AnchorViewCenter)
-            self.fit = ""
-            self.render_timer.start()
-            self.zoom_changed.emit(z)
+            # Ctrl+rueda acerca alrededor del puntero, que se queda sobre lo mismo (animado: ver scrolling.py)
+            if event.angleDelta().y():
+                self.zoom_smoothly(1.15 if event.angleDelta().y() > 0 else 1 / 1.15, event.position())
             event.accept()
         elif not self.continuous and self.doc is not None:  # (one page at a time: past its end, the next)
             bar = self.verticalScrollBar()
