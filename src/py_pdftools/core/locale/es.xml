@@ -12964,4 +12964,72 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The zoom grows or shrinks in a few steps, and the wheel glides, instead of jumping; smoother still with the graphics card</en>
     <tr>El zoom crece o se reduce en unos pocos pasos, y la rueda se desliza, en lugar de saltar; más suave aún con la tarjeta gráfica</tr>
   </text>
+  <text>
+    <en>Check for a new version…</en>
+    <tr>Buscar una versión nueva…</tr>
+  </text>
+  <text>
+    <en>Check for a new version</en>
+    <tr>Buscar una versión nueva</tr>
+  </text>
+  <text>
+    <en>Ask GitHub for the latest version of py-pdftools (only now, never by itself), and say how to install it</en>
+    <tr>Preguntar a GitHub por la última versión de py-pdftools (solo ahora, nunca por sí solo), y decir cómo instalarla</tr>
+  </text>
+  <text>
+    <en>Asking GitHub for the latest version…</en>
+    <tr>Preguntando a GitHub por la última versión…</tr>
+  </text>
+  <text>
+    <en>The latest version could not be found out: {error}</en>
+    <tr>No se pudo saber cuál es la última versión: {error}</tr>
+  </text>
+  <text>
+    <en>py-pdftools {new} is out; this is {version}.</en>
+    <tr>Ya salió py-pdftools {new}; esta es la {version}.</tr>
+  </text>
+  <text>
+    <en>Open the page of the release</en>
+    <tr>Abrir la página de la versión</tr>
+  </text>
+  <text>
+    <en>This version, {version}, is newer than the latest published ({new}).</en>
+    <tr>Esta versión, {version}, es más nueva que la última publicada ({new}).</tr>
+  </text>
+  <text>
+    <en>py-pdftools {version} is the latest version.</en>
+    <tr>py-pdftools {version} es la última versión.</tr>
+  </text>
+  <text>
+    <en>{text} is not a version</en>
+    <tr>{text} no es una versión</tr>
+  </text>
+  <text>
+    <en>the answer could not be read</en>
+    <tr>no se pudo leer la respuesta</tr>
+  </text>
+  <text>
+    <en>Update it with the system's packages: sudo dnf upgrade py-pdftools</en>
+    <tr>Actualícelo con los paquetes del sistema: sudo dnf upgrade py-pdftools</tr>
+  </text>
+  <text>
+    <en>Download its package (py-pdftools_{version}-1_amd64.deb) from the page of the release, and install it: sudo apt install ./py-pdftools_{version}-1_amd64.deb</en>
+    <tr>Descargue su paquete (py-pdftools_{version}-1_amd64.deb) de la página de la versión, e instálelo: sudo apt install ./py-pdftools_{version}-1_amd64.deb</tr>
+  </text>
+  <text>
+    <en>Download its AppImage (py-pdftools-{version}-x86_64.AppImage) from the page of the release, make it executable, and use it in place of this one</en>
+    <tr>Descargue su AppImage (py-pdftools-{version}-x86_64.AppImage) de la página de la versión, hágala ejecutable y úsela en lugar de esta</tr>
+  </text>
+  <text>
+    <en>Download its source (py-pdftools-{version}.zip) from the page of the release, and run its installer again: install/install.sh, or install\install.bat on Windows</en>
+    <tr>Descargue su código fuente (py-pdftools-{version}.zip) de la página de la versión, y ejecute de nuevo su instalador: install/install.sh, o install\install.bat en Windows</tr>
+  </text>
+  <text>
+    <en>Bring the new version into the folder of the source: git pull</en>
+    <tr>Traiga la versión nueva a la carpeta del código fuente: git pull</tr>
+  </text>
+  <text>
+    <en>Install its wheel (py_pdftools-{version}-py3-none-any.whl), from the page of the release, with pip install --upgrade</en>
+    <tr>Instale su wheel (py_pdftools-{version}-py3-none-any.whl), de la página de la versión, con pip install --upgrade</tr>
+  </text>
 </interface>

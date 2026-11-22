@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-two stages.
+I explain how it was made, in forty-three stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1109,10 +1109,30 @@ gave the same, except a few links whose addresses PyMuPDF doesn't take as
 web addresses (`file://…`, or written oddly): these showed nothing, and now
 show the address.
 
+43. A new version, asked for
+----------------------------
+
+The menu Help has an item to check for a new version. It asks GitHub for the
+latest release, only when the item is chosen: a program that edits private
+documents should not call anywhere by itself, and the question carries
+nothing but the name of the program. The answer is compared with the
+version running, as numbers (1.8.10 is newer than 1.8.9, which as text it
+isn't), and the question waits in another thread, behind a dialog that can
+cancel it, so that a slow network doesn't freeze the window.
+
+Saying that a new version exists is the easy part; what helps is saying how
+to install it, and that depends on how this copy came. The program looks at
+where it runs from: under /opt/py-pdftools it is the Debian package, with
+APPIMAGE set it is the AppImage, under /usr/lib it is the RPM (not
+/usr/local, where pip puts what root installs), in a folder py-pdftools/venv
+it was made by the installers, and in a clone with its pyproject.toml it is
+the source. Each gets its own instruction, with the name of the file to
+download where there is one.
+
 Testing
 -------
 
-The program has 652 tests (`uv run pytest`): those of the four programs,
+The program has 670 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1124,7 +1144,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -1133,5 +1153,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 161 files of Python, around 44,000 lines (about a tenth of them
+program has 163 files of Python, around 44,200 lines (about a tenth of them
 comments), and 3,197 texts of the interface in Spanish.

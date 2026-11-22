@@ -17,6 +17,12 @@ Debian package, the RPM, the wheel and the source, are on
   Links with addresses PyMuPDF doesn't take as web addresses, which showed
   nothing in the list of annotations, now show the address.
 
+- **Help > Check for a new version** asks GitHub for the latest version
+  (only then: never by itself, and sending nothing about the user) and, if
+  there is a newer one, says how to install it for the way this copy was
+  installed (RPM, `.deb`, AppImage, installers, source or pip), with a
+  button to the page of the release.
+
 ## 1.8.11 — 2026-11-22
 
 - **Word index** is also a button on the toolbar Find, with an icon of its

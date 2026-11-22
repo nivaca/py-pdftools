@@ -740,6 +740,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_check = self._action(m, tr("Check the configuration…"), self.check_configuration,
                                     tip=tr("Whether py-pdftools has what it needs (Python, its libraries, "
                                            "tesseract, Ghostscript), and whether its settings are right"))
+        self.a_updates = self._action(m, tr("Check for a new version…"), self.check_for_updates,
+                                      tip=tr("Ask GitHub for the latest version of py-pdftools (only now, never "
+                                             "by itself), and say how to install it"))
         self._action(m, tr("About"), self.about)
 
         for act, name in ((self.a_open, "document-open"), (self.a_save, "document-save"),
@@ -791,6 +794,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def check_for_updates(self):
+        """Help > Check for a new version (see updating.py)."""
+        from .updating import check_for_updates
+
+        return check_for_updates(self)
 
     def check_configuration(self):
         """Help > Check the configuration (see health_dialog.py), with the shortcuts of this window."""

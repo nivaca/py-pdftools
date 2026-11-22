@@ -442,6 +442,12 @@ tesseract y los idiomas del OCR elegidos, Ghostscript, el espacio de la
 carpeta temporal), qué ajustes del archivo no son válidos o no se conocen y
 qué atajos se usan dos veces; cada cosa con lo que hay que hacer, y un
 informe que se puede copiar.
+Ayuda > Buscar una versión nueva pregunta a GitHub por la última versión
+(solo entonces: el programa nunca pregunta por sí solo, y no envía nada del
+usuario) y, si hay una más nueva, dice cómo instalarla según cómo se instaló
+esta copia (`dnf upgrade` para el RPM, el `.deb` o la AppImage nuevos, los
+instaladores de nuevo, `git pull`, o la wheel con pip), con un botón que
+abre la página de la versión.
 
 Pruebas
 -------

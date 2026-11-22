@@ -1497,6 +1497,18 @@ neither responds to it) or one changed in \menu{Shortcuts} that another
 action already has. \menu{Copy the report} copies the list as text, to
 paste into a message asking for help.
 
+\index{new version}\index{updates}%
+\menu{Help\then Check for a new version} asks GitHub which is the latest
+version of py-pdftools. It asks only then: the program never does it by
+itself, and the question carries nothing about you or your computer. If
+there is a newer version, it says how to install it, which depends on how
+this copy was installed: with the package of Fedora, \texttt{sudo dnf
+upgrade py-pdftools}; with the package of Debian or Ubuntu, or the
+AppImage, the new one, downloaded from the page of the release; with the
+installers, the source of the new version, and its installer run again;
+from a clone of the source, \texttt{git pull}. \menu{Open the page of the
+release} opens that page in the browser, with every file of the version.
+
 \noindent\index{tabs}%
 The foot of the tab says where the settings are kept (see
 section~\ref{sec:files-kept}).

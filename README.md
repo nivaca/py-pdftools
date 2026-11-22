@@ -417,6 +417,12 @@ and whether it has it (Python and its libraries, pyHanko, tesseract and the
 OCR languages chosen, Ghostscript, the space of the temporary folder),
 which settings in the file aren't valid or known, and shortcuts used twice;
 each with what to do, and a report that can be copied.
+Help > Check for a new version asks GitHub for the latest release (only
+then: the program never asks by itself, and sends nothing about the user)
+and, if there is a newer one, says how to install it for the way this copy
+was installed (`dnf upgrade` for the RPM, the new `.deb` or AppImage, the
+installers again, `git pull`, or the wheel with pip), with a button that
+opens the page of the release.
 
 Tests
 -----
