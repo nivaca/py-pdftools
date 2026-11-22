@@ -123,6 +123,7 @@ jobs:
           $out = & powershell -NoProfile -ExecutionPolicy Bypass -File install\install.ps1 --unisntall 2>&1 | Out-String
           if ($LASTEXITCODE -eq 0) { throw "an unknown option was accepted" }
           if ($out -notmatch "unknown option: --unisntall") { throw "it said: $out" }
+          exit 0  # (GitHub ends a pwsh step with the last exit code: here, the refusal expected)
       - name: Uninstall (written as for install.sh)
         shell: cmd
         run: install\install.bat --uninstall < nul
