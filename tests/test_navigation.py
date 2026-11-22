@@ -845,16 +845,23 @@ def test_left_and_right_turn_the_pages(window):
     assert window.page == page and bar.value() > 0  # (scrolled sideways)
 
 
-def test_floating_parts_go_with_their_tab(window, tmp_path):
+def test_floating_parts_go_with_their_tab(book, tmp_path, monkeypatch):
     """A panel (or a toolbar) dragged out of a window that is a tab is hidden with it: when another tab comes
     to the front, and when the window of tabs is closed (they stayed on the screen, each with its icon in
     the taskbar); it comes back with its tab."""
     from py_pdftools.gui.tabs import open_in_tab
 
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
     other = tmp_path / "other.pdf"
     doc = pymupdf.open()
     doc.new_page()
     doc.save(other)
+    # Ventanas que solo han sido pestañas: una mostrada antes como ventana propia (la del fixture) y luego
+    # metida en una pestaña hacía que la pantalla offscreen de las pruebas se rompiera al terminar Python,
+    # después de pasar todas (GitHub, Copr).
+    window = open_in_tab(book)
+    window.ask_recover = lambda when: False
     window.set_mode("ocr")
     second = open_in_tab(other, near=window)
     host = window.host
@@ -877,7 +884,5 @@ def test_floating_parts_go_with_their_tab(window, tmp_path):
     QApplication.processEvents()
     assert not dock.isVisible()
     assert not [w for w in QApplication.topLevelWidgets() if w.isVisible() and w.parent() is window]
-    # Back in its window: a panel left floating is a window of its own, which PySide destroys when Python
-    # ends, and the offscreen display of the tests (Linux, macOS, Windows) then crashes.
     dock.setFloating(False)
     QApplication.processEvents()
