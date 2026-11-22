@@ -23,6 +23,9 @@ class IdError(Exception):
 
 def available() -> bool:
     """Whether pyHanko (and cryptography) are installed: signing and checking signatures need them."""
+    from ..core.userpackages import reach
+
+    reach("pyhanko")  # (instalado con pip --user, para un Python que arranca sin mirar allí: el RPM)
     try:
         import cryptography  # noqa: F401
         import pyhanko  # noqa: F401

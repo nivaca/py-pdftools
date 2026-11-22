@@ -1059,10 +1059,22 @@ start of a line of text. The buttons there now show only the colour, as a
 wide patch, with the name in the tip; the button keeps its menu of the other
 colours.
 
+The third was pyHanko, with the RPM. Fedora doesn't package it, and the
+check told users to run pip; I did, and the check still said it was
+missing. The launcher that the RPM installs starts Python with `-s`, as
+Fedora's rules want, and `-s` leaves out the user's own packages, which is
+exactly where pip puts them; there was nothing a user could install that the
+program would see. It now looks there for pyHanko when it isn't among the
+system's packages, adding that folder at the end of the path, so that
+nothing of the system is replaced. The signature tests pass that way with
+Fedora's Python and its own cryptography. The hint changed with it: for the
+RPM, `python3 -m pip install --user pyhanko`, not the extra of a package
+that pip doesn't know.
+
 Testing
 -------
 
-The program has 642 tests (`uv run pytest`): those of the four programs,
+The program has 644 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

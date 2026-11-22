@@ -68,12 +68,15 @@ def libraries() -> list[Check]:
 
 
 def signatures() -> Check:
+    from .userpackages import install_hint, reach
+
     title = tr("pyHanko (digital signatures)")
+    reach("pyhanko")  # (también en los paquetes del usuario, si este Python no los mira: el RPM)
     try:
         return Check(OK, title, metadata.version("pyHanko"))
     except metadata.PackageNotFoundError:
         return Check(INFO, title, tr("Not installed: documents can't be signed, nor their signatures checked"),
-                     "pip install 'py-pdftools[signatures]'")
+                     install_hint("pyhanko"))
 
 
 def known(name: str) -> bool:

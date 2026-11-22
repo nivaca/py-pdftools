@@ -234,8 +234,9 @@ Las actualizaciones llegan luego con \texttt{sudo dnf upgrade}.
 El RPM de cada versión también puede instalarse a mano, tras importar su
 clave con \texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora no
 empaqueta pyHanko, la biblioteca de las firmas digitales, así que el RPM va
-sin ellas; el menú \menu{Archivo\then Seguridad} dice entonces cómo
-añadirla.
+sin ella; \texttt{python3 -m pip install --user pyhanko} la instala en los
+paquetes propios, donde el programa la busca (el menú \menu{Archivo\then
+Seguridad} también lo dice).
 
 \subsection{Debian y Ubuntu}
 
@@ -1822,7 +1823,8 @@ Tecla & Acción\\
   modelos más precisos en \menu{OCR\then Idiomas}.
 \item[No se pueden hacer PDF/A ni PDF/X] instale Ghostscript.
 \item[Las firmas no están en el menú] instale pyHanko
-  (\texttt{pip install 'py-pdftools[signatures]'}) o use la AppImage.
+  (\texttt{pip install 'py-pdftools[signatures]'}; con el RPM,
+  \texttt{python3 -m pip install --user pyhanko}) o use la AppImage.
 \item[La copia censurada avisa de que aún se lee texto] algún texto bajo un
   recuadro no se quitó (puede estar en una forma que no se puede
   analizar): mire las páginas nombradas y ponga un recuadro sobre toda la

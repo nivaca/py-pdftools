@@ -230,8 +230,10 @@ $ sudo dnf install py-pdftools
 Updates then come with \texttt{sudo dnf upgrade}. The RPM of
 each release can also be installed by hand, after importing its key with
 \texttt{sudo rpm --import RPM-GPG-KEY-py-pdftools}. Fedora does not package
-pyHanko, the library of digital signatures, so the RPM goes without them;
-the menu \menu{File\then Security} then says how to add it.
+pyHanko, the library of digital signatures, so the RPM goes without it;
+\texttt{python3 -m pip install --user pyhanko} installs it in your own
+packages, where the program looks for it (the menu \menu{File\then
+Security} says so too).
 
 \subsection{Debian and Ubuntu}
 
@@ -1733,7 +1735,8 @@ Key & Action\\
   and download the more accurate models in \menu{OCR\then Languages}.
 \item[PDF/A or PDF/X can't be made] install Ghostscript.
 \item[The signatures are not in the menu] install pyHanko
-  (\texttt{pip install 'py-pdftools[signatures]'}), or use the AppImage.
+  (\texttt{pip install 'py-pdftools[signatures]'}; with the RPM,
+  \texttt{python3 -m pip install --user pyhanko}), or use the AppImage.
 \item[The redacted copy warns that text can still be read] some text under
   a box was not removed (it may be in a form that can't be parsed): look at
   the pages named, and put a box over the whole area, or use \menu{Find

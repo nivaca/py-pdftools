@@ -12,9 +12,11 @@ from PySide6.QtWidgets import (
 )
 
 from ..core.interface import tr
+from ..core.userpackages import install_hint
 from ..signatures import ids
 
-NEEDS = "pip install 'py-pdftools[signatures]'"
+# Cómo instalar pyHanko para este Python (con --user para el del RPM, que luego lo halla: core/userpackages.py)
+NEEDS = install_hint("pyhanko")
 
 
 class IdDialog(QDialog):

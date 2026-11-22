@@ -13,6 +13,11 @@ Debian package, the RPM, the wheel and the source, are on
 - **Settings > Colours** shows each colour as a patch of it, with its name
   in the tip, instead of its name and meaning, which repeated the field
   beside it.
+- **pyHanko with the RPM**: installed with `pip install --user`, it wasn't
+  found, since the RPM starts Python with `-s`, which leaves out the user's
+  packages; the program now looks there for it (after the system's), and
+  Check the configuration and the menu say how to install it for each kind
+  of installation.
 
 - **Animated zoom** with Ctrl and the wheel: the place under the pointer
   drifted a pixel or two at each turn, the roundings of the scroll bars

@@ -188,8 +188,9 @@ viene»). Para el OCR, el programa tesseract, con los idiomas de los
 documentos (`tesseract-langpack-…` en Fedora, `tesseract-ocr-…` en Debian
 y Ubuntu).
 Las firmas digitales necesitan pyHanko: la AppImage y los instaladores lo
-traen; en otro caso, `pip install 'py-pdftools[signatures]'` (Fedora no lo
-empaqueta, así que el RPM va sin él; el menú dice entonces cómo añadirlo).
+traen; en otro caso, `pip install 'py-pdftools[signatures]'`. Fedora no lo
+empaqueta: con el RPM, `python3 -m pip install --user pyhanko` lo instala
+en los paquetes propios, donde el programa lo busca.
 
 La ventana
 ----------
