@@ -7,6 +7,13 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- **Colours of the interface** (Settings > Appearance): Light and Dark did
+  nothing where the desktop's theme keeps its own colours (KDE, through its
+  portal); they now set a whole palette of the program's own, the view
+  behind the pages follows at once, and the icons take the light or dark
+  variant of the desktop's icon theme where it is installed. System gives
+  the desktop's colours and icons back.
+
 - **The box of the page** was shown twice, on Page navigation and on the
   toolbar at the top, beside the zoom. It is now only on Page navigation
   (or wherever it is put in Customize the toolbars); the toolbar at the top,

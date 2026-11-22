@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in thirty-seven stages.
+I explain how it was made, in thirty-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -950,10 +950,27 @@ has the zoom alone. The details of the page that its count gave as a tip
 (the label, the size and paper, the orientation) are now the tip of the
 count of Page navigation.
 
+38. Light and dark, whatever the desktop
+---------------------------------------
+
+The setting of the colours of the interface, light or dark, did nothing on
+my own computer. It asked Qt for a scheme of colours, and Qt passes that
+request to the desktop's theme; under KDE the theme comes through the
+desktop portal, which keeps the colours of the desktop and ignores the
+request. Light and Dark now set a whole palette, every role of it,
+disabled text included, so that the style has nothing to fill in with the
+colours of the other theme. The view behind the pages took its grey from
+the palette once, when it was made; it now takes it again whenever the
+palette changes. The icons were the other half of the problem: a dark icon
+theme on a light palette leaves light icons on light buttons. So the
+variant of the desktop's icon theme is chosen too (breeze and breeze-dark,
+Papirus-Light and Papirus-Dark), when it is installed. System gives back
+the palette and the icons of the desktop.
+
 Testing
 -------
 
-The program has 630 tests (`uv run pytest`): those of the four programs,
+The program has 632 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

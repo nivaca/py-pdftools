@@ -110,6 +110,49 @@ def test_appearance(window):
     appearance.apply_theme("system")
 
 
+def test_light_and_dark_whatever_the_desktop(window):
+    """Light and dark set the program's own palette, whatever colours the desktop's theme keeps (asking Qt
+    for a scheme alone did nothing under KDE's portal); the view behind the pages follows; System gives the
+    desktop's palette back."""
+    from PySide6.QtGui import QPalette
+
+    app = QApplication.instance()
+    before = app.palette().color(QPalette.ColorRole.Window).name()
+    window_colour = lambda: window.palette().color(QPalette.ColorRole.Window).lightness()
+    try:
+        appearance.apply_theme("dark")
+        QApplication.processEvents()
+        assert window_colour() < 80 and window.canvas.backgroundBrush().color().lightness() < 80
+        appearance.apply_theme("light")
+        QApplication.processEvents()
+        assert window_colour() > 200 and window.canvas.backgroundBrush().color().lightness() > 120
+        # (disabled text, too: of the theme, not left to the style)
+        disabled = app.palette().color(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Text)
+        assert disabled.name() == appearance.DISABLED["light"]
+    finally:
+        appearance.apply_theme("system")
+        QApplication.processEvents()
+    assert app.palette().color(QPalette.ColorRole.Window).name() == before
+
+
+def test_icon_theme_variants(tmp_path, monkeypatch):
+    """The icons follow light and dark: the variant of the desktop's icon theme, where it is installed."""
+    from PySide6.QtGui import QIcon
+
+    for name in ("breeze", "breeze-dark", "Papirus-Colors", "Papirus-Colors-Dark", "Papirus-Light", "Papirus-Dark",
+                 "Adwaita"):
+        (tmp_path / name).mkdir()
+        (tmp_path / name / "index.theme").write_text("[Icon Theme]\n")
+    monkeypatch.setattr(QIcon, "themeSearchPaths", staticmethod(lambda: [str(tmp_path), ":/icons"]))
+    assert appearance.icon_theme("breeze", dark=True) == "breeze-dark"
+    assert appearance.icon_theme("breeze-dark", dark=False) == "breeze"
+    assert appearance.icon_theme("breeze-dark", dark=True) == "breeze-dark"
+    assert appearance.icon_theme("Papirus-Colors-Dark", dark=False) == "Papirus-Colors"
+    assert appearance.icon_theme("Papirus-Light", dark=True) == "Papirus-Dark"
+    assert appearance.icon_theme("Papirus-Dark", dark=False) == "Papirus-Light"  # (Papirus itself isn't here)
+    assert appearance.icon_theme("Adwaita", dark=True) == "Adwaita"  # (no variant: as it is)
+
+
 def test_documents(window, tmp_path, monkeypatch):
     first = doc(tmp_path / "a.pdf", 5)
     d = SettingsDialog(window.prefs, window)

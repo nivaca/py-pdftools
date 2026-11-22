@@ -5,6 +5,8 @@ when they need it (see value)."""
 
 from __future__ import annotations
 
+import pathlib
+
 from ..core import config
 
 THEMES = ("system", "light", "dark")
@@ -18,37 +20,97 @@ def value(name: str):
     return config.get(name)
 
 
-def apply_theme(name: str | None = None):
-    """The colours of the interface: as the system has them, light or dark (Qt's own scheme of colours)."""
-    from PySide6.QtCore import Qt
-    from PySide6.QtGui import QGuiApplication
+_SYSTEM_ICONS: str | None = None  # (the icon theme of the desktop, before any theme of the program changed it)
 
-    name = name or value("theme")
-    scheme = {"light": Qt.ColorScheme.Light, "dark": Qt.ColorScheme.Dark}.get(name, Qt.ColorScheme.Unknown)
-    hints = QGuiApplication.styleHints()
-    if hasattr(hints, "setColorScheme"):  # (Qt 6.8 or later)
-        hints.setColorScheme(scheme)
-        return
-    # (un Qt anterior: los colores de Fusion, oscuros o claros; «system» deja los del estilo)
+# Los colores de cada tema, todos los papeles: con una paleta entera, el estilo del escritorio (Breeze,
+# Fusion...) no tiene nada que completar con los suyos, que serían los del tema contrario.
+PALETTES = {
+    "light": {"Window": "#efefef", "WindowText": "#1e1e1e", "Base": "#ffffff", "AlternateBase": "#f5f5f5",
+              "Text": "#1e1e1e", "Button": "#e6e6e6", "ButtonText": "#1e1e1e", "BrightText": "#ffffff",
+              "Highlight": "#3d7fd6", "HighlightedText": "#ffffff", "ToolTipBase": "#ffffdc",
+              "ToolTipText": "#1e1e1e", "Link": "#0b57d0", "LinkVisited": "#7b3fb0", "PlaceholderText": "#7a7a7a",
+              "Light": "#ffffff", "Midlight": "#f5f5f5", "Mid": "#b8b8b8", "Dark": "#9f9f9f", "Shadow": "#767676"},
+    "dark": {"Window": "#2b2d30", "WindowText": "#e6e6e6", "Base": "#1e1f22", "AlternateBase": "#2b2d30",
+             "Text": "#e6e6e6", "Button": "#3c3f41", "ButtonText": "#e6e6e6", "BrightText": "#ff6b6b",
+             "Highlight": "#3d6fb4", "HighlightedText": "#ffffff", "ToolTipBase": "#3c3f41",
+             "ToolTipText": "#e6e6e6", "Link": "#6ea8fe", "LinkVisited": "#b392f0", "PlaceholderText": "#8c8f94",
+             "Light": "#4a4d50", "Midlight": "#3f4245", "Mid": "#2f3134", "Dark": "#18191b", "Shadow": "#000000"},
+}
+DISABLED = {"light": "#a0a0a0", "dark": "#7a7d80"}  # (the text of what can't be used)
+
+
+def palette(name: str):
+    """The palette of the theme NAME ('light' or 'dark'), with every role set."""
     from PySide6.QtGui import QColor, QPalette
+
+    out = QPalette()
+    for role, colour in PALETTES[name].items():
+        out.setColor(getattr(QPalette.ColorRole, role), QColor(colour))
+    if hasattr(QPalette.ColorRole, "Accent"):  # (Qt 6.6 or later)
+        out.setColor(QPalette.ColorRole.Accent, QColor(PALETTES[name]["Highlight"]))
+    off = QColor(DISABLED[name])
+    for role in (QPalette.ColorRole.WindowText, QPalette.ColorRole.Text, QPalette.ColorRole.ButtonText):
+        out.setColor(QPalette.ColorGroup.Disabled, role, off)
+    out.setColor(QPalette.ColorGroup.Disabled, QPalette.ColorRole.Highlight, QColor(PALETTES[name]["Mid"]))
+    return out
+
+
+def _icon_theme_exists(name: str) -> bool:
+    from PySide6.QtGui import QIcon
+
+    return any(pathlib.Path(folder, name, "index.theme").is_file() for folder in QIcon.themeSearchPaths()
+               if not folder.startswith(":"))
+
+
+def icon_theme(name: str, dark: bool) -> str:
+    """The variant of the icon theme NAME for a DARK interface (or a light one), if it is installed: breeze
+    and breeze-dark, Papirus-Light and Papirus-Dark... else NAME itself."""
+    lower = name.lower()
+    # (un tema sin sufijo, como breeze o Papirus, es el claro)
+    if lower.endswith("-dark"):
+        base, now_dark = name[: -len("-dark")], True
+    elif lower.endswith("-light"):
+        base, now_dark = name[: -len("-light")], False
+    else:
+        base, now_dark = name, False
+    if now_dark == dark:
+        return name
+    wanted = [base + "-Dark", base + "-dark"] if dark else [base, base + "-Light", base + "-light"]
+    return next((n for n in wanted if _icon_theme_exists(n)), name)
+
+
+def apply_theme(name: str | None = None):
+    """The colours of the interface: as the system has them, light or dark. Light and dark set a whole
+    palette of the program's own, and the matching variant of the icon theme: asking Qt for a scheme of
+    colours alone isn't enough, since the desktop's own theme (the portal of KDE, for one) may keep its
+    colours over it. 'system' gives the desktop its colours and icons back."""
+    global _SYSTEM_ICONS
+    from PySide6.QtCore import Qt
+    from PySide6.QtGui import QGuiApplication, QIcon, QPalette
     from PySide6.QtWidgets import QApplication
 
     app = QApplication.instance()
-    if app is None or name == "system":
+    if app is None:
         return
-    app.setStyle("Fusion")
-    if name == "light":
-        app.setPalette(app.style().standardPalette())
+    name = name or value("theme")
+    if _SYSTEM_ICONS is None:
+        _SYSTEM_ICONS = QIcon.themeName()
+    hints = QGuiApplication.styleHints()
+    if name in ("light", "dark"):
+        dark = name == "dark"
+        # (also the scheme, for what reads it: the style, the dialogs of the system, where they follow it)
+        if hasattr(hints, "setColorScheme"):  # (Qt 6.8 or later)
+            hints.setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        app.setPalette(palette(name))
+        if _SYSTEM_ICONS:
+            QIcon.setThemeName(icon_theme(_SYSTEM_ICONS, dark))
         return
-    palette = QPalette()
-    for role, colour in ((QPalette.ColorRole.Window, "#2b2d30"), (QPalette.ColorRole.WindowText, "#e6e6e6"),
-                         (QPalette.ColorRole.Base, "#1e1f22"), (QPalette.ColorRole.AlternateBase, "#2b2d30"),
-                         (QPalette.ColorRole.Text, "#e6e6e6"), (QPalette.ColorRole.Button, "#3c3f41"),
-                         (QPalette.ColorRole.ButtonText, "#e6e6e6"), (QPalette.ColorRole.Highlight, "#3d6fb4"),
-                         (QPalette.ColorRole.HighlightedText, "#ffffff"), (QPalette.ColorRole.ToolTipBase, "#3c3f41"),
-                         (QPalette.ColorRole.ToolTipText, "#e6e6e6"), (QPalette.ColorRole.Link, "#6ea8fe")):
-        palette.setColor(role, QColor(colour))
-    app.setPalette(palette)
+    if hasattr(hints, "unsetColorScheme"):
+        hints.unsetColorScheme()
+    # Una paleta vacía (sin ningún papel fijado) devuelve la de la plataforma
+    app.setPalette(QPalette())
+    if _SYSTEM_ICONS:
+        QIcon.setThemeName(_SYSTEM_ICONS)
 
 
 def apply_scale(percent: int | None = None):

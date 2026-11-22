@@ -795,6 +795,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self.page = here.number
             self.page_changed.emit(here.number)
 
+    def changeEvent(self, event):
+        # El fondo detrás de las páginas sigue al tema (claro u oscuro), también si cambia con la ventana abierta
+        if event.type() == QEvent.Type.PaletteChange:
+            self.setBackgroundBrush(self.palette().dark())
+        super().changeEvent(event)
+
     # ----------------------------------------------------------------- rendering
 
     def zoom(self) -> float:
