@@ -193,8 +193,10 @@ class Renderer(QObject):
         result = None
         try:
             width, height, stride, data = future.result()
-            # copy(): QImage does not own the bytes received from the other process.
-            result = QImage(data, width, height, stride, QImage.Format.Format_RGB888).copy()
+            # Las páginas de la vista, en el formato de la pantalla; las miniaturas, como llegan (ver rgb_image)
+            from .canvas import rgb_image
+
+            result = rgb_image(data, width, height, stride, screen=lane == "view")
         except Exception as e:
             from concurrent.futures.process import BrokenProcessPool
 

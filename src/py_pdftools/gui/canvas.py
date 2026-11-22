@@ -72,10 +72,21 @@ MARK_SIZE = 12.0  # points: of a check mark, a cross...
 
 # Sin canal alfa: la página siempre se pinta sobre blanco. El .copy() hace falta porque QImage
 # no copia los bytes de pix.samples, que desaparecen con el Pixmap de PyMuPDF.
+def rgb_image(data, width: int, height: int, stride: int, screen: bool = False) -> QImage:
+    """A picture of its own from the RGB bytes DATA. For the SCREEN, in the format of the screen (RGB32): the
+    one conversion it needs is done here, in one pass that also copies, and then turning it into a QPixmap
+    costs nothing (from RGB888, a copy and then a conversion: 3 ms instead of 1.3 for a page at 300 %).
+    Else as it is, a quarter smaller (the thumbnails, kept many at once)."""
+    image = QImage(data, width, height, stride, QImage.Format.Format_RGB888)
+    # (copy() o la conversión: QImage no es dueña de DATA, que puede desaparecer)
+    return image.convertToFormat(QImage.Format.Format_RGB32) if screen else image.copy()
+
+
 def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint: tuple | None = None,
-               sharpness: tuple | None = None) -> QImage:
+               sharpness: tuple | None = None, screen: bool = False) -> QImage:
     """PAGE rendered at SCALE (only CLIP of it, in points, if given; in the colours TINT, if given, and with the
-    sharpness of the text SHARPNESS, by default that of the settings: see reading.py)."""
+    sharpness of the text SHARPNESS, by default that of the settings: see reading.py); for the SCREEN, in its
+    format (see rgb_image)."""
     from ..core import rendering
 
     pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
@@ -84,11 +95,11 @@ def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint
     if sharpness == rendering.AS_DRAWN:
         if tint is not None:
             pix.tint_with(tint[0], tint[1])
-        return QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888).copy()
+        return rgb_image(pix.samples_mv, pix.width, pix.height, pix.stride, screen)
     stride, data = rendering.sharpen(pix, sharpness)
     if tint is not None:
         data, stride = rendering.tinted(pix.width, pix.height, stride, data, tint), pix.width * 3
-    return QImage(data, pix.width, pix.height, stride, QImage.Format.Format_RGB888).copy()
+    return rgb_image(data, pix.width, pix.height, stride, screen)
 
 
 def _distance(p: QPointF, a: QPointF, b: QPointF) -> float:
@@ -1041,7 +1052,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                                   words=False)
         if image is None:
             try:
-                image = page_image(self.doc[n], scale, clip, reading.TINT)
+                image = page_image(self.doc[n], scale, clip, reading.TINT, screen=True)
             except (RuntimeError, ValueError):
                 return
         pixmap = QPixmap.fromImage(image)
@@ -1065,7 +1076,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self.local_timer.start()
             return
         try:
-            image = page_image(self.doc[n], scale, tint=reading.TINT)
+            image = page_image(self.doc[n], scale, tint=reading.TINT, screen=True)
         # El documento se cerró o cambió entre dos turnos: se abandonan las páginas pendientes.
         except (RuntimeError, ValueError):
             self._here = []
@@ -1090,7 +1101,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             image = skipped_image(round(r.width * key[2]), round(r.height * key[2]), image)
         if image is None:
             try:
-                image = page_image(self.doc[key[1]], key[2], tint=reading.TINT)
+                image = page_image(self.doc[key[1]], key[2], tint=reading.TINT, screen=True)
             except (RuntimeError, ValueError):
                 return
         pixmap = self._keep(key, image)
@@ -1105,7 +1116,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         if self.doc is None or self.page not in self.pages:
             return
         scale = self._scale_for(self.page)
-        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale, tint=reading.TINT))
+        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale, tint=reading.TINT, screen=True))
         self.pages[self.page].show(self._cache[(id(self.doc), self.page, scale)], scale)
 
     # ----------------------------------------------------------------- zoom

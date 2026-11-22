@@ -27,6 +27,10 @@ Debian package, the RPM, the wheel and the source, are on
   in a few frames; turns meanwhile add up, and a touchpad, which already
   scrolls by pixels, is left as it is. Both are turned off in Settings >
   Performance > Animate zooming and scrolling with the wheel.
+- **Pages shown sooner**: each page drawn for the view was copied and then
+  converted to the format of the screen; it is now converted once, as it
+  arrives (1.3 ms instead of 3 for a page at 300 %). The thumbnails stay in
+  the smaller format.
 
 - **Colours of the interface** (Settings > Appearance): Light and Dark did
   nothing where the desktop's theme keeps its own colours (KDE, through its

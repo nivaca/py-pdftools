@@ -1020,10 +1020,21 @@ Ctrl with the wheel. The keys that go a page at a time are left as jumps,
 since they are a way of going somewhere, not of scrolling. Both animations
 are one setting, in Settings > Performance.
 
+One small cost was left on the window's own thread. MuPDF draws in RGB,
+three bytes a pixel, and each page arriving was first copied into a QImage
+of that format and then, to be shown, converted into the screen's, four
+bytes a pixel: two passes over some 18 MB for a page at 300 %. A single
+conversion as the page arrives does both, and the QPixmap is then made from
+it for nothing: 1.3 ms instead of 3. I tried drawing straight into the
+screen's format with MuPDF, in BGRA, but the gain was a millisecond, the
+background came out transparent, and the sharpening and the reading colours
+work on RGB; I left it. The thumbnails keep RGB, a quarter smaller, since
+many of them are kept at once.
+
 Testing
 -------
 
-The program has 638 tests (`uv run pytest`): those of the four programs,
+The program has 639 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

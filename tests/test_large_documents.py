@@ -216,3 +216,17 @@ def test_the_wheel_glides(window):
     canvas.wheelEvent(_wheel(canvas, -120))
     window.show_page(PAGES - 1)
     assert not canvas._animating(canvas._scroll_anim) and window.page == PAGES - 1
+
+
+def test_pictures_of_the_view_in_the_format_of_the_screen(window):
+    """The pages of the view come in the format of the screen (no conversion left when they are shown); the
+    thumbnails, kept many at once, stay in the smaller RGB888; both show the same colours."""
+    from PySide6.QtGui import QImage
+
+    from py_pdftools.gui.canvas import page_image
+
+    page = window.doc[0]
+    screen, thumb = page_image(page, 1.0, screen=True), page_image(page, 1.0)
+    assert screen.format() == QImage.Format.Format_RGB32 and thumb.format() == QImage.Format.Format_RGB888
+    assert screen.size() == thumb.size()
+    assert all(screen.pixel(x, y) == thumb.pixel(x, y) for x, y in ((5, 5), (80, 75), (100, 70)))
