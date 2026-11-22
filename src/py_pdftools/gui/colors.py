@@ -57,18 +57,20 @@ def color_name(color: str) -> str:
     return label(color.lower(), color_meaning(color))
 
 
-def swatch(color: str, size: int = 16) -> QIcon:
-    """A square of COLOR; for no colour (''), an empty square crossed out."""
-    pixmap = QPixmap(size, size)
+def swatch(color: str, size: int = 16, width: int | None = None) -> QIcon:
+    """A square of COLOR (SIZE high, and WIDTH wide if given); for no colour (''), an empty square crossed
+    out."""
+    width = size if width is None else width
+    pixmap = QPixmap(width, size)
     # Sin color, el cuadro es transparente y lleva una raya roja en diagonal, como un 'prohibido'.
     pixmap.fill(QColor(color) if color else QColor(0, 0, 0, 0))
     p = QPainter(pixmap)
     if not color:
         p.setPen(QColor(208, 48, 48))
-        p.drawLine(1, size - 2, size - 2, 1)
+        p.drawLine(1, size - 2, width - 2, 1)
     # A grey border, so that white and very light colours can be seen on a light menu.
     p.setPen(QColor(128, 128, 128))
-    p.drawRect(0, 0, size - 1, size - 1)
+    p.drawRect(0, 0, width - 1, size - 1)
     p.end()
     return QIcon(pixmap)
 

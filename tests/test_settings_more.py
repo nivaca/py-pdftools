@@ -258,3 +258,14 @@ def test_rendering_lets_go_of_the_file_on_windows(tmp_path, monkeypatch):
         assert not held()
     finally:
         rendering._docs.clear()
+
+
+def test_the_colours_shown_as_colours(window):
+    """Settings > Colours shows each colour as a patch of it, its name in the tip (its meaning is in the field
+    beside it), not as its name."""
+    d = SettingsDialog(window.prefs, window)
+    button, edit = d.palette_rows[0]
+    assert button.text() == "" and not button.icon().isNull() and button.toolTip()
+    assert button.iconSize().width() > button.iconSize().height()
+    button.set_color("#123456")
+    assert button.text() == "" and "#123456" in button.toolTip()

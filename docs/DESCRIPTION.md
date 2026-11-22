@@ -1052,10 +1052,17 @@ settings are kept: in a dialog of ordinary height, one had to scroll to find
 it, and nobody does. It is now on the row of OK and Cancel, where every tab
 shows it, and in the menu Help, where one looks when something goes wrong.
 
+The other was the tab Colours of the settings. Each colour was a button with
+its name and meaning, "Yellow — Important", beside a field that said
+"Important" again, so that the colour itself was a small square at the
+start of a line of text. The buttons there now show only the colour, as a
+wide patch, with the name in the tip; the button keeps its menu of the other
+colours.
+
 Testing
 -------
 
-The program has 641 tests (`uv run pytest`): those of the four programs,
+The program has 642 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import dataclasses
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import QSize, Qt
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -59,8 +59,15 @@ class ColorButton(QPushButton):
     allows 'no colour' (''). CHOICES gives the colours its menu offers ((value,
     name), the palette if not given), NAME the name of a colour."""
 
-    def __init__(self, color, none: bool = False, parent=None, none_text: str = "", choices=None, name=None):
+    BARE = QSize(56, 18)  # (the colour alone: its size, as a wide patch)
+
+    def __init__(self, color, none: bool = False, parent=None, none_text: str = "", choices=None, name=None,
+                 bare: bool = False):
         super().__init__(parent)
+        # Solo el color, sin su nombre (que queda en el consejo): donde el nombre ya se lee al lado
+        self.bare = bare
+        if bare:
+            self.setIconSize(self.BARE)
         self.none = none
         self.none_text = none_text  # (what 'no colour' means here, if not that)
         # (the mode Redact gives its own: no palette, and the names of its fills)
@@ -76,7 +83,13 @@ class ColorButton(QPushButton):
             self.setIcon(swatch("#808080"))
         else:
             # Para el relleno o el borde, '' significa sin color; none_text dice qué pasa entonces.
-            self.setText(self.none_text if not self.color and self.none_text else self._name(self.color))
+            name = self.none_text if not self.color and self.none_text else self._name(self.color)
+            if self.bare:
+                self.setText("")
+                self.setToolTip(name)
+                self.setIcon(swatch(self.color, self.BARE.height(), self.BARE.width()))
+                return
+            self.setText(name)
             self.setIcon(swatch(self.color))
 
     def _choose(self):

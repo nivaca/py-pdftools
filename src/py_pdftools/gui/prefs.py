@@ -194,7 +194,7 @@ class SettingsDialog(QDialog):
         # Un significado None es el de fábrica: se muestra traducido solo si el color sigue siendo el
         # de fábrica; si el usuario lo cambió, el campo queda vacío.
         for i, (color, meaning) in enumerate(prefs.palette):
-            button = ColorButton(color)
+            button = ColorButton(color, bare=True)  # (the colour itself: its meaning is in the field beside it)
             edit = QLineEdit(meaning if meaning is not None else (
                 tr(settings.PALETTE[i][2]) if color == settings.PALETTE[i][0] and settings.PALETTE[i][2] else ""))
             edit.setPlaceholderText(tr("What it means"))

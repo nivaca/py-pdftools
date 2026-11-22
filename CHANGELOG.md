@@ -10,6 +10,9 @@ Debian package, the RPM, the wheel and the source, are on
 - **Check the configuration** went unseen at the foot of Settings >
   General, under a long list; it is now a button on the row of OK and
   Cancel, seen from every tab, and an entry of the menu Help.
+- **Settings > Colours** shows each colour as a patch of it, with its name
+  in the tip, instead of its name and meaning, which repeated the field
+  beside it.
 
 - **Animated zoom** with Ctrl and the wheel: the place under the pointer
   drifted a pixel or two at each turn, the roundings of the scroll bars
