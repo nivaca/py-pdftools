@@ -5,9 +5,11 @@ una clave hecha aquí, en un GNUPGHOME de la prueba: nunca la del usuario."""
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 import pytest
@@ -19,12 +21,20 @@ import sign_release  # noqa: E402
 pytestmark = pytest.mark.skipif(not shutil.which("gpg") or sys.platform == "win32", reason="needs gpg")
 
 
+def short_home(name: str) -> Path:
+    """A folder for gpg under /tmp: in macOS the tmp_path of pytest is so long that the path of gpg-agent's socket
+    in it passes the 104 characters the system allows, and gpg can't start its agent (it made no key)."""
+    return Path(tempfile.mkdtemp(prefix=f"gpg-{name}-", dir="/tmp" if os.path.isdir("/tmp") else None)) / "home"
+
+
 def make_key(home: Path, name: str) -> tuple[str, Path]:
     """A key without a passphrase in HOME: its fingerprint, and its public key exported."""
     home.mkdir(mode=0o700)
     env = sign_release.bare_env(str(home))  # (gpg's folder in the PATH: Homebrew's on macOS)
-    subprocess.run(["gpg", "--batch", "--passphrase", "", "--quick-gen-key", f"{name} <{name}@example.org>",
-                    "ed25519", "sign", "never"], env=env, check=True, capture_output=True)
+    made = subprocess.run(["gpg", "--batch", "--passphrase", "", "--quick-gen-key", f"{name} <{name}@example.org>",
+                           "ed25519", "sign", "never"], env=env, capture_output=True, text=True)
+    if made.returncode != 0:  # (lo que gpg dijo, para saber por qué)
+        pytest.fail(f"gpg made no key ({made.returncode}): {made.stderr.strip()}")
     out = subprocess.run(["gpg", "--batch", "--with-colons", "--list-secret-keys"], env=env, check=True,
                          capture_output=True, text=True).stdout
     fpr = next(line.split(":")[9] for line in out.splitlines() if line.startswith("fpr"))
@@ -35,13 +45,14 @@ def make_key(home: Path, name: str) -> tuple[str, Path]:
 
 
 @pytest.fixture
-def keys(tmp_path, monkeypatch):
-    home = tmp_path / "gnupg"
+def keys(monkeypatch):
+    home = short_home("release")
     fpr, public = make_key(home, "release")
     monkeypatch.setenv("GNUPGHOME", str(home))
     yield fpr, public
     subprocess.run(["gpgconf", "--kill", "all"], env=sign_release.bare_env(str(home)),
                    capture_output=True)
+    shutil.rmtree(home.parent, ignore_errors=True)
 
 
 def test_every_file_signed_and_checked(tmp_path, keys):
@@ -65,13 +76,15 @@ def test_every_file_signed_and_checked(tmp_path, keys):
 def test_another_key_does_not_check(tmp_path, keys):
     """The key published must be the one that signed: with another, nothing verifies, and the release stops."""
     fpr, _public = keys
-    _other_fpr, other = make_key(tmp_path / "other-home", "other")
+    other_home = short_home("other")
+    _other_fpr, other = make_key(other_home, "other")
     (tmp_path / "app.zip").write_bytes(b"zip")
     sums = tmp_path / "SHA256SUMS"
     args = ["--key", fpr, "--public", str(other), "--sums", str(sums), str(tmp_path / "app.zip")]
     assert sign_release.main(args) == 1
-    subprocess.run(["gpgconf", "--kill", "all"], env=sign_release.bare_env(str(tmp_path / "other-home")),
+    subprocess.run(["gpgconf", "--kill", "all"], env=sign_release.bare_env(str(other_home)),
                    capture_output=True)
+    shutil.rmtree(other_home.parent, ignore_errors=True)
 
 
 def test_missing_files_are_said(tmp_path, keys, capsys):
