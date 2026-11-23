@@ -3,6 +3,8 @@ guardados, añadidos y quitados; añadir y quitar se deshacen como los otros cam
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pymupdf
 import pytest
 from PySide6.QtWidgets import QApplication
@@ -51,7 +53,8 @@ def test_the_panel_of_the_attached_files(window, tmp_path, monkeypatch):
     opened = []
     monkeypatch.setattr(attachments.QDesktopServices, "openUrl", lambda url: opened.append(url.toLocalFile()))
     path = window.open_attached(tree.topLevelItem(0))
-    assert path.read_bytes() == b"a,b\n1,2\n" and opened == [str(path)]
+    # (como rutas: en Windows, Qt da C:/... y Python C:\\...)
+    assert path.read_bytes() == b"a,b\n1,2\n" and [Path(p) for p in opened] == [path]
     # Guardar los dos en una carpeta; otra vez, sin pisar los que ya están
     tree.selectAll()
     out = tmp_path / "out"
