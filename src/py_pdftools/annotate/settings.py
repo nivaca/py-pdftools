@@ -54,7 +54,7 @@ class Style:
     start: str = "None"  # (the ends of a line)
     end: str = "None"
     dashed: bool = False
-    stamp: str = "Approved"  # a standard stamp, or "text:THE TEXT" for one of the user's
+    stamp: str = "Approved"  # a standard stamp, "text:THE TEXT" for one of the user's, "image:NAME" for a picture
     stamp_date: bool = True  # (a stamp of the user's: with the author and the date under its text)
     sticky: bool = True  # the tool stays chosen after an annotation is made (else, back to Select)
     show: str = ""  # what opens after an annotation is made: see SHOW
@@ -194,10 +194,13 @@ def valid(field: str, value) -> bool:
         return value in ENDS
     if field in ("dashed", "sticky", "stamp_date"):
         return isinstance(value, bool)
-    # A stamp of the user's is 'text:' and then 1 to 75 characters, on one line.
+    # A stamp of the user's is 'text:' and then 1 to 75 characters, on one line; one of their pictures,
+    # 'image:' and its name (see annotate/mystamps.py: at most 60 characters)
     if field == "stamp":
-        return isinstance(value, str) and (value in STAMPS or (value.startswith("text:") and "\n" not in value
-                                                                and 5 < len(value) <= 80))
+        if not isinstance(value, str) or "\n" in value:
+            return False
+        return (value in STAMPS or (value.startswith("text:") and 5 < len(value) <= 80)
+                or (value.startswith("image:") and 6 < len(value) <= 66))
     if field == "show":
         return value in SHOW
     if field == "shortcut":

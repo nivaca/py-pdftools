@@ -225,7 +225,9 @@ and how it is arranged:
   panel of the boxes;
 * **Annotate**: the tools of py-annotate, in the second toolbar and the
   menu Annotate; the panel of the annotations on the right, which can be
-  searched, filtered and sorted;
+  searched, filtered and sorted; stamps of one's own, made of a picture or
+  of a page of a PDF (a seal, a logo), in the Stamp tool's right-click
+  menu, with the standard ones;
 * **Foliate**: the ranges of labels and the list of the pages with their
   labels, on the right; the actions on the pages chosen in the toolbar and
   in their right-click menu; headers and footers, watermarks and the view

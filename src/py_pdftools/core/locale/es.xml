@@ -13632,4 +13632,56 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{what} deleted, page {page}</en>
     <tr>Borrado: {what}, página {page}</tr>
   </text>
+  <text>
+    <en>A picture or a PDF for the stamp</en>
+    <tr>Una imagen o un PDF para el sello</tr>
+  </text>
+  <text>
+    <en>A stamp needs a name</en>
+    <tr>Un sello necesita un nombre</tr>
+  </text>
+  <text>
+    <en>A stamp of a PDF</en>
+    <tr>Un sello de un PDF</tr>
+  </text>
+  <text>
+    <en>Add a stamp from a picture or a PDF…</en>
+    <tr>Añadir un sello de una imagen o un PDF…</tr>
+  </text>
+  <text>
+    <en>My stamps</en>
+    <tr>Mis sellos</tr>
+  </text>
+  <text>
+    <en>Page {page} of {path} is blank</en>
+    <tr>La página {page} de {path} está en blanco</tr>
+  </text>
+  <text>
+    <en>Pictures and PDFs (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.pdf)</en>
+    <tr>Imágenes y PDF (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.pdf)</tr>
+  </text>
+  <text>
+    <en>The stamp {name} is no longer there</en>
+    <tr>El sello {name} ya no está</tr>
+  </text>
+  <text>
+    <en>The stamp {name} is ready: click on a page to put it</en>
+    <tr>El sello {name} está listo: haga clic en una página para ponerlo</tr>
+  </text>
+  <text>
+    <en>The stamp {name} was removed</en>
+    <tr>Se quitó el sello {name}</tr>
+  </text>
+  <text>
+    <en>Which page is the stamp:</en>
+    <tr>Qué página es el sello:</tr>
+  </text>
+  <text>
+    <en>{path} can't be read as a PDF: {error}</en>
+    <tr>{path} no se puede leer como PDF: {error}</tr>
+  </text>
+  <text>
+    <en>{path} can't be read as a picture: {error}</en>
+    <tr>{path} no se puede leer como imagen: {error}</tr>
+  </text>
 </interface>

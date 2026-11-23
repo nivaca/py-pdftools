@@ -1639,6 +1639,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                      else tr("A stamp of my own…"), self.ask_stamp)
                 act.setCheckable(True)
                 act.setChecked(bool(custom))
+                self._my_stamps_menu(menu, style.stamp)
             menu.addSeparator()
             menu.addAction(tr("Tool properties…"), lambda: self.tool_dialog(tool))
         if tool == "signature":
@@ -1665,6 +1666,65 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def set_stamp(self, stamp: str):
         self.set_prefs(self.prefs.with_style("stamp", dataclasses.replace(self.prefs.style("stamp"), stamp=stamp)))
         self.set_tool("stamp")
+
+    def _my_stamps_menu(self, menu, current: str):
+        """In MENU (the Stamp tool's): the stamps of one's own, made of pictures or PDFs, to choose, add or remove
+        (see annotate/mystamps.py); the one chosen is kept as 'image:' and its name."""
+        from ..annotate import mystamps
+
+        mine = mystamps.names()
+        sub = menu.addMenu(tr("My stamps"))
+        for name in mine:
+            act = sub.addAction(name, lambda n=name: self.set_stamp("image:" + n))
+            act.setCheckable(True)
+            act.setChecked(current == "image:" + name)
+        if mine:
+            sub.addSeparator()
+        sub.addAction(tr("Add a stamp from a picture or a PDF…"), self.add_my_stamp)
+        if mine:
+            remove = sub.addMenu(tr("Remove"))
+            for name in mine:
+                remove.addAction(name, lambda n=name: self.remove_my_stamp(n))
+
+    def add_my_stamp(self) -> bool:
+        """A stamp of one's own, made of a picture or of a page of a PDF chosen; then the tool puts it."""
+        from ..annotate import mystamps
+
+        name, _ = QFileDialog.getOpenFileName(self, tr("A picture or a PDF for the stamp"), self.last_dir(),
+                                              tr("Pictures and PDFs (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.pdf)"))
+        if not name:
+            return False
+        page = 1
+        if name.lower().endswith(".pdf"):
+            try:
+                count = pymupdf.open(name).page_count
+            except (RuntimeError, ValueError):
+                count = 1
+            if count > 1:
+                page, ok = QInputDialog.getInt(self, tr("A stamp of a PDF"), tr("Which page is the stamp:"), 1, 1,
+                                               count)
+                if not ok:
+                    return False
+        title, ok = QInputDialog.getText(self, tr("A stamp of my own"), tr("Its name:"), QLineEdit.EchoMode.Normal,
+                                         Path(name).stem)
+        if not ok or not title.strip():
+            return False
+        try:
+            made = mystamps.add(Path(name), title, page)
+        except mystamps.StampError as e:
+            self.status(str(e), error=True)
+            return False
+        self.set_stamp("image:" + made)
+        self.status(tr("The stamp {name} is ready: click on a page to put it", name=made))
+        return True
+
+    def remove_my_stamp(self, name: str):
+        from ..annotate import mystamps
+
+        mystamps.remove(name)
+        if self.prefs.style("stamp").stamp == "image:" + name:
+            self.set_stamp("Approved")  # (el que estaba elegido ya no existe)
+        self.status(tr("The stamp {name} was removed", name=name))
 
     def ask_stamp(self):
         current = self.prefs.style("stamp").stamp
@@ -1854,7 +1914,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.set_tool("mark")
 
     def _stamp(self, a: Annotation, style: settings.Style) -> Annotation:
-        if style.stamp.startswith("text:"):
+        mine = None
+        if style.stamp.startswith("image:"):  # (un sello propio: una imagen de annotate/mystamps)
+            from ..annotate import mystamps
+
+            try:
+                mine = mystamps.image(style.stamp[6:])
+            except mystamps.StampError as e:
+                self.status(str(e), error=True)  # (perdido: uno estándar en su lugar)
+        if mine is not None:
+            image, (w, h) = mine
+            a = dataclasses.replace(a, stamp="", image=image, contents=style.stamp[6:])
+        elif style.stamp.startswith("text:"):
             text = style.stamp[5:]
             image, (w, h) = text_stamp(text, style.color, self.prefs.author if style.stamp_date else "",
                                        style.stamp_date)

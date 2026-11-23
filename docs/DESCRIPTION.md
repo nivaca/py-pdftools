@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-four stages.
+I explain how it was made, in sixty-five stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1550,6 +1550,25 @@ the same objects as before but those it changed, so comparing by identity
 tells what was added, deleted or changed, quickly, even with thousands of
 annotations; one changed is told from one deleted and another added by its
 kind and the time it was made.
+
+65. Stamps of one's own
+-----------------------
+
+The Stamp tool had the standard stamps and one made of a text, but an
+office or a department usually has its own seal, or a logo, and wants to
+put that. A stamp with a picture and no standard name was already one the
+program could read, show and write, so the new stamps needed no change of
+the annotations: only a library of pictures (the folder stamps of the
+settings, with each one's size in points in stamps.json) and a menu to
+choose, add and remove them. A picture is taken to be printed at 150 dpi,
+and made narrower if it would be very wide. A page of a PDF is better: it
+is drawn on a transparent background, and only what is painted on it is
+taken. My first try measured that with the boxes the page reports for
+what it draws, but the box of a curve includes its control points, and a
+circle of 120 points came out as 200; it is now measured on the page
+itself, drawn at 72 dpi, by the rows and columns that are not
+transparent. A stamp removed from the library while it is the one chosen
+gives way to a standard one, and the window says why.
 
 Testing
 -------
