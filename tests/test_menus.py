@@ -53,3 +53,30 @@ def test_shortcuts_kept(window):
                  "a_spread", "a_present", "a_turn_left"):
         act = getattr(window, name)
         assert id(act) in inside and not act.shortcut().isEmpty(), name
+
+
+def test_the_command_palette(window, monkeypatch):
+    """Ayuda > Buscar una orden (Ctrl+Alt+I): las acciones de los menús por cualquier palabra de su camino, sin
+    acentos ni mayúsculas; la elegida se ejecuta, después de cerrarse la paleta."""
+    from py_pdftools.gui import palette
+
+    assert window.a_palette.shortcut().toString() == "Ctrl+Alt+I"
+    found = palette.commands(window)
+    paths = [p for p, _ in found]
+    assert "View › Panels › Page thumbnails" in paths
+    assert not any(p.endswith("Fit width") for p in paths)  # (no document: it can't be used, so it isn't there)
+    assert all(a.isEnabled() for _, a in found) and len({id(a) for _, a in found}) == len(found)
+    hits = palette.matching(found, "THUMBNAILS page")
+    assert hits and hits[0][1] is window.a_thumbs
+    assert palette.matching(found, "zzzz qqq") == []
+    assert palette._plain("&Vista Rápida") == "vista rapida"
+    before = window.a_thumbs.isChecked()
+
+    def choose(self):
+        self.box.setText("page thumb")
+        assert "☑" in self.list.currentItem().text() or "☐" in self.list.currentItem().text()
+        self.run(self.list.currentItem())
+        return 1
+
+    monkeypatch.setattr(palette.Palette, "exec", choose)
+    assert window.command_palette() is window.a_thumbs and window.a_thumbs.isChecked() != before

@@ -1400,10 +1400,26 @@ colours of the row. In a narrow panel the found text fell out of view, so
 only a few words before it are kept, after an ellipsis. The list is emptied
 when the document changes, since its places may be gone.
 
+57. A command palette
+---------------------
+
+The menus are deep now, with submenus in File, Edit and View, and a command
+can be hard to find. Help > Find a command (Ctrl+Alt+I, the key of KDE's
+command bar; `gui/palette.py`) opens a box over the window, with a list of
+every command of the menus that can be used at that moment, each with its
+path in them and its key. Any word of the path finds it, in any order,
+without minding capitals or accents, and those whose own name begins with
+the first word come first. The menus that are filled only when they open
+are filled for it. Some commands are on a toolbar only (the modes, Hand,
+Zoom to area, the Magnifier), so the toolbars shown are read too. The list
+shows the icon of each command, and an empty one where there is none,
+since otherwise the names did not begin in one column. The command runs
+after the palette has closed, so that a dialog it opens is not under it.
+
 Testing
 -------
 
-The program has 691 tests (`uv run pytest`): those of the four programs,
+The program has 692 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

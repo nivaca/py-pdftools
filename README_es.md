@@ -390,7 +390,9 @@ Ayuda > Consejos de este modo (F1) muestra, sobre la parte de abajo de las
 páginas, un consejo sobre lo que se puede hacer en el modo elegido;
 Configuración > Aspecto puede mostrarlo cada vez que se elige un modo, y
 activar las ayudas emergentes (al principio, ambas cosas están
-desactivadas). Las de las barras de herramientas se ven siempre.
+desactivadas). Las de las barras de herramientas se ven siempre. Ayuda > Buscar
+una orden (Ctrl+Alt+I) busca cualquier orden de los menús por cualquier palabra
+de su nombre o de su lugar en ellos, y la ejecuta.
 
 El modo OCR (Ctrl+Mayús+O, o su botón Reconocer el texto) lee con
 tesseract el texto de las páginas escaneadas y lo escribe en el documento, invisible,

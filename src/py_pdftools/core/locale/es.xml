@@ -13144,4 +13144,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Places found: {count} (pages: {pages})</en>
     <tr>Lugares encontrados: {count} (páginas: {pages})</tr>
   </text>
+  <text>
+    <en>Find a command…</en>
+    <tr>Buscar una orden…</tr>
+  </text>
+  <text>
+    <en>Find a command</en>
+    <tr>Buscar una orden</tr>
+  </text>
+  <text>
+    <en>Commands</en>
+    <tr>Órdenes</tr>
+  </text>
+  <text>
+    <en>Any command of the menus, found by its name, and run</en>
+    <tr>Cualquier orden de los menús, buscada por su nombre, y ejecutada</tr>
+  </text>
 </interface>

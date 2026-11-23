@@ -775,6 +775,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         m = self.menuBar().addMenu(tr("&Help"))
         self.a_tips = self._action(m, tr("Tips for this mode"), self.show_tips, "F1",
                                    tip=tr("What can be done in this mode, and how, shown over the pages"))
+        # La paleta de órdenes: Ctrl+Alt+I, la tecla de la barra de órdenes de los programas de KDE.
+        self.a_palette = self._action(m, tr("Find a command…"), self.command_palette, "Ctrl+Alt+I",
+                                      tip=tr("Any command of the menus, found by its name, and run"))
         # (también en Configuración, en la fila de los botones)
         self.a_check = self._action(m, tr("System check…"), self.check_configuration,
                                     tip=tr("Whether py-pdftools has what it needs (Python, its libraries, "
@@ -1064,6 +1067,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         mode.entered()
         self.settings.setValue("mode", key)
         self.refresh()
+
+    def command_palette(self):
+        """Help > Find a command (see palette.py)."""
+        from .palette import open_palette
+
+        return open_palette(self)
 
     def show_tips(self):
         """Help > Tips for this mode (F1): the hint of the mode on, over the pages, again."""

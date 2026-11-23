@@ -372,7 +372,9 @@ and whether they are trusted, and what changed after it.
 Help > Tips for this mode (F1) shows, over the bottom of the pages, a hint
 on what can be done in the mode chosen; Settings > Appearance can show it
 whenever a mode is chosen, and can turn on the tooltips (both are off at
-first). The tooltips of the toolbars show always.
+first). The tooltips of the toolbars show always. Help > Find a command
+(Ctrl+Alt+I) finds any command of the menus by any word of its name or of its
+place in them, and runs it.
 
 The mode OCR (Ctrl+Shift+O, or its button Recognise text) reads the text of
 scanned pages with tesseract and writes it into the document, invisible, under their
