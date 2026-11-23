@@ -377,7 +377,7 @@ and here, beside them, the bookmarks; in the middle, the pages; at the
 bottom, the status bar, where the program says what it has just done.
 
 \shot{read_en}{1}{The window in the mode Read, with the bookmarks (F5) and
-  the thumbnails (F3).}
+  the thumbnails (F7).}
 
 \subsection{The modes}
 
@@ -460,7 +460,7 @@ to how it was at first.
 \subsection{The thumbnails}
 
 \index{thumbnails}\index{annotations}\index{page labels}%
-The panel of the thumbnails (\key{F3}) shows the pages small, each with its
+The panel of the thumbnails (\key{F7}) shows the pages small, each with its
 label (see section~\ref{sec:labels}), or its number in the file if it has
 none, never both: in figure~\ref{fig:read_en}, the first page is labelled
 \enquote{i}, the second \enquote{1}. The box of the page shows it the same
@@ -614,10 +614,11 @@ section~\ref{sec:redact}).
 
 \index{finding!quick find}%
 Beside that button is the quick find box, \menu{Find in the text}
-(\key{Ctrl+Shift+F} puts the cursor in it). It looks for what is typed in
+(\key{Ctrl+Shift+F} or \key{/} puts the cursor in it). It looks for what is typed in
 it without minding capitals or accents: \key{Enter} goes to the next place
 found, from the page shown, and \key{Shift+Enter} to the previous one,
-going round at the end; beside the box, \texttt{3/17} says which place is
+going round at the end; \key{F3} and \key{Shift+F3} do the same from
+anywhere in the window; beside the box, \texttt{3/17} says which place is
 shown, of how many. It marks nothing: each place is only shown for a
 moment. \key{Esc} goes back to the pages.
 
@@ -666,9 +667,10 @@ dark grey, or colours of one's own. Only the pages in view change, not the
 file; pictures change with them.
 
 \index{full screen}%
-\menu{View\then Full screen} (\key{F11}) shows the pages one at a time,
-full screen, as a presentation: the arrows or a click turn them, and
-\key{Esc} ends it.
+\menu{View\then Full screen} (\key{F11} or \key{Ctrl+Shift+P}) shows the
+pages one at a time, full screen, as a presentation: the arrows or a click
+turn them, \key{B} makes the screen black until another key is pressed,
+and \key{Esc} ends it.
 
 \subsection{Sharper text}
 
@@ -1742,9 +1744,11 @@ Key & Action\\
 \key{Ctrl+A}, \key{Esc} & select all; select none\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & group; ungroup\\
 \key{Ctrl+F} & find (and highlight, or redact)\\
+\key{Ctrl+Shift+F}, \key{/} & quick find\\
+\key{F3}, \key{Shift+F3} & next and previous place of the quick find\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Select, Select text, Hand, Zoom to area\\
 \key{F1} & tips for this mode\\
-\key{F3}, \key{F4}, \key{F5}, \key{F6} & thumbnails, annotations, bookmarks, form\\
+\key{F7}, \key{F4}, \key{F5}, \key{F6} & thumbnails, annotations, bookmarks, form\\
 \key{Ctrl+Shift+A} & show or hide the annotations\\
 \key{Alt+Down}, \key{Alt+Up} & next and previous annotation\\
 \key{PgUp}, \key{PgDown} & previous and next page\\
@@ -1757,7 +1761,7 @@ Key & Action\\
 \key{Ctrl+Shift+2} & two pages side by side\\
 \key{Ctrl+]}, \key{Ctrl+[} & rotate the view\\
 \key{Ctrl+\textbackslash} & split the view\\
-\key{F11} & full screen\\
+\key{F11}, \key{Ctrl+Shift+P} & full screen (\key{B}: a black screen)\\
 \key{R} (Redact) & the tool Redact\\
 \key{Ctrl+R} & show the result of the redaction\\
 \key{Ctrl+Shift+R} & save the redacted copy\\

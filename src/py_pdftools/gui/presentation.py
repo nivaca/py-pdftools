@@ -1,7 +1,7 @@
-"""Full screen, as a presentation (View > Full screen, F11): one page at a time (or the pair, with two pages
-side by side), fitted on black. Arrows, Page Up/Down, Space, a click or the wheel turn the pages; Home and
-End go to the first and the last; links are followed; Escape or a right click goes back to the window, at
-the page reached. A page with a display time (/Dur) turns by itself, and one with a transition (/Trans)
+"""Full screen, as a presentation (View > Full screen, F11 or Ctrl+Shift+P): one page at a time (or the pair,
+with two pages side by side), fitted on black. Arrows, Page Up/Down, Space, a click or the wheel turn the
+pages; Home and End go to the first and the last; B makes the screen black, and any key brings the page
+back; links are followed; Escape or a right click goes back to the window, at the page reached. A page with a display time (/Dur) turns by itself, and one with a transition (/Trans)
 comes in fading. The pointer hides when it stays still."""
 
 from __future__ import annotations
@@ -32,6 +32,7 @@ class Presentation(QWidget):
         self.image: QImage | None = None
         self.previous: QImage | None = None  # (the page before, while the new one fades in)
         self.fade = 1.0
+        self.black = False  # (B: la pantalla en negro, como en Okular)
         self.boxes: list[tuple[QRectF, int, float]] = []  # (where each page is drawn, its number, its scale)
         self.setWindowTitle(window.windowTitle())
         self.setMouseTracking(True)
@@ -55,6 +56,7 @@ class Presentation(QWidget):
 
     def show_page(self, page: int, fade: bool = True):
         page = max(0, min(page, self.doc.page_count - 1))
+        self.black = False
         self.page = self.row(page)[0]
         old = self.image
         self.image = self._draw()
@@ -127,6 +129,9 @@ class Presentation(QWidget):
     def paintEvent(self, _event):
         p = QPainter(self)
         p.fillRect(self.rect(), QColor("black"))
+        if self.black:
+            p.end()
+            return
         if self.previous is not None:
             p.drawImage(0, 0, self.previous)
             p.setOpacity(self.fade)
@@ -144,7 +149,14 @@ class Presentation(QWidget):
 
     def keyPressEvent(self, event):
         key = event.key()
-        if key in (Qt.Key.Key_Escape, Qt.Key.Key_F11):
+        if self.black and key not in (Qt.Key.Key_Escape, Qt.Key.Key_F11):
+            # (with the screen black, any key shows the page again, and only that)
+            self.black = False
+            self.update()
+        elif key == Qt.Key.Key_B:
+            self.black = True
+            self.update()
+        elif key in (Qt.Key.Key_Escape, Qt.Key.Key_F11):
             self.close()
         elif key in (Qt.Key.Key_Right, Qt.Key.Key_Down, Qt.Key.Key_PageDown, Qt.Key.Key_Space, Qt.Key.Key_Return,
                      Qt.Key.Key_Enter, Qt.Key.Key_N):

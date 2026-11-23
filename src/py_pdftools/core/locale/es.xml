@@ -12653,6 +12653,22 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Búsqueda rápida</tr>
   </text>
   <text>
+    <en>Find next</en>
+    <tr>Buscar siguiente</tr>
+  </text>
+  <text>
+    <en>Find previous</en>
+    <tr>Buscar anterior</tr>
+  </text>
+  <text>
+    <en>The next place of the text of the quick find</en>
+    <tr>El lugar siguiente del texto de la búsqueda rápida</tr>
+  </text>
+  <text>
+    <en>The previous place of the text of the quick find</en>
+    <tr>El lugar anterior del texto de la búsqueda rápida</tr>
+  </text>
+  <text>
     <en>Find a text in the document: Enter goes to the next place, Shift+Enter to the previous one (Ctrl+Shift+F)</en>
     <tr>Buscar un texto en el documento: Intro va al lugar siguiente, Mayús+Intro al anterior (Ctrl+Mayús+F)</tr>
   </text>

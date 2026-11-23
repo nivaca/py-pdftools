@@ -95,3 +95,21 @@ def test_without_a_document_it_is_off(tmp_path, monkeypatch):
         assert w.doc is None and not w.a_quick_find.isEnabled() and not w.quick_find_key.isEnabled()
     finally:
         w.close()
+
+
+def test_f3_and_shift_f3_go_on_through_the_places(window):
+    """F3 y Mayús+F3, como en Okular y los programas de KDE; sin texto, F3 pone el cursor en la casilla."""
+    assert window.a_find_next.shortcut().toString() == "F3"
+    assert window.a_find_previous.shortcut().toString() == "Shift+F3"
+    assert "/" in [k.toString() for k in window.quick_find_key.shortcuts()]
+    box = box_of(window)
+    asked = []
+    window.quick_find = lambda: asked.append(True)  # (sin ventana activa, el foco no se puede comprobar)
+    window.a_find_next.trigger()
+    assert asked
+    box.setText("alpha")
+    window.a_find_next.trigger()
+    window.a_find_next.trigger()
+    assert window.page == 2 and found(window) == "2/3"
+    window.a_find_previous.trigger()
+    assert window.page == 0 and found(window) == "1/3"

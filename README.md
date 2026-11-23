@@ -268,8 +268,9 @@ transparency or as outlines, whether text and graphics are smoothed
 zooming smoother.
 
 Moving through a document works in every mode. The quick find box, on
-the toolbar Find (Ctrl+Shift+F), goes from one place of a text to the next
-with Enter (Shift+Enter, back), without minding capitals or accents. View > Bookmarks (F5)
+the toolbar Find (Ctrl+Shift+F or /), goes from one place of a text to the next
+with Enter (Shift+Enter, back), or F3 (Shift+F3) from anywhere in the window,
+without minding capitals or accents; the thumbnails are shown or hidden with F7. View > Bookmarks (F5)
 shows the document's bookmarks (hidden until it is asked for) as a tree that can be filtered; its right
 click adds, renames, moves, indents and styles them, or makes them from
 the headings. Links are followed with a click (with Select, Ctrl+click),
@@ -283,7 +284,7 @@ height, or the inked area; actual size; a percentage typed in the box of
 the zoom, from 5 % to 10000 %; and the tool Zoom to area, Z), the view turned without changing
 the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
 black, or one's own), the gaps between the pages hidden, and Full screen
-(F11) as a presentation. File > Open in a new tab (Ctrl+T) puts documents
+(F11 or Ctrl+Shift+P) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
 in tabs of one window (the tabbar shows from the second one on,
 or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
 side by side. A document changed by another program opens again by itself.

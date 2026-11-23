@@ -277,9 +277,10 @@ tarjeta gráfica (OpenGL, desactivado al principio, desde el próximo
 inicio), lo que hace más suaves el desplazamiento y el zoom.
 
 Moverse por un documento funciona en todos los modos. La casilla de
-búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F), va de un lugar de un
-texto al siguiente con Intro (Mayús+Intro, hacia atrás), sin distinguir
-mayúsculas ni acentos. Ver > Marcadores
+búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F o /), va de un lugar de un
+texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
+desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
+las miniaturas se muestran u ocultan con F7. Ver > Marcadores
 (F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
 estilo, o los saca de los títulos. Los enlaces se siguen con un clic (con
@@ -293,8 +294,8 @@ zooms (ajustar a la página, al ancho, al alto o a lo impreso; tamaño real;
 un porcentaje escrito en la casilla del zoom, de 5 % a 10000 %; y la herramienta Ampliar una
 zona, Z), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
 colores de lectura (blanco, amarillo o verde sobre negro, o propios), el
-espacio entre las páginas, que se puede quitar, y Pantalla completa (F11)
-como presentación. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
+espacio entre las páginas, que se puede quitar, y Pantalla completa (F11
+o Ctrl+Mayús+P) como presentación, donde B deja la pantalla en negro. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
 documentos en pestañas de una ventana (la barra de las pestañas aparece
 desde la segunda, o siempre, con una opción), y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Un documento que otro programa cambia se abre de

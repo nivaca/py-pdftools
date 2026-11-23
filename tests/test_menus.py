@@ -48,7 +48,7 @@ def test_shortcuts_kept(window):
     inside = set()
     for menu in (window.m_file, window.m_edit, window.m_view):
         inside |= reachable(menu)
-    assert window.a_thumbs.shortcut().toString() == "F3" and id(window.a_thumbs) in inside
+    assert window.a_thumbs.shortcut().toString() == "F7" and id(window.a_thumbs) in inside
     for name in ("a_open", "a_save", "a_print", "a_undo", "a_props", "a_select_none", "a_fit", "a_first",
                  "a_spread", "a_present", "a_turn_left"):
         act = getattr(window, name)

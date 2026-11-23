@@ -390,7 +390,7 @@ marcadores; en el centro, las páginas; abajo, la barra de estado, donde el
 programa dice lo que acaba de hacer.
 
 \shot{read_es}{1}{La ventana en el modo Leer, con los marcadores (F5) y las
-  miniaturas (F3).}
+  miniaturas (F7).}
 
 \subsection{Los modos}
 
@@ -477,7 +477,7 @@ barra vuelve a ser \menu{Como era al principio}.
 \subsection{Las miniaturas}
 
 \index{miniaturas}\index{anotaciones}%
-El panel de las miniaturas (\key{F3}) muestra las páginas en pequeño, cada
+El panel de las miniaturas (\key{F7}) muestra las páginas en pequeño, cada
 una con su etiqueta (véase la sección~\ref{sec:labels}), o con su número
 en el archivo si no la tiene, nunca con las dos cosas: en la
 figura~\ref{fig:read_es}, la primera página lleva la etiqueta
@@ -643,10 +643,11 @@ sección~\ref{sec:redact}).
 
 \index{buscar!búsqueda rápida}%
 Junto a ese botón está la casilla de búsqueda rápida, \menu{Buscar en el
-texto} (\key{Ctrl+Mayús+F} pone el cursor en ella). Busca lo que se
+texto} (\key{Ctrl+Mayús+F} o \key{/} pone el cursor en ella). Busca lo que se
 escribe en ella sin distinguir mayúsculas ni acentos: \key{Intro} va al
 lugar siguiente, desde la página visible, y \key{Mayús+Intro} al anterior,
-y al final vuelve a empezar; junto a la casilla, \texttt{3/17} dice qué
+y al final vuelve a empezar; \key{F3} y \key{Mayús+F3} hacen lo mismo
+desde cualquier parte de la ventana; junto a la casilla, \texttt{3/17} dice qué
 lugar se muestra, de cuántos. No marca nada: cada lugar solo se resalta un
 momento. \key{Esc} vuelve a las páginas.
 
@@ -698,9 +699,10 @@ claro sobre gris oscuro, o colores propios. Solo cambian las páginas en
 pantalla, no el archivo; las imágenes cambian con ellas.
 
 \index{pantalla completa}%
-\menu{Ver\then Pantalla completa} (\key{F11}) muestra las páginas de una en
-una, a toda pantalla, como una presentación: las flechas o un clic las
-pasan, y \key{Esc} termina.
+\menu{Ver\then Pantalla completa} (\key{F11} o \key{Ctrl+Mayús+P}) muestra
+las páginas de una en una, a toda pantalla, como una presentación: las
+flechas o un clic las pasan, \key{B} deja la pantalla en negro hasta que
+se pulsa otra tecla, y \key{Esc} termina.
 
 \subsection{Texto más nítido}
 
@@ -1833,9 +1835,11 @@ Tecla & Acción\\
 \key{Ctrl+A}, \key{Esc} & seleccionar todo; no seleccionar nada\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & agrupar; desagrupar\\
 \key{Ctrl+F} & buscar (y resaltar, o censurar)\\
+\key{Ctrl+Shift+F}, \key{/} & búsqueda rápida\\
+\key{F3}, \key{Shift+F3} & lugar siguiente y anterior de la búsqueda rápida\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Seleccionar, Seleccionar texto, Mano, Ampliar una zona\\
 \key{F1} & consejos de este modo\\
-\key{F3}, \key{F4}, \key{F5}, \key{F6} & miniaturas, anotaciones, marcadores, formulario\\
+\key{F7}, \key{F4}, \key{F5}, \key{F6} & miniaturas, anotaciones, marcadores, formulario\\
 \key{Ctrl+Shift+A} & mostrar u ocultar las anotaciones\\
 \key{Alt+Abajo}, \key{Alt+Arriba} & anotación siguiente y anterior\\
 \key{RePág}, \key{AvPág} & página anterior y siguiente\\
@@ -1848,7 +1852,7 @@ Tecla & Acción\\
 \key{Ctrl+Shift+2} & dos páginas lado a lado\\
 \key{Ctrl+]}, \key{Ctrl+[} & girar la vista\\
 \key{Ctrl+\textbackslash} & dividir la vista\\
-\key{F11} & pantalla completa\\
+\key{F11}, \key{Ctrl+Shift+P} & pantalla completa (\key{B}: pantalla en negro)\\
 \key{R} (Censurar) & la herramienta Censurar\\
 \key{Ctrl+R} & mostrar el resultado de la censura\\
 \key{Ctrl+Shift+R} & guardar la copia censurada\\

@@ -1321,10 +1321,28 @@ the right click; and I left out dragging a toolbar by any empty part of it,
 which I had tried, since KDE's style uses that part to drag the whole
 window.
 
+54. Okular's keys
+-----------------
+
+I was then asked to give the program the keys of Okular where they do the
+same thing, beginning with F7 for the thumbnails, which had F3. I read
+Okular's sources for its defaults and took the ones that match an action
+here and take no key from another: F7 for the panel of the thumbnails (in
+Okular it shows its sidebar, where they are); F3 and Shift+F3 for the next
+and the previous place of the quick find, which is what F3 does in KDE's
+programs, and which puts the cursor in the box while it is empty; / for the
+quick find, as Okular's find bar; Ctrl+Shift+P for the presentation, beside
+F11; and, in it, B for a black screen, which any other key takes away. The
+old keys stay where Okular has none of its own. Others I left as they were,
+because here they belong to something else: Ctrl+G groups annotations
+(Okular goes to a page with it), Ctrl+0 fits the page (Okular shows the
+actual size) and Ctrl+1 to Ctrl+6 choose the modes (in Okular, the tools of
+the mouse).
+
 Testing
 -------
 
-The program has 686 tests (`uv run pytest`): those of the four programs,
+The program has 687 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

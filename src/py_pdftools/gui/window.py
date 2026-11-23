@@ -598,8 +598,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
         # La búsqueda rápida: una casilla en la barra Buscar; Ctrl+Mayús+F pone el cursor en ella.
         self.a_quick_find = QuickFindAction(self)
-        self.quick_find_key = self._action(m, tr("Quick find"), self.quick_find, "Ctrl+Shift+F",
+        # (la barra, «/», como en Okular: la tecla es de la casilla o del editor cuando escriben en ellos)
+        self.quick_find_key = self._action(m, tr("Quick find"), self.quick_find,
+                                           [QKeySequence("Ctrl+Shift+F"), QKeySequence("/")],
                                            tr("Put the cursor in the quick find box, on the toolbar Find"))
+        # F3 and Shift+F3 go on through the places of the quick find, as in KDE's programs.
+        self.a_find_next = self._action(m, tr("Find next"), lambda: self.find_again(1), "F3",
+                                        tr("The next place of the text of the quick find"))
+        self.a_find_previous = self._action(m, tr("Find previous"), lambda: self.find_again(-1), "Shift+F3",
+                                            tr("The previous place of the text of the quick find"))
 
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
         self.m_layers.setToolTipsVisible(True)
@@ -626,7 +633,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         m.addAction(self.a_outline)
         m.addAction(self.a_form)
         self.a_thumbs = QAction(tr("Page thumbnails"), self, checkable=True, checked=True)
-        self.a_thumbs.setShortcut(QKeySequence("F3"))
+        self.a_thumbs.setShortcut(QKeySequence("F7"))  # (F7, como el panel lateral de Okular)
         self.a_thumbs.setToolTip(tr("The pages, small, on the left of the window"))
         self.a_thumbs.toggled.connect(self.show_thumbnails)
         m.addAction(self.a_thumbs)
@@ -654,7 +661,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                     tip=tr("This tab beside the others, on the other side of the window, to read two "
                                            "documents side by side; again, to bring it back"))
         self.a_detach = self._action(m, tr("Move tab to new window"), self.detach_tab)
-        self.a_present = self._action(m, tr("Full screen"), self.present, "F11",
+        self.a_present = self._action(m, tr("Full screen"), self.present,
+                                      [QKeySequence("F11"), QKeySequence("Ctrl+Shift+P")],
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
         # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
@@ -946,6 +954,15 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             if other.key != self.mode:
                 for act in other.actions:
                     act.setEnabled(False)
+
+    def find_again(self, by: int):
+        """The next place (BY 1) or the previous one (BY -1) of the text of the quick find; with no text
+        yet, the cursor in its box."""
+        boxes = self.a_quick_find.boxes()
+        if not boxes or not boxes[0].text().strip():
+            self.quick_find()
+            return
+        self.a_quick_find.step(boxes[0], by)
 
     def quick_find(self):
         """The cursor in the quick find box; if no toolbar shows one (it was taken off, or the mode has no
