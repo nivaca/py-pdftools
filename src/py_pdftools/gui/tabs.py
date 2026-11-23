@@ -16,6 +16,9 @@ from PySide6.QtWidgets import QMainWindow, QMenu, QSplitter, QTabWidget
 from ..core.interface import tr
 
 _HOSTS: list[TabHost] = []
+# Las pestañas cerradas, la última al final: (su archivo, su página), para volver a abrirlas (Ctrl+Mayús+T).
+_CLOSED: list[tuple] = []
+CLOSED_KEPT = 20
 
 
 class TabHost(QMainWindow):
@@ -101,6 +104,9 @@ class TabHost(QMainWindow):
 
     def window_closed(self, win):
         """WIN closed itself (its Close, or the tab's ×): its tab goes; the window too, with the last."""
+        if win.path is not None:
+            _CLOSED.append((win.path, win.page))
+            del _CLOSED[:-CLOSED_KEPT]
         tabs = self.side_of(win)
         if tabs is not None:
             tabs.removeTab(tabs.indexOf(win))
@@ -169,6 +175,17 @@ class TabHost(QMainWindow):
         win.show()
         win.raise_()
         win.activateWindow()
+
+    def switch_to(self, n: int) -> bool:
+        """The tab N (from 1, left side first, then the right); 9 is always the last, as in Okular."""
+        wins = self.windows()
+        if not wins:
+            return False
+        win = wins[-1] if n == 9 else (wins[n - 1] if n <= len(wins) else None)
+        if win is None:
+            return False
+        self.show_window(win)
+        return True
 
     def _menu(self, tabs: QTabWidget, pos):
         index = tabs.tabBar().tabAt(pos)
@@ -255,6 +272,15 @@ def open_in_tab(path=None, near=None):
         win.open_path(Path(file), place)
     host.show_window(win)
     return win
+
+
+def reopen_closed(near=None):
+    """The last tab closed, again in a tab (near NEAR), at the page it was left at; None if there is none."""
+    while _CLOSED:
+        path, page = _CLOSED.pop()
+        if path.exists():
+            return open_in_tab(f"{path}#page={page + 1}", near=near)
+    return None
 
 
 def apply_tab_bars():

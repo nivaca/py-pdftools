@@ -567,8 +567,21 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     assert third.host is None and third.isWindow() and third.isVisible() and len(host.windows()) == 2
     assert third.a_next.shortcutContext() == Qt.ShortcutContext.WindowShortcut
     third.close()
+    # Okular's keys for tabs: Alt+Shift+N goes to tab N (9, the last); Ctrl+Shift+T reopens the last one closed.
+    assert window.tab_actions[0].shortcut().toString() == "Alt+Shift+1"
+    window.tab_actions[8].trigger()
+    assert host.sides[0].currentWidget() is second
+    window.tab_actions[0].trigger()
+    assert host.sides[0].currentWidget() is window
+    second.show_page(0)
     second.close()
     assert host.windows() == [window] and host.isVisible()
+    assert window.a_reopen_tab.shortcut().toString() == "Ctrl+Shift+T"
+    window.a_reopen_tab.trigger()
+    again = host.windows()[-1]
+    assert len(host.windows()) == 2 and again.path == other
+    again.close()
+    assert host.windows() == [window]
     # One tab left: its bar hidden, unless Settings > General > Show the tabbar says otherwise
     from py_pdftools.gui.tabs import apply_tab_bars
 

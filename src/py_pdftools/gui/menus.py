@@ -69,7 +69,7 @@ def regroup(window):
     window.m_import.setToolTipsVisible(True)
     _fill(window, window.m_import, ["m_import_annots"])
     _fill(window, window.m_file, [
-        "a_open", "a_open_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
+        "a_open", "a_open_tab", "a_reopen_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
         "a_save", "a_save_as", "m_save_copy", "m_export", "m_import", SEP,
         (tr("Security"), ["a_protect", SEP, "a_sign", "a_check_signatures", "a_make_id"]),
         "a_compare", "a_doc_props", "a_print", SEP, "a_close", "a_quit"])

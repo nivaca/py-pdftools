@@ -288,7 +288,8 @@ black, or one's own), the gaps between the pages hidden, and Full screen
 (F11 or Ctrl+Shift+P) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
 in tabs of one window (the tabbar shows from the second one on,
 or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
-side by side. A document changed by another program opens again by itself.
+side by side. Ctrl+Shift+T reopens the last tab closed, and Alt+Shift+1 to 9
+go to a tab (9, the last). A document changed by another program opens again by itself.
 Left and Right go to the previous and next page (while the pages fit across
 the view). Space held turns any tool into Hand, and the middle button scrolls by
 itself. The toolbar Page navigation, at the top between Navigation and Zoom, goes to

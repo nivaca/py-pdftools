@@ -1352,6 +1352,12 @@ the last bookmark reached while the view has not moved. Ctrl+B is also
 bold in a text box being written, so the box claims Ctrl+B, Ctrl+I and
 Ctrl+U for itself before the window sees them.
 
+Then the tabs. Ctrl+Shift+T opens again the last tab closed, at the page
+where it was left (the program keeps the last twenty, and skips a file that
+is no longer there), and Alt+Shift+1 to Alt+Shift+9 go to a tab, the ninth
+being always the last, as in Okular. These nine keys are in no menu: each
+window gives them to its tab, like its other keys.
+
 Testing
 -------
 

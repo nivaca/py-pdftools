@@ -525,6 +525,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             None, tr("Open in a new tab…"), self.open_tab_dialog, "Ctrl+T",
             tip=tr("Another document in a tab of this window (Settings: open every document so)"))
         m.insertAction(self.m_recent.menuAction(), self.a_open_tab)
+        # Okular: Ctrl+Mayús+T reabre la última pestaña cerrada; Alt+Mayús+1…9 van a una pestaña (9, la última).
+        self.a_reopen_tab = self._action(
+            None, tr("Reopen closed tab"), self.reopen_tab, "Ctrl+Shift+T",
+            tip=tr("The last tab closed, again, at the page where it was left"))
+        m.insertAction(self.m_recent.menuAction(), self.a_reopen_tab)
+        self.tab_actions = []
+        for n in range(1, 10):
+            act = QAction(tr("Tab {n}", n=n) if n < 9 else tr("Last tab"), self,
+                          shortcut=QKeySequence(f"Alt+Shift+{n}"))
+            act.triggered.connect(lambda _=False, k=n: self.host is not None and self.host.switch_to(k))
+            # (sin menú: las pestañas las toman con keep_shortcuts_inside, como las demás teclas)
+            self.addAction(act)
+            self.tab_actions.append(act)
         # Quit ends the program, also when it keeps running in the background (see instance.py).
         self.a_quit = self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
 
@@ -1180,6 +1193,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         if self.host is not None:
             return self.host.isVisible() and self in self.host.windows()
         return self.isVisible()
+
+    def reopen_tab(self):
+        from .tabs import reopen_closed
+
+        if reopen_closed(near=self) is None:
+            self.status(tr("No tab was closed"))
 
     def open_tab_dialog(self):
         name, _ = QFileDialog.getOpenFileName(self, tr("Open PDF"), self.last_dir(), tr("PDF files (*.pdf)"))

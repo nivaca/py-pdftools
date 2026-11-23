@@ -13072,4 +13072,24 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>No more bookmarks</en>
     <tr>No hay más marcadores</tr>
   </text>
+  <text>
+    <en>Reopen closed tab</en>
+    <tr>Reabrir la pestaña cerrada</tr>
+  </text>
+  <text>
+    <en>The last tab closed, again, at the page where it was left</en>
+    <tr>La última pestaña cerrada, otra vez, en la página donde quedó</tr>
+  </text>
+  <text>
+    <en>Tab {n}</en>
+    <tr>Pestaña {n}</tr>
+  </text>
+  <text>
+    <en>Last tab</en>
+    <tr>Última pestaña</tr>
+  </text>
+  <text>
+    <en>No tab was closed</en>
+    <tr>No se ha cerrado ninguna pestaña</tr>
+  </text>
 </interface>
