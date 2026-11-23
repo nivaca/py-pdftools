@@ -5,6 +5,15 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.10.0 — 2026-11-23
+
+- **Attached files** (View > Panels, F9): the files the document carries,
+  attached to it or to its pages, with their size and description; a double
+  click opens one, and they can be saved (several into a folder), added to
+  the document or removed, which is undone like any other change.
+- The tests of signing make their gpg folders under /tmp: on macOS the path
+  of gpg's socket in pytest's folders was too long, and no key was made.
+
 ## 1.9.0 — 2026-11-23
 
 - **Okular's keys**, where they do the same thing: F7 shows or hides the

@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.9.0
+Version:        1.10.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Mon Nov 23 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.10.0-1
+- Version 1.10.0: a panel of attached files (F9): those of the document and of
+  its pages, to open, save, add or remove them; the signing tests on macOS keep
+  gpg's folders under /tmp
+
 * Mon Nov 23 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.9.0-1
 - Version 1.9.0: Okular's keys where they do the same (F7, F3, /, Ctrl+Shift+P,
   B); Ctrl+B and next/previous bookmark; reopen a closed tab and Alt+Shift+N;
