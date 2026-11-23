@@ -28,14 +28,16 @@ HEADINGS = {
     "en": {"name": "NAME", "synopsis": "SYNOPSIS", "description": "DESCRIPTION", "commands": "COMMANDS",
            "files": "FILES", "see": "SEE ALSO", "author": "AUTHOR",
            "summary": "edit PDF documents: page labels, headers, footers, watermarks, pages and imposition",
-           "files_text": "The configuration file, with the language of the interface and the settings: "
+           "files_text": "The configuration file, with the language of the interface, the settings and what the window "
+                         "keeps of itself: "
                          "~/.config/py-pdftools/config.toml (or $PY_PDFTOOLS_CONFIG/config.toml).",
            "window": "The window, which also annotates and redacts documents: py-pdftools-gui [file.pdf]."},
     "es": {"name": "NOMBRE", "synopsis": "SINOPSIS", "description": "DESCRIPCIÓN", "commands": "ÓRDENES",
            "files": "ARCHIVOS", "see": "VÉASE TAMBIÉN", "author": "AUTOR",
            "summary": "editar documentos PDF: etiquetas de página, encabezados, pies, marcas de agua, páginas "
                       "e imposición",
-           "files_text": "El archivo de configuración, con el idioma de la interfaz y los ajustes: "
+           "files_text": "El archivo de configuración, con el idioma de la interfaz, los ajustes y lo que la ventana "
+                         "guarda de sí misma: "
                          "~/.config/py-pdftools/config.toml (o $PY_PDFTOOLS_CONFIG/config.toml).",
            "window": "La ventana, que además anota y censura documentos: py-pdftools-gui [archivo.pdf]."},
 }

@@ -1617,9 +1617,13 @@ the folder named by the environment variable \texttt{PY\_PDFTOOLS\_CONFIG}.
 Each setting is checked when it is read, so a file edited by hand can't
 stop the program: a value that can't be read is replaced by its default.
 The certificates of the signers trusted are kept in the same folder, in
-\texttt{trusted}. How each mode arranges the window, the toolbars and the
-documents open at the end are kept apart, in \texttt{py-pdftools.conf},
-in the same configuration folder on Linux.
+\texttt{trusted}. What the window keeps of itself (how each mode arranges
+it, the toolbars, the documents open at the end) goes in the same
+\texttt{config.toml}, after the settings, in the tables
+\texttt{[window]} and \texttt{[impose]}. Older versions kept it in a second
+file, \texttt{py-pdftools.conf} on Linux (the registry on Windows, a
+\texttt{.plist} on macOS); the first start of this version moves it into
+\texttt{config.toml}, and removes the old file.
 
 \index{language of the interface}%
 The language of the interface can also be chosen with
@@ -1777,8 +1781,9 @@ Key & Action\\
   (section~\ref{sec:files-kept}); the program starts with its defaults.
 \item[The toolbars or panels are lost] show them again with a right click
   on the toolbars, or put a toolbar back with \menu{As it was at first} in
-  \menu{Customize the toolbars}; deleting \texttt{py-pdftools.conf}
-  brings back the first arrangement of every mode.
+  \menu{Customize the toolbars}; deleting the table \texttt{[window]} of
+  \texttt{config.toml}, with the program closed, brings back the first
+  arrangement of every mode.
 \end{description}
 
 \noindent\index{troubleshooting}%

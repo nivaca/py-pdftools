@@ -19,7 +19,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-from PySide6.QtCore import QByteArray, QObject, QProcess, QProcessEnvironment, QSettings, Qt, QTimer, Signal
+from PySide6.QtCore import QByteArray, QObject, QProcess, QProcessEnvironment, Qt, QTimer, Signal
 from PySide6.QtGui import QAction, QActionGroup, QFont
 from PySide6.QtWidgets import (
     QApplication, QCheckBox, QComboBox, QDialog, QDialogButtonBox, QDockWidget, QFileDialog, QHBoxLayout, QMenu,
@@ -34,6 +34,7 @@ from .basic import BasicPanel
 from .forms import CommandForm, file_filter, subparsers
 from .preview import PdfPane
 from ..files import ask_save
+from ..state import State
 
 
 # El árbol de comandos del modo avanzado, por categorías; un comando que no figure aquí va a "Otros".
@@ -363,7 +364,7 @@ class Workspace(QMainWindow):
         # (the options of the commands and the sequence start at their defaults, as in py-imposition)
         self.carry_options = False
         # Sus ajustes (estado de las barras, modo, comandos) se guardan aparte de los de la ventana principal.
-        self.settings = QSettings("py-pdftools", "py-pdftools-impose")
+        self.settings = State("impose")  # (en config.toml, tabla [impose]: ver gui/state.py)
         # Las vistas previas y las secuencias temporales van a una carpeta propia, que close_down borra.
         # (on disk, as the working copies: an imposition of a large document is as large; see working.work_root)
         from ..working import work_root

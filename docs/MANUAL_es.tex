@@ -1704,9 +1704,14 @@ Windows, o la carpeta que indique la variable de entorno
 un archivo editado a mano no puede detener el programa: un valor que no se
 puede leer se cambia por el que tiene por defecto. Los certificados de los
 firmantes de confianza se guardan en la misma carpeta, en
-\texttt{trusted}. La disposición de la ventana en cada modo, las barras de
-herramientas y los documentos abiertos al terminar se guardan aparte, en
-\texttt{py-pdftools.conf}, en la misma carpeta de configuración en Linux.
+\texttt{trusted}. Lo que la ventana guarda de sí misma (la disposición de
+cada modo, las barras de herramientas, los documentos abiertos al
+terminar) va en el mismo \texttt{config.toml}, después de la
+configuración, en las tablas \texttt{[window]} e \texttt{[impose]}. Las
+versiones anteriores lo guardaban en un segundo archivo,
+\texttt{py-pdftools.conf} en Linux (el registro en Windows, un
+\texttt{.plist} en macOS); el primer arranque de esta versión lo pasa a
+\texttt{config.toml} y borra el archivo viejo.
 
 \index{idioma de la interfaz}%
 El idioma de la interfaz también se elige con
@@ -1870,9 +1875,9 @@ Tecla & Acción\\
   defecto.
 \item[Se perdieron las barras o los paneles] muéstrelos otra vez con un
   clic derecho sobre las barras, o devuelva una barra a \menu{Como era al
-  principio} en \menu{Personalizar las barras de herramientas}; borrar
-  \texttt{py-pdftools.conf} devuelve la disposición inicial de todos los
-  modos.
+  principio} en \menu{Personalizar las barras de herramientas}; borrar la
+  tabla \texttt{[window]} de \texttt{config.toml}, con el programa
+  cerrado, devuelve la disposición inicial de todos los modos.
 \end{description}
 
 \noindent\index{problemas}%

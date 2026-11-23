@@ -445,8 +445,13 @@ empiezan los diálogos de archivos. La configuración se guarda en un archivo,
 `config.toml`, en la carpeta de configuración del usuario:
 `~/.config/py-pdftools/` en Linux, `~/Library/Application Support/py-pdftools/`
 en macOS y `%APPDATA%\py-pdftools\` en Windows (o la carpeta que diga
-`$PY_PDFTOOLS_CONFIG`). Cada ajuste se comprueba al leerlo, de modo que un
-archivo editado a mano no puede detener el programa.
+`$PY_PDFTOOLS_CONFIG`). Lo que la ventana guarda de sí misma (su tamaño, la
+disposición de cada modo, las barras, los documentos abiertos al terminar)
+va en el mismo archivo, después de los ajustes, en las tablas `[window]` e
+`[impose]`; las versiones anteriores lo guardaban en un segundo archivo,
+`py-pdftools.conf`, que se pasa a `config.toml` en el primer arranque. Cada
+ajuste se comprueba al leerlo, de modo que un archivo editado a mano no
+puede detener el programa.
 Ayuda > Revisar la configuración (también un botón al pie de Configuración) muestra lo que
 py-pdftools necesita y si lo tiene (Python y sus bibliotecas, pyHanko,
 tesseract y los idiomas del OCR elegidos, Ghostscript, el espacio de la

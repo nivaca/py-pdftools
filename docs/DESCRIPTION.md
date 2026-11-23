@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-seven stages.
+I explain how it was made, in forty-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1214,10 +1214,32 @@ where the icons are black and the system colours them; there is now one
 drawn for it. I could test the events in the tests, but not the Finder
 itself, which needs a real Mac.
 
+48. One file of configuration
+-----------------------------
+
+There were two files in the folder of configuration: config.toml, with the
+settings, and py-pdftools.conf, where Qt's QSettings kept what the window
+remembers of itself, its size, the arrangement of each mode, the toolbars,
+the recent documents. Two files for one program is one too many, and on
+Windows and macOS the second one was not even a file (the registry, a
+.plist). So the window's memory went into config.toml too, after the
+settings, in the tables [window] and [impose]. A small class takes the
+place of QSettings, with the few methods the program used, and gives the
+values back as QSettings gave them, with booleans as text and the states of
+Qt's widgets as bytes, here written in base64, so that the rest of the code
+did not change. The writer of config.toml kept only the table of the
+settings and lost every other one, a known gap with a comment of its own;
+now it writes all the tables. What QSettings had is moved at the first
+start, and its file removed, but only for the user's own configuration:
+with another folder of configuration, as in the tests, QSettings belongs to
+the user and is not touched. The spare window used to compare the whole
+file to see if the settings had changed; now it compares only the
+settings, or every move of the window would have made it useless.
+
 Testing
 -------
 
-The program has 675 tests (`uv run pytest`): those of the four programs,
+The program has 680 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1229,7 +1251,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, the start with the session on Windows (in a registry made in the test) and the events of macOS, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the start with the session on Windows (in a registry made in the test) and the events of macOS, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -1238,5 +1260,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 164 files of Python, around 44,300 lines (about a tenth of them
+program has 165 files of Python, around 44,500 lines (about a tenth of them
 comments), and 3,197 texts of the interface in Spanish.

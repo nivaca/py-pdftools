@@ -25,7 +25,7 @@ SCOPES = [("all", N_("All pages")), ("page", N_("This page")), ("from", N_("From
 
 
 def _history(value) -> list[str]:
-    """The searches remembered, from what QSettings gives back (JSON)."""
+    """The searches remembered, from what the window keeps (JSON: see state.py)."""
     try:
         found = json.loads(value) if isinstance(value, str) and value else []
     except ValueError:

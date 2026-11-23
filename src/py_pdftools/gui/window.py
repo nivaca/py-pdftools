@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 import pymupdf
-from PySide6.QtCore import QByteArray, QItemSelection, QItemSelectionModel, QPoint, QSettings, QSize, Qt, QTimer
+from PySide6.QtCore import QByteArray, QItemSelection, QItemSelectionModel, QPoint, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QKeySequence, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QColorDialog, QComboBox, QDialog, QDockWidget, QFileDialog, QHBoxLayout,
@@ -58,6 +58,7 @@ from .props import PropertiesDialog
 from .renderer import renderer
 from .modes import TIPS, TITLES, Mode
 from .stamps import text_stamp
+from .state import State
 
 RECENT_KEPT = 30  # (documents kept in the list, whatever File ▸ Open recent shows: see recent_count)
 
@@ -193,7 +194,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         built again, for instance in another language."""
         super().__init__()
         self.setAcceptDrops(True)
-        self.settings = QSettings("py-pdftools", "py-pdftools")
+        self.settings = State("window")  # (en config.toml, tabla [window]: ver state.py)
         self.path: Path | None = None
         self.host = None  # (the window of tabs this one is a tab of: see tabs.py)
         self._init_watch()  # (the file, changed by another program: see watching.py)
@@ -1586,7 +1587,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
     def recent_files(self) -> list[Path]:
         try:
-            # La lista se guarda como JSON en QSettings; si está dañada, se empieza de cero.
+            # La lista se guarda como JSON (ver state.py); si está dañada, se empieza de cero.
             names = json.loads(self.settings.value("recent", "[]"))
         except (TypeError, ValueError):
             names = []

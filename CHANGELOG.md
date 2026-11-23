@@ -5,6 +5,17 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **One configuration file**: what the window keeps of itself (its size,
+  the arrangement of each mode, the toolbars, the recent documents and
+  those open at the end) is now in `config.toml` too, after the settings,
+  in the tables `[window]` and `[impose]`, no longer in a second file of
+  Qt's (`py-pdftools.conf` on Linux, the registry on Windows, a `.plist` on
+  macOS); the first start moves it there and removes the old file.
+- **"The tabbar"** in place of "the bar of the tabs", in Settings > General
+  and in the documentation.
+
 ## 1.8.14 — 2026-11-22
 
 - **The RPM on Copr**, which 1.8.13 didn't reach: one test made Python

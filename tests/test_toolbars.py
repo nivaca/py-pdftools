@@ -136,9 +136,9 @@ def test_text_position_icon_size_and_lock(window, app):
 
 def test_old_setting_read(app, tmp_path, monkeypatch):
     monkeypatch.setenv("HOME", str(tmp_path))
-    from PySide6.QtCore import QSettings
+    from py_pdftools.gui.state import State
 
-    QSettings("py-pdftools", "py-pdftools").setValue("toolbar_labels", "true")
+    State("window").setValue("toolbar_labels", "true")
     w = MainWindow()
     try:
         assert bar(w, "file").toolButtonStyle().name == "ToolButtonTextUnderIcon"

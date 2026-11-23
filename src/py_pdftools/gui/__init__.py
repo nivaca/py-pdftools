@@ -122,16 +122,16 @@ def _setting(name: str) -> bool:
 
 def session() -> list[str]:
     """The documents open when the program was last ended (see save_session)."""
-    from PySide6.QtCore import QSettings
+    from .state import State
 
-    value = QSettings("py-pdftools", "py-pdftools").value("session", [])
+    value = State("window").value("session", [])
     return [str(v) for v in (value if isinstance(value, list) else [value] if value else [])]
 
 
 def save_session(paths: list) -> None:
-    from PySide6.QtCore import QSettings
+    from .state import State
 
-    QSettings("py-pdftools", "py-pdftools").setValue("session", [str(p) for p in paths if p])
+    State("window").setValue("session", [str(p) for p in paths if p])
 
 
 _QUITTING = False  # (while Quit closes the windows: the session was saved before, with all of them)
@@ -223,17 +223,17 @@ SPARE_DELAY_MS = 1500  # (made a moment after the program is idle, not while the
 
 
 def _looks() -> tuple:
-    """What a window takes from the settings when it is made: the configuration file, and the language,
-    toolbars and mode kept by Qt."""
-    from PySide6.QtCore import QSettings
-
+    """What a window takes from the settings when it is made: the settings, and the language, toolbars and
+    mode the windows keep (see state.py)."""
     from ..core import config, interface
+    from .state import State
 
+    # (solo los ajustes: lo que la ventana guarda de sí misma va en el mismo archivo y cambia a menudo)
     try:
-        conf = config.config_path().read_bytes()
-    except OSError:
-        conf = b""
-    qs = QSettings("py-pdftools", "py-pdftools")
+        conf = repr(sorted(config.read().get("parameters", {}).items()))
+    except config.ConfigError:
+        conf = ""
+    qs = State("window")
     keys = ("toolbar_contents", "toolbar_looks", "toolbars", "mode", "reading", "thumbnails", "gaps", "spread")
     return conf, interface.code(), tuple(str(qs.value(k, "")) for k in keys)
 

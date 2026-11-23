@@ -420,8 +420,13 @@ opening a web address, how many recent documents File > Open recent shows,
 and where the file dialogs start. The settings are kept in a file, `config.toml`,
 in the user's configuration folder: `~/.config/py-pdftools/` on Linux,
 `~/Library/Application Support/py-pdftools/` on macOS, `%APPDATA%\py-pdftools\`
-on Windows (or the folder `$PY_PDFTOOLS_CONFIG` names). Each setting is
-checked when it is read, so a file edited by hand can't stop the program.
+on Windows (or the folder `$PY_PDFTOOLS_CONFIG` names). What the window
+keeps of itself (its size, the arrangement of each mode, the toolbars, the
+documents open at the end) goes in the same file, after the settings, in
+the tables `[window]` and `[impose]`; older versions kept it in a second
+file, `py-pdftools.conf`, which is moved into `config.toml` at the first
+start. Each setting is checked when it is read, so a file edited by hand
+can't stop the program.
 Help > Check the configuration (also a button at the foot of Settings) lists what py-pdftools needs
 and whether it has it (Python and its libraries, pyHanko, tesseract and the
 OCR languages chosen, Ghostscript, the space of the temporary folder),

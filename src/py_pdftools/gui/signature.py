@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import json
 
-from PySide6.QtCore import QPointF, QSettings, Qt
+from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QPainter, QPainterPath, QPen
 from PySide6.QtWidgets import QDialog, QDialogButtonBox, QLabel, QPushButton, QVBoxLayout, QWidget
 
@@ -14,10 +14,10 @@ from ..core.interface import tr
 
 Strokes = list[list[tuple[float, float]]]
 # Se guarda normalizada: así no depende del tamaño que tenía el panel de dibujo al firmar.
-KEY = "signature"  # (in the window's QSettings: the strokes, as JSON, in a box of width 1)
+KEY = "signature"  # (in what the window keeps, see state.py: the strokes, as JSON, in a box of width 1)
 
 
-def load(settings: QSettings) -> Strokes:
+def load(settings) -> Strokes:
     # A damaged or hand-edited value gives no signature rather than an error.
     try:
         strokes = json.loads(settings.value(KEY, "") or "[]")
@@ -26,7 +26,7 @@ def load(settings: QSettings) -> Strokes:
         return []
 
 
-def store(settings: QSettings, strokes: Strokes) -> None:
+def store(settings, strokes: Strokes) -> None:
     settings.setValue(KEY, json.dumps(normalized(strokes)))
 
 

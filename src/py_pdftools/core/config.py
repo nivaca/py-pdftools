@@ -11,11 +11,16 @@ the interface, and the settings of the window (see settings.py):
 
     [parameters]
     interface = "es"
+
+and, after them, what the window keeps of itself between sessions (its size, the arrangement of each
+mode, the documents opened last...), in the tables [window] and [impose] (see gui/state.py): one file
+for everything, no longer a second one of Qt's.
 """
 
 from __future__ import annotations
 
 import os
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -89,9 +94,6 @@ def set(name: str, value) -> Path:
 def set_many(values: dict) -> Path:
     """Change several settings at once, keeping the others (a value None
     removes its setting). Returns the file's path."""
-    # Importación diferida: config se carga muy pronto, y el módulo de idiomas solo hace falta al escribir.
-    from .interface import tr
-
     # If the present file is damaged, it is written again from scratch with the new values.
     try:
         data = read()
@@ -103,23 +105,71 @@ def set_many(values: dict) -> Path:
             params.pop(name, None)
         else:
             params[name] = value
+    data["parameters"] = params
+    return write(data)
+
+
+# The tables written first, in this order; the others (what the window keeps: see gui/state.py) after them.
+FIRST = ("parameters",)
+
+
+def _key(name: str) -> str:
+    return name if re.fullmatch(r"[A-Za-z0-9_-]+", name) else _string(name)
+
+
+def _string(text: str) -> str:
+    out = str(text).replace("\\", "\\\\").replace('"', '\\"')
+    # (los caracteres de control no pueden ir tal cual en una cadena de TOML)
+    out = re.sub(r"[\x00-\x1f\x7f]", lambda m: f"\\u{ord(m.group()):04x}", out)
+    return f'"{out}"'
+
+
+def _value(value) -> str:
+    # bool va antes que int: en Python, True también es un int.
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return repr(value)
+    if isinstance(value, (list, tuple)):
+        return "[" + ", ".join(_value(v) for v in value) + "]"
+    return _string(value)
+
+
+def _table(lines: list, name: str, values: dict) -> None:
+    plain = {k: v for k, v in values.items() if not isinstance(v, dict)}
+    lines += ["", f"[{name}]"] + [f"{_key(k)} = {_value(v)}" for k, v in plain.items()]
+    for key, sub in values.items():
+        if isinstance(sub, dict):
+            _table(lines, f"{name}.{_key(key)}", sub)
+
+
+def write(data: dict) -> Path:
+    """Write the whole configuration DATA (its tables: [parameters] first). Returns the file's path."""
+    # Importación diferida: config se carga muy pronto, y el módulo de idiomas solo hace falta al escribir.
+    from .interface import tr
+
     path = config_path()
     path.parent.mkdir(parents=True, exist_ok=True)
-    # TODO: solo se escribe la tabla [parameters]: cualquier otra tabla del archivo se pierde, y una lista o
-    # tabla anidada saldría como cadena. Convendría un escritor de TOML completo (tomli-w, por ejemplo).
-    lines = ["# " + tr("The settings of py-pdftools. Delete this file to use the usual values."), "",
-             "[parameters]"]
-    # A small TOML writer of our own: only booleans, numbers and strings are kept in [parameters].
-    for key, val in params.items():
-        # bool va antes que int: en Python, True también es un int.
-        if isinstance(val, bool):
-            lines.append(f"{key} = {'true' if val else 'false'}")
-        elif isinstance(val, (int, float)):
-            lines.append(f"{key} = {val}")
-        else:
-            lines.append(f'{key} = "' + str(val).replace("\\", "\\\\").replace('"', '\\"') + '"')
+    lines = ["# " + tr("The settings of py-pdftools. Delete this file to use the usual values.")]
+    names = [n for n in FIRST if n in data] + [n for n in data if n not in FIRST]
+    for name in names:
+        if isinstance(data[name], dict):
+            _table(lines, _key(name), data[name])
     # Write a temporary file and rename it, so that a crash never leaves half a config.toml behind.
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_text("\n".join(lines) + "\n", encoding="utf-8")
     os.replace(tmp, path)
     return path
+
+
+def write_table(name: str, values: dict) -> Path:
+    """Replace the table NAME with VALUES (none: removed), keeping the others."""
+    try:
+        data = read()
+    except ConfigError:
+        data = {}
+    if values:
+        data[name] = values
+    else:
+        data.pop(name, None)
+    return write(data)

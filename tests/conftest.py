@@ -77,12 +77,12 @@ def annotating_first(monkeypatch):
 
 @pytest.fixture(autouse=True)
 def own_window_settings():
-    """The window's own settings (QSettings: its mode, the arrangement of each mode, the toolbars...)
-    cleared for each test: Qt reads where they are once in a process, so the tests would share them."""
-    from PySide6.QtCore import QSettings
+    """What the window keeps of itself (its mode, the arrangement of each mode, the toolbars...: see
+    gui/state.py) goes in each test's own configuration folder (see own_config); what was read of another
+    is forgotten."""
+    from py_pdftools.gui import state
 
-    for app in ("py-pdftools", "py-pdftools-impose"):
-        QSettings("py-pdftools", app).clear()
+    state._CACHE.clear()
     yield
 
 
