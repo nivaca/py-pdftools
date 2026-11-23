@@ -1,3 +1,3 @@
 """py-pdftools: edit PDF documents."""
 
-__version__ = "1.8.14"
+__version__ = "1.8.15"

@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.8.14
+Version:        1.8.15
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Sun Nov 22 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.15-1
+- One configuration file; "the tabbar"; shorter, usual names for about
+  ninety menu items, panels, tools and settings
+
 * Sun Nov 22 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.14-1
 - Start with the session on Windows through the registry; on macOS, PDFs
   from the Finder and the Dock, and a black icon in the menu bar; a test

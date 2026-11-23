@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.15 — 2026-11-22
 
 - **One configuration file**: what the window keeps of itself (its size,
   the arrangement of each mode, the toolbars, the recent documents and
