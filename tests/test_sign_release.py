@@ -22,7 +22,7 @@ pytestmark = pytest.mark.skipif(not shutil.which("gpg") or sys.platform == "win3
 def make_key(home: Path, name: str) -> tuple[str, Path]:
     """A key without a passphrase in HOME: its fingerprint, and its public key exported."""
     home.mkdir(mode=0o700)
-    env = {"GNUPGHOME": str(home), "PATH": "/usr/bin:/bin"}
+    env = sign_release.bare_env(str(home))  # (gpg's folder in the PATH: Homebrew's on macOS)
     subprocess.run(["gpg", "--batch", "--passphrase", "", "--quick-gen-key", f"{name} <{name}@example.org>",
                     "ed25519", "sign", "never"], env=env, check=True, capture_output=True)
     out = subprocess.run(["gpg", "--batch", "--with-colons", "--list-secret-keys"], env=env, check=True,
@@ -40,7 +40,7 @@ def keys(tmp_path, monkeypatch):
     fpr, public = make_key(home, "release")
     monkeypatch.setenv("GNUPGHOME", str(home))
     yield fpr, public
-    subprocess.run(["gpgconf", "--kill", "all"], env={"GNUPGHOME": str(home), "PATH": "/usr/bin:/bin"},
+    subprocess.run(["gpgconf", "--kill", "all"], env=sign_release.bare_env(str(home)),
                    capture_output=True)
 
 
@@ -70,7 +70,7 @@ def test_another_key_does_not_check(tmp_path, keys):
     sums = tmp_path / "SHA256SUMS"
     args = ["--key", fpr, "--public", str(other), "--sums", str(sums), str(tmp_path / "app.zip")]
     assert sign_release.main(args) == 1
-    subprocess.run(["gpgconf", "--kill", "all"], env={"GNUPGHOME": str(tmp_path / "other-home"), "PATH": "/usr/bin:/bin"},
+    subprocess.run(["gpgconf", "--kill", "all"], env=sign_release.bare_env(str(tmp_path / "other-home")),
                    capture_output=True)
 
 

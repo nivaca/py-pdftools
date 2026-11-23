@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -28,6 +30,14 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def bare_env(home: str) -> dict[str, str]:
+    """An environment with only GNUPGHOME=HOME and a short PATH: no keys nor settings of the user's. The folder of
+    gpg comes first in it: Homebrew's, on macOS, is not in /usr/bin."""
+    found = shutil.which("gpg")
+    folders = ([os.path.dirname(found)] if found else []) + ["/usr/bin", "/bin"]
+    return {"GNUPGHOME": home, "PATH": os.pathsep.join(dict.fromkeys(folders))}
+
+
 def sign(path: Path, key: str) -> Path:
     """PATH.asc, the detached signature of PATH with KEY (gpg asks for the passphrase, if it isn't cached)."""
     out = path.with_name(path.name + ".asc")
@@ -40,7 +50,7 @@ def verify(files: list[Path], public: Path) -> list[str]:
     """What doesn't verify with only PUBLIC known (an empty list: everything does)."""
     failed = []
     with tempfile.TemporaryDirectory(prefix="sign-release-") as home:
-        env = {"GNUPGHOME": home, "PATH": "/usr/bin:/bin"}
+        env = bare_env(home)
         # (gpg quiere su carpeta solo para el usuario)
         Path(home).chmod(0o700)
         subprocess.run(["gpg", "--batch", "--quiet", "--import", str(public)], env=env, check=True,
