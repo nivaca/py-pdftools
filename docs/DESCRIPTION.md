@@ -1364,6 +1364,15 @@ and a word cut by a hyphen at the end of a line is joined again when the
 next line goes on in lower case. Before a capital the hyphen stays, since
 "Anglo-" and "Saxon" make "Anglo-Saxon", not "AngloSaxon".
 
+The tool Magnifier (Shift+Z; Okular's Ctrl+6 chooses a mode here) is in
+every mode, beside Zoom to area (`gui/magnifier.py`). While the mouse
+button is held down on a page, a round lens follows the pointer and shows
+that part of the page three times nearer than the view. It is not the
+picture on the screen made bigger, which would be blurred: only that piece
+of the page is drawn again, at the lens's scale, in the reading colours,
+and turned as the view turns the pages; beyond the edge of the page the
+lens is grey. The view and its zoom do not change.
+
 Testing
 -------
 

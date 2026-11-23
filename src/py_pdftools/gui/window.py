@@ -84,6 +84,8 @@ TOOLS = [
                                            "Ctrl+C copies it, right-click for more")),
      ("hand", "transform-browse", N_("Dragging moves the pages in the window")),
      ("zoomarea", "zoom-select", N_("Zoom to area: drag a frame on a page to zoom to it; a click zooms in there")),
+     ("magnifier", "pdftools-magnifier", N_("Magnifier: hold the mouse button down on a page to see that part of it "
+                                            "three times nearer")),
      ("eraser", "draw-eraser", N_("Drag over annotations to erase them (over a drawing, only what is touched)"))],
     [("highlight", "draw-highlight", N_("Drag over text to highlight it")),
      ("area", "highlight-area", N_("Drag on the page to highlight a region (a picture, a table, a scanned page)")),
@@ -120,7 +122,7 @@ DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one i
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
 TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"),
-              "zoomarea": N_("Zoom to area"), "link": N_("Link"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
+              "zoomarea": N_("Zoom to area"), "magnifier": N_("Magnifier"), "link": N_("Link"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
               "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature"),
               "attachment": N_("Attach file")}  # (the tool; the annotation it makes is an "Attached file")
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
@@ -790,7 +792,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],
-                                                             self.tool_actions["hand"], self.tool_actions["zoomarea"]]),
+                                                             self.tool_actions["hand"], self.tool_actions["zoomarea"],
+                                                             self.tool_actions["magnifier"]]),
             self.page_bar(),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
             self.page_zoom_bar(),
@@ -799,7 +802,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
         self.tool_bars = []
         for (name, title), group_ in zip(TOOL_BARS, TOOLS, strict=True):
-            tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext", "zoomarea")]
+            tools = [tool for tool, _, _ in group_ if tool not in ("hand", "selecttext", "zoomarea", "magnifier")]
             bar = self.toolbar_of(name, tr(title), [self.tool_actions[tool] for tool in tools])
             self._tool_button_menus(bar)
             self.tool_bars.append(bar)
@@ -814,7 +817,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def _tool_button_menus(self, bar: QToolBar):
         """The buttons of the tools on BAR, each with its menu (a right click: colour, stamp, properties...)."""
         # Clic derecho sobre el botón de una herramienta: su menú de color, sello y propiedades (ver tool_menu).
-        own = {tool for group_ in TOOLS for tool, _, _ in group_} - {"hand", "selecttext", "zoomarea"}
+        own = {tool for group_ in TOOLS for tool, _, _ in group_} - {"hand", "selecttext", "zoomarea", "magnifier"}
         for tool, act in self.tool_actions.items():
             button = bar.widgetForAction(act)
             if button is None or tool not in own:
@@ -925,7 +928,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                         menus=[self.m_tools.menuAction(), self.m_layers.menuAction()],
                         # Seleccionar y Mano valen en todos los modos; las otras herramientas, solo en Anotar.
                         actions=[act for tool, act in self.tool_actions.items()
-                                 if tool not in ("select", "hand", "selecttext", "zoomarea")])
+                                 if tool not in ("select", "hand", "selecttext", "zoomarea", "magnifier")])
         # Leer: solo las páginas y sus miniaturas; nada es suyo, y el ratón mueve las páginas (la mano).
         read = Mode("read", lambda a: False, without=("edit",), entered=lambda: self.set_tool("hand"))
         self.hints["read"] = tr("Scroll through the pages, or drag them with the mouse; Ctrl and the mouse wheel "

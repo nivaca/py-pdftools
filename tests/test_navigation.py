@@ -426,6 +426,29 @@ def test_more_zooms(window, tmp_path):
     assert abs(centre.x() - 290) < 10 and abs(centre.y() - 395) < 10
     window.set_mode("read")
     assert window.tool_actions["zoomarea"].isEnabled()
+    # (la Lupa, Mayús+Z, en todos los modos: mientras el botón está pulsado, un círculo con la página más cerca)
+    assert window.tool_actions["magnifier"].isEnabled()
+    assert window.tool_actions["magnifier"].shortcut().toString() == "Shift+Z"
+    window.set_tool("magnifier")
+    pos = QPointF(canvas.mapFromScene(item.mapToScene(QPointF(262, 396))))  # (on "A short line")
+    for kind in (QEvent.Type.MouseButtonPress, QEvent.Type.MouseMove):
+        event = QMouseEvent(kind, pos, canvas.viewport().mapToGlobal(pos), Qt.MouseButton.LeftButton,
+                            Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier)
+        (canvas.mousePressEvent if kind == QEvent.Type.MouseButtonPress else canvas.mouseMoveEvent)(event)
+    lens = canvas._lens
+    assert lens is not None and lens.isVisible() and lens.geometry().center().x() - pos.x() < 2
+    from py_pdftools.gui.magnifier import lens_image
+
+    page, point = canvas.locate(pos.toPoint())
+    image = lens_image(canvas, page, point)
+    assert image is not None and image.width() >= 200
+    dark = sum(1 for x in range(0, image.width(), 4) for y in range(0, image.height(), 4)
+               if image.pixelColor(x, y).lightness() < 128)
+    assert dark > 5  # (the text, drawn again, nearer)
+    event = QMouseEvent(QEvent.Type.MouseButtonRelease, pos, canvas.viewport().mapToGlobal(pos),
+                        Qt.MouseButton.LeftButton, Qt.MouseButton.NoButton, Qt.KeyboardModifier.NoModifier)
+    canvas.mouseReleaseEvent(event)
+    assert not lens.isVisible()
 
 
 def test_rotating_the_view(window, book):
@@ -740,7 +763,7 @@ def test_the_page_navigation_bar(window):
     assert window.bar_ids(bar) == ["a_first", "a_prev", "a_page_number", "a_next", "a_last"]
     # (and they are not also on the toolbar Navigation, which keeps the history and the tools)
     navigation = window.findChild(QToolBar, "navigation")
-    assert window.bar_ids(navigation) == ["a_back", "a_forward", "tool:selecttext", "tool:hand", "tool:zoomarea"]
+    assert window.bar_ids(navigation) == ["a_back", "a_forward", "tool:selecttext", "tool:hand", "tool:zoomarea", "tool:magnifier"]
     box, count = bar.findChild(QLineEdit, "page"), bar.findChild(QLabel, "count")
     assert box.text() == "1" and count.text() == "of 6"
     window.a_last.trigger()

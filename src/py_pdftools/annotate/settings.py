@@ -109,7 +109,7 @@ PALETTE_SIZE = len(PALETTE)
 
 # the actions that have a shortcut, besides the tools (annots.ANNOTATING, and select, hand, eraser): the usual keys
 SHORTCUTS = {
-    "select": "V", "selecttext": "X", "hand": "M", "zoomarea": "Z", "link": "J", "eraser": "E", "highlight": "H", "area": "Shift+H", "underline": "U",
+    "select": "V", "selecttext": "X", "hand": "M", "zoomarea": "Z", "magnifier": "Shift+Z", "link": "J", "eraser": "E", "highlight": "H", "area": "Shift+H", "underline": "U",
     "strikeout": "S", "squiggly": "Q", "caret": "I", "note": "N", "freetext": "T", "callout": "Shift+T",
     "rect": "R", "ellipse": "O", "polygon": "G", "cloud": "Shift+G", "line": "L", "arrow": "A",
     "polyline": "Shift+L", "ink": "P", "stamp": "Shift+S", "comment": "C", "next": "Alt+Down",

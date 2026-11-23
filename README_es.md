@@ -292,8 +292,9 @@ zoom y sus miniaturas), y `py-pdftools-gui libro.pdf#page=12` o
 `#nameddest=intro` lo abre en un lugar. El menú Ver tiene dos páginas lado
 a lado (Ctrl+Mayús+2, con la primera sola como portada si se quiere), los
 zooms (ajustar a la página, al ancho, al alto o a lo impreso; tamaño real;
-un porcentaje escrito en la casilla del zoom, de 5 % a 10000 %; y la herramienta Ampliar una
-zona, Z), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
+un porcentaje escrito en la casilla del zoom, de 5 % a 10000 %; la herramienta Ampliar una
+zona, Z; y la herramienta Lupa, Mayús+Z, un círculo que muestra la parte de la página
+bajo el puntero tres veces más cerca), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
 colores de lectura (blanco, amarillo o verde sobre negro, o propios), el
 espacio entre las páginas, que se puede quitar, y Pantalla completa (F11
 o Ctrl+Mayús+P) como presentación, donde B deja la pantalla en negro. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los

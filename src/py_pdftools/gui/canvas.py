@@ -574,6 +574,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.cover = False  # (with spread: the first page alone, as the cover of a book)
         self.gap = GAP  # (between the pages and around them: 0 to hide the gaps, see set_gaps)
         self.turn = 0  # degrees (clockwise) the view turns every page: not the file (see set_turn)
+        self._lens = None  # (la lupa, hecha la primera vez que se usa: magnifier.py)
         # 'select': selects, moves and resizes; 'hand': dragging scrolls; 'eraser': dragging erases;
         # else the kind of annotation that the tool makes: see annots.KINDS
         self.mode = "select"
@@ -1338,8 +1339,19 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 return True
         return False
 
+    def magnify(self, pos: QPointF):
+        """The lens at POS (view coordinates), with the page under it (see magnifier.py)."""
+        from .magnifier import Lens, lens_image
+
+        if self._lens is None:
+            self._lens = Lens(self.viewport())
+        page, point = self.locate(pos.toPoint())
+        self._lens.show_at(pos, lens_image(self, page, point) if page is not None else None)
+
     def set_mode(self, mode: str):
         self.cancel_polygon()
+        if self._lens is not None:
+            self._lens.hide()
         if mode != TEXT_SELECT:
             self.clear_text_selection()
         self.mode = mode
@@ -1745,6 +1757,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                               "start": start, "item": band}
             event.accept()
             return
+        if self.mode == "magnifier" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
+            # La lupa: mientras el botón está pulsado, un círculo con la página más cerca (magnifier.py).
+            self._drag = {"kind": "magnifier"}
+            self.magnify(event.position())
+            event.accept()
+            return
         if self.mode == "zoomarea" and self.doc is not None and event.button() == Qt.MouseButton.LeftButton:
             # Zoom to area: a frame dragged on a page, zoomed to on the release (a click zooms in, there).
             page, point = self.locate(event.position().toPoint())
@@ -1916,6 +1934,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._show_polygon((round(p.x(), 2), round(p.y(), 2)))
         if drag is not None and drag["kind"] == "select-text":
             self.text_select_move(pos)
+            return
+        if drag is not None and drag["kind"] == "magnifier":
+            self.magnify(event.position())
             return
         if drag is None and self.doc is not None and self.mode in FOLLOWED_BY + ("select",):
             page, point = self.locate(pos)
@@ -2123,6 +2144,10 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self.link_clicked.emit(pressed[1], pressed[2])
             return
         drag, self._drag = self._drag, None
+        if drag is not None and drag["kind"] == "magnifier":
+            if self._lens is not None:
+                self._lens.hide()
+            return
         if drag is None or event.button() != Qt.MouseButton.LeftButton:
             super().mouseReleaseEvent(event)
             return

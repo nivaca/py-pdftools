@@ -13100,4 +13100,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The text selected, its lines joined into one paragraph</en>
     <tr>El texto seleccionado, con sus líneas unidas en un párrafo</tr>
   </text>
+  <text>
+    <en>Magnifier</en>
+    <tr>Lupa</tr>
+  </text>
+  <text>
+    <en>Magnifier: hold the mouse button down on a page to see that part of it three times nearer</en>
+    <tr>Lupa: mantenga pulsado el botón del ratón sobre una página para ver esa parte tres veces más cerca</tr>
+  </text>
 </interface>
