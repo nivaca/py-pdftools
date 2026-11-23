@@ -357,6 +357,11 @@ From the command line: `py-pdftools export pages | images | text`,
 `py-pdftools pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
 `--split-size 10`.
 
+View > Page sorter (Ctrl+Alt+G) shows every page in a grid of large
+thumbnails, to put a long document in order by dragging its pages, several
+at once, and to turn, duplicate or delete them; OK makes it all as one
+change, which Undo takes back at once.
+
 File > Save a copy > Reduced file size makes a copy that takes less space: its
 pictures drawn again at a lower resolution (only those shown above it),
 its fonts reduced to the characters used, what nothing uses taken out;

@@ -373,6 +373,12 @@ ninguna parte pase de un tamaño. Desde la línea de órdenes:
 `py-pdftools export pages | images | text`, `py-pdftools pdf-version`, y
 `py-pdftools pages --split-bookmarks 1` o `--split-size 10`.
 
+Ver > Clasificador de páginas (Ctrl+Alt+G) muestra todas las páginas en una
+cuadrícula de miniaturas grandes, para ordenar un documento largo
+arrastrando sus páginas, varias a la vez, y girarlas, duplicarlas o
+borrarlas; Aceptar lo hace todo como un solo cambio, que Deshacer revierte
+de una vez.
+
 Archivo > Guardar una copia > Con tamaño reducido hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
 encima de ella), sus fuentes reducidas a los caracteres usados, sin lo que

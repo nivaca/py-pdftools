@@ -100,6 +100,10 @@ Es una aplicación de escritorio y no necesita internet, salvo para descargar, s
 
 Cada casilla, lista y vista de la ventana tiene un nombre que los lectores de pantalla dicen (`gui/access.py`); las que no recibieron uno propio lo toman de su texto de ejemplo, de su ayuda emergente o de la etiqueta que tienen al lado, y una prueba recorre todos los modos en busca de alguna sin nombre. Ver > Panel siguiente (Ctrl+F6) lleva el teclado de las miniaturas a las páginas y a cada panel visible. Configuración > Apariencia tiene un tema de alto contraste, blanco sobre negro, con lo elegido en amarillo, un borde blanco en cada casilla y uno amarillo en la que tiene el foco; su hoja de estilo se quita antes de salir, porque Qt, al destruirla después de la aplicación, a veces hacía caer el programa.
 
+### Trabajar con muchas páginas
+
+Ver > Clasificador de páginas muestra todas las páginas en una cuadrícula de miniaturas grandes, que se dibujan solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace como una sola operación (`arrange.Sort`), un solo paso del historial.
+
 ## Ambiente
 
 Fue desarrollado en Fedora Linux 45 con KDE Plasma, con Python 3.14 y uv, y con git. El código está en repositorios de GitHub (https://github.com/nivaca/py-pdftools) y de Codeberg (https://codeberg.org/nivaca/py-pdftools), públicos. Un script (`tools/release.py`) corre las pruebas, hace la rueda, el paquete fuente, el ZIP, la AppImage, el paquete de Debian (`tools/bundle-deb.py`, que escribe el archivo ar sin las herramientas de Debian) y el RPM firmado, pone la etiqueta, publica en los dos sitios y manda el RPM fuente a Copr (https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/), que lo construye para Fedora 45 y Rawhide.

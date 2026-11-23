@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in fifty-three stages.
+I explain how it was made, in sixty-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1486,6 +1486,22 @@ gets a number, since it can't hold two the same. PyMuPDF gives a file's
 name as its description when it has none, which only repeated the name, so
 that is left out. The list is filled only while the panel is shown, and
 again when the annotations change, since those of the pages are annotations.
+
+61. A page sorter
+-----------------
+
+The thumbnails are a narrow strip, good for going to a page and poor for
+putting three hundred of them in order. View > Page sorter shows every page
+in a grid of large thumbnails, in a dialog that fills most of the window,
+where the pages are dragged to their new places, several at once, and
+turned, duplicated or deleted. Nothing happens to the document while the
+dialog is open: it keeps its own order of the pages, and OK makes all of it
+as one operation (arrange.Sort: the new order, pages left out deleted, then
+the turns by the new places), one step that Undo takes back. The operation
+has to know how many pages the document had, since a page left out is a
+page deleted, and the labels must then follow their pages. A grid of a
+long book would take a while to draw, so a thumbnail is drawn only when it
+comes into view, one at each turn of the event loop.
 
 Testing
 -------

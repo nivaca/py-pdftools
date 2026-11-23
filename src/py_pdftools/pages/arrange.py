@@ -306,6 +306,36 @@ class Rotate(Operation):
 
 
 @dataclass(frozen=True)
+class Sort(Operation):
+    """What the page sorter makes, in one step: the pages in ORDER (positions, from 1; left out: deleted;
+    repeated: duplicated), and then TURNS, ((place, angle), ...): the page at that place of the result turned
+    clockwise by ANGLE."""
+
+    order: tuple[int, ...] = ()
+    turns: tuple[tuple[int, int], ...] = ()
+    count: int = 0  # (the pages of the document it was made for: leaving one out deletes it)
+
+    def items(self, n: int) -> list[Item]:
+        if not self.order or min(self.order) < 1 or max(self.order) > n:
+            raise LabelError(tr("the pages must be from 1 to {count}", count=n))
+        return list(self.order)
+
+    def apply(self, pdf: Pdf) -> None:
+        n = len(pdf.pages)
+        if list(self.order) != list(range(1, n + 1)):
+            rebuild(pdf, self.items(n))
+        for place, angle in self.turns:
+            # (después de reordenar: los giros van por el lugar de la página en el resultado)
+            Rotate((place,), angle).apply(pdf)
+
+    def moves_pages(self) -> bool:
+        return list(self.order) != list(range(1, (self.count or len(self.order)) + 1))
+
+    def describe(self) -> str:
+        return tr("Pages sorted")
+
+
+@dataclass(frozen=True)
 class Replace(Operation):
     """The content of PAGES replaced by that of pages of the PDF SOURCE, from SOURCE_FIRST on (the
     pages keep their links, and the bookmarks that go to them)."""

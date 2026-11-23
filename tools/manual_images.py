@@ -222,6 +222,18 @@ def shoot(lang: str, out: Path, work: Path):
     dialog(WatermarkDialog(w, watermark.Watermark(text="DRAFT" if lang == "en" else "BORRADOR"), w.file, "",
                            w.page_labels(), 2), "watermark")
     dialog(ArrangeDialog(w, "split", w.count, folder=work), "split")
+    # El clasificador de páginas: la segunda girada y elegida
+    from py_pdftools.gui.pages.sorter_dialog import SorterDialog
+
+    sorter = SorterDialog(w)
+    sorter.resize(1100, 520)
+    sorter.show()
+    settle(app, 0.3)
+    sorter.grid.item(1).setSelected(True)
+    sorter.turn(90)
+    settle(app, 0.6)
+    save(sorter, "sorter")
+    sorter.close()
 
     # Impose: a booklet, in the basic form
     w.set_mode("impose")

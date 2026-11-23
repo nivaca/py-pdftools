@@ -13348,4 +13348,72 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} attached files removed</en>
     <tr>{count} archivos adjuntos quitados</tr>
   </text>
+  <text>
+    <en>A copy of each page chosen, right after it</en>
+    <tr>Una copia de cada página elegida, justo después de ella</tr>
+  </text>
+  <text>
+    <en>A document needs one page at least: not every page can be deleted</en>
+    <tr>Un documento necesita al menos una página: no se pueden borrar todas</tr>
+  </text>
+  <text>
+    <en>As it was</en>
+    <tr>Como estaba</tr>
+  </text>
+  <text>
+    <en>Every page in a grid of large thumbnails, to put them in order by dragging them, turn, duplicate or delete them; OK makes it all as one step</en>
+    <tr>Todas las páginas en una cuadrícula de miniaturas grandes, para ordenarlas arrastrándolas, girarlas, duplicarlas o borrarlas; Aceptar lo hace todo en un solo paso</tr>
+  </text>
+  <text>
+    <en>Page sorter</en>
+    <tr>Clasificador de páginas</tr>
+  </text>
+  <text>
+    <en>Page sorter…</en>
+    <tr>Clasificador de páginas…</tr>
+  </text>
+  <text>
+    <en>Pages sorted</en>
+    <tr>Páginas ordenadas</tr>
+  </text>
+  <text>
+    <en>Rotate left</en>
+    <tr>Girar a la izquierda</tr>
+  </text>
+  <text>
+    <en>Rotate right</en>
+    <tr>Girar a la derecha</tr>
+  </text>
+  <text>
+    <en>Size:</en>
+    <tr>Tamaño:</tr>
+  </text>
+  <text>
+    <en>Take the pages chosen out (Del)</en>
+    <tr>Quitar las páginas elegidas (Supr)</tr>
+  </text>
+  <text>
+    <en>The pages chosen, 90° clockwise</en>
+    <tr>Las páginas elegidas, 90° en el sentido del reloj</tr>
+  </text>
+  <text>
+    <en>The pages chosen, 90° counterclockwise</en>
+    <tr>Las páginas elegidas, 90° en sentido contrario al reloj</tr>
+  </text>
+  <text>
+    <en>The pages in the order of the document, as at first</en>
+    <tr>Las páginas en el orden del documento, como al principio</tr>
+  </text>
+  <text>
+    <en>The size of the pages</en>
+    <tr>El tamaño de las páginas</tr>
+  </text>
+  <text>
+    <en>changed: OK makes the changes, as one step that Undo takes back</en>
+    <tr>con cambios: Aceptar los hace, en un solo paso que Deshacer revierte</tr>
+  </text>
+  <text>
+    <en>{count} chosen</en>
+    <tr>elegidas: {count}</tr>
+  </text>
 </interface>

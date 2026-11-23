@@ -705,6 +705,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                     tip=tr("This tab beside the others, on the other side of the window, to read two "
                                            "documents side by side; again, to bring it back"))
         self.a_detach = self._action(m, tr("Move tab to new window"), self.detach_tab)
+        self.a_sorter = self._action(m, tr("Page sorter…"), self.page_sorter, "Ctrl+Alt+G",
+                                     tip=tr("Every page in a grid of large thumbnails, to put them in order by dragging "
+                                            "them, turn, duplicate or delete them; OK makes it all as one step"))
         self.a_present = self._action(m, tr("Full screen"), self.present,
                                       [QKeySequence("F11"), QKeySequence("Ctrl+Shift+P")],
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
@@ -3023,6 +3026,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             return
         pages = self.selected_pages()
         menu.addSeparator()
+        menu.addAction(self.a_sorter)  # (las páginas en grande, para ordenarlas de una vez)
         every = menu.addAction(tr("Select all the pages"), self.select_all_pages)
         every.setShortcut(QKeySequence.StandardKey.SelectAll)  # (que se vea: la tecla la toma la lista)
         every.setEnabled(len(pages) < self.count)
@@ -3424,7 +3428,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_find, self.a_quick_find, self.quick_find_key, self.a_compare,
+                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_sorter, self.a_find, self.a_quick_find, self.quick_find_key, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:

@@ -743,6 +743,19 @@ class PagesMixin:
 
         return self.transform(apply, page=(page or 1) - 1, message=op.describe())
 
+    def page_sorter(self) -> bool:
+        """View > Page sorter: every page, large, to put in order, turn, duplicate or delete; what is done there
+        is made on OK as one step of the history (see pages/sorter_dialog.py)."""
+        if self.path is None:
+            return False
+        from .pages.sorter_dialog import SorterDialog
+
+        dialog = SorterDialog(self)
+        if dialog.exec() != QDialog.DialogCode.Accepted:
+            return False
+        op = dialog.operation()
+        return op is not None and self.arrange_pages(op)
+
     def move_pages(self, pages: list[int], before: int, copied: bool = False) -> bool:
         """Move PAGES before page BEFORE (count + 1: to the end); COPIED: copy them there."""
         if not pages:
