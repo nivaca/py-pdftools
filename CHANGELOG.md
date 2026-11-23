@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **A list of OCR languages to download**: in OCR > Languages, each language
+  has a box; those ticked make a list, shown under the table, which
+  Download takes one after another. One that can't be downloaded doesn't
+  stop the others, and is said at the end.
+
 ## 1.8.15 — 2026-11-22
 
 - **One configuration file**: what the window keeps of itself (its size,

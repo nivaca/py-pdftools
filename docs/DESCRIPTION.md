@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-nine stages.
+I explain how it was made, in fifty stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1254,10 +1254,24 @@ item that opens it. Some names stayed: Foliate, the name of a mode, and
 file of the Spanish translation, so each change went there too, and the
 pictures of the manuals were made again.
 
+50. A list of languages to download
+-----------------------------------
+
+OCR > Languages could already download the more accurate models of
+Tesseract, but only of the rows chosen in the table, and a choice of
+several rows, with Ctrl and the mouse, is easy to lose when the table is
+filtered to find the next language. Each language now has a box. The
+languages ticked make a list, which stays while the table is filtered and
+is shown under it, by name, and Download takes them one after another, in
+the order they were ticked. A model is about a dozen megabytes, so a list of
+several takes a while, and the connection may fail on one: that one stays
+in the list, the others are downloaded, and what failed is said at the end.
+Stop keeps in the list what was not yet downloaded.
+
 Testing
 -------
 
-The program has 680 tests (`uv run pytest`): those of the four programs,
+The program has 681 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

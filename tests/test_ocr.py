@@ -10,6 +10,7 @@ from pathlib import Path
 
 import pymupdf
 import pytest
+from PySide6.QtCore import Qt
 
 from py_pdftools.core import ocr
 
@@ -250,6 +251,48 @@ def test_the_languages_dialog(window, own, monkeypatch):
         ocr.remove("grc")
     dialog.reject()
     settings.reject()
+
+
+@needs_tesseract
+def test_a_list_to_download(window, own, monkeypatch):
+    """The languages ticked make the list to download, shown under the table; Download takes them one after
+    another, and one that fails doesn't stop the others (it stays in the list, and is said at the end)."""
+    from PySide6.QtWidgets import QMessageBox
+
+    from py_pdftools.gui.ocr_languages import LanguagesDialog
+
+    asked = []
+
+    def download(names, progress=None):
+        asked.extend(names)
+        if names == ["srp"]:
+            raise ocr.OcrError("srp could not be downloaded: no connection")
+        own.mkdir(parents=True, exist_ok=True)
+        for n in names:
+            (own / f"{n}.traineddata").write_bytes(b"x")
+            progress(1, 1)
+        return []
+
+    said = []
+    monkeypatch.setattr(ocr, "download", download)
+    monkeypatch.setattr(QMessageBox, "warning", staticmethod(lambda _p, _t, text: said.append(text)))
+    dialog = LanguagesDialog(window)
+    assert dialog.download.text() == "Download" and not dialog.clear_list.isVisible()
+    dialog.tick(["lat", "srp", "grc"])
+    assert dialog.ticked == ["lat", "srp", "grc"] and dialog.download.text() == "Download 3 languages"
+    assert dialog.listed.text() == "To download: Latin, Serbian, Ancient Greek"
+    dialog.filter.setText("greek")  # (a list kept while the table is filtered)
+    assert dialog.to_download() == ["lat", "srp", "grc"]
+    assert not dialog.download_chosen()
+    assert asked == ["lat", "srp", "grc"] and ocr.better("lat") and ocr.better("grc") and not ocr.better("srp")
+    assert said == ["srp could not be downloaded: no connection"]
+    assert dialog.ticked == ["srp"] and dialog.download.text() == "Download 1 language"
+    rows = {dialog.table.item(r, 0).text(): r for r in range(dialog.table.rowCount())}
+    assert dialog.table.item(rows["srp"], 0).checkState() == Qt.CheckState.Checked
+    assert dialog.table.item(rows["lat"], 0).checkState() == Qt.CheckState.Unchecked
+    dialog.untick_all()
+    assert dialog.ticked == [] and dialog.download.text() == "Download"
+    dialog.reject()
 
 
 @needs_tesseract

@@ -380,7 +380,9 @@ corregirlas antes de escribir el texto (en el panel se elige cuánta
 seguridad basta). OCR > Idiomas muestra todos los idiomas que tesseract
 puede leer, y descarga, actualiza o quita sus modelos más precisos
 (tessdata_best), y osd, que averigua cómo están giradas las páginas (para
-eso hace falta internet, una vez). En los otros modos, el menú de las
+eso hace falta internet, una vez). Para descargar varios a la vez, se
+marcan: los idiomas marcados forman una lista, que se muestra bajo la
+tabla, y Descargar los toma uno tras otro. En los otros modos, el menú de las
 miniaturas lee las páginas elegidas. Desde la línea de órdenes:
 `py-pdftools ocr escaneo.pdf -l lat+spa --rotate --report`.
 

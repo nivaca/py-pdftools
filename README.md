@@ -361,7 +361,9 @@ The words tesseract was not sure of are shown beside their pictures, to
 be corrected before the text is written (how sure is sure enough is set in
 the panel). OCR > Languages lists every language tesseract can read, and
 downloads, updates or removes its more accurate models (tessdata_best), and
-osd, which finds how pages are turned (this needs the internet, once). In
+osd, which finds how pages are turned (this needs the internet, once). To
+download several at once, tick them: the languages ticked make a list,
+shown under the table, which Download takes one after another. In
 the other modes, the menu of the thumbnails reads the pages chosen. From the
 command line: `py-pdftools ocr scan.pdf -l lat+spa --rotate --report`.
 

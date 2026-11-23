@@ -9141,6 +9141,26 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>(★ modelo mejor; se pueden girar las páginas)</tr>
   </text>
   <text>
+    <en>Download {count} language</en>
+    <tr>Descargar {count} idioma</tr>
+  </text>
+  <text>
+    <en>Download {count} languages</en>
+    <tr>Descargar {count} idiomas</tr>
+  </text>
+  <text>
+    <en>To download: {languages}</en>
+    <tr>Para descargar: {languages}</tr>
+  </text>
+  <text>
+    <en>Tick the languages to download, to download several at once.</en>
+    <tr>Marque los idiomas que quiera descargar, para descargar varios a la vez.</tr>
+  </text>
+  <text>
+    <en>Downloading {name} ({number} of {count})…</en>
+    <tr>Descargando {name} ({number} de {count})…</tr>
+  </text>
+  <text>
     <en>Downloading {name}…</en>
     <tr>Descargando {name}…</tr>
   </text>
@@ -9777,8 +9797,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Descargar</tr>
   </text>
   <text>
-    <en>Download Tesseract's most accurate model (tessdata_best) of the languages chosen, or download it again; needs the internet</en>
-    <tr>Descargar el modelo más preciso de Tesseract (tessdata_best) de los idiomas elegidos, o descargarlo otra vez; necesita internet</tr>
+    <en>Download Tesseract's most accurate model (tessdata_best) of the languages ticked, one after another (or of the rows chosen, if none is ticked), or download it again; needs the internet</en>
+    <tr>Descargar el modelo más preciso de Tesseract (tessdata_best) de los idiomas marcados, uno tras otro (o de las filas elegidas, si no hay ninguno marcado), o descargarlo otra vez; necesita internet</tr>
   </text>
   <text>
     <en>Find a language…</en>
