@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.8.16 — 2026-11-22
 
 - **Zoom up to 10000 %** (it stopped at 1600 %), typed in the box of the
   zoom or chosen there (3200, 6400 and 10000 % are offered), and with
