@@ -5,6 +5,29 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.11.0 — 2026-11-23
+
+- **Tools menu**, in every mode, between View and Settings: what works on
+  the document as a whole or on several (Page sorter, Word index, Run
+  steps on several files, Compare, Find all). The mode Annotate's own menu,
+  called Tools before, is now called Annotate.
+- **Page sorter** (Tools, Ctrl+Alt+G): every page in a grid of large
+  thumbnails, to put a long document in order by dragging its pages,
+  several at once, and turn, duplicate or delete them; OK makes it all one
+  step of the history, with the labels following their pages.
+- **Run steps on several files** (Tools): some of OCR, a header or footer,
+  a watermark, a reduced file size and PDF/A, in the order chosen, on each
+  file of a list; the results go to a folder, never over another file, and
+  a file that fails doesn't stop the others. The steps can be kept as
+  named recipes.
+- **History** (View > Panels, F10): every step of undo since the document
+  was opened, each said in a few words; a click on a step undoes or redoes
+  everything up to it.
+- **Stamps of one's own** (right click on the Stamp tool > My stamps): made
+  of a picture or of a page of a PDF (only what is drawn on it, on a
+  transparent background, at its true size), kept in a library and put
+  like the standard ones.
+
 ## 1.10.1 — 2026-11-23
 
 - The test of the attached files passes on Windows: it compared the file
