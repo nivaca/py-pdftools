@@ -38,6 +38,7 @@ class OutlineMixin:
         self.outline_filter.setClearButtonEnabled(True)
         self.outline_filter.textChanged.connect(self._filter_outline)
         self.outline_tree = tree = QTreeWidget()
+        tree.setAccessibleName(tr("Bookmarks"))
         tree.setColumnCount(2)
         tree.setHeaderLabels([tr("Bookmark"), tr("Page")])
         tree.header().setSectionResizeMode(0, QHeaderView.ResizeMode.Stretch)

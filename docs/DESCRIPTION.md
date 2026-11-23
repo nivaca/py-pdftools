@@ -1438,10 +1438,41 @@ is black. The pages that differ are looked for only when Next difference
 asks for them, so a long document opens at once. The password loop that
 Compare with another version had was made a method of its own, for both.
 
+59. Accessibility
+-----------------
+
+Last, the window was made easier to use without the mouse and with a screen
+reader (`gui/access.py`). A screen reader says the name of a field or a
+list, and most of them had none: a test now looks at every field, list and
+view of the window, in every mode, and fails on one without a name. Rather
+than naming the eighty or so by hand, those without one take it from their
+placeholder text, or from the first clause of their tooltip, or from the
+label beside them in their layout (the row of a form, the cell to the left
+in a grid, with the title of their group); a field wrapped in a widget of
+its own, as in Impose, takes its wrapper's. The pages, the lists and the
+trees with none of these got names of their own. This runs when the window
+opens and when a mode is chosen, since some panels are made only then. A
+combo box's popup list is a window of its own, and its layout could vanish
+under PySide while it was read, so it is left out, and named by its box.
+
+View > Next panel (Ctrl+F6) and Previous panel (Ctrl+Shift+F6) take the
+keyboard from the thumbnails to the pages and to each panel shown, from left
+to right, going round, and the status bar says where it went.
+
+Settings > Appearance > Theme has a High contrast theme: white on black,
+yellow for what is chosen, cyan links. The palette alone was not enough,
+since some styles draw the frames of the fields in colours close to the
+background, so this theme adds a short style sheet: a white border around
+each field and list, and a thicker yellow one around the one with the
+focus. With that style sheet set, the program crashed now and then as it
+ended, when Qt destroyed it after the application; it is now removed when
+the program is about to quit, and the crash, six times in eight before, did
+not come back in eight tries.
+
 Testing
 -------
 
-The program has 694 tests (`uv run pytest`): those of the four programs,
+The program has 698 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

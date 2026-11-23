@@ -1,6 +1,6 @@
 """How the program looks and behaves, as Settings > Appearance and Settings > Documents say (the settings in
 the configuration file, with their defaults in core/config.py): the colours of the interface (as the system
-has them, light or dark), its size (the size of its letters, from 90 to 150 %), and what the windows read
+has them, light, dark or of high contrast), its size (the size of its letters, from 90 to 150 %), and what the windows read
 when they need it (see value)."""
 
 from __future__ import annotations
@@ -10,7 +10,7 @@ import pathlib
 
 from ..core import config
 
-THEMES = ("system", "light", "dark")
+THEMES = ("system", "light", "dark", "contrast")
 SCALES = (90, 100, 110, 125, 150)
 OPENINGS = ("document", "page", "width", "actual")  # (how a document opens, without a place remembered)
 _BASE_POINTS: float | None = None  # (the size of the letters before any scale: that of the system)
@@ -36,12 +36,27 @@ PALETTES = {
              "Highlight": "#3d6fb4", "HighlightedText": "#ffffff", "ToolTipBase": "#3c3f41",
              "ToolTipText": "#e6e6e6", "Link": "#6ea8fe", "LinkVisited": "#b392f0", "PlaceholderText": "#8c8f94",
              "Light": "#4a4d50", "Midlight": "#3f4245", "Mid": "#2f3134", "Dark": "#18191b", "Shadow": "#000000"},
+    # Alto contraste: blanco sobre negro, lo elegido en amarillo con texto negro, los enlaces en cian; los bordes
+    # (Light, Mid, Dark) claros, para que cada botón y casilla se distinga del fondo.
+    "contrast": {"Window": "#000000", "WindowText": "#ffffff", "Base": "#000000", "AlternateBase": "#1a1a1a",
+                 "Text": "#ffffff", "Button": "#000000", "ButtonText": "#ffffff", "BrightText": "#ffff00",
+                 "Highlight": "#ffff00", "HighlightedText": "#000000", "ToolTipBase": "#000000",
+                 "ToolTipText": "#ffffff", "Link": "#00ffff", "LinkVisited": "#ff80ff", "PlaceholderText": "#c8c8c8",
+                 "Light": "#ffffff", "Midlight": "#c8c8c8", "Mid": "#ffffff", "Dark": "#ffffff", "Shadow": "#ffffff"},
 }
-DISABLED = {"light": "#a0a0a0", "dark": "#7a7d80"}  # (the text of what can't be used)
+DISABLED = {"light": "#a0a0a0", "dark": "#7a7d80", "contrast": "#9a9a9a"}  # (the text of what can't be used)
+# Con alto contraste, cada casilla, lista y desplegable lleva un borde blanco, y el que tiene el foco uno amarillo
+# más grueso: la paleta sola no basta, porque algunos estilos dibujan esos bordes con colores casi del fondo.
+CONTRAST_STYLE = (
+    "QLineEdit, QComboBox, QAbstractSpinBox, QAbstractItemView, QPlainTextEdit, QTextEdit "
+    "{ border: 1px solid #ffffff; }"
+    "QLineEdit:focus, QComboBox:focus, QAbstractSpinBox:focus, QAbstractItemView:focus, QPlainTextEdit:focus, "
+    "QTextEdit:focus, QGraphicsView:focus { border: 2px solid #ffff00; }"
+)
 
 
 def palette(name: str):
-    """The palette of the theme NAME ('light' or 'dark'), with every role set."""
+    """The palette of the theme NAME ('light', 'dark' or 'contrast'), with every role set."""
     from PySide6.QtGui import QColor, QPalette
 
     out = QPalette()
@@ -106,12 +121,13 @@ def apply_theme(name: str | None = None):
     if _SYSTEM_ICONS is None:
         _SYSTEM_ICONS = QIcon.themeName()
     hints = QGuiApplication.styleHints()
-    if name in ("light", "dark"):
-        dark = name == "dark"
+    if name in PALETTES:
+        dark = name != "light"  # (high contrast is white on black: the icons of a dark theme)
         # (also the scheme, for what reads it: the style, the dialogs of the system, where they follow it)
         if hasattr(hints, "setColorScheme"):  # (Qt 6.8 or later)
             hints.setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
         app.setPalette(palette(name))
+        app.setStyleSheet(CONTRAST_STYLE if name == "contrast" else "")
         if _SYSTEM_ICONS:
             QIcon.setThemeName(icon_theme(_SYSTEM_ICONS, dark))
         return
@@ -119,6 +135,7 @@ def apply_theme(name: str | None = None):
         hints.unsetColorScheme()
     # Una paleta vacía (sin ningún papel fijado) devuelve la de la plataforma
     app.setPalette(QPalette())
+    app.setStyleSheet("")
     if _SYSTEM_ICONS:
         QIcon.setThemeName(_SYSTEM_ICONS)
 

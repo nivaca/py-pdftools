@@ -162,6 +162,7 @@ class RedactMixin:
     def _redact_panel(self) -> QWidget:
         """The list of the boxes, and the colour and pages of those selected (or of new ones)."""
         self.redact_table = table = QTableWidget(0, 4)
+        table.setAccessibleName(tr("Redaction boxes"))
         table.setHorizontalHeaderLabels([tr("Page"), tr("Goes on"), tr("Colour"), tr("Size (mm)")])
         table.verticalHeader().setVisible(False)
         table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)

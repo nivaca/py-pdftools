@@ -13240,4 +13240,32 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>No page before this one differs</en>
     <tr>Ninguna página antes de esta difiere</tr>
   </text>
+  <text>
+    <en>High contrast</en>
+    <tr>Alto contraste</tr>
+  </text>
+  <text>
+    <en>Next panel</en>
+    <tr>Panel siguiente</tr>
+  </text>
+  <text>
+    <en>Previous panel</en>
+    <tr>Panel anterior</tr>
+  </text>
+  <text>
+    <en>The keyboard to the next part of the window: the thumbnails, the pages, each panel shown</en>
+    <tr>El teclado a la parte siguiente de la ventana: las miniaturas, las páginas, cada panel visible</tr>
+  </text>
+  <text>
+    <en>The keyboard to the previous part of the window</en>
+    <tr>El teclado a la parte anterior de la ventana</tr>
+  </text>
+  <text>
+    <en>Sort by</en>
+    <tr>Ordenar por</tr>
+  </text>
+  <text>
+    <en>Redaction boxes</en>
+    <tr>Recuadros de censura</tr>
+  </text>
 </interface>

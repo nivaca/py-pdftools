@@ -70,6 +70,9 @@ def main(argv: list[str] | None = None) -> int:
     from . import appearance
 
     appearance.apply()  # (the colours and the size of the interface: Settings > Appearance)
+    # La hoja de estilo del alto contraste se quita antes de salir: si Qt la destruye después que la aplicación,
+    # el programa puede romperse al terminar (un fallo de segmentación, no siempre).
+    app.aboutToQuit.connect(lambda: app.setStyleSheet(""))
     if sys.platform == "darwin":  # (los documentos del Finder y el clic en el Dock: ver appevents.py)
         from . import appevents
 

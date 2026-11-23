@@ -263,6 +263,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
     def _build(self):
         self.pages = QListWidget()
+        self.pages.setAccessibleName(tr("Page thumbnails"))
         from .navigation import PageTips
 
         self.pages.viewport().installEventFilter(PageTips(self))
@@ -307,6 +308,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._size_thumbnails()
 
         self.canvas = PageCanvas()
+        self.canvas.setAccessibleName(tr("Pages"))
         self.canvas.pen_pressure, self.canvas.pen_curve, self.canvas.pen_button = (
             self.prefs.pen_pressure, self.prefs.pen_curve, self.prefs.pen_button)
         self.canvas.continuous = self.settings.value("continuous", "true") != "false"
@@ -683,6 +685,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_gaps.setToolTip(tr("Unticked, the pages follow one another without a gap, as one long sheet"))
         self.a_gaps.toggled.connect(self.set_gaps)
         m.addAction(self.a_gaps)
+        # El foco de panel en panel con el teclado (miniaturas, páginas, cada panel visible): véase access.py.
+        from .access import focus_panel
+
+        self.a_next_panel = self._action(m, tr("Next panel"), lambda: focus_panel(self, 1), "Ctrl+F6",
+                                         tip=tr("The keyboard to the next part of the window: the thumbnails, the "
+                                                "pages, each panel shown"))
+        self.a_prev_panel = self._action(m, tr("Previous panel"), lambda: focus_panel(self, -1), "Ctrl+Shift+F6",
+                                         tip=tr("The keyboard to the previous part of the window"))
         # Recortar los márgenes, como Ver > Recortar la vista de Okular; se recuerda para la próxima vez.
         self.a_trim = QAction(tr("Trim margins"), self, checkable=True, checked=self.canvas.trim)
         self.a_trim.setToolTip(tr("Only the part of each page that has ink: the white margins left out, so that "
@@ -1070,6 +1080,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         mode.entered()
         self.settings.setValue("mode", key)
         self.refresh()
+        from .access import name_widgets
+
+        name_widgets(self)  # (los paneles del modo, hechos al entrar en él, también con nombre)
 
     def command_palette(self):
         """Help > Find a command (see palette.py)."""

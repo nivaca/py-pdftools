@@ -38,6 +38,7 @@ class PdfPane(QWidget):
         # de trabajo carga el archivo.
         self.outputs.currentIndexChanged.connect(self.output_selected.emit)
         self.page = QSpinBox()
+        self.page.setAccessibleName(tr("Page"))
         self.page.setMinimum(1)
         self.page.setPrefix(tr("page "))
         self.page.setEnabled(False)

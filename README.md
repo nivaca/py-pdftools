@@ -377,7 +377,9 @@ on what can be done in the mode chosen; Settings > Appearance can show it
 whenever a mode is chosen, and can turn on the tooltips (both are off at
 first). The tooltips of the toolbars show always. Help > Find a command
 (Ctrl+Alt+I) finds any command of the menus by any word of its name or of its
-place in them, and runs it.
+place in them, and runs it. View > Next panel (Ctrl+F6) takes the keyboard to
+the thumbnails, the pages and each panel in turn, and every field and list has
+a name for screen readers.
 
 The mode OCR (Ctrl+Shift+O, or its button Recognise text) reads the text of
 scanned pages with tesseract and writes it into the document, invisible, under their
@@ -442,8 +444,8 @@ Settings
 
 The language of the interface is chosen in Settings > Language (or
 Settings > Appearance), or with `py-pdftools interface es`. Settings >
-Appearance also sets the colours of the interface (as the system, light or
-dark), its size, how sharp the text of the pages is drawn, the hints shown when a mode is chosen, and how the
+Appearance also sets the colours of the interface (as the system, light,
+dark or high contrast), its size, how sharp the text of the pages is drawn, the hints shown when a mode is chosen, and how the
 toolbars look; Settings > Documents, how a document opened for the first
 time is shown, whether each opens where it was left, whether to ask before
 opening a web address, how many recent documents File > Open recent shows,

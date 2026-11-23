@@ -170,6 +170,7 @@ class SequencePanel(QWidget):
         super().__init__(window)
         self.w = window
         self.list = QListWidget()
+        self.list.setAccessibleName(tr("Sequence"))
         # Los pasos se reordenan arrastrándolos en la lista; cada uno es una línea de comando en sintaxis de shell.
         self.list.setDragDropMode(QListWidget.DragDropMode.InternalMove)
         self.list.itemDoubleClicked.connect(lambda _: self.edit_selected())
@@ -471,6 +472,7 @@ class Workspace(QMainWindow):
 
     def _build_central(self):
         self.tree = QTreeWidget()
+        self.tree.setAccessibleName(tr("Commands"))
         self.tree.setHeaderHidden(True)
         self.tree.setMinimumWidth(190)
         listed = set()

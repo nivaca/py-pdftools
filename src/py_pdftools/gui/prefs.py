@@ -303,7 +303,8 @@ class SettingsDialog(QDialog):
         page = QWidget()
         form = QFormLayout(page)
         self.theme = QComboBox()
-        for key, name in (("system", N_("As the system")), ("light", N_("Light")), ("dark", N_("Dark"))):
+        for key, name in (("system", N_("As the system")), ("light", N_("Light")), ("dark", N_("Dark")),
+                          ("contrast", N_("High contrast"))):
             self.theme.addItem(tr(name), key)
         self.theme.setCurrentIndex(max(0, self.theme.findData(appearance.value("theme"))))
         form.addRow(tr("Theme:"), self.theme)

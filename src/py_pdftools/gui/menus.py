@@ -88,4 +88,4 @@ def regroup(window):
                       "a_zoom_in", "a_zoom_out"]),
         (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", "a_trim", SEP, "a_turn_right",
                              "a_turn_left"]),
-        "m_reading", SEP, "a_split", "a_detach", "a_present"])
+        "m_reading", SEP, "a_split", "a_detach", "a_present", SEP, "a_next_panel", "a_prev_panel"])

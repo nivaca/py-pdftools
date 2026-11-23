@@ -162,10 +162,12 @@ class Panel(QWidget):
             box.setSizeAdjustPolicy(QComboBox.SizeAdjustPolicy.AdjustToMinimumContentsLengthWithIcon)
             box.setMinimumContentsLength(6)
         self.sort = QComboBox()
+        self.sort.setAccessibleName(tr("Sort by"))
         self.listed = QLabel()
         self.listed.setStyleSheet("color: palette(placeholder-text);")
         self.model = model
         self.table = QTableView()
+        self.table.setAccessibleName(tr("Annotations"))
         self.table.setModel(model)
         self.table.verticalHeader().setVisible(False)
         # Altura fija de fila: con ella Qt no mide cada fila, lo que importa con miles.

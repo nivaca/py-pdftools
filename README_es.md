@@ -395,7 +395,9 @@ Configuración > Aspecto puede mostrarlo cada vez que se elige un modo, y
 activar las ayudas emergentes (al principio, ambas cosas están
 desactivadas). Las de las barras de herramientas se ven siempre. Ayuda > Buscar
 una orden (Ctrl+Alt+I) busca cualquier orden de los menús por cualquier palabra
-de su nombre o de su lugar en ellos, y la ejecuta.
+de su nombre o de su lugar en ellos, y la ejecuta. Ver > Panel siguiente
+(Ctrl+F6) lleva el teclado a las miniaturas, las páginas y cada panel por turno,
+y cada casilla y lista tiene un nombre para los lectores de pantalla.
 
 El modo OCR (Ctrl+Mayús+O, o su botón Reconocer el texto) lee con
 tesseract el texto de las páginas escaneadas y lo escribe en el documento, invisible,
@@ -466,7 +468,7 @@ Configuración
 El idioma de la interfaz se elige en Configuración > Idioma (o en
 Configuración > Apariencia), o con `py-pdftools interface es`.
 Configuración > Apariencia fija además los colores de la interfaz (como el
-sistema, claros u oscuros), su tamaño, la nitidez del texto de las páginas, los consejos que aparecen al elegir
+sistema, claros, oscuros o de alto contraste), su tamaño, la nitidez del texto de las páginas, los consejos que aparecen al elegir
 un modo y cómo se ven las barras de herramientas; Configuración >
 Documentos, cómo se muestra un documento abierto por primera vez, si cada
 uno se abre donde se dejó, si se pregunta antes de abrir una dirección web,

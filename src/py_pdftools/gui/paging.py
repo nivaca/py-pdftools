@@ -190,6 +190,7 @@ class PagesMixin:
         # The six columns: the first five are editable widgets (see widgets.range_row); the last shows
         # the labels the range gives, and takes up the spare width.
         self.ranges_table = table = QTableWidget(0, 6)
+        table.setAccessibleName(tr("Ranges of page labels"))
         table.setHorizontalHeaderLabels([tr("From page"), tr("Style"), tr("Starts at"), tr("Prefix"), tr("Suffix"),
                                          tr("Labels")])
         table.verticalHeader().setVisible(False)
@@ -211,6 +212,7 @@ class PagesMixin:
         buttons.addStretch(1)
         # PageList admite arrastrar páginas dentro de la lista y soltar archivos PDF desde fuera.
         self.page_list = pl = PageList()
+        pl.setAccessibleName(tr("Pages"))
         pl.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         pl.moved.connect(self.move_pages)
         pl.files_dropped.connect(self.files_dropped)
