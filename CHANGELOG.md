@@ -5,6 +5,12 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.10.1 — 2026-11-23
+
+- The test of the attached files passes on Windows: it compared the file
+  opened as text, and Qt writes the path C:/... where Python writes C:\...
+  (the program itself was right).
+
 ## 1.10.0 — 2026-11-23
 
 - **Attached files** (View > Panels, F9): the files the document carries,
