@@ -83,7 +83,7 @@ quedan como estaban, cada uno con su repositorio y sus versiones.
                            header-footer, watermark y pages
     py-imposition 0.10.3   el modo Imponer, y las órdenes de impose
     py-pdfocr 1.0.3        el modo OCR, y la orden ocr
-    pdf-word-finder 1.6    Editar > Índice de palabras, y la orden find-words
+    pdf-word-finder 1.6    Herramientas > Índice de palabras, y la orden find-words
 
 Lo que cambió al reunirlos:
 
@@ -230,7 +230,7 @@ cómo se dispone:
   en otra parte, o con Ctrl, dibuja un recuadro), Buscar y censurar, los
   códigos de censura y el panel de los recuadros;
 * **Anotar**: las herramientas de py-annotate, en la segunda barra y en el
-  menú Herramientas; el panel de las anotaciones a la derecha, que se puede
+  menú Anotar; el panel de las anotaciones a la derecha, que se puede
   buscar, filtrar y ordenar;
 * **Foliar**: los intervalos de etiquetas y la lista de las páginas con sus
   etiquetas, a la derecha; las acciones sobre las páginas elegidas, en la
@@ -317,12 +317,12 @@ etiqueta de página; como las demás barras, se cambia en Personalizar las
 barras de herramientas. El cuadro del zoom está en la barra Cuadro del
 zoom, que puede moverse a cualquier lugar u ocultarse.
 Archivo > Propiedades del documento muestra qué es un documento (sus metadatos,
-su archivo, sus páginas, su seguridad) y las fuentes que usa. Archivo > Comparar
+su archivo, sus páginas, su seguridad) y las fuentes que usa. Herramientas > Comparar
 > Comparar visualmente muestra este documento y otro PDF página a página, lado a
 lado con lo que difiere enmarcado, o uno sobre otro (este en rojo, el otro en
 azul, en negro donde coinciden), y va de una página que difiere a la siguiente.
 
-Editar > Índice de palabras (de pdf-word-finder; también un botón de la
+Herramientas > Índice de palabras (de pdf-word-finder; también un botón de la
 barra Buscar) busca las palabras, frases
 o expresiones regulares de una lista, escrita o leída de un archivo, e
 informa las páginas en que aparece cada una, según sus etiquetas, en
@@ -373,7 +373,7 @@ ninguna parte pase de un tamaño. Desde la línea de órdenes:
 `py-pdftools export pages | images | text`, `py-pdftools pdf-version`, y
 `py-pdftools pages --split-bookmarks 1` o `--split-size 10`.
 
-Ver > Clasificador de páginas (Ctrl+Alt+G) muestra todas las páginas en una
+Herramientas > Clasificador de páginas (Ctrl+Alt+G) muestra todas las páginas en una
 cuadrícula de miniaturas grandes, para ordenar un documento largo
 arrastrando sus páginas, varias a la vez, y girarlas, duplicarlas o
 borrarlas; Aceptar lo hace todo como un solo cambio, que Deshacer revierte

@@ -454,11 +454,14 @@ pueden usarse en ese momento, en ese modo.
 
 \index{modos}\index{menus@menús!submenus@submenús}\index{zoom}\index{anotaciones!agrupar y alinear}\index{censura}\index{ocr@OCR}\index{imposicion@imposición}%
 También los menús cambian con el modo: Censurar, Páginas, Imponer y OCR
-aparecen en sus modos, y el menú Herramientas en Anotar. Los menús
-Archivo, Editar y Ver están siempre, agrupados en submenús
-(\menu{Archivo\then Nuevo}, \menu{Exportar}, \menu{Importar},
+aparecen en sus modos, y el menú Anotar en Anotar. Los menús Archivo,
+Editar, Ver y Herramientas están siempre, los tres primeros agrupados en
+submenús (\menu{Archivo\then Nuevo}, \menu{Exportar}, \menu{Importar},
 \menu{Seguridad}; \menu{Ver\then Paneles}, \menu{Ir a}, \menu{Zoom},
-\menu{Disposición de página}).
+\menu{Disposición de página}). \menu{Herramientas} reúne lo que trabaja
+sobre el documento entero, o sobre varios: el clasificador de páginas, el
+índice de palabras, la comparación con otra versión (como texto, o a la
+vista) y la búsqueda de todos los lugares de un texto.
 
 \subsection{Barras de herramientas}
 
@@ -570,10 +573,10 @@ Tiene también:
 
 \index{comparar versiones}\index{anotaciones}%
 \begin{description}
-\item[Comparar\then Comparar con otra versión] marca en este documento lo
+\item[Herramientas\then Comparar\then Comparar con otra versión] marca en este documento lo
   que difiere de otra versión del mismo texto (otra edición, un borrador):
   sus palabras, en el orden de lectura.
-\item[Comparar\then Comparar visualmente] muestra este documento, tal como
+\item[Herramientas\then Comparar\then Comparar visualmente] muestra este documento, tal como
   está guardado, y otro PDF página a página, para ver lo que se ve
   distinto: también las imágenes, los dibujos y el lugar de cada cosa, no
   solo las palabras. \menu{Lado a lado} enmarca en las dos páginas los
@@ -787,7 +790,7 @@ poco.
 
 \index{modos}\index{modos!anotar@Anotar}\index{barras de herramientas}\index{anotaciones}%
 En el modo Anotar (figura~\ref{fig:annotate_es}), la segunda barra reúne
-las herramientas de anotación, que están también en el menú Herramientas,
+las herramientas de anotación, que están también en el menú Anotar,
 cada una con su tecla; el panel de la derecha lista las anotaciones del
 documento.
 
@@ -797,7 +800,7 @@ documento.
 \subsection{Las herramientas}
 
 \index{barras de herramientas}\index{anotaciones}%
-Una herramienta se elige en la barra, en el menú Herramientas o con su
+Una herramienta se elige en la barra, en el menú Anotar o con su
 tecla, y sigue elegida hasta que se elige otra. Con Seleccionar (\key{V}),
 un clic selecciona una anotación, un marco arrastrado alrededor de varias
 las selecciona todas, y las asas de una anotación seleccionada la mueven y
@@ -842,7 +845,7 @@ Enlace & \key{J} & Un enlace (sección~\ref{sec:links}).\\
 \index{herramientas!mano@Mano}\index{anotaciones}\index{anotaciones!sello}\index{firma manuscrita}%
 El clic derecho sobre una herramienta decide qué pone: el sello o la marca
 de verificación, y la firma, que se dibuja a mano una vez en un pequeño
-diálogo y se guarda para después. \menu{Herramientas\then Propiedades de la
+diálogo y se guarda para después. \menu{Anotar\then Propiedades de la
 herramienta} fija el color, el ancho, la fuente y la opacidad que la
 herramienta da a las anotaciones nuevas.
 
@@ -932,7 +935,7 @@ todas.
 \label{sec:findmark}
 
 \index{buscar!y resaltar}\index{expresiones regulares}\index{comodines}\index{anotaciones}\index{anotaciones!resaltado}\index{anotaciones!subrayado, tachado}%
-\menu{Herramientas\then Buscar y resaltar} (\key{Ctrl+F},
+\menu{Anotar\then Buscar y resaltar} (\key{Ctrl+F},
 figura~\ref{fig:find_highlight_es}) busca una palabra, una frase o un
 patrón en las páginas y marca los lugares encontrados con un resaltado, un
 subrayado, un tachado o cualquier otra anotación de texto. Puede distinguir
@@ -1280,7 +1283,7 @@ insertar las páginas de otro PDF o reemplazarlas por páginas de otro PDF
 arrastrarse en las miniaturas.
 
 \index{paginas@páginas!ordenar}\index{clasificador de paginas@clasificador de páginas}%
-Para un documento largo, \menu{Ver\then Clasificador de páginas}
+Para un documento largo, \menu{Herramientas\then Clasificador de páginas}
 (\key{Ctrl+Alt+G}, también en el clic derecho sobre las miniaturas;
 figura~\ref{fig:sorter_es}) muestra todas las páginas en una cuadrícula de
 miniaturas grandes, que ocupa casi toda la ventana. Las páginas se ordenan
@@ -1389,7 +1392,7 @@ está en \menu{Lo que pide el documento}.
 \section{Índice de palabras}
 \label{sec:wordindex}
 \index{indice de palabras@índice de palabras}\index{etiquetas de pagina@etiquetas de página}\index{linea de ordenes@línea de órdenes}%
-\menu{Editar\then Índice de palabras} (figura~\ref{fig:word_index_es}),
+\menu{Herramientas\then Índice de palabras} (figura~\ref{fig:word_index_es}),
 también un botón de la barra \menu{Buscar}, viene
 de mi programa \texttt{pdf-word-finder}. Busca las palabras, frases o
 patrones de una lista e informa las páginas en que aparece cada uno: no su

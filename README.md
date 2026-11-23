@@ -81,7 +81,7 @@ were, each with its own repository and releases.
                            header-footer, watermark and pages
     py-imposition 0.10.3   the mode Impose, and the commands under impose
     py-pdfocr 1.0.3        the mode OCR, and the command ocr
-    pdf-word-finder 1.6    Edit > Word index, and the command find-words
+    pdf-word-finder 1.6    Tools > Word index, and the command find-words
 
 What changed when they were brought together:
 
@@ -224,7 +224,7 @@ and how it is arranged:
   with Ctrl, it draws a box), Find and redact, redaction codes, and the
   panel of the boxes;
 * **Annotate**: the tools of py-annotate, in the second toolbar and the
-  menu Tools; the panel of the annotations on the right, which can be
+  menu Annotate; the panel of the annotations on the right, which can be
   searched, filtered and sorted;
 * **Foliate**: the ranges of labels and the list of the pages with their
   labels, on the right; the actions on the pages chosen in the toolbar and
@@ -304,12 +304,12 @@ or label; like the other toolbars, it can be changed in Customize the
 toolbars. The box of the zoom is on the toolbar Zoom box, which can be moved
 anywhere or hidden. File > Document properties
 shows what a document is (its metadata, file, pages, security) and the
-fonts it uses. File > Compare > Compare visually shows this document and
+fonts it uses. Tools > Compare > Compare visually shows this document and
 another PDF page by page, side by side with what differs framed, or one over
 the other (this one red, the other blue, black where they agree), and goes
 from one page that differs to the next.
 
-Edit > Word index (from pdf-word-finder; also a button on the toolbar
+Tools > Word index (from pdf-word-finder; also a button on the toolbar
 Find) finds the words, phrases or
 regular expressions of a list, typed or read from a file, and gives the
 pages where each appears, by their labels, as lines ready for the index of
@@ -357,7 +357,7 @@ From the command line: `py-pdftools export pages | images | text`,
 `py-pdftools pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
 `--split-size 10`.
 
-View > Page sorter (Ctrl+Alt+G) shows every page in a grid of large
+Tools > Page sorter (Ctrl+Alt+G) shows every page in a grid of large
 thumbnails, to put a long document in order by dragging its pages, several
 at once, and to turn, duplicate or delete them; OK makes it all as one
 change, which Undo takes back at once.

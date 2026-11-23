@@ -42,6 +42,23 @@ def test_grouped_and_nothing_lost(window):
     assert titles[:5] == ["Panels", "Annotations", "Go to", "Zoom", "Page layout"]
 
 
+def test_the_menu_tools(window):
+    """Tools, in every mode, between View and Settings: what works on the document as a whole or on several,
+    each action in one menu only; the mode Annotate's own menu is called Annotate."""
+    bar = [a.text().replace("&", "") for a in window.menuBar().actions()]
+    assert "Annotate" in bar and bar.index("Tools") == bar.index("View") + 1 == bar.index("Settings") - 1
+    tools = reachable(window.m_utils)
+    for name in ("a_sorter", "a_word_index", "a_compare", "a_visual_compare", "a_find_all"):
+        assert id(getattr(window, name)) in tools, name
+    elsewhere = set()
+    for menu in (window.m_file, window.m_edit, window.m_view):
+        elsewhere |= reachable(menu)
+    assert not (tools & elsewhere)
+    for mode in window.modes:
+        window.set_mode(mode)
+        assert window.m_utils.menuAction().isVisible(), mode
+
+
 def test_shortcuts_kept(window):
     """Every action with a shortcut that was in File, Edit or View is still in a menu of the bar (where Qt
     finds its shortcut), with its keys."""

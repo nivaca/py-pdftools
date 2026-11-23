@@ -438,10 +438,13 @@ commands that can be used at that moment, in that mode, are there.
 
 \index{modes}\index{menus!submenus}\index{zoom}\index{annotations!grouping and aligning}\index{redaction}\index{ocr@OCR}\index{imposition}%
 The menus change with the mode too: Redact, Pages, Impose and OCR appear
-in their modes, and the menu Tools in Annotate. The menus File, Edit and
-View are always there, grouped in submenus (\menu{File\then New},
-\menu{Export}, \menu{Import}, \menu{Security}; \menu{View\then Panels},
-\menu{Go to}, \menu{Zoom}, \menu{Page layout}).
+in their modes, and the menu Annotate in Annotate. The menus File, Edit,
+View and Tools are always there, the first three grouped in submenus
+(\menu{File\then New}, \menu{Export}, \menu{Import}, \menu{Security};
+\menu{View\then Panels}, \menu{Go to}, \menu{Zoom}, \menu{Page layout}).
+\menu{Tools} gathers what works on the document as a whole, or on several
+documents: the page sorter, the word index, comparing with another version
+(as text, or visually), and finding every place of a text.
 
 \subsection{Toolbars}
 
@@ -547,10 +550,10 @@ PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
 
 \index{comparing versions}\index{annotations}%
 \begin{description}
-\item[Compare\then Compare with another version] marks on this document
+\item[Tools\then Compare\then Compare with another version] marks on this document
   what differs from another version of the same text (another edition, a
   draft): its words, in reading order.
-\item[Compare\then Compare visually] shows this document, as saved, and
+\item[Tools\then Compare\then Compare visually] shows this document, as saved, and
   another PDF page by page, to see what looks different: also pictures,
   drawings and where things are, not only words. \menu{Side by side} frames
   on both pages the places that differ; \menu{Overlay} lays one page over
@@ -747,7 +750,7 @@ a few pixels tall. Pictures get a little darker and sharper too.
 
 \index{modes}\index{modes!annotate@Annotate}\index{toolbars}\index{annotations}%
 In the mode Annotate (figure~\ref{fig:annotate_en}), the second toolbar
-holds the tools of annotation, which are also in the menu Tools, each with
+holds the tools of annotation, which are also in the menu Annotate, each with
 its key; the panel on the right lists the annotations of the document.
 
 \shot{annotate_en}{1}{The mode Annotate: a highlight, a note, a rectangle,
@@ -756,7 +759,7 @@ its key; the panel on the right lists the annotations of the document.
 \subsection{The tools}
 
 \index{toolbars}\index{annotations}%
-A tool is chosen in the toolbar, in the menu Tools, or with its key, and
+A tool is chosen in the toolbar, in the menu Annotate, or with its key, and
 stays chosen until another is. With Select (\key{V}), a click selects an
 annotation, a frame dragged around several selects them all, and the
 handles of a selected annotation move and resize it.
@@ -800,7 +803,7 @@ Link & \key{J} & A link (section~\ref{sec:links}).\\
 \index{tools!hand@Hand}\index{annotations}\index{annotations!stamp}\index{annotations!check mark}\index{signature, handwritten}\index{tools!properties}%
 The right click on a tool sets what it does: the stamp or check mark it
 puts, and the signature, which is drawn once by hand in a small dialog and
-kept for later. \menu{Tools\then Tool properties} sets the colour,
+kept for later. \menu{Annotate\then Tool properties} sets the colour,
 width, font and opacity the tool gives to new annotations.
 
 \index{settings!shortcuts}%
@@ -883,7 +886,7 @@ size. \menu{Edit\then Remove annotations} deletes those of the page, or all.
 \label{sec:findmark}
 
 \index{finding!and highlighting}\index{wildcards}\index{annotations}\index{annotations!highlight}\index{annotations!underline, strikeout}%
-\menu{Tools\then Find and highlight} (\key{Ctrl+F}, figure~\ref{fig:find_highlight_en})
+\menu{Annotate\then Find and highlight} (\key{Ctrl+F}, figure~\ref{fig:find_highlight_en})
 finds a word, a phrase or a pattern on the pages and marks the places
 found, with a highlight, an underline, a strikeout or any other text
 annotation. It can match case and whole words only, use a regular
@@ -1214,7 +1217,7 @@ pages of another PDF, or replace them by pages of another PDF (their links
 and bookmarks stay). Pages can also be dragged in the thumbnails.
 
 \index{pages!arranging}\index{page sorter}%
-For a long document, \menu{View\then Page sorter} (\key{Ctrl+Alt+G}, also in
+For a long document, \menu{Tools\then Page sorter} (\key{Ctrl+Alt+G}, also in
 the right click on the thumbnails; figure~\ref{fig:sorter_en}) shows every
 page in a grid of large thumbnails, which fills most of the window. The
 pages are put in order by dragging them, several at once if several are
@@ -1319,7 +1322,7 @@ size, fit to width, fit to page), and the page it opens at. This program obeys t
 \section{A word index}
 \label{sec:wordindex}
 \index{word index}\index{page labels}\index{command line}%
-\menu{Edit\then Word index} (figure~\ref{fig:word_index_en}), also a
+\menu{Tools\then Word index} (figure~\ref{fig:word_index_en}), also a
 button on the toolbar \menu{Find}, comes from my
 program \texttt{pdf-word-finder}. It finds the words, phrases or patterns of
 a list, and gives the pages where each appears: not their place in the

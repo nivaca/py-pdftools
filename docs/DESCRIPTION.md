@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-one stages.
+I explain how it was made, in sixty-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1502,6 +1502,20 @@ has to know how many pages the document had, since a page left out is a
 page deleted, and the labels must then follow their pages. A grid of a
 long book would take a while to draw, so a thumbnail is drawn only when it
 comes into view, one at each turn of the event loop.
+
+62. A menu Tools
+----------------
+
+The utilities that work on the document as a whole had been put wherever
+there was room: the word index in Edit, the page sorter in View, the
+comparisons in File, and File was about to pass the sixteen items a test
+allows it. They are now in a menu of their own, Tools, which every mode
+shows, between View and Settings, as KDE's programs have one. The menu that
+the mode Annotate already called Tools, which holds the tools of
+annotation, is called Annotate now, as the other modes name their menus
+after themselves. Each action is in one menu only: the menus are filled in
+order, and what Tools takes is not put back at the end of the menu where
+it was made.
 
 Testing
 -------

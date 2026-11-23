@@ -13416,4 +13416,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} chosen</en>
     <tr>elegidas: {count}</tr>
   </text>
+  <text>
+    <en>&amp;Annotate</en>
+    <tr>&amp;Anotar</tr>
+  </text>
 </interface>

@@ -600,7 +600,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # Sus textos, y qué acciones están habilitadas, se fijan cada vez que se abre (ver _edit_menu).
         m.aboutToShow.connect(self._edit_menu)
 
-        m = self.menuBar().addMenu(tr("&Tools"))
+        # (el menú del modo Anotar: sus herramientas; el menú Herramientas, de todos los modos, va antes de Configuración)
+        m = self.menuBar().addMenu(tr("&Annotate"))
         self.m_tools = m
         m.setToolTipsVisible(True)
         # Grupo exclusivo: marcar una herramienta desmarca la anterior, en el menú y en las barras.
@@ -773,6 +774,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_zoom_out = self._action(m, tr("Zoom out"), lambda: self.canvas.zoom_by(1 / 1.25),
                                        QKeySequence.StandardKey.ZoomOut)
 
+        # Tools: what works on the document as a whole, or on several, in every mode (filled in menus.regroup)
+        self.m_utils = self.menuBar().addMenu(tr("&Tools"))
+        self.m_utils.setToolTipsVisible(True)
         m = self.menuBar().addMenu(tr("&Settings"))
         self.a_settings = self._action(m, tr("Settings…"), self.settings_dialog, [QKeySequence("Ctrl+,")])
         self.a_customize_bars = self._action(None, tr("Customize the toolbars…"), lambda: self.customize_toolbars(),

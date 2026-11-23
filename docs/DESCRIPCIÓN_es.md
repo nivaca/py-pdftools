@@ -102,7 +102,7 @@ Cada casilla, lista y vista de la ventana tiene un nombre que los lectores de pa
 
 ### Trabajar con muchas páginas
 
-Ver > Clasificador de páginas muestra todas las páginas en una cuadrícula de miniaturas grandes, que se dibujan solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace como una sola operación (`arrange.Sort`), un solo paso del historial.
+Ver > Clasificador de páginas muestra todas las páginas en una cuadrícula de miniaturas grandes, que se dibujan solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace como una sola operación (`arrange.Sort`), un solo paso del historial. El menú Herramientas, en todos los modos, reúne lo que trabaja sobre el documento entero o sobre varios (el clasificador, el índice de palabras, las comparaciones, buscar todo); el menú del modo Anotar, que se llamaba así, se llama ahora Anotar.
 
 ## Ambiente
 

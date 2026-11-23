@@ -24,9 +24,10 @@ def _all(menu: QMenu) -> set[int]:
     return found
 
 
-def _fill(window, menu: QMenu, layout: list):
+def _fill(window, menu: QMenu, layout: list, skip: frozenset = frozenset()):
     """MENU emptied (its actions are not deleted: they belong to the window) and filled with LAYOUT: names
-    of actions (a_...) or of menus (m_...) of WINDOW, SEP, and (title, layout) for a submenu."""
+    of actions (a_...) or of menus (m_...) of WINDOW, SEP, and (title, layout) for a submenu. SKIP: the ids of
+    actions placed in another menu, which are not kept here."""
     before = [a for a in menu.actions() if not a.isSeparator()]
     for act in list(menu.actions()):
         menu.removeAction(act)
@@ -50,7 +51,8 @@ def _fill(window, menu: QMenu, layout: list):
     # Lo que el arreglo no nombra no se pierde: va al final (una acción nueva que aún no tiene su lugar).
     placed = _all(menu)
     # (un submenú cuyas acciones están todas en otro lugar ya está puesto)
-    rest = [a for a in before if id(a) not in placed and not (a.menu() is not None and _all(a.menu()) <= placed)]
+    rest = [a for a in before if id(a) not in placed and id(a) not in skip
+            and not (a.menu() is not None and _all(a.menu()) <= placed)]
     if rest:
         menu.addSeparator()
         for act in rest:
@@ -68,17 +70,22 @@ def regroup(window):
     window.m_import = QMenu(tr("Import"), window)
     window.m_import.setToolTipsVisible(True)
     _fill(window, window.m_import, ["m_import_annots"])
+    # Tools first: what it takes leaves File, Edit and View (each in one menu, not two)
+    _fill(window, window.m_utils, [
+        "a_sorter", "a_word_index", "a_steps", SEP,
+        (tr("Compare"), ["a_compare", "a_visual_compare"]), SEP, "a_find_all"])
+    moved = frozenset(_all(window.m_utils))
     _fill(window, window.m_file, [
         "a_open", "a_open_tab", "a_reopen_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
         "a_save", "a_save_as", "m_save_copy", "m_export", "m_import", SEP,
         (tr("Security"), ["a_protect", SEP, "a_sign", "a_check_signatures", "a_make_id"]),
-        (tr("Compare"), ["a_compare", "a_visual_compare"]), "a_doc_props", "a_print", SEP, "a_close", "a_quit"])
+        "a_doc_props", "a_print", SEP, "a_close", "a_quit"], skip=moved)
     _fill(window, window.m_edit, [
         "a_undo", "a_redo", SEP, "a_copy", "a_copy_unwrapped", "a_paste", "a_duplicate", SEP,
         "a_props", "a_comment", "a_delete", SEP,
         (tr("Select"), ["a_select_all", "a_select_kind", "a_select_none"]),
         (tr("Arrange"), ["a_group", "a_ungroup", "a_lock", SEP, "m_align"]),
-        (tr("Remove annotations"), ["a_clear_page", "a_clear_all"]), SEP, "m_links", "a_word_index"])
+        (tr("Remove annotations"), ["a_clear_page", "a_clear_all"]), SEP, "m_links"], skip=moved)
     _fill(window, window.m_view, [
         (tr("Panels"), ["a_thumbs", "a_panel", "a_outline", "a_form", "a_results", "a_attachments"]),
         (tr("Annotations"), ["a_show", "a_only_listed", SEP, "a_next_annot", "a_prev_annot"]),
@@ -88,4 +95,4 @@ def regroup(window):
                       "a_zoom_in", "a_zoom_out"]),
         (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", "a_trim", SEP, "a_turn_right",
                              "a_turn_left"]),
-        "m_reading", SEP, "a_sorter", SEP, "a_split", "a_detach", "a_present", SEP, "a_next_panel", "a_prev_panel"])
+        "m_reading", SEP, "a_split", "a_detach", "a_present", SEP, "a_next_panel", "a_prev_panel"], skip=moved)
