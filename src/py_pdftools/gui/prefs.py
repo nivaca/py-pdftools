@@ -121,7 +121,7 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.tabs)
-        self.lone_tab = QCheckBox(tr("Show the bar of the tabs with only one document open"))
+        self.lone_tab = QCheckBox(tr("Show the tabbar with only one document open"))
         try:
             self.lone_tab.setChecked(bool(config.get("lone_tab")))
         except config.ConfigError:

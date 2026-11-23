@@ -127,8 +127,8 @@ class TabHost(QMainWindow):
             self._title()
 
     def tab_bars(self):
-        """The bars of the tabs hidden while there is only one tab, unless Settings > General > Show the tab
-        bar with only one document says otherwise; with the view split, always shown (each side's tab has its
+        """The tabbars hidden while there is only one tab, unless Settings > General > Show the tabbar
+        with only one document says otherwise; with the view split, always shown (each side's tab has its
         menu there, to bring it back)."""
         from ..core import config
 
@@ -258,7 +258,7 @@ def open_in_tab(path=None, near=None):
 
 
 def apply_tab_bars():
-    """The setting of the bars of the tabs, in every window of tabs (when it changes)."""
+    """The setting of the tabbars, in every window of tabs (when it changes)."""
     for host in list(_HOSTS):
         host.tab_bars()
 

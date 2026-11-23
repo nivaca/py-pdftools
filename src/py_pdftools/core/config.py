@@ -27,7 +27,7 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             "memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True,
             "smooth": True,  # (smooth: zooming and the wheel animated, see gui/scrolling.py)
             "reopen": False,  # (reopen: the documents of the last session, at the start: see gui/__init__.py)
-            "tabs": False, "lone_tab": False,  # (lone_tab: the bar of the tabs with only one: see gui/tabs.py)
+            "tabs": False, "lone_tab": False,  # (lone_tab: the tabbar with only one: see gui/tabs.py)
             "reload": True,  # (reload: a document changed by another program, opened again: see gui/watching.py)
             "gpu": False,  # (gpu: the pages drawn with the graphics card, by OpenGL: see gui/canvas.py)
             # (Settings > Appearance and Documents: see gui/appearance.py)

@@ -564,7 +564,7 @@ def test_tabs_and_a_split_view(window, book, tmp_path):
     third.close()
     second.close()
     assert host.windows() == [window] and host.isVisible()
-    # One tab left: its bar hidden, unless Settings > General > Show the bar of the tabs says otherwise
+    # One tab left: its bar hidden, unless Settings > General > Show the tabbar says otherwise
     from py_pdftools.gui.tabs import apply_tab_bars
 
     assert host.sides[0].tabBarAutoHide() and not host.sides[0].tabBar().isVisible()
