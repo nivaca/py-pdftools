@@ -124,9 +124,23 @@ with these files:
     py-pdftools-VERSION-x86_64.AppImage     the AppImage (Linux)
     py-pdftools_VERSION-1_amd64.deb         the Debian and Ubuntu package
     py-pdftools-VERSION-1.fc45.noarch.rpm   the Fedora package, signed
-    RPM-GPG-KEY-py-pdftools                 the key that signs it
     py_pdftools-VERSION.tar.gz              the source package, for Python
     py_pdftools-VERSION-py3-none-any.whl    the wheel, for Python
+    FILE.asc                                the signature of each file
+    SHA256SUMS, SHA256SUMS.asc              the checksums, and their signature
+    RPM-GPG-KEY-py-pdftools                 the key that signs them all
+
+Every file, and the tag of the version, is signed with the same key. To
+check a download, import the key once, then check the file's signature and
+its checksum:
+
+    $ gpg --import RPM-GPG-KEY-py-pdftools
+    $ gpg --verify py-pdftools-VERSION.zip.asc py-pdftools-VERSION.zip
+    $ gpg --verify SHA256SUMS.asc SHA256SUMS && sha256sum -c --ignore-missing SHA256SUMS
+
+The RPM carries its signature inside too: after `sudo rpm --import
+RPM-GPG-KEY-py-pdftools`, `rpm -K` checks it. The tag can be checked in a
+clone with `git tag -v vVERSION`.
 
 **Fedora.** From [Copr](https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/),
 for Fedora 45 and later, with Fedora's own Python, PyMuPDF, pikepdf,

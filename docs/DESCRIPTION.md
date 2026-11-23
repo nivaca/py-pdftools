@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in fifty-one stages.
+I explain how it was made, in fifty-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1282,10 +1282,26 @@ stays near the 200 MB it uses at 1600 %. The scroll bars, which count in
 whole pixels, stay far from their limit even for a long document. The box
 of the zoom offers 3200, 6400 and 10000 % too.
 
+52. Every release signed
+------------------------
+
+Only the RPM was signed, and only when the release was asked for it; the
+wheel, the source, the AppImage and the Debian package went out with
+nothing to show where they came from, and so did the tag. Now the RPM is
+always made, and a release signs everything with the same key: a detached
+signature for each file, a list of their SHA-256 sums with its own
+signature, and the tag, signed by git. A signature nobody checks proves
+little, so the release checks each one before publishing, the way a user
+would, in a keyring of its own that holds only the public key published
+with the files; the build of the RPM already did the same for the RPM. A
+file changed after signing, or a published key that is not the one that
+signed, stops the release. The tests sign with a key made for them, in a
+folder of their own, never with mine.
+
 Testing
 -------
 
-The program has 681 tests (`uv run pytest`): those of the four programs,
+The program has 684 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1297,7 +1313,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the start with the session on Windows (in a registry made in the test) and the events of macOS, the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its

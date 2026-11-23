@@ -5,6 +5,15 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **Every release signed**: besides the RPM, each file published (the
+  wheel, the source, the ZIP, the AppImage, the Debian package) comes with
+  its signature (`.asc`), with `SHA256SUMS` and its signature, and with the
+  public key; the tag of the version is signed too. Each signature is
+  checked with the published key before anything is published. The README
+  says how to check a download.
+
 ## 1.8.16 — 2026-11-22
 
 - **Zoom up to 10000 %** (it stopped at 1600 %), typed in the box of the
