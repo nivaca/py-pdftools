@@ -285,7 +285,8 @@ height, or the inked area; actual size; a percentage typed in the box of
 the zoom, from 5 % to 10000 %; the tool Zoom to area, Z; and the tool Magnifier, Shift+Z,
 a lens that shows the part of the page under the pointer three times nearer), the view turned without changing
 the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
-black, or one's own), the gaps between the pages hidden, and Full screen
+black, or one's own), the gaps between the pages hidden, the margins trimmed (only the
+inked part of each page), and Full screen
 (F11 or Ctrl+Shift+P) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
 in tabs of one window (the tabbar shows from the second one on,
 or always, with a setting), and View > Split the view (`Ctrl+\`) shows two

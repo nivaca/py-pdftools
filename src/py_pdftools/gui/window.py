@@ -311,6 +311,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.spread = self.settings.value("spread", "false") == "true"
         self.canvas.cover = self.settings.value("cover", "false") == "true"
         self.canvas.gap = GAP if self.settings.value("gaps", "true") != "false" else 0
+        self.canvas.trim = self.settings.value("trim", "false") == "true"
         self.canvas.factory = self.new_annotation
         # Mientras una página se renderiza, el lienzo muestra en su lugar la miniatura que ya esté hecha.
         self.canvas.placeholder_for = lambda n: self._thumbs.get(n)
@@ -676,6 +677,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_gaps.setToolTip(tr("Unticked, the pages follow one another without a gap, as one long sheet"))
         self.a_gaps.toggled.connect(self.set_gaps)
         m.addAction(self.a_gaps)
+        # Recortar los márgenes, como Ver > Recortar la vista de Okular; se recuerda para la próxima vez.
+        self.a_trim = QAction(tr("Trim margins"), self, checkable=True, checked=self.canvas.trim)
+        self.a_trim.setToolTip(tr("Only the part of each page that has ink: the white margins left out, so that "
+                                  "the text is larger in the same room"))
+        self.a_trim.toggled.connect(self.set_trim)
+        m.addAction(self.a_trim)
         self.a_split = self._action(m, tr("Split the view"), self.split_tab, "Ctrl+\\",
                                     tip=tr("This tab beside the others, on the other side of the window, to read two "
                                            "documents side by side; again, to bring it back"))
@@ -2329,6 +2336,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.presentation.ended.connect(lambda n: self.show_page(n))
         self.presentation.start()
         return self.presentation
+
+    def set_trim(self, on: bool):
+        """The margins of the pages trimmed or not: kept for the next time."""
+        self.settings.setValue("trim", "true" if on else "false")
+        self.canvas.set_trim(on)
 
     def set_gaps(self, on: bool):
         """The gaps between the pages shown or hidden: kept for the next time."""

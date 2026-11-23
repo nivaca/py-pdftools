@@ -13108,4 +13108,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Magnifier: hold the mouse button down on a page to see that part of it three times nearer</en>
     <tr>Lupa: mantenga pulsado el botón del ratón sobre una página para ver esa parte tres veces más cerca</tr>
   </text>
+  <text>
+    <en>Trim margins</en>
+    <tr>Recortar los márgenes</tr>
+  </text>
+  <text>
+    <en>Only the part of each page that has ink: the white margins left out, so that the text is larger in the same room</en>
+    <tr>Solo la parte de cada página que tiene tinta: sin los márgenes blancos, para que el texto se vea más grande en el mismo espacio</tr>
+  </text>
 </interface>

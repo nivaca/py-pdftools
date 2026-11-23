@@ -86,6 +86,6 @@ def regroup(window):
                        "a_add_bookmark", "a_next_bookmark", "a_prev_bookmark"]),
         (tr("Zoom"), ["a_fit", "a_fit_width", "a_fit_height", "a_fit_visible", "a_actual", SEP,
                       "a_zoom_in", "a_zoom_out"]),
-        (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", SEP, "a_turn_right",
+        (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", "a_trim", SEP, "a_turn_right",
                              "a_turn_left"]),
         "m_reading", SEP, "a_split", "a_detach", "a_present"])

@@ -1373,10 +1373,21 @@ of the page is drawn again, at the lens's scale, in the reading colours,
 and turned as the view turns the pages; beyond the edge of the page the
 lens is grey. The view and its zoom do not change.
 
+Last, View > Page layout > Trim margins, Okular's Trim View: each page shows
+only its inked part, so that a page fitted to the window shows its text
+larger. Finding the ink of every page would mean drawing every page of a
+long document, so the part is found on a dozen pages spread through it
+(with the page asked for, and leaving out the blank ones), and the same
+part is shown on all the pages of that size; this also keeps the text from
+jumping from page to page. A page item keeps the coordinates of the whole
+page, and only its rectangle becomes the part shown, which clips what is
+drawn on it: the annotations, the rendering and its tiles stay where they
+were on the page, and nothing that works on the page had to change.
+
 Testing
 -------
 
-The program has 689 tests (`uv run pytest`): those of the four programs,
+The program has 690 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

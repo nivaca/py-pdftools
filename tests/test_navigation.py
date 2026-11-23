@@ -7,6 +7,7 @@ import sys
 
 import pymupdf
 import pytest
+from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QApplication, QDockWidget, QLabel
 
 from py_pdftools.gui.window import MainWindow
@@ -947,3 +948,43 @@ def test_bookmark_keys_as_in_okular(window, monkeypatch):
     window.show_page(5)
     window.a_add_bookmark.trigger()
     assert (1, "Here") in titles(window) or (2, "Here") in titles(window)
+
+
+def test_trimmed_margins(tmp_path, monkeypatch):
+    """Ver > Disposición de página > Recortar los márgenes, como en Okular: cada página muestra solo su parte
+    con tinta, la misma para todas las de su tamaño; el texto sigue donde estaba, y la opción se recuerda."""
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "margins.pdf"
+    doc = pymupdf.open()
+    for i in range(4):
+        page = doc.new_page()  # (595 x 842)
+        page.insert_textbox(pymupdf.Rect(150, 200, 450, 600), f"Page {i + 1} " * 60, fontsize=11)
+    doc.new_page()  # (a blank page: it doesn't widen the part shown)
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(1000, 800)
+    w.show()
+    try:
+        assert w.open_path(path)
+        canvas = w.canvas
+        w.a_fit_width.trigger()
+        before = canvas.zoom()
+        w.a_trim.trigger()
+        assert canvas.trim
+        part = canvas.trim_rect(0)
+        assert 130 < part.left() < 160 and part.right() < 470 and part.top() > 180 and part.bottom() < 620
+        item = canvas.pages[1]
+        assert item.rect() == canvas.trim_rect(1) == part and item.full.width() > 590
+        assert canvas.zoom() > before * 1.5  # (fit to the width: the text larger)
+        # (a point of the page is still where it was on it: a click there finds the same place)
+        at = item.mapToScene(QPointF(300, 250))
+        found, point = canvas.locate(canvas.mapFromScene(at))
+        assert found is item and abs(point.x() - 300) < 2 and abs(point.y() - 250) < 2
+        assert w.settings.value("trim") == "true"
+        w.a_trim.trigger()
+        assert canvas.pages[1].rect().width() > 590
+    finally:
+        w.drop_work()
+        w.close()

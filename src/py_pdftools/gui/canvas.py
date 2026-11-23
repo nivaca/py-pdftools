@@ -299,8 +299,13 @@ class AnnotItem(QGraphicsItem):
 class PageItem(QGraphicsRectItem):
     """A page: white, with its rendering on it (once it is in view), and its annotations as children."""
 
-    def __init__(self, number: int, size: QRectF):
-        super().__init__(QRectF(0, 0, size.width(), size.height()))
+    def __init__(self, number: int, size: QRectF, trim: QRectF | None = None):
+        # Con los márgenes recortados (TRIM, en puntos de la página) el rectángulo es solo esa parte, y lo de fuera
+        # (la imagen, las teselas, las anotaciones) no se ve; las coordenadas siguen siendo las de la página entera.
+        super().__init__(trim if trim is not None else QRectF(0, 0, size.width(), size.height()))
+        self.full = QRectF(0, 0, size.width(), size.height())  # (the whole page, trimmed or not)
+        if trim is not None:
+            self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemClipsChildrenToShape)
         self.number = number
         self.setPen(QPen(Qt.PenStyle.NoPen))
         # (white; or the page colour of the reading colours, while the page is drawn)
@@ -358,7 +363,7 @@ class PageItem(QGraphicsRectItem):
         self.pixmap.setPixmap(pixmap)
         # Una imagen final se reduce por 1/scale (tiene scale píxeles por punto); un sustituto (miniatura o
         # render de otro zoom) se estira al ancho de la página, sea cual sea su tamaño.
-        self.pixmap.setScale(1 / scale if final else self.rect().width() / max(pixmap.width(), 1))
+        self.pixmap.setScale(1 / scale if final else self.full.width() / max(pixmap.width(), 1))
         if final:
             self.scale_shown = scale
 
@@ -570,6 +575,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.page = 0  # the page in view (of a continuous view: the one in the middle of the window)
         self.fit = "page"  # 'page', 'width', 'height', 'visible' (the inked area: see ink_rect), or '' (a zoom of its own)
         self._ink: dict = {}  # (document, page) -> the inked area of the page (see ink_rect)
+        self.trim = False  # (the margins trimmed: each page shows only its inked part, see trim_rect)
+        self._trims: dict = {}  # (document, the size of a page) -> the part of such pages shown, trimmed
         self.spread = False  # (two pages side by side: see rows)
         self.cover = False  # (with spread: the first page alone, as the cover of a book)
         self.gap = GAP  # (between the pages and around them: 0 to hide the gaps, see set_gaps)
@@ -637,6 +644,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.page = page
         self._words = {}
         self._ink = {}
+        self._trims = {}
         self._word_texts = {}
         self._links = {}
         self.text_sel, self._sel_marks = None, []
@@ -669,9 +677,11 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         # que perdió páginas.
         rows = self.rows() if self.continuous else [self.row_of(min(self.page, self.doc.page_count - 1))]
         sizes = {n: self.page_rect(n) for row in rows for n in row}
+        trims = {n: self.trim_rect(n, sizes[n]) for n in sizes} if self.trim else {}
         # (as the view turns them; from SIZES, not asking MuPDF for each page a second time)
         across = self.turn in (90, 270)
-        shown = {n: QRectF(0, 0, r.height(), r.width()) if across else r for n, r in sizes.items()}
+        shown = {n: QRectF(0, 0, r.height(), r.width()) if across else QRectF(0, 0, r.width(), r.height())
+                 for n, r in ((n, trims.get(n, sizes[n])) for n in sizes)}
         # (kept: the fit reads them, instead of asking MuPDF for every page again at each resize)
         self.shown_sizes = shown
         widest = max(self._row_width(row, shown) for row in rows)
@@ -687,7 +697,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._row_tops.append(y)
             self._row_pages.append(row)
             for n, x in zip(row, xs):
-                item = PageItem(n, sizes[n])
+                item = PageItem(n, sizes[n], trims.get(n))
                 scene.addItem(item)
                 if self.turn:
                     # (turned about its corner: then moved so that what shows starts at (x, y))
@@ -695,7 +705,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                     corner = item.mapRectToScene(item.rect()).topLeft()
                     item.setPos(x - corner.x(), y - corner.y())
                 else:
-                    item.setPos(x, y)
+                    # (trimmed, the part shown starts at (x, y), not the page's corner)
+                    item.setPos(x - item.rect().left(), y - item.rect().top())
                 self.pages[n] = item
             y += max(shown[n].height() for n in row) + self.gap
         scene.setSceneRect(QRectF(-widest / 2 - self.gap, 0, widest + 2 * self.gap, y))
@@ -703,8 +714,10 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self.render_timer.start()
 
     def shown_rect(self, number: int) -> QRectF:
-        """Page NUMBER's rectangle as the view shows it (width and height swapped if turned 90° or 270°)."""
-        r = self.page_rect(number)
+        """Page NUMBER's rectangle as the view shows it (width and height swapped if turned 90° or 270°; only
+        its inked part, with the margins trimmed)."""
+        r = self.trim_rect(number) if self.trim else self.page_rect(number)
+        r = QRectF(0, 0, r.width(), r.height())
         return QRectF(0, 0, r.height(), r.width()) if self.turn in (90, 270) else r
 
     def set_gaps(self, on: bool):
@@ -714,6 +727,35 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self.layout()
             self.apply_fit()
             self.go_to(self.page)
+
+    def set_trim(self, on: bool):
+        """The margins of the pages trimmed (ON): only the part of each page that has ink is shown."""
+        self.trim = on
+        if self.doc is not None:
+            page = self.page
+            self.layout()
+            self.apply_fit()
+            self.go_to(page)
+
+    def trim_rect(self, number: int, size: QRectF | None = None) -> QRectF:
+        """The part of page NUMBER shown with the margins trimmed, in its points: the same for every page of
+        its size, the inked areas of a few of them put together (so that the text doesn't jump from page to
+        page, and a long document isn't read whole)."""
+        size = size if size is not None else self.page_rect(number)
+        key = (id(self.doc), round(size.width()), round(size.height()))
+        if key not in self._trims:
+            count = self.doc.page_count
+            # (doce páginas repartidas por el documento, de este tamaño; y esta, siempre)
+            sample = {number} | {round(i * (count - 1) / 11) for i in range(12)} if count > 1 else {number}
+            area = QRectF()
+            for n in sorted(sample):
+                if n != number and self.page_rect(n).size().toSize() != size.size().toSize():
+                    continue
+                ink = self.ink_rect(n)
+                if ink != self.page_rect(n):  # (a blank page says nothing of the margins)
+                    area = ink if area.isNull() else area | ink
+            self._trims[key] = (area & size) if not area.isNull() else QRectF(size)
+        return self._trims[key]
 
     def set_turn(self, degrees: int):
         """Turn the view of every page DEGREES (a multiple of 90, clockwise); the file stays as it is."""
@@ -863,7 +905,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             return
         self._quiet = True
         # (a page turned sideways: its height runs across the view, so its top is gone to)
-        point = item.mapToScene(QPointF(0, max(0.0, min(y, item.rect().height())))) if self.turn in (0, 180) \
+        point = item.mapToScene(QPointF(0, max(item.rect().top(), min(y, item.rect().bottom())))) if self.turn in (0, 180) \
             else item.sceneBoundingRect().topLeft()
         bar = self.verticalScrollBar()
         bar.setValue(round(self.mapFromScene(QPointF(0, point.y() - self.gap)).y() + bar.value()))
@@ -1028,7 +1070,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 item.clear_tiles()
                 continue
             item.clear_tiles(keep=lambda key: key[0] == full)
-            step, (w, h) = TILE / full, (item.rect().width(), item.rect().height())
+            step, (w, h) = TILE / full, (item.full.width(), item.full.height())
             for row in range(int(area.top() // step), int(area.bottom() // step) + 1):
                 for column in range(int(area.left() // step), int(area.right() // step) + 1):
                     clip = (round(column * step, 3), round(row * step, 3),
