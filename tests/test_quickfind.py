@@ -113,3 +113,30 @@ def test_f3_and_shift_f3_go_on_through_the_places(window):
     assert window.page == 2 and found(window) == "2/3"
     window.a_find_previous.trigger()
     assert window.page == 0 and found(window) == "1/3"
+
+
+def test_the_panel_of_the_search_results(window):
+    """Ver > Paneles > Resultados de la búsqueda (F8): todos los lugares, con su página y su contexto; un clic
+    lleva a cada uno; toma el texto de la búsqueda rápida y se vacía con otro documento."""
+    assert window.a_results.shortcut().toString() == "F8" and window.results_dock.isHidden()
+    box_of(window).setText("alpha")
+    window.find_all()
+    assert window.results_dock.isVisible() and window.results_box.text() == "alpha"
+    tree = window.results_list
+    assert tree.topLevelItemCount() == 3
+    assert [tree.topLevelItem(i).text(0) for i in range(3)] == ["1", "3", "5"]
+    assert "[alpha]" in tree.topLevelItem(1).text(1) and "Árbol" in tree.topLevelItem(1).text(1)
+    window.go_result(tree.topLevelItem(2))
+    assert window.page == 4
+    window.results_case.setChecked(True)  # (distinguir mayúsculas: ALPHA ya no es alpha)
+    assert tree.topLevelItemCount() == 2
+    window.results_box.setText("arbol")  # (sin mayúsculas ni acentos otra vez)
+    window.results_case.setChecked(False)
+    assert tree.topLevelItemCount() == 1 and window.list_results() == 1
+    from py_pdftools.gui.results import _marked, _short
+
+    assert _short("one two three four five six seven [it] after") == "…four five six seven [it] after"
+
+    assert _marked("a <b> [x&y] c") == "a &lt;b&gt; <b>x&amp;y</b> c"
+    window.results_clear()
+    assert tree.topLevelItemCount() == 0

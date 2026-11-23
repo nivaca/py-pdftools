@@ -280,7 +280,9 @@ Moverse por un documento funciona en todos los modos. La casilla de
 búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F o /), va de un lugar de un
 texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
 desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
-las miniaturas se muestran u ocultan con F7. Ver > Marcadores
+las miniaturas se muestran u ocultan con F7.
+Ver > Paneles > Resultados de la búsqueda (F8) hace la lista de todos los lugares de
+un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic. Ver > Marcadores
 (F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
 estilo, o los saca de los títulos; Ctrl+B añade uno en el lugar visible, y Ver >

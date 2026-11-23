@@ -1384,10 +1384,26 @@ page, and only its rectangle becomes the part shown, which clips what is
 drawn on it: the annotations, the rendering and its tiles stay where they
 were on the page, and nothing that works on the page had to change.
 
+56. A panel of search results
+-----------------------------
+
+The quick find goes through the places of a text one at a time, which is
+slow when one wants to see them all. View > Panels > Search results (F8,
+`gui/results.py`) lists every place, each with its page label and some
+words around it, the text found in bold, and goes to each with a click,
+Enter or the arrows. It uses the same search as the quick find and the
+dialog (`annotate/search.py`), without minding capitals or accents, or
+matching case or whole words. When it opens it takes the text of the quick
+find, and Tools > Find all opens it with that text. Qt's lists don't draw
+bold inside a cell, so a small delegate draws the context as HTML, in the
+colours of the row. In a narrow panel the found text fell out of view, so
+only a few words before it are kept, after an ellipsis. The list is emptied
+when the document changes, since its places may be gone.
+
 Testing
 -------
 
-The program has 690 tests (`uv run pytest`): those of the four programs,
+The program has 691 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

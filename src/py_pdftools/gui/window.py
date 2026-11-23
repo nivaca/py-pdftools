@@ -46,6 +46,7 @@ from .signing import SignMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
 from .outline import OutlineMixin
+from .results import ResultsMixin
 from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
@@ -189,8 +190,8 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, NavigationMixin, WatchMixin,
-                 WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin, ToolbarsMixin,
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, NavigationMixin,
+                 WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin, ToolbarsMixin,
                  QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
@@ -242,6 +243,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # barras (con su objectName) antes de que set_mode oculte las de los otros modos.
         self._build()
         self._build_outline()
+        self._build_results()
         self._build_form()
         self._build_menus()
         self._build_modes()
@@ -627,6 +629,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                         tr("The next place of the text of the quick find"))
         self.a_find_previous = self._action(m, tr("Find previous"), lambda: self.find_again(-1), "Shift+F3",
                                             tr("The previous place of the text of the quick find"))
+        m.addAction(self.a_find_all)
 
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
         self.m_layers.setToolTipsVisible(True)
@@ -1415,6 +1418,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.canvas.set_document(doc, self.page)
         self._fill_pages()
         self.outline_refresh()
+        self.results_clear()
         self.form_refresh()
         self.watch_file()
         return found

@@ -13116,4 +13116,32 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Only the part of each page that has ink: the white margins left out, so that the text is larger in the same room</en>
     <tr>Solo la parte de cada página que tiene tinta: sin los márgenes blancos, para que el texto se vea más grande en el mismo espacio</tr>
   </text>
+  <text>
+    <en>Enter lists every place where the text is</en>
+    <tr>Intro hace la lista de todos los lugares donde está el texto</tr>
+  </text>
+  <text>
+    <en>Context</en>
+    <tr>Contexto</tr>
+  </text>
+  <text>
+    <en>Search results</en>
+    <tr>Resultados de la búsqueda</tr>
+  </text>
+  <text>
+    <en>Every place where a text is, in a list, each with the words around it</en>
+    <tr>Todos los lugares donde está un texto, en una lista, cada uno con las palabras de alrededor</tr>
+  </text>
+  <text>
+    <en>Find all…</en>
+    <tr>Buscar todos…</tr>
+  </text>
+  <text>
+    <en>Every place of the text of the quick find, in the panel Search results</en>
+    <tr>Todos los lugares del texto de la búsqueda rápida, en el panel Resultados de la búsqueda</tr>
+  </text>
+  <text>
+    <en>Places found: {count} (pages: {pages})</en>
+    <tr>Lugares encontrados: {count} (páginas: {pages})</tr>
+  </text>
 </interface>
