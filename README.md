@@ -273,7 +273,8 @@ with Enter (Shift+Enter, back), or F3 (Shift+F3) from anywhere in the window,
 without minding capitals or accents; the thumbnails are shown or hidden with F7. View > Bookmarks (F5)
 shows the document's bookmarks (hidden until it is asked for) as a tree that can be filtered; its right
 click adds, renames, moves, indents and styles them, or makes them from
-the headings. Links are followed with a click (with Select, Ctrl+click),
+the headings; Ctrl+B adds one at the place shown, and View > Go to has the
+next and the previous bookmark. Links are followed with a click (with Select, Ctrl+click),
 web and mail addresses written in the text too, and Alt+Left and
 Alt+Right go back and forth through the places jumped to. A document
 opens where it was left, or as it asks (its page, zoom and thumbnails), and

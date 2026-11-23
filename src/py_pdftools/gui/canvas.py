@@ -375,6 +375,15 @@ class TextEditor(QGraphicsTextItem):
         self.setTextInteractionFlags(Qt.TextInteractionFlag.TextEditorInteraction)
         self.setZValue(6)
 
+    def sceneEvent(self, event):
+        # Ctrl+B, Ctrl+I y Ctrl+U son del editor mientras se escribe: la ventana tiene Ctrl+B (añadir un marcador).
+        if event.type() == QEvent.Type.ShortcutOverride and self.rich and \
+                event.modifiers() == Qt.KeyboardModifier.ControlModifier and \
+                event.key() in (Qt.Key.Key_B, Qt.Key.Key_I, Qt.Key.Key_U):
+            event.accept()
+            return True
+        return super().sceneEvent(event)
+
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
             self.canvas.cancel_text()

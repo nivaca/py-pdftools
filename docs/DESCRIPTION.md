@@ -1339,10 +1339,23 @@ because here they belong to something else: Ctrl+G groups annotations
 actual size) and Ctrl+1 to Ctrl+6 choose the modes (in Okular, the tools of
 the mouse).
 
+55. More from Okular
+--------------------
+
+Then came the rest of what Okular has and this program lacked, one piece
+at a time. First the bookmarks: Ctrl+B adds one at the place shown, as
+KDE's programs add a bookmark, and View > Go to has the next and the
+previous bookmark, in the order of the pages rather than of the tree. Near
+the end of a document the view cannot always scroll as far as a bookmark's
+place, so the next bookmark was found again and again; now it counts from
+the last bookmark reached while the view has not moved. Ctrl+B is also
+bold in a text box being written, so the box claims Ctrl+B, Ctrl+I and
+Ctrl+U for itself before the window sees them.
+
 Testing
 -------
 
-The program has 687 tests (`uv run pytest`): those of the four programs,
+The program has 688 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -891,3 +891,23 @@ def test_floating_parts_go_with_their_tab(book, tmp_path, monkeypatch):
     assert not [w for w in QApplication.topLevelWidgets() if w.isVisible() and w.parent() is window]
     dock.setFloating(False)
     QApplication.processEvents()
+
+
+def test_bookmark_keys_as_in_okular(window, monkeypatch):
+    """Ctrl+B añade un marcador del lugar visible; Siguiente y Anterior van por los marcadores en el orden de
+    las páginas."""
+    assert window.a_add_bookmark.shortcut().toString() == "Ctrl+B"
+    window.show_page(0)
+    visited = []
+    for _ in range(10):  # (con un límite: un error aquí no debe colgar las pruebas)
+        if not window.go_bookmark(1):
+            break
+        visited.append(window.page)
+    assert visited[-2:] == [1, 3] and not window.go_bookmark(1)
+    assert window.go_bookmark(-1) and window.page == 1
+    from PySide6.QtWidgets import QInputDialog
+
+    monkeypatch.setattr(QInputDialog, "getText", lambda *a, **k: ("Here", True))
+    window.show_page(5)
+    window.a_add_bookmark.trigger()
+    assert (1, "Here") in titles(window) or (2, "Here") in titles(window)

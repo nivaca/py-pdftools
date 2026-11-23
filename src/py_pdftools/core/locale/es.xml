@@ -13048,4 +13048,28 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Empty space that stretches: at the end of a row of toolbars it pushes what follows to the edge of the window; elsewhere it is a small gap</en>
     <tr>Espacio vacío que se estira: al final de una fila de barras, empuja lo que sigue hasta el borde de la ventana; en otro lugar es un hueco pequeño</tr>
   </text>
+  <text>
+    <en>A bookmark of the place shown, in the panel Bookmarks</en>
+    <tr>Un marcador del lugar visible, en el panel Marcadores</tr>
+  </text>
+  <text>
+    <en>Next bookmark</en>
+    <tr>Marcador siguiente</tr>
+  </text>
+  <text>
+    <en>Previous bookmark</en>
+    <tr>Marcador anterior</tr>
+  </text>
+  <text>
+    <en>The place of the first bookmark after the place shown</en>
+    <tr>El lugar del primer marcador después del lugar visible</tr>
+  </text>
+  <text>
+    <en>The place of the last bookmark before the place shown</en>
+    <tr>El lugar del último marcador antes del lugar visible</tr>
+  </text>
+  <text>
+    <en>No more bookmarks</en>
+    <tr>No hay más marcadores</tr>
+  </text>
 </interface>

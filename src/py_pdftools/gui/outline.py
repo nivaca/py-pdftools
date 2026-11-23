@@ -2,6 +2,8 @@
 goes to the place each bookmark points at, filtered as typed (the parents of what matches stay), with the
 label of each page, and the bookmark of the page shown marked as one reads.
 
+Ctrl+B adds one at the place shown; View > Go to goes to the next or the previous one.
+
 They are edited there too (its right-click menu, F2, Delete): added at the place shown, renamed, deleted,
 moved, indented, made bold, italic or coloured, pointed at the place shown; or made from the headings of
 the text (the lines in a larger type than the body). Each change is a change of the document itself (see
@@ -13,7 +15,7 @@ from collections import Counter
 
 import pymupdf
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QColor, QKeySequence, QShortcut
+from PySide6.QtGui import QAction, QColor, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
     QColorDialog, QDockWidget, QHBoxLayout, QHeaderView, QInputDialog, QLineEdit, QMenu, QMessageBox, QToolButton,
     QTreeWidget, QTreeWidgetItem, QVBoxLayout, QWidget,
@@ -75,6 +77,16 @@ class OutlineMixin:
         self.a_outline.setText(tr("Bookmarks"))
         self.a_outline.setShortcut(QKeySequence("F5"))
         self.a_outline.setToolTip(tr("The bookmarks of the document (its outline), to go to its parts"))
+        # Añadir uno (Ctrl+B, como en Okular) e ir al siguiente o al anterior, desde el menú Ver > Ir a.
+        self.a_add_bookmark = QAction(tr("Add a bookmark here…"), self, shortcut=QKeySequence("Ctrl+B"))
+        self.a_add_bookmark.setToolTip(tr("A bookmark of the place shown, in the panel Bookmarks"))
+        self.a_add_bookmark.triggered.connect(lambda: self.add_bookmark())
+        self.a_next_bookmark = QAction(tr("Next bookmark"), self)
+        self.a_next_bookmark.setToolTip(tr("The place of the first bookmark after the place shown"))
+        self.a_next_bookmark.triggered.connect(lambda: self.go_bookmark(1))
+        self.a_prev_bookmark = QAction(tr("Previous bookmark"), self)
+        self.a_prev_bookmark.setToolTip(tr("The place of the last bookmark before the place shown"))
+        self.a_prev_bookmark.triggered.connect(lambda: self.go_bookmark(-1))
 
     def outline_refresh(self):
         """The tree, as the document's outline is now."""
@@ -135,6 +147,33 @@ class OutlineMixin:
         if n is None or not 0 <= n < self.count:
             return
         self.go_place(n, item.data(0, TOP))
+
+    def go_bookmark(self, by: int) -> bool:
+        """Go to the place of the next bookmark (BY 1) or the previous one (BY -1), in the order of the pages,
+        from the place shown; False if there is none."""
+        if self.doc is None:
+            return False
+        places = sorted({(n, float(item.data(0, TOP) or 0.0)) for _, item in self._outline_items()
+                         if (n := item.data(0, PAGE)) is not None and 0 <= n < self.count})
+        # (a point or two of margin: after a jump the view is at the bookmark's place, give or take a little)
+        here = (self.page, self._view_top())
+        # Al final del documento la vista no siempre llega al lugar del marcador: si no se ha movido desde el
+        # último salto, se cuenta desde ese marcador, no desde donde quedó la vista.
+        last = getattr(self, "_bookmark_jump", None)
+        if last is not None and last[1][0] == here[0] and abs(last[1][1] - here[1]) < 1:
+            here = last[0]
+        if by > 0:
+            ahead = [p for p in places if p > (here[0], here[1] + 2)]
+            target = ahead[0] if ahead else None
+        else:
+            behind = [p for p in places if p < (here[0], here[1] - 2)]
+            target = behind[-1] if behind else None
+        if target is None:
+            self.statusBar().showMessage(tr("No more bookmarks"), 3000)
+            return False
+        self.go_place(target[0], target[1])
+        self._bookmark_jump = (target, (self.page, self._view_top()))
+        return True
 
     def _filter_outline(self, text: str):
         """Only the bookmarks whose title has TEXT (any case), with their parents; all, without TEXT."""

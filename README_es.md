@@ -283,7 +283,8 @@ desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
 las miniaturas se muestran u ocultan con F7. Ver > Marcadores
 (F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
-estilo, o los saca de los títulos. Los enlaces se siguen con un clic (con
+estilo, o los saca de los títulos; Ctrl+B añade uno en el lugar visible, y Ver >
+Ir a tiene el marcador siguiente y el anterior. Los enlaces se siguen con un clic (con
 Seleccionar, Ctrl+clic), también las direcciones web y de correo escritas
 en el texto, y Alt+Izquierda y Alt+Derecha van y vuelven por los lugares
 visitados. Un documento se abre donde se dejó, o como pide (su página, su

@@ -82,7 +82,8 @@ def regroup(window):
     _fill(window, window.m_view, [
         (tr("Panels"), ["a_thumbs", "a_panel", "a_outline", "a_form"]),
         (tr("Annotations"), ["a_show", "a_only_listed", SEP, "a_next_annot", "a_prev_annot"]),
-        (tr("Go to"), ["a_prev", "a_next", "a_first", "a_last", SEP, "a_back", "a_forward"]),
+        (tr("Go to"), ["a_prev", "a_next", "a_first", "a_last", SEP, "a_back", "a_forward", SEP,
+                       "a_add_bookmark", "a_next_bookmark", "a_prev_bookmark"]),
         (tr("Zoom"), ["a_fit", "a_fit_width", "a_fit_height", "a_fit_visible", "a_actual", SEP,
                       "a_zoom_in", "a_zoom_out"]),
         (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", SEP, "a_turn_right",
