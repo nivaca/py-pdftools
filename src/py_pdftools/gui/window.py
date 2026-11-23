@@ -524,6 +524,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_compare = self._action(m, tr("Compare with another version…"), self.compare_dialog,
                                       tip=tr("Mark here what differs from another version of this text (another "
                                              "edition, a draft): its words, in reading order"))
+        self.a_visual_compare = self._action(m, tr("Compare visually…"), self.visual_compare_dialog,
+                                             tip=tr("This document and another PDF page by page, side by side or "
+                                                    "one over the other, with what looks different marked"))
         m.addSeparator()
         self.a_close = self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
         self.a_open_tab = self._action(

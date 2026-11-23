@@ -563,6 +563,47 @@ class FilesMixin:
     # Naranja: palabras cambiadas; rojo: solo aquí; azul: faltan aquí (están en la otra versión).
     COMPARE_COLORS = {"changed": "#ffb74d", "only_here": "#ef9a9a", "only_there": "#1e88e5"}
 
+    def open_other(self, other: Path):
+        """Another PDF, OTHER, opened (its password asked for while it is wrong); None if it can't be, or the
+        user cancelled."""
+        # Se prueba sin contraseña y se pide una mientras sea incorrecta; None es que el usuario canceló.
+        password = ""
+        while True:
+            try:
+                return annots.open_pdf(other, password)
+            except PasswordError:
+                password = self.ask_password(other, again=bool(password))
+                if password is None:
+                    return None
+            except AnnotateError as e:
+                self.status(str(e), error=True)
+                return None
+
+    def visual_compare_dialog(self):
+        """File > Compare > Compare visually: another PDF chosen, and the two shown page by page, with what
+        differs (see visualcompare.py)."""
+        if self.doc is None or self.path is None:
+            return None
+        name, _ = QFileDialog.getOpenFileName(self, tr("Compare visually with"), self.last_dir(),
+                                              tr("PDF files (*.pdf)"))
+        return self.visual_compare(Path(name)) if name else None
+
+    def visual_compare(self, other: Path):
+        from .visualcompare import VisualCompare
+
+        there = self.open_other(other)
+        if there is None:
+            return None
+        try:
+            here = annots.open_pdf(self.path, self.password or "")
+        except AnnotateError as e:
+            there.close()
+            self.status(str(e), error=True)
+            return None
+        view = VisualCompare(self, here, there, self.path.name, other.name)
+        view.show()
+        return view
+
     def compare_with(self, other: Path) -> bool:
         """Mark on this document what differs from OTHER (another version of its text): words changed
         (with the other version's in the comment), words only here, and where words of the other are
@@ -570,20 +611,9 @@ class FilesMixin:
         shows them alone, and one undo takes them back."""
         from ..annotate import compare
 
-        # Se prueba sin contraseña y se pide una mientras sea incorrecta; None es que el usuario canceló.
-        # TODO: este bucle de contraseña se repite casi igual en import_from; podría ser un método común.
-        password = ""
-        while True:
-            try:
-                there = annots.open_pdf(other, password)
-                break
-            except PasswordError:
-                password = self.ask_password(other, again=bool(password))
-                if password is None:
-                    return False
-            except AnnotateError as e:
-                self.status(str(e), error=True)
-                return False
+        there = self.open_other(other)
+        if there is None:
+            return False
         QApplication.setOverrideCursor(Qt.CursorShape.WaitCursor)
         try:
             found = compare.differences(self.doc, there)

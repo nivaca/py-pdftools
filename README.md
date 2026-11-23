@@ -302,7 +302,10 @@ or label; like the other toolbars, it can be changed in Customize the
 toolbars. The box of the zoom is on the toolbar Zoom box, which can be moved
 anywhere or hidden. File > Document properties
 shows what a document is (its metadata, file, pages, security) and the
-fonts it uses.
+fonts it uses. File > Compare > Compare visually shows this document and
+another PDF page by page, side by side with what differs framed, or one over
+the other (this one red, the other blue, black where they agree), and goes
+from one page that differs to the next.
 
 Edit > Word index (from pdf-word-finder; also a button on the toolbar
 Find) finds the words, phrases or

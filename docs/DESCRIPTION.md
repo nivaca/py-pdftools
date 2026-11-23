@@ -1416,10 +1416,32 @@ shows the icon of each command, and an empty one where there is none,
 since otherwise the names did not begin in one column. The command runs
 after the palette has closed, so that a dialog it opens is not under it.
 
+58. Comparing what is seen
+--------------------------
+
+Compare with another version compares words. Two printings of a book, or a
+plan and its revision, can differ in what has no words: a picture, a line,
+where a block stands. File > Compare > Compare visually (`pages/visual.py`,
+`gui/visualcompare.py`) shows this document, as saved, and another PDF
+page by page. Each pair of pages is drawn in grey at 72 dpi on sheets of
+the same size, and the pixels that differ are looked for. There is no
+numpy here, so the rows are compared as whole byte strings, and only a row
+that differs is looked into: the two rows, reduced to a few levels of grey
+so that the smoothing of edges doesn't count, are made into integers and
+XOR-ed, and a regular expression finds the runs of bytes that are not
+zero; all of it runs in C, about three milliseconds a page. The differing
+pixels go into cells of six pixels, and neighbouring cells become one
+rectangle, which is framed on both pages, side by side. The overlay draws
+this document with its black turned red and the other with it turned blue
+(PyMuPDF's tinting), multiplied one over the other, so that what both have
+is black. The pages that differ are looked for only when Next difference
+asks for them, so a long document opens at once. The password loop that
+Compare with another version had was made a method of its own, for both.
+
 Testing
 -------
 
-The program has 692 tests (`uv run pytest`): those of the four programs,
+The program has 694 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

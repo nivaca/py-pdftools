@@ -13160,4 +13160,84 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Any command of the menus, found by its name, and run</en>
     <tr>Cualquier orden de los menús, buscada por su nombre, y ejecutada</tr>
   </text>
+  <text>
+    <en>Compare</en>
+    <tr>Comparar</tr>
+  </text>
+  <text>
+    <en>Compare visually…</en>
+    <tr>Comparar visualmente…</tr>
+  </text>
+  <text>
+    <en>This document and another PDF page by page, side by side or one over the other, with what looks different marked</en>
+    <tr>Este documento y otro PDF página a página, lado a lado o uno sobre otro, con lo que se ve distinto marcado</tr>
+  </text>
+  <text>
+    <en>Compare visually with</en>
+    <tr>Comparar visualmente con</tr>
+  </text>
+  <text>
+    <en>Compare visually: {here} and {there}</en>
+    <tr>Comparar visualmente: {here} y {there}</tr>
+  </text>
+  <text>
+    <en>Side by side</en>
+    <tr>Lado a lado</tr>
+  </text>
+  <text>
+    <en>Overlay</en>
+    <tr>Superpuestas</tr>
+  </text>
+  <text>
+    <en>Side by side, with what differs framed; or one over the other, this document in red and the other in blue, in black what they have in common</en>
+    <tr>Lado a lado, con lo que difiere enmarcado; o una sobre otra, este documento en rojo y el otro en azul, en negro lo que tienen en común</tr>
+  </text>
+  <text>
+    <en>Previous difference</en>
+    <tr>Diferencia anterior</tr>
+  </text>
+  <text>
+    <en>Next difference</en>
+    <tr>Diferencia siguiente</tr>
+  </text>
+  <text>
+    <en>The last page before this one that differs</en>
+    <tr>La última página antes de esta que difiere</tr>
+  </text>
+  <text>
+    <en>The next page that differs</en>
+    <tr>La siguiente página que difiere</tr>
+  </text>
+  <text>
+    <en>&lt;span style="color:#e53935"&gt;■&lt;/span&gt; {here} &amp;nbsp; &lt;span style="color:#1e88e5"&gt;■&lt;/span&gt; {there}</en>
+    <tr>&lt;span style="color:#e53935"&gt;■&lt;/span&gt; {here} &amp;nbsp; &lt;span style="color:#1e88e5"&gt;■&lt;/span&gt; {there}</tr>
+  </text>
+  <text>
+    <en>What differs on this page</en>
+    <tr>Lo que difiere en esta página</tr>
+  </text>
+  <text>
+    <en>The two pages</en>
+    <tr>Las dos páginas</tr>
+  </text>
+  <text>
+    <en>Page {page} is only in {name}</en>
+    <tr>La página {page} solo está en {name}</tr>
+  </text>
+  <text>
+    <en>Page {page}: {count} places differ</en>
+    <tr>Página {page}: difieren {count} lugares</tr>
+  </text>
+  <text>
+    <en>Page {page}: no difference</en>
+    <tr>Página {page}: ninguna diferencia</tr>
+  </text>
+  <text>
+    <en>No more pages differ</en>
+    <tr>No hay más páginas que difieran</tr>
+  </text>
+  <text>
+    <en>No page before this one differs</en>
+    <tr>Ninguna página antes de esta difiere</tr>
+  </text>
 </interface>

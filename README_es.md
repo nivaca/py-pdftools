@@ -315,7 +315,10 @@ etiqueta de página; como las demás barras, se cambia en Personalizar las
 barras de herramientas. El cuadro del zoom está en la barra Cuadro del
 zoom, que puede moverse a cualquier lugar u ocultarse.
 Archivo > Propiedades del documento muestra qué es un documento (sus metadatos,
-su archivo, sus páginas, su seguridad) y las fuentes que usa.
+su archivo, sus páginas, su seguridad) y las fuentes que usa. Archivo > Comparar
+> Comparar visualmente muestra este documento y otro PDF página a página, lado a
+lado con lo que difiere enmarcado, o uno sobre otro (este en rojo, el otro en
+azul, en negro donde coinciden), y va de una página que difiere a la siguiente.
 
 Editar > Índice de palabras (de pdf-word-finder; también un botón de la
 barra Buscar) busca las palabras, frases
