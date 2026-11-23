@@ -78,6 +78,7 @@ class DocState:
     page: int
     in_file: tuple[Annotation, ...] = ()  # the annotations as that file has them (see file_annotations)
     stamp: tuple | None = None  # (the time and size of that file then: if it changed, it is read again)
+    what: str = ""  # what the change was ("Pages moved"), as the panel History shows it
 
 
 class WorkingMixin:
@@ -154,7 +155,7 @@ class WorkingMixin:
     def _step(self, before: DocState, found: list[Annotation], message: str, page: int | None = None):
         """(A change of the document itself, made: BEFORE, its step of the history; FOUND, the annotations.)"""
         # Un cambio nuevo invalida lo que había para rehacer, como en change().
-        self.undo_stack.append(before)
+        self.undo_stack.append(dataclasses.replace(before, what=message or before.what))
         self.redo_stack.clear()
         self._limit_doc_steps()
         self.annotations = found

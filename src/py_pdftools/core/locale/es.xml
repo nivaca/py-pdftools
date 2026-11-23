@@ -13568,4 +13568,68 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>&amp;Annotate</en>
     <tr>&amp;Anotar</tr>
   </text>
+  <text>
+    <en>A change of the document</en>
+    <tr>Un cambio del documento</tr>
+  </text>
+  <text>
+    <en>A click on a step undoes or redoes everything up to it</en>
+    <tr>Un clic en un paso deshace o rehace todo hasta él</tr>
+  </text>
+  <text>
+    <en>Annotations changed</en>
+    <tr>Anotaciones cambiadas</tr>
+  </text>
+  <text>
+    <en>Annotations reordered</en>
+    <tr>Anotaciones en otro orden</tr>
+  </text>
+  <text>
+    <en>Everything done to the document, step by step; a click on a step undoes or redoes up to it</en>
+    <tr>Todo lo hecho al documento, paso a paso; un clic en un paso deshace o rehace hasta él</tr>
+  </text>
+  <text>
+    <en>History</en>
+    <tr>Historial</tr>
+  </text>
+  <text>
+    <en>The document as it was opened</en>
+    <tr>El documento tal como se abrió</tr>
+  </text>
+  <text>
+    <en>{count} annotation added</en>
+    <tr>{count} anotación añadida</tr>
+  </text>
+  <text>
+    <en>{count} annotation changed</en>
+    <tr>{count} anotación cambiada</tr>
+  </text>
+  <text>
+    <en>{count} annotation deleted</en>
+    <tr>{count} anotación borrada</tr>
+  </text>
+  <text>
+    <en>{count} annotations added</en>
+    <tr>{count} anotaciones añadidas</tr>
+  </text>
+  <text>
+    <en>{count} annotations changed</en>
+    <tr>{count} anotaciones cambiadas</tr>
+  </text>
+  <text>
+    <en>{count} annotations deleted</en>
+    <tr>{count} anotaciones borradas</tr>
+  </text>
+  <text>
+    <en>{what} added, page {page}</en>
+    <tr>Añadido: {what}, página {page}</tr>
+  </text>
+  <text>
+    <en>{what} changed, page {page}</en>
+    <tr>Cambiado: {what}, página {page}</tr>
+  </text>
+  <text>
+    <en>{what} deleted, page {page}</en>
+    <tr>Borrado: {what}, página {page}</tr>
+  </text>
 </interface>

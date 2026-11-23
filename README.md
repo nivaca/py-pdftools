@@ -412,6 +412,8 @@ command line: `py-pdftools ocr scan.pdf -l lat+spa --rotate --report`.
 Each mode works on its own annotations: in Annotate, the redaction boxes are
 shown, but the mouse goes through them, and in Redact the annotations are.
 Undo goes back through everything done to the document, in any mode.
+View > Panels > History (F10) lists those steps, each said in a few words;
+a click on one undoes or redoes everything up to it.
 
 **Saving.** File > Save writes the document: its annotations, its redaction
 boxes (as the PDF's redaction marks, not yet applied), and the changes of

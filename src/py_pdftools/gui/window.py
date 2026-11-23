@@ -46,6 +46,7 @@ from .signing import SignMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
 from .attachments import AttachmentsMixin
+from .history import HistoryMixin
 from .outline import OutlineMixin
 from .results import ResultsMixin
 from .imposing import ImposeMixin
@@ -192,7 +193,7 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, AttachmentsMixin,
-                 NavigationMixin, WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
+                 HistoryMixin, NavigationMixin, WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
                  ToolbarsMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
@@ -246,6 +247,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._build_outline()
         self._build_results()
         self._build_attachments()
+        self._build_history()
         self._build_form()
         self._build_menus()
         self._build_modes()
@@ -2611,8 +2613,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.keep_comment()
         if self.undo_stack and isinstance(self.undo_stack[-1], DocState):  # (a change of the document itself)
             state = self.undo_stack.pop()
-            # Antes de volver atrás, el estado actual (archivo, anotaciones y página) se guarda para poder rehacer.
-            self.redo_stack.append(self._state())
+            # Antes de volver atrás, el estado actual (archivo, anotaciones y página) se guarda para poder rehacer;
+            # lleva consigo qué fue el cambio, para el panel Historial.
+            self.redo_stack.append(dataclasses.replace(self._state(), what=state.what))
             self.restore(state)
         elif self.undo_stack:
             # A plain change of the annotations: the lists are swapped between the two stacks.
@@ -2626,7 +2629,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def redo(self):
         if self.redo_stack and isinstance(self.redo_stack[-1], DocState):
             state = self.redo_stack.pop()
-            self.undo_stack.append(self._state())
+            self.undo_stack.append(dataclasses.replace(self._state(), what=state.what))
             self.restore(state)
         elif self.redo_stack:
             self.undo_stack.append(self.annotations)
@@ -2955,6 +2958,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
     def refresh(self, pages: bool = True, table: bool = True):
         """Show the annotations again, after a change."""
+        self.history_refresh()  # (cada cambio, deshacer y rehacer pasan por aquí; solo si el panel se ve)
         if table:
             self._fill_filters()
             self._fill_table()

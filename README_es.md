@@ -433,6 +433,8 @@ miniaturas lee las páginas elegidas. Desde la línea de órdenes:
 Cada modo trabaja sobre sus propias anotaciones: en Anotar, los recuadros de
 censura se ven, pero el ratón los atraviesa, y en Censurar, las anotaciones.
 Deshacer recorre todo lo que se hizo al documento, en cualquier modo.
+Ver > Paneles > Historial (F10) lista esos pasos, cada uno dicho en pocas
+palabras; un clic en uno deshace o rehace todo hasta él.
 
 **Guardar.** Archivo > Guardar escribe el documento: sus anotaciones, sus
 recuadros de censura (como marcas de redacción del PDF, todavía sin

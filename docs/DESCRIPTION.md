@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-three stages.
+I explain how it was made, in sixty-four stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1532,6 +1532,24 @@ file already there. A file that fails stops only itself, and the message
 names it rather than the temporary file that failed. The work runs in a
 thread, which can be stopped between two steps, and the steps chosen, with
 their settings, are kept under a name, in recipes.json beside the settings.
+
+64. A panel of the history
+--------------------------
+
+Undo went back through everything done to a document, but blindly: one
+step at a time, with no way to see what the next step would undo. The
+panel History lists every step since the document was opened, with the
+one where it is now in bold and those that Redo can bring back below it,
+and a click on a step undoes or redoes up to there. The history kept no
+description of its steps, and I didn't want a second list to keep in step
+with it everywhere it is changed. A change of the document itself already
+had its message, for the status bar, which its state now keeps (and carries
+from undo to redo and back). A change of the annotations is described by
+comparing it with the state after it: a change makes a new list that holds
+the same objects as before but those it changed, so comparing by identity
+tells what was added, deleted or changed, quickly, even with thousands of
+annotations; one changed is told from one deleted and another added by its
+kind and the time it was made.
 
 Testing
 -------

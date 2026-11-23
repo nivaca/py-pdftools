@@ -102,9 +102,11 @@ Cada casilla, lista y vista de la ventana tiene un nombre que los lectores de pa
 
 ### Trabajar con muchas páginas
 
-Ver > Clasificador de páginas muestra todas las páginas en una cuadrícula de miniaturas grandes, que se dibujan solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace como una sola operación (`arrange.Sort`), un solo paso del historial. El menú Herramientas, en todos los modos, reúne lo que trabaja sobre el documento entero o sobre varios (el clasificador, el índice de palabras, los pasos en varios archivos, las comparaciones, buscar todo); el menú del modo Anotar, que se llamaba así, se llama ahora Anotar.
+El menú Herramientas, en todos los modos, reúne lo que trabaja sobre el documento entero o sobre varios; el menú del modo Anotar, que se llamaba Herramientas, se llama ahora Anotar. El clasificador de páginas muestra todas en una cuadrícula de miniaturas grandes, dibujadas solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace como una sola operación (`arrange.Sort`), un solo paso del historial.
 
-Herramientas > Aplicar pasos a varios archivos hace, en el orden elegido, algunos de estos pasos en cada archivo de una lista: OCR, encabezado o pie, marca de agua, tamaño reducido, PDF/A. Cada paso es una orden de la línea de órdenes, ya probada sola, sobre un archivo temporal (`pages/steps.py`); el resultado va a una carpeta, sin escribir nunca sobre otro archivo, y los pasos se guardan como recetas.
+Aplicar pasos a varios archivos hace, en el orden elegido, algunos de estos pasos en cada archivo de una lista: OCR, encabezado o pie, marca de agua, tamaño reducido, PDF/A. Cada paso es una orden de la línea de órdenes, ya probada sola, sobre un archivo temporal (`pages/steps.py`); el resultado va a una carpeta, sin escribir sobre otro archivo, y los pasos se guardan como recetas.
+
+El panel Historial describe cada paso de deshacer: un cambio del documento, con el mensaje que su estado guarda; uno de las anotaciones, comparando por identidad la lista anterior con la siguiente. Un clic en un paso deshace o rehace hasta él.
 
 ## Ambiente
 
