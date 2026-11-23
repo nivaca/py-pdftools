@@ -68,7 +68,7 @@ El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su pr
 
 ### Documentos grandes
 
-Del código de PDFCraft, un editor escrito en Rust, se tomaron cuatro ideas. Hay varios procesos de dibujo por carril, y una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom, la página se dibuja entera a 2048 píxeles como máximo, y la parte que se ve, en teselas de 1024 píxeles a la escala completa.
+Del código de PDFCraft, un editor escrito en Rust, se tomaron cuatro ideas. Hay varios procesos de dibujo por carril, y una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom (hasta 10000 %), la página se dibuja entera a 2048 píxeles a lo más, y la parte que se ve, en teselas de 1024 píxeles a escala completa.
 
 ### Una sola copia de cada cosa
 

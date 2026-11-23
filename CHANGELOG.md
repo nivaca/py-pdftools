@@ -7,6 +7,9 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- **Zoom up to 10000 %** (it stopped at 1600 %), typed in the box of the
+  zoom or chosen there (3200, 6400 and 10000 % are offered), and with
+  Ctrl++ or the wheel: only the part in view is drawn, in tiles.
 - **A list of OCR languages to download**: in OCR > Languages, each language
   has a box; those ticked make a list, shown under the table, which
   Download takes one after another. One that can't be downloaded doesn't

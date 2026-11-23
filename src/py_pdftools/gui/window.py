@@ -114,7 +114,7 @@ TOOLS = [
     [("ink", "draw-freehand", N_("Draw on the page by hand (with a tablet's pen, pressing harder draws wider)")),
      ("marker", "draw-marker", N_("Highlight by hand, where there is no text to drag over"))],
 ]
-ZOOMS = (25, 50, 75, 100, 125, 150, 200, 300, 400, 800, 1600)  # (the percentages offered in the box of the zoom)
+ZOOMS = (25, 50, 75, 100, 125, 150, 200, 300, 400, 800, 1600, 3200, 6400, 10000)  # (the percentages offered in the box of the zoom)
 DEFAULT_MODE = "read"  # (the mode of the window the first time; then, the one it was left in)
 # the toolbar of each group of TOOLS (object name, title)
 TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("notes", N_("Notes and text")),

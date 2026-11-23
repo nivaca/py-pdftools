@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in fifty stages.
+I explain how it was made, in fifty-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1267,6 +1267,20 @@ the order they were ticked. A model is about a dozen megabytes, so a list of
 several takes a while, and the connection may fail on one: that one stays
 in the list, the others are downloaded, and what failed is said at the end.
 Stop keeps in the list what was not yet downloaded.
+
+51. Deeper zoom
+---------------
+
+The zoom stopped at 1600 %, and other viewers go to 10000 %, which is useful
+for a detail of a map or of a scanned manuscript. The limit was a number in
+two places, and it is now in one. The real question was the drawing: at
+10000 % a page of A4 would be about sixty thousand pixels wide. But the deep
+zoom was already drawn in tiles, only the part in view at the full scale,
+over the whole page drawn small, so the limit could go up without more
+memory: at 10000 % the window shows a handful of tiles, and the process
+stays near the 200 MB it uses at 1600 %. The scroll bars, which count in
+whole pixels, stay far from their limit even for a long document. The box
+of the zoom offers 3200, 6400 and 10000 % too.
 
 Testing
 -------

@@ -180,6 +180,14 @@ def test_deep_zoom_in_tiles(app, tmp_path, monkeypatch):
         covered = covered.united(t.mapRectToParent(QRectF(t.pixmap().rect())))
     view = item.mapFromScene(canvas.mapToScene(canvas.viewport().rect()).boundingRect()).boundingRect() & item.rect()
     assert covered.adjusted(-0.5, -0.5, 0.5, 0.5).contains(view)
+    # (as deep as 10000 %: still the part in view only, a few tiles; beyond, the zoom stops there)
+    w._choose_zoom("10000 %")
+    assert canvas.zoom() == 100 and w.zoom_label.currentText() == "10000 %"
+    settle()
+    assert item.tiles and all(key[0] == canvas._full_scale() for key in item.tiles)
+    assert len(item.tiles) <= canvas_module.MAX_TILES
+    canvas.set_zoom(500)
+    assert canvas.zoom() == 100
     canvas.set_zoom(1)
     settle()
     assert not item.tiles and item.scale_shown == canvas._full_scale()

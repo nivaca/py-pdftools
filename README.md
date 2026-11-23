@@ -266,7 +266,7 @@ opens where it was left, or as it asks (its page, zoom and thumbnails), and
 place. The menu View has two pages side by side (Ctrl+Shift+2, with the
 first alone as a cover if wished), the zooms (fit the page, the width, the
 height, or the inked area; actual size; a percentage typed in the box of
-the zoom; and the tool Zoom to area, Z), the view turned without changing
+the zoom, from 5 % to 10000 %; and the tool Zoom to area, Z), the view turned without changing
 the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
 black, or one's own), the gaps between the pages hidden, and Full screen
 (F11) as a presentation. File > Open in a new tab (Ctrl+T) puts documents

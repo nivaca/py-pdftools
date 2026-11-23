@@ -34,7 +34,7 @@ from PySide6.QtWidgets import (
 from ..annotate import annots
 from . import reading
 from .links import FOLLOWED_BY, LinksMixin
-from .scrolling import ScrollingMixin
+from .scrolling import MAX_ZOOM, MIN_ZOOM, ScrollingMixin
 from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
     CARET_SIZE, DRAWN, MARKUP, NOTE_SIZE, RESIZABLE, TEXTUAL, VERTICES, Annotation, Rect, nearest_word, text_rects,
@@ -1124,7 +1124,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def set_zoom(self, factor: float, fit: str = ""):
         # (a zoom of the program, or a fit: an animation that was running is ended first, where it went)
         self.stop_animations()
-        factor = max(0.05, min(factor, 16))
+        factor = max(MIN_ZOOM, min(factor, MAX_ZOOM))
         # El centro de la vista, en coordenadas de escena, para volver a él después de cambiar la escala.
         anchor = self.mapToScene(self.viewport().rect().center())
         self.fit = fit

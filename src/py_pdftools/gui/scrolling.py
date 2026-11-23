@@ -21,7 +21,8 @@ STEP_MS = 16
 SMOOTH = True  # (zooming and scrolling with the wheel animated: Settings > Performance, see performance.py)
 ZOOM_MS = 160  # how long a step of the zoom takes
 SCROLL_MS = 140  # how long a turn of the wheel takes to scroll
-MIN_ZOOM, MAX_ZOOM = 0.05, 16  # (5 % to 1600 %, as set_zoom)
+# 5 % to 10000 %, for every zoom (set_zoom too): so deep, only the part in view is drawn, in tiles (see canvas.py)
+MIN_ZOOM, MAX_ZOOM = 0.05, 100
 
 
 class ScrollingMixin:
