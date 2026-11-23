@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.8.18
+Version:        1.9.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,14 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Mon Nov 23 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.9.0-1
+- Version 1.9.0: Okular's keys where they do the same (F7, F3, /, Ctrl+Shift+P,
+  B); Ctrl+B and next/previous bookmark; reopen a closed tab and Alt+Shift+N;
+  copy text without line breaks; the Magnifier; trimmed margins; a panel of
+  search results; a command palette; visual comparison of two PDFs;
+  accessibility: names for screen readers, panel to panel with Ctrl+F6, a
+  high-contrast theme
+
 * Mon Nov 23 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.8.18-1
 - Version 1.8.18: the toolbars of a row stay together; a spacer in Customize the
   toolbars; wider handles.

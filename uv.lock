@@ -921,7 +921,7 @@ wheels = [
 
 [[package]]
 name = "py-pdftools"
-version = "1.8.18"
+version = "1.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "pikepdf" },

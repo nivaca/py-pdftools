@@ -5,6 +5,40 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.9.0 — 2026-11-23
+
+- **Okular's keys**, where they do the same thing: F7 shows or hides the
+  thumbnails (F3 before); F3 and Shift+F3 go to the next and the previous
+  place of the quick find; / puts the cursor in the quick find; Ctrl+Shift+P
+  starts the presentation (as F11 does), and B in it makes the screen black
+  until another key is pressed.
+- **Bookmarks**: Ctrl+B adds one at the place shown, and View > Go to has
+  the next and the previous bookmark.
+- **Tabs**: File > Reopen closed tab (Ctrl+Shift+T) opens the last tab
+  closed again, at its page; Alt+Shift+1 to Alt+Shift+9 go to a tab (9, the
+  last).
+- **Copy text without line breaks** (Ctrl+Shift+C): the text selected as one
+  paragraph, with the words cut by a hyphen at the end of a line joined
+  again.
+- **The Magnifier** (Shift+Z): while the mouse button is held on a page, a
+  lens shows that part of it three times nearer, drawn again sharp.
+- **Trim margins** (View > Page layout): only the inked part of each page,
+  so that the text is larger in the same room.
+- **Search results** (View > Panels, F8): every place of a text in a list,
+  with its page and the words around it; a click goes to each.
+- **Find a command** (Help, Ctrl+Alt+I): any command of the menus, found by
+  any word of its name or of its place in them, and run.
+- **Compare visually** (File > Compare): this document and another PDF page
+  by page, side by side with what looks different framed, or one over the
+  other (this one red, the other blue); next and previous page that
+  differs.
+- **Accessibility**: every field and list has a name for screen readers;
+  View > Next panel (Ctrl+F6) and Previous panel (Ctrl+Shift+F6) take the
+  keyboard from part to part of the window; Settings > Appearance > Theme
+  has High contrast.
+- On macOS, the release's own check of its signatures finds gpg (the tests
+  of signing failed on GitHub's macOS runner since 1.8.17).
+
 ## 1.8.18 — 2026-11-23
 
 - **Toolbars that stay together**: when a toolbar is let go, the toolbars of
