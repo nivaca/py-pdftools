@@ -13092,4 +13092,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>No tab was closed</en>
     <tr>No se ha cerrado ninguna pestaña</tr>
   </text>
+  <text>
+    <en>Copy text without line breaks</en>
+    <tr>Copiar el texto sin saltos de línea</tr>
+  </text>
+  <text>
+    <en>The text selected, its lines joined into one paragraph</en>
+    <tr>El texto seleccionado, con sus líneas unidas en un párrafo</tr>
+  </text>
 </interface>

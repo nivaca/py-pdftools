@@ -74,7 +74,7 @@ def regroup(window):
         (tr("Security"), ["a_protect", SEP, "a_sign", "a_check_signatures", "a_make_id"]),
         "a_compare", "a_doc_props", "a_print", SEP, "a_close", "a_quit"])
     _fill(window, window.m_edit, [
-        "a_undo", "a_redo", SEP, "a_copy", "a_paste", "a_duplicate", SEP,
+        "a_undo", "a_redo", SEP, "a_copy", "a_copy_unwrapped", "a_paste", "a_duplicate", SEP,
         "a_props", "a_comment", "a_delete", SEP,
         (tr("Select"), ["a_select_all", "a_select_kind", "a_select_none"]),
         (tr("Arrange"), ["a_group", "a_ungroup", "a_lock", SEP, "m_align"]),

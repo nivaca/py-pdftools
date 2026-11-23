@@ -74,6 +74,10 @@ class TextSelectMixin:
             pages.append("\n".join(lines))
         return "\n\n".join(p for p in pages if p)
 
+    def selected_text_unwrapped(self) -> str:
+        """The text selected as one paragraph: its lines joined with spaces (Ctrl+Shift+C, as in Okular)."""
+        return unwrap(self.selected_text())
+
     def selection_rects(self) -> dict[int, list[Rect]]:
         """{page: one rectangle for each line of text selected on it}."""
         out = {}
@@ -177,3 +181,22 @@ class TextSelectMixin:
 def _qrect(r: Rect) -> tuple[float, float, float, float]:
     """(x, y, width, height) of R."""
     return r[0], r[1], r[2] - r[0], r[3] - r[1]
+
+
+def unwrap(text: str) -> str:
+    """TEXT without its line breaks: the lines joined with a space, and a word cut at the end of a line by a
+    hyphen ("exam-" and "ple") joined again, when the next line goes on in lower case (with a capital, the
+    hyphen stays: "Anglo-Saxon")."""
+    out = ""
+    for line in (ln.strip() for ln in text.splitlines()):
+        if not line:
+            continue
+        # (una palabra cortada con guion al final de la línea se une, sin el guion, si la siguiente sigue en minúscula)
+        cut = out.endswith("-") and len(out) > 1 and out[-2].isalpha()
+        if cut and line[0].islower():
+            out = out[:-1] + line
+        elif cut and line[0].isupper():
+            out += line
+        else:
+            out = f"{out} {line}" if out else line
+    return out

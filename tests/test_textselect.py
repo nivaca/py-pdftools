@@ -110,3 +110,15 @@ def test_in_every_mode(window):
     act = window.tool_actions["selecttext"]
     assert act.isEnabled()
     assert any(act in bar.actions() for bar in window.common_bars if not bar.isHidden())
+
+
+def test_copied_without_line_breaks(window):
+    """Ctrl+Mayús+C, como en Okular: las líneas unidas en un párrafo; una palabra cortada con guion, entera."""
+    from py_pdftools.gui.textselect import unwrap
+
+    assert not window.a_copy_unwrapped.isEnabled()
+    drag(window, 0, at(window, 0, "beta"), 1, at(window, 1, "lambda"))
+    assert window.a_copy_unwrapped.isEnabled() and window.a_copy_unwrapped.shortcut().toString() == "Ctrl+Shift+C"
+    window.a_copy_unwrapped.trigger()
+    assert QApplication.clipboard().text() == "beta gamma delta epsilon zeta eta theta iota kappa lambda"
+    assert unwrap("an exam-\nple of\n\nit, Anglo-\nSaxon") == "an example of it, Anglo-Saxon"

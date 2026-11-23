@@ -250,7 +250,7 @@ La herramienta Seleccionar texto (X), junto a la Mano en todos los modos,
 selecciona texto como en un editor: arrastrando sobre él (también entre
 páginas), Alt+arrastrar para una columna, doble clic en una palabra,
 triple clic en una línea, Mayús+clic para extender. Ctrl+C lo copia,
-Ctrl+A selecciona el texto de la página, y el botón derecho ofrece
+Ctrl+Mayús+C lo copia sin sus saltos de línea, Ctrl+A selecciona el texto de la página, y el botón derecho ofrece
 resaltarlo, subrayarlo o tacharlo, marcarlo para censurar, o buscarlo.
 
 Configuración > General > Seguir funcionando en segundo plano hace que los

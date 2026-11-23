@@ -634,8 +634,10 @@ moment. \key{Esc} goes back to the pages.
 The tool Select text (\key{X}), beside Hand in every mode, selects text as
 in a text editor: drag over it (across pages too), \key{Alt+drag} for a
 column, double-click a word, triple-click a line, \key{Shift+click} to
-extend the selection. \key{Ctrl+C} copies it, and \key{Ctrl+A} selects the
-text of the page. Its right click offers to highlight, underline or strike
+extend the selection. \key{Ctrl+C} copies it, \key{Ctrl+Shift+C} copies it
+without its line breaks (its lines joined into one paragraph, and a word
+cut by a hyphen at the end of a line joined again), and \key{Ctrl+A}
+selects the text of the page. Its right click offers to highlight, underline or strike
 it out, to mark it for redaction, or to find it.
 
 \subsection{Zoom and layout}
@@ -1747,6 +1749,7 @@ Key & Action\\
 \key{Ctrl+W}, \key{Ctrl+Q} & close the window; quit\\
 \key{Ctrl+Z}, \key{Ctrl+Shift+Z} & undo; redo\\
 \key{Ctrl+C}, \key{Ctrl+V}, \key{Ctrl+D} & copy; paste; duplicate\\
+\key{Ctrl+Shift+C} & copy the text without line breaks\\
 \key{Alt+Return} & properties\\
 \key{Del} & delete the annotations selected\\
 \key{Ctrl+A}, \key{Esc} & select all; select none\\

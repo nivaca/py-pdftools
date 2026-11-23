@@ -546,6 +546,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_redo = self._action(m, tr("Redo"), self.redo, QKeySequence.StandardKey.Redo)
         m.addSeparator()
         self.a_copy = self._action(m, tr("Copy"), self.copy_selected)
+        self.a_copy_unwrapped = self._action(m, tr("Copy text without line breaks"),
+                                             lambda: self.copy_selected_text(unwrapped=True), "Ctrl+Shift+C",
+                                             tr("The text selected, its lines joined into one paragraph"))
+        self.a_copy_unwrapped.setEnabled(False)
         self.a_paste = self._action(m, tr("Paste"), self.paste)
         self.a_duplicate = self._action(m, tr("Duplicate"), self.duplicate)
         self.m_edit = m
@@ -2727,9 +2731,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
 
     def _text_selection_changed(self):
         self.a_copy.setEnabled(bool(self.canvas.text_sel) or bool(self.selected))
+        self.a_copy_unwrapped.setEnabled(bool(self.canvas.text_sel))
 
-    def copy_selected_text(self) -> str:
-        text = self.canvas.selected_text()
+    def copy_selected_text(self, unwrapped: bool = False) -> str:
+        text = self.canvas.selected_text_unwrapped() if unwrapped else self.canvas.selected_text()
         if text:
             QApplication.clipboard().setText(text)
             self.status(ntr("{count} character copied", "{count} characters copied", len(text)))
@@ -2740,6 +2745,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         mark it for redaction, or find it."""
         menu = QMenu(self)
         menu.addAction(icon("edit-copy"), tr("Copy"), self.copy_selected_text)
+        menu.addAction(self.a_copy_unwrapped)
         menu.addSeparator()
         for kind, name in (("highlight", "draw-highlight"), ("underline", "format-text-underline"),
                            ("strikeout", "format-text-strikethrough"), ("squiggly", "format-text-underline-squiggle")):

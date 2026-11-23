@@ -1358,10 +1358,16 @@ is no longer there), and Alt+Shift+1 to Alt+Shift+9 go to a tab, the ninth
 being always the last, as in Okular. These nine keys are in no menu: each
 window gives them to its tab, like its other keys.
 
+Ctrl+Shift+C copies the text selected without its line breaks, which is
+what one wants when quoting from a PDF: the lines are joined with spaces,
+and a word cut by a hyphen at the end of a line is joined again when the
+next line goes on in lower case. Before a capital the hyphen stays, since
+"Anglo-" and "Saxon" make "Anglo-Saxon", not "AngloSaxon".
+
 Testing
 -------
 
-The program has 688 tests (`uv run pytest`): those of the four programs,
+The program has 689 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
