@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-two stages.
+I explain how it was made, in sixty-three stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1516,6 +1516,22 @@ annotation, is called Annotate now, as the other modes name their menus
 after themselves. Each action is in one menu only: the menus are filled in
 order, and what Tools takes is not put back at the end of the menu where
 it was made.
+
+63. Steps on several files
+--------------------------
+
+Headers, footers and watermarks could already be put on several files at
+once, but a folder of scans usually needs more: its text read, its pages
+numbered, a smaller size, PDF/A. Tools > Run steps on several files does
+any of these, in the order chosen, on each file of a list. Each step is a
+command of the command line, the same that was tested by itself, run in the
+program on a temporary file and writing the next one, so the dialog adds no
+second way of doing what the commands do; the last file goes to the folder
+chosen, with an ending after its name, never over the original nor over a
+file already there. A file that fails stops only itself, and the message
+names it rather than the temporary file that failed. The work runs in a
+thread, which can be stopped between two steps, and the steps chosen, with
+their settings, are kept under a name, in recipes.json beside the settings.
 
 Testing
 -------

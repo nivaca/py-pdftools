@@ -48,7 +48,7 @@ def test_the_menu_tools(window):
     bar = [a.text().replace("&", "") for a in window.menuBar().actions()]
     assert "Annotate" in bar and bar.index("Tools") == bar.index("View") + 1 == bar.index("Settings") - 1
     tools = reachable(window.m_utils)
-    for name in ("a_sorter", "a_word_index", "a_compare", "a_visual_compare", "a_find_all"):
+    for name in ("a_sorter", "a_word_index", "a_steps", "a_compare", "a_visual_compare", "a_find_all"):
         assert id(getattr(window, name)) in tools, name
     elsewhere = set()
     for menu in (window.m_file, window.m_edit, window.m_view):

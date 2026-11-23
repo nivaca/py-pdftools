@@ -13417,6 +13417,154 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>elegidas: {count}</tr>
   </text>
   <text>
+    <en>-processed</en>
+    <tr>-procesado</tr>
+  </text>
+  <text>
+    <en>A header or a footer needs a text</en>
+    <tr>Un encabezado o un pie necesita un texto</tr>
+  </text>
+  <text>
+    <en>A name for these steps:</en>
+    <tr>Un nombre para estos pasos:</tr>
+  </text>
+  <text>
+    <en>A watermark needs a text</en>
+    <tr>Una marca de agua necesita un texto</tr>
+  </text>
+  <text>
+    <en>Add the files first</en>
+    <tr>Añada antes los archivos</tr>
+  </text>
+  <text>
+    <en>As tesseract names them; several with +: lat+eng</en>
+    <tr>Como los nombra tesseract; varios con +: lat+spa</tr>
+  </text>
+  <text>
+    <en>Choose a step at least</en>
+    <tr>Elija al menos un paso</tr>
+  </text>
+  <text>
+    <en>Files (drop PDFs here)</en>
+    <tr>Archivos (suelte aquí los PDF)</tr>
+  </text>
+  <text>
+    <en>Footer, center:</en>
+    <tr>Pie, centro:</tr>
+  </text>
+  <text>
+    <en>Forget the steps kept under this name</en>
+    <tr>Olvidar los pasos guardados con este nombre</tr>
+  </text>
+  <text>
+    <en>Header, center:</en>
+    <tr>Encabezado, centro:</tr>
+  </text>
+  <text>
+    <en>How much smaller:</en>
+    <tr>Cuánto más pequeño:</tr>
+  </text>
+  <text>
+    <en>Keep these steps, with their settings, under a name</en>
+    <tr>Guardar estos pasos, con sus ajustes, con un nombre</tr>
+  </text>
+  <text>
+    <en>Name ending:</en>
+    <tr>Final del nombre:</tr>
+  </text>
+  <text>
+    <en>OCR, a header or footer, a watermark, a smaller size, PDF/A: those chosen, in their order, on each file of a list; kept as recipes</en>
+    <tr>OCR, un encabezado o pie, una marca de agua, un tamaño menor, PDF/A: los elegidos, en su orden, en cada archivo de una lista; se guardan como recetas</tr>
+  </text>
+  <text>
+    <en>PDF/A and PDF/X need Ghostscript, which is not installed</en>
+    <tr>PDF/A y PDF/X necesitan Ghostscript, que no está instalado</tr>
+  </text>
+  <text>
+    <en>PDF/A or PDF/X</en>
+    <tr>PDF/A o PDF/X</tr>
+  </text>
+  <text>
+    <en>Put after the name of each file written; the originals are never written over</en>
+    <tr>Se pone tras el nombre de cada archivo escrito; los originales nunca se sobrescriben</tr>
+  </text>
+  <text>
+    <en>Recipe</en>
+    <tr>Receta</tr>
+  </text>
+  <text>
+    <en>Recipe:</en>
+    <tr>Receta:</tr>
+  </text>
+  <text>
+    <en>Reduced file size</en>
+    <tr>Tamaño reducido</tr>
+  </text>
+  <text>
+    <en>Run steps on several files</en>
+    <tr>Aplicar pasos a varios archivos</tr>
+  </text>
+  <text>
+    <en>Run steps on several files…</en>
+    <tr>Aplicar pasos a varios archivos…</tr>
+  </text>
+  <text>
+    <en>Save in:</en>
+    <tr>Guardar en:</tr>
+  </text>
+  <text>
+    <en>Standard:</en>
+    <tr>Norma:</tr>
+  </text>
+  <text>
+    <en>Steps</en>
+    <tr>Pasos</tr>
+  </text>
+  <text>
+    <en>Steps: those ticked, in this order (drag them to change it)</en>
+    <tr>Pasos: los marcados, en este orden (arrástrelos para cambiarlo)</tr>
+  </text>
+  <text>
+    <en>Unknown level: {level}</en>
+    <tr>Nivel desconocido: {level}</tr>
+  </text>
+  <text>
+    <en>Unknown standard: {standard}</en>
+    <tr>Norma desconocida: {standard}</tr>
+  </text>
+  <text>
+    <en>Unknown step: {step}</en>
+    <tr>Paso desconocido: {step}</tr>
+  </text>
+  <text>
+    <en>Variables such as $page, $pagelabel, $totalpages, $date, $bates</en>
+    <tr>Variables como $page, $pagelabel, $totalpages, $date, $bates</tr>
+  </text>
+  <text>
+    <en>What became of each file</en>
+    <tr>Qué fue de cada archivo</tr>
+  </text>
+  <text>
+    <en>Working…</en>
+    <tr>Trabajando…</tr>
+  </text>
+  <text>
+    <en>in {folder}</en>
+    <tr>en {folder}</tr>
+  </text>
+  <text>
+    <en>it failed</en>
+    <tr>falló</tr>
+  </text>
+  <text>
+    <en>{count} file written</en>
+    <tr>{count} archivo escrito</tr>
+  </text>
+  <text>
+    <en>{count} files written</en>
+    <tr>{count} archivos escritos</tr>
+  </text>
+  <text>
     <en>&amp;Annotate</en>
     <tr>&amp;Anotar</tr>
   </text>

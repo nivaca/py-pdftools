@@ -443,7 +443,8 @@ View and Tools are always there, the first three grouped in submenus
 (\menu{File\then New}, \menu{Export}, \menu{Import}, \menu{Security};
 \menu{View\then Panels}, \menu{Go to}, \menu{Zoom}, \menu{Page layout}).
 \menu{Tools} gathers what works on the document as a whole, or on several
-documents: the page sorter, the word index, comparing with another version
+documents: the page sorter, the word index, running steps on several files,
+comparing with another version
 (as text, or visually), and finding every place of a text.
 
 \subsection{Toolbars}
@@ -1425,6 +1426,40 @@ original document} shows it beside the result.
 
 \section{Working on whole files}
 \label{sec:files}
+
+\subsection{Steps on several files}
+
+\index{several files at once}\index{OCR}\index{watermarks}\index{headers and footers}\index{smaller copies}\index{PDF/A}%
+\menu{Tools\then Run steps on several files} (figure~\ref{fig:steps_en}) does
+the same work on many PDFs at once: for instance, read the text of a folder
+of scans, put the page number at their foot, make them smaller and save
+them as PDF/A, in that order. The files are dropped on the list on the left,
+or added; the document open is there at first. The steps are ticked in the
+middle list, and dragged to put them in the order they are done; the
+settings of the step selected show beside it:
+
+\begin{description}
+\item[Recognise text (OCR)] the languages, and whether the pages lying
+  sideways or upside down are turned first (section~\ref{sec:ocr});
+\item[Header and footer] a text at the centre of the header or of the
+  footer, with the variables of headers (\texttt{\$pagelabel},
+  \texttt{\$page}, \texttt{\$date}\ldots);
+\item[Watermark] its text and its opacity;
+\item[Reduced file size] how much smaller (as in
+  section~\ref{sec:files});
+\item[PDF/A or PDF/X] the standard (it needs Ghostscript).
+\end{description}
+
+\noindent \menu{Run} does them, file after file, while the bar below says
+where it is; \menu{Stop} ends the work after the step it is doing. Each
+result is saved in the folder chosen, with the ending given after its name
+(\texttt{-processed} at first): the originals are never written over, nor
+any file that is already there. A file that fails in a step doesn't stop
+the others; at the end, the list under the bar says what became of each.
+The steps chosen, with their settings, can be kept under a name with
+\menu{Save as}, and chosen again from \menu{Recipe} another time.
+
+\shot{steps_en}{0.8}{Two files, with a watermark and a smaller size.}
 
 \subsection{Combining files}
 

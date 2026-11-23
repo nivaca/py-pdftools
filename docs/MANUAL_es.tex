@@ -460,7 +460,8 @@ submenús (\menu{Archivo\then Nuevo}, \menu{Exportar}, \menu{Importar},
 \menu{Seguridad}; \menu{Ver\then Paneles}, \menu{Ir a}, \menu{Zoom},
 \menu{Disposición de página}). \menu{Herramientas} reúne lo que trabaja
 sobre el documento entero, o sobre varios: el clasificador de páginas, el
-índice de palabras, la comparación con otra versión (como texto, o a la
+índice de palabras, la aplicación de pasos a varios archivos, la comparación
+con otra versión (como texto, o a la
 vista) y la búsqueda de todos los lugares de un texto.
 
 \subsection{Barras de herramientas}
@@ -1504,6 +1505,43 @@ junto al resultado.
 
 \section{Trabajar con archivos enteros}
 \label{sec:files}
+
+\subsection{Pasos en varios archivos}
+
+\index{varios archivos a la vez}\index{OCR}\index{marcas de agua}\index{encabezados y pies de pagina@encabezados y pies de página}\index{copias mas pequenas@copias más pequeñas}\index{PDF/A}%
+\menu{Herramientas\then Aplicar pasos a varios archivos}
+(figura~\ref{fig:steps_es}) hace el mismo trabajo en muchos PDF a la vez:
+por ejemplo, leer el texto de una carpeta de escaneos, poner el número de
+página al pie, hacerlos más pequeños y guardarlos como PDF/A, en ese orden.
+Los archivos se sueltan sobre la lista de la izquierda, o se añaden; al
+principio está allí el documento abierto. Los pasos se marcan en la lista
+del centro, y se arrastran para ponerlos en el orden en que se hacen; los
+ajustes del paso elegido aparecen a su lado:
+
+\begin{description}
+\item[Reconocer el texto (OCR)] los idiomas, y si antes se giran las
+  páginas que estén de lado o al revés (sección~\ref{sec:ocr});
+\item[Encabezado y pie de página] un texto en el centro del encabezado o
+  del pie, con las variables de los encabezados (\texttt{\$pagelabel},
+  \texttt{\$page}, \texttt{\$date}\ldots);
+\item[Marca de agua] su texto y su opacidad;
+\item[Tamaño reducido] cuánto más pequeño (como en la
+  sección~\ref{sec:files});
+\item[PDF/A o PDF/X] la norma (necesita Ghostscript).
+\end{description}
+
+\noindent \menu{Ejecutar} los hace, archivo tras archivo, mientras la barra
+de abajo dice por dónde va; \menu{Detener} acaba el trabajo tras el paso
+que esté haciendo. Cada resultado se guarda en la carpeta elegida, con el
+final de nombre dado (\texttt{-procesado} al principio): nunca se
+sobrescriben los originales, ni ningún archivo que ya esté allí. Un archivo
+que falla en un paso no detiene los demás; al final, la lista bajo la barra
+dice qué fue de cada uno. Los pasos elegidos, con sus ajustes, se guardan
+con un nombre con \menu{Guardar como}, y se eligen de nuevo en
+\menu{Receta} otra vez.
+
+\shot{steps_es}{0.8}{Dos archivos, con una marca de agua y un tamaño
+  reducido.}
 
 \subsection{Combinar archivos}
 

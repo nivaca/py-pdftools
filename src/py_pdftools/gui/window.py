@@ -440,6 +440,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_images = self._action(m, tr("New PDF from images…"), lambda: self.images_dialog(),
                                      tip=tr("A PDF of photographs or scans, a page for each, and then, if wished, "
                                             "their text read (OCR)"))
+        self.a_steps = self._action(m, tr("Run steps on several files…"), lambda: self.steps_dialog(),
+                                    tip=tr("OCR, a header or footer, a watermark, a smaller size, PDF/A: those "
+                                           "chosen, in their order, on each file of a list; kept as recipes"))
         self.a_combine = self._action(m, tr("Combine files…"), lambda: self.combine_dialog(),
                                       tip=tr("Make one PDF of several, or of some of their pages, one file after "
                                              "another"))
@@ -872,6 +875,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         from .health_dialog import HealthDialog
 
         HealthDialog(self, self).exec()
+
+    def steps_dialog(self):
+        """Tools > Run steps on several files (see steps_dialog.py)."""
+        from .steps_dialog import StepsDialog
+
+        StepsDialog(self).exec()
 
     def word_index(self):
         """Edit > Word index: the pages of each term of a list (see wordindex_dialog.py)."""

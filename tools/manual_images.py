@@ -299,6 +299,19 @@ def shoot(lang: str, out: Path, work: Path):
     c.add_paths([form])
     c.tree.topLevelItem(1).setText(1, "1")
     dialog(c, "combine", 760)
+    # Aplicar pasos a varios archivos: dos archivos, una marca de agua y un tamaño reducido
+    from PySide6.QtCore import Qt as _Qt
+
+    from py_pdftools.gui.steps_dialog import StepsDialog
+
+    sd = StepsDialog(w)
+    sd.add_paths([form])
+    for r in range(sd.steps.count()):
+        if sd.steps.item(r).data(_Qt.ItemDataRole.UserRole).kind in ("watermark", "reduce"):
+            sd.steps.item(r).setCheckState(_Qt.CheckState.Checked)
+    sd.steps.setCurrentRow(2)
+    sd.folder.setText(str(work / "processed"))
+    dialog(sd, "steps", 900)
     pics = ImagesDialog(w)
     import pymupdf
 

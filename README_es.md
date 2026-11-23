@@ -379,6 +379,12 @@ arrastrando sus páginas, varias a la vez, y girarlas, duplicarlas o
 borrarlas; Aceptar lo hace todo como un solo cambio, que Deshacer revierte
 de una vez.
 
+Herramientas > Aplicar pasos a varios archivos hace el mismo trabajo en muchos
+PDF: algunos de OCR, un encabezado o pie, una marca de agua, un tamaño menor
+y PDF/A, marcados y ordenados, en cada archivo de una lista; los resultados
+van a una carpeta, nunca sobre los originales, y los pasos se guardan como
+recetas.
+
 Archivo > Guardar una copia > Con tamaño reducido hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
 encima de ella), sus fuentes reducidas a los caracteres usados, sin lo que

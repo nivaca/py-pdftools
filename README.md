@@ -362,6 +362,11 @@ thumbnails, to put a long document in order by dragging its pages, several
 at once, and to turn, duplicate or delete them; OK makes it all as one
 change, which Undo takes back at once.
 
+Tools > Run steps on several files does the same work on many PDFs: some
+of OCR, a header or footer, a watermark, a smaller size and PDF/A, ticked
+and put in order, on each file of a list; the results go to a folder,
+never over the originals, and the steps can be kept as recipes.
+
 File > Save a copy > Reduced file size makes a copy that takes less space: its
 pictures drawn again at a lower resolution (only those shown above it),
 its fonts reduced to the characters used, what nothing uses taken out;
