@@ -282,7 +282,9 @@ texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
 desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
 las miniaturas se muestran u ocultan con F7.
 Ver > Paneles > Resultados de la búsqueda (F8) hace la lista de todos los lugares de
-un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic. Ver > Marcadores
+un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic.
+Ver > Paneles > Archivos adjuntos (F9) hace la lista de los archivos adjuntos al
+documento o a sus páginas, para abrirlos, guardarlos, añadirlos o quitarlos. Ver > Marcadores
 (F5) muestra los marcadores del documento (ocultos hasta que se piden) como un árbol que se puede
 filtrar; su clic derecho los añade, renombra, mueve, sangra y les da
 estilo, o los saca de los títulos; Ctrl+B añade uno en el lugar visible, y Ver >

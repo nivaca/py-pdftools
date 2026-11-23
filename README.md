@@ -272,7 +272,9 @@ the toolbar Find (Ctrl+Shift+F or /), goes from one place of a text to the next
 with Enter (Shift+Enter, back), or F3 (Shift+F3) from anywhere in the window,
 without minding capitals or accents; the thumbnails are shown or hidden with F7.
 View > Panels > Search results (F8) lists every place of a text, with its page
-and the words around it, and goes to each with a click. View > Bookmarks (F5)
+and the words around it, and goes to each with a click. View > Panels >
+Attached files (F9) lists the files attached to the document or to its pages,
+to open, save, add or remove them. View > Bookmarks (F5)
 shows the document's bookmarks (hidden until it is asked for) as a tree that can be filtered; its right
 click adds, renames, moves, indents and styles them, or makes them from
 the headings; Ctrl+B adds one at the place shown, and View > Go to has the

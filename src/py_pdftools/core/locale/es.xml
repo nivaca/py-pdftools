@@ -13268,4 +13268,84 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Redaction boxes</en>
     <tr>Recuadros de censura</tr>
   </text>
+  <text>
+    <en>Where</en>
+    <tr>Dónde</tr>
+  </text>
+  <text>
+    <en>Description</en>
+    <tr>Descripción</tr>
+  </text>
+  <text>
+    <en>Open</en>
+    <tr>Abrir</tr>
+  </text>
+  <text>
+    <en>Open the file chosen with the program of the desktop for it</en>
+    <tr>Abrir el archivo elegido con el programa del escritorio para él</tr>
+  </text>
+  <text>
+    <en>Save the files chosen, out of the document</en>
+    <tr>Guardar los archivos elegidos, fuera del documento</tr>
+  </text>
+  <text>
+    <en>Attach files to the document (not to a page: for that, the tool Attach file)</en>
+    <tr>Adjuntar archivos al documento (no a una página: para eso, la herramienta Adjuntar archivo)</tr>
+  </text>
+  <text>
+    <en>Take the files chosen out of the document</en>
+    <tr>Sacar del documento los archivos elegidos</tr>
+  </text>
+  <text>
+    <en>The files the document carries, attached to it or to its pages, to open or save them</en>
+    <tr>Los archivos que lleva el documento, adjuntos a él o a sus páginas, para abrirlos o guardarlos</tr>
+  </text>
+  <text>
+    <en>No attached files</en>
+    <tr>Ningún archivo adjunto</tr>
+  </text>
+  <text>
+    <en>{name} cannot be read: {error}</en>
+    <tr>{name} no se puede leer: {error}</tr>
+  </text>
+  <text>
+    <en>Save the attached files in</en>
+    <tr>Guardar los archivos adjuntos en</tr>
+  </text>
+  <text>
+    <en>Attach files to the document</en>
+    <tr>Adjuntar archivos al documento</tr>
+  </text>
+  <text>
+    <en>{count} attached file</en>
+    <tr>{count} archivo adjunto</tr>
+  </text>
+  <text>
+    <en>{count} attached files</en>
+    <tr>{count} archivos adjuntos</tr>
+  </text>
+  <text>
+    <en>{count} file saved</en>
+    <tr>{count} archivo guardado</tr>
+  </text>
+  <text>
+    <en>{count} files saved</en>
+    <tr>{count} archivos guardados</tr>
+  </text>
+  <text>
+    <en>{count} file attached</en>
+    <tr>{count} archivo adjuntado</tr>
+  </text>
+  <text>
+    <en>{count} files attached</en>
+    <tr>{count} archivos adjuntados</tr>
+  </text>
+  <text>
+    <en>{count} attached file removed</en>
+    <tr>{count} archivo adjunto quitado</tr>
+  </text>
+  <text>
+    <en>{count} attached files removed</en>
+    <tr>{count} archivos adjuntos quitados</tr>
+  </text>
 </interface>

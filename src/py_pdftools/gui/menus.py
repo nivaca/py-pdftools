@@ -80,7 +80,7 @@ def regroup(window):
         (tr("Arrange"), ["a_group", "a_ungroup", "a_lock", SEP, "m_align"]),
         (tr("Remove annotations"), ["a_clear_page", "a_clear_all"]), SEP, "m_links", "a_word_index"])
     _fill(window, window.m_view, [
-        (tr("Panels"), ["a_thumbs", "a_panel", "a_outline", "a_form", "a_results"]),
+        (tr("Panels"), ["a_thumbs", "a_panel", "a_outline", "a_form", "a_results", "a_attachments"]),
         (tr("Annotations"), ["a_show", "a_only_listed", SEP, "a_next_annot", "a_prev_annot"]),
         (tr("Go to"), ["a_prev", "a_next", "a_first", "a_last", SEP, "a_back", "a_forward", SEP,
                        "a_add_bookmark", "a_next_bookmark", "a_prev_bookmark"]),

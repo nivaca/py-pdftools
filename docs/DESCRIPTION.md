@@ -1469,10 +1469,28 @@ ended, when Qt destroyed it after the application; it is now removed when
 the program is about to quit, and the crash, six times in eight before, did
 not come back in eight tries.
 
+60. A panel of attached files
+-----------------------------
+
+A PDF can carry files: attached to the whole document (its
+`/EmbeddedFiles`) or to a page, as an annotation. The program showed the
+second kind, as annotations, and nothing of the first. View > Panels >
+Attached files (F9, `gui/attachments.py`) lists both, the document's first,
+each with its size, where it is and its description, and opens a file with
+the desktop's program for it (a copy in a folder of its own), saves those
+chosen (several into a folder, a number added to a name already there, so
+nothing is overwritten), attaches files to the document, and removes those
+chosen. Adding and removing go through the same steps as any change of the
+document, so they are undone with Ctrl+Z; a name the document already has
+gets a number, since it can't hold two the same. PyMuPDF gives a file's
+name as its description when it has none, which only repeated the name, so
+that is left out. The list is filled only while the panel is shown, and
+again when the annotations change, since those of the pages are annotations.
+
 Testing
 -------
 
-The program has 698 tests (`uv run pytest`): those of the four programs,
+The program has 700 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

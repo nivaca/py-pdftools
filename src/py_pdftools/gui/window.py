@@ -45,6 +45,7 @@ from .linking import LinkEditMixin
 from .signing import SignMixin
 from .toolbars import ToolbarsMixin
 from .watching import WatchMixin
+from .attachments import AttachmentsMixin
 from .outline import OutlineMixin
 from .results import ResultsMixin
 from .imposing import ImposeMixin
@@ -190,9 +191,9 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
-class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, NavigationMixin,
-                 WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin, ToolbarsMixin,
-                 QMainWindow):
+class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, AttachmentsMixin,
+                 NavigationMixin, WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
+                 ToolbarsMixin, QMainWindow):
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -244,6 +245,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._build()
         self._build_outline()
         self._build_results()
+        self._build_attachments()
         self._build_form()
         self._build_menus()
         self._build_modes()
@@ -1444,6 +1446,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._fill_pages()
         self.outline_refresh()
         self.results_clear()
+        self.attachments_refresh()
         self.form_refresh()
         self.watch_file()
         return found
@@ -2957,6 +2960,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._show_panel()
         self._enable()
         self._update_title()
+        if table:  # (los adjuntos de las páginas son anotaciones: la lista cambia con ellas)
+            self.attachments_refresh()
 
     def shown(self) -> list[int]:
         """The annotations to show on the pages: all, none, or those the list lets through."""
