@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in forty-eight stages.
+I explain how it was made, in forty-nine stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1235,6 +1235,24 @@ with another folder of configuration, as in the tests, QSettings belongs to
 the user and is not touched. The spare window used to compare the whole
 file to see if the settings had changed; now it compares only the
 settings, or every move of the window would have made it useless.
+
+49. Names, as others say them
+-----------------------------
+
+Many names of the menus were written as I would say them in Spanish:
+"Fit the width", "The thumbnails of the pages", "Check the signatures",
+"Make links of the addresses in the text". They were clear, but longer than
+needed, and not the words a user of other PDF programs looks for. I compared
+them with the names of PDFCraft, item by item, and changed about ninety of
+them, in English and in Spanish: "Fit width", "Page thumbnails", "Validate
+signatures", "Create links from web addresses", "Mark for redaction" for the
+tool that only marks, "Redaction marks" for the panel that was called
+"Boxes". Where the same thing had two names, as Insert from a PDF and Insert
+pages of a PDF before these, it now has one. A dialog keeps the name of the
+item that opens it. Some names stayed: Foliate, the name of a mode, and
+"tabbar", as one word. The texts of the interface are their own keys in the
+file of the Spanish translation, so each change went there too, and the
+pictures of the manuals were made again.
 
 Testing
 -------

@@ -40,10 +40,6 @@
     <tr>Un comentario sobre esta anotación</tr>
   </text>
   <text>
-    <en>About</en>
-    <tr>Acerca de</tr>
-  </text>
-  <text>
     <en>About py-pdftools</en>
     <tr>Acerca de py-pdftools</tr>
   </text>
@@ -108,7 +104,7 @@
     <tr>Borrar</tr>
   </text>
   <text>
-    <en>Delete all the annotations</en>
+    <en>Delete all annotations</en>
     <tr>Borrar todas las anotaciones</tr>
   </text>
   <text>
@@ -116,16 +112,12 @@
     <tr>Borrar la anotación</tr>
   </text>
   <text>
-    <en>Delete the annotations of this page</en>
-    <tr>Borrar las anotaciones de esta página</tr>
+    <en>Delete all on this page</en>
+    <tr>Borrar todo en esta página</tr>
   </text>
   <text>
     <en>Delete the selected annotation</en>
     <tr>Borrar la anotación seleccionada</tr>
-  </text>
-  <text>
-    <en>Delete the selected annotations</en>
-    <tr>Borrar las anotaciones seleccionadas</tr>
   </text>
   <text>
     <en>Delete the {count} annotation of the document?</en>
@@ -190,14 +182,6 @@
   <text>
     <en>First page</en>
     <tr>Primera página</tr>
-  </text>
-  <text>
-    <en>Fit the page</en>
-    <tr>Ajustar a la página</tr>
-  </text>
-  <text>
-    <en>Fit the width</en>
-    <tr>Ajustar al ancho</tr>
   </text>
   <text>
     <en>Font size:</en>
@@ -376,16 +360,16 @@
     <tr>Seleccione una anotación para ver aquí su comentario</tr>
   </text>
   <text>
-    <en>Select none</en>
-    <tr>No seleccionar ninguna</tr>
+    <en>Deselect all</en>
+    <tr>Deseleccionar todo</tr>
   </text>
   <text>
     <en>Select the annotation of this page</en>
     <tr>Seleccionar la anotación de esta página</tr>
   </text>
   <text>
-    <en>Select the annotations of this page</en>
-    <tr>Seleccionar las anotaciones de esta página</tr>
+    <en>Select all on this page</en>
+    <tr>Seleccionar todo en esta página</tr>
   </text>
   <text>
     <en>Select the {count} annotations of this page</en>
@@ -404,7 +388,7 @@
     <tr>Subrayado ondulado</tr>
   </text>
   <text>
-    <en>Strikeout</en>
+    <en>Strikethrough</en>
     <tr>Tachado</tr>
   </text>
   <text>
@@ -668,8 +652,8 @@
     <tr>Grosor del borde:</tr>
   </text>
   <text>
-    <en>Bottoms</en>
-    <tr>Bordes inferiores</tr>
+    <en>Align bottom</en>
+    <tr>Alinear abajo</tr>
   </text>
   <text>
     <en>Bring in the annotations of another copy of this document, such as one annotated by someone else; those already here are left out</en>
@@ -700,8 +684,8 @@
     <tr>Centro</tr>
   </text>
   <text>
-    <en>Centres, across</en>
-    <tr>Centros, en horizontal</tr>
+    <en>Centre horizontally</en>
+    <tr>Centrar en horizontal</tr>
   </text>
   <text>
     <en>Changed</en>
@@ -752,8 +736,8 @@
     <tr>Comentario</tr>
   </text>
   <text>
-    <en>Comment on the annotation selected</en>
-    <tr>Comentar la anotación seleccionada</tr>
+    <en>Edit comment…</en>
+    <tr>Editar comentario…</tr>
   </text>
   <text>
     <en>Confidential</en>
@@ -844,8 +828,8 @@
     <tr>Final</tr>
   </text>
   <text>
-    <en>Flattened…</en>
-    <tr>Aplanada…</tr>
+    <en>With annotations flattened…</en>
+    <tr>Con las anotaciones aplanadas…</tr>
   </text>
   <text>
     <en>Font:</en>
@@ -924,8 +908,8 @@
     <tr>Izquierda</tr>
   </text>
   <text>
-    <en>Left sides</en>
-    <tr>Bordes izquierdos</tr>
+    <en>Align left</en>
+    <tr>Alinear a la izquierda</tr>
   </text>
   <text>
     <en>Lock</en>
@@ -940,16 +924,16 @@
     <tr>Hecha: {made}; cambiada: {changed}</tr>
   </text>
   <text>
-    <en>Make them the same size</en>
-    <tr>Darles el mismo tamaño</tr>
+    <en>Make same size</en>
+    <tr>Igualar el tamaño</tr>
   </text>
   <text>
     <en>Markdown (*.md)</en>
     <tr>Markdown (*.md)</tr>
   </text>
   <text>
-    <en>Middles, up and down</en>
-    <tr>Centros, en vertical</tr>
+    <en>Centre vertically</en>
+    <tr>Centrar en vertical</tr>
   </text>
   <text>
     <en>Never</en>
@@ -1000,8 +984,8 @@
     <tr>Solo anotaciones de este tipo</tr>
   </text>
   <text>
-    <en>Only those the list shows</en>
-    <tr>Solo las que muestra la lista</tr>
+    <en>Only annotations in the list</en>
+    <tr>Solo las anotaciones de la lista</tr>
   </text>
   <text>
     <en>Open arrow</en>
@@ -1048,11 +1032,11 @@
     <tr>Propiedades</tr>
   </text>
   <text>
-    <en>Properties of the tool ({kind})</en>
+    <en>Tool properties ({kind})</en>
     <tr>Propiedades de la herramienta ({kind})</tr>
   </text>
   <text>
-    <en>Properties of the tool…</en>
+    <en>Tool properties…</en>
     <tr>Propiedades de la herramienta…</tr>
   </text>
   <text>
@@ -1084,8 +1068,8 @@
     <tr>Derecha</tr>
   </text>
   <text>
-    <en>Right sides</en>
-    <tr>Bordes derechos</tr>
+    <en>Align right</en>
+    <tr>Alinear a la derecha</tr>
   </text>
   <text>
     <en>Save a copy</en>
@@ -1112,8 +1096,8 @@
     <tr>Seleccione al menos dos anotaciones que se puedan mover (tres, para repartirlas)</tr>
   </text>
   <text>
-    <en>Select those of the same kind on this page</en>
-    <tr>Seleccionar las del mismo tipo en esta página</tr>
+    <en>Select same kind on this page</en>
+    <tr>Seleccionar del mismo tipo en esta página</tr>
   </text>
   <text>
     <en>Select, move and resize annotations; drag around them to select several</en>
@@ -1128,8 +1112,8 @@
     <tr>Atajos</tr>
   </text>
   <text>
-    <en>Show the annotations</en>
-    <tr>Mostrar las anotaciones</tr>
+    <en>Show annotations</en>
+    <tr>Mostrar anotaciones</tr>
   </text>
   <text>
     <en>Slash</en>
@@ -1140,12 +1124,12 @@
     <tr>Vendido</tr>
   </text>
   <text>
-    <en>Spread evenly across</en>
-    <tr>Repartir en horizontal</tr>
+    <en>Distribute horizontally</en>
+    <tr>Distribuir en horizontal</tr>
   </text>
   <text>
-    <en>Spread evenly up and down</en>
-    <tr>Repartir en vertical</tr>
+    <en>Distribute vertically</en>
+    <tr>Distribuir en vertical</tr>
   </text>
   <text>
     <en>Square</en>
@@ -1228,8 +1212,8 @@
     <tr>Alto secreto</tr>
   </text>
   <text>
-    <en>Tops</en>
-    <tr>Bordes superiores</tr>
+    <en>Align top</en>
+    <tr>Alinear arriba</tr>
   </text>
   <text>
     <en>Unlock</en>
@@ -1400,8 +1384,8 @@
     <tr>La lista de las anotaciones, con sus autores, a la derecha de la ventana</tr>
   </text>
   <text>
-    <en>The panel of the annotations</en>
-    <tr>El panel de las anotaciones</tr>
+    <en>Annotations panel</en>
+    <tr>Panel de anotaciones</tr>
   </text>
   <text>
     <en>some annotations were made part of the pages</en>
@@ -1444,8 +1428,8 @@
     <tr>, en {count} páginas</tr>
   </text>
   <text>
-    <en>A summary of the comments (PDF)…</en>
-    <tr>Un resumen de los comentarios (PDF)…</tr>
+    <en>Comment summary (PDF)…</en>
+    <tr>Resumen de los comentarios (PDF)…</tr>
   </text>
   <text>
     <en>Accepted</en>
@@ -2036,6 +2020,10 @@
     <tr>Enlace</tr>
   </text>
   <text>
+    <en>Attach file</en>
+    <tr>Adjuntar archivo</tr>
+  </text>
+  <text>
     <en>Attached file</en>
     <tr>Archivo adjunto</tr>
   </text>
@@ -2226,10 +2214,6 @@
   <text>
     <en>Pen side button:</en>
     <tr>Botón lateral del lápiz:</tr>
-  </text>
-  <text>
-    <en>The thumbnails of the pages</en>
-    <tr>Las miniaturas de las páginas</tr>
   </text>
   <text>
     <en>The pages, small, on the left of the window</en>
@@ -2448,8 +2432,8 @@
     <tr>Estas páginas:</tr>
   </text>
   <text>
-    <en>Show the result</en>
-    <tr>Mostrar el resultado</tr>
+    <en>Preview redactions</en>
+    <tr>Vista previa de la censura</tr>
   </text>
   <text>
     <en>Drag over text to mark it, or elsewhere to draw a box (Ctrl+drag: always a box); double-click a word or an image to mark it. Drag a box to move or resize it; double-click it for its properties, right-click it for more.</en>
@@ -2468,16 +2452,16 @@
     <tr>Páginas:</tr>
   </text>
   <text>
-    <en>Save the redacted copy…</en>
-    <tr>Guardar la copia censurada…</tr>
+    <en>Save redacted copy…</en>
+    <tr>Guardar copia censurada…</tr>
   </text>
   <text>
-    <en>Also remove metadata, hidden text, attachments and scripts</en>
-    <tr>Quitar también metadatos, texto oculto, adjuntos y scripts</tr>
+    <en>Also remove hidden information</en>
+    <tr>Quitar también la información oculta</tr>
   </text>
   <text>
-    <en>Save the redacted copy</en>
-    <tr>Guardar la copia censurada</tr>
+    <en>Save redacted copy</en>
+    <tr>Guardar copia censurada</tr>
   </text>
   <text>
     <en>Saved {path} ({count} area redacted)</en>
@@ -2512,8 +2496,8 @@
     <tr>{width} × {height} mm, a {left} mm de la izquierda y {top} mm de arriba</tr>
   </text>
   <text>
-    <en>Boxes</en>
-    <tr>Recuadros</tr>
+    <en>Redaction marks</en>
+    <tr>Marcas de censura</tr>
   </text>
   <text>
     <en>{count} box selected</en>
@@ -2778,20 +2762,16 @@
     <tr>CENSURADO, [nombre]…</tr>
   </text>
   <text>
-    <en>Redact (text or area)</en>
-    <tr>Censurar (texto o zona)</tr>
-  </text>
-  <text>
     <en>Repeat the text all along the box</en>
     <tr>Repetir el texto a lo largo del recuadro</tr>
   </text>
   <text>
-    <en>Sanitize the document</en>
-    <tr>Sanear el documento</tr>
+    <en>Sanitize document</en>
+    <tr>Sanear documento</tr>
   </text>
   <text>
-    <en>Sanitize the document…</en>
-    <tr>Sanear el documento…</tr>
+    <en>Sanitize document…</en>
+    <tr>Sanear documento…</tr>
   </text>
   <text>
     <en>Save as default for new boxes</en>
@@ -3170,8 +3150,8 @@
     <tr>{name} (copia)</tr>
   </text>
   <text>
-    <en>Save the redacted copy as {standard}</en>
-    <tr>Guardar la copia censurada como {standard}</tr>
+    <en>Save redacted copy as {standard}</en>
+    <tr>Guardar copia censurada como {standard}</tr>
   </text>
   <text>
     <en>The redacted copy was saved as a plain PDF: {command} is not installed (or not where Settings say)</en>
@@ -3642,10 +3622,6 @@ siguiente.</tr>
   <text>
     <en>Ranges of page labels</en>
     <tr>Intervalos de etiquetas de página</tr>
-  </text>
-  <text>
-    <en>Pages and their labels</en>
-    <tr>Las páginas y sus etiquetas</tr>
   </text>
   <text>
     <en>(no label)</en>
@@ -4391,8 +4367,8 @@ cover-continuous.</tr>
     <tr>VISTA</tr>
   </text>
   <text>
-    <en>When the document is opened</en>
-    <tr>Al abrir el documento</tr>
+    <en>Initial view</en>
+    <tr>Vista inicial</tr>
   </text>
   <text>
     <en>nothing to change: give --layout, --page-view or --open-at</en>
@@ -5783,12 +5759,12 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
     <tr>Extraer páginas a un PDF nuevo</tr>
   </text>
   <text>
-    <en>Extract to a new PDF</en>
-    <tr>Extraer a un PDF nuevo</tr>
+    <en>Extract pages</en>
+    <tr>Extraer páginas</tr>
   </text>
   <text>
-    <en>Extract to a new PDF…</en>
-    <tr>Extraer a un PDF nuevo…</tr>
+    <en>Extract pages…</en>
+    <tr>Extraer páginas…</tr>
   </text>
   <text>
     <en>For instance: py-pdftools pages book.pdf --move 201-214 9 --delete LAST --rotate even 90 -i</en>
@@ -5808,16 +5784,12 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
     <tr>En la carpeta:</tr>
   </text>
   <text>
-    <en>Insert from a PDF…</en>
-    <tr>Insertar de un PDF…</tr>
-  </text>
-  <text>
     <en>Insert pages from a PDF</en>
     <tr>Insertar páginas de un PDF</tr>
   </text>
   <text>
-    <en>Insert pages of a PDF before these…</en>
-    <tr>Insertar páginas de un PDF antes de estas…</tr>
+    <en>Insert pages from file…</en>
+    <tr>Insertar páginas de un archivo…</tr>
   </text>
   <text>
     <en>Insert pages of a PDF before this one…</en>
@@ -5912,8 +5884,8 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
     <tr>Páginas giradas</tr>
   </text>
   <text>
-    <en>Replace by pages of a PDF…</en>
-    <tr>Reemplazar por páginas de un PDF…</tr>
+    <en>Replace pages…</en>
+    <tr>Reemplazar páginas…</tr>
   </text>
   <text>
     <en>Replace pages by those of a PDF</en>
@@ -5924,8 +5896,8 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
     <tr>Invertir el orden de las páginas</tr>
   </text>
   <text>
-    <en>Reverse the order…</en>
-    <tr>Invertir el orden…</tr>
+    <en>Reverse pages…</en>
+    <tr>Invertir páginas…</tr>
   </text>
   <text>
     <en>Reverse their order</en>
@@ -5964,8 +5936,8 @@ con sus páginas; los que iban a una página borrada van a la siguiente.</tr>
     <tr>Las etiquetas siguen a las páginas</tr>
   </text>
   <text>
-    <en>The labels, when pages move</en>
-    <tr>Las etiquetas, cuando se mueven páginas</tr>
+    <en>Labels of moved pages</en>
+    <tr>Etiquetas de las páginas movidas</tr>
   </text>
   <text>
     <en>The operations are made in the order they are given, each on the pages as the ones before left them. PAGES is a list of pages, as 9-20,31 (LAST counts from the end), 'all', 'even', 'odd', or 1-50,odd; WHERE is a page (the pages go before it), 'start' or 'end'. --order gives the whole new order: 1-8,20-30, 9-19,31- (pages may be repeated or left out; 10-1 goes backwards).</en>
@@ -6153,8 +6125,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Páginas en blanco:</tr>
   </text>
   <text>
-    <en>Insert a blank page after these</en>
-    <tr>Insertar una página en blanco después de estas</tr>
+    <en>Insert blank page after</en>
+    <tr>Insertar página en blanco después</tr>
   </text>
   <text>
     <en>Insert a blank page after this one</en>
@@ -6197,12 +6169,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Girar 90° en sentido horario</tr>
   </text>
   <text>
-    <en>Move one page earlier</en>
-    <tr>Mover una página antes</tr>
+    <en>Move page earlier</en>
+    <tr>Mover la página antes</tr>
   </text>
   <text>
-    <en>Move one page later</en>
-    <tr>Mover una página después</tr>
+    <en>Move page later</en>
+    <tr>Mover la página después</tr>
   </text>
   <text>
     <en>{inp} not found</en>
@@ -8845,12 +8817,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Hacerla sin ellos</tr>
   </text>
   <text>
-    <en>Pages of the boxes…</en>
-    <tr>Páginas de los recuadros…</tr>
+    <en>Repeat on pages…</en>
+    <tr>Repetir en páginas…</tr>
   </text>
   <text>
-    <en>Properties of the boxes…</en>
-    <tr>Propiedades de los recuadros…</tr>
+    <en>Redaction properties…</en>
+    <tr>Propiedades de la censura…</tr>
   </text>
   <text>
     <en>Redaction</en>
@@ -8865,12 +8837,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Códigos de censura…</tr>
   </text>
   <text>
-    <en>Save the redacted copy as</en>
-    <tr>Guardar la copia censurada como</tr>
+    <en>Save redacted copy as</en>
+    <tr>Guardar copia censurada como</tr>
   </text>
   <text>
-    <en>Settings of redaction…</en>
-    <tr>Configuración de la censura…</tr>
+    <en>Redaction settings…</en>
+    <tr>Configuración de censura…</tr>
   </text>
   <text>
     <en>The boxes as they will look once applied: opaque, with their text (they can still be changed)</en>
@@ -8885,8 +8857,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>La copia censurada se hace a partir del documento tal como se guardó por última vez. ¿Guardar antes sus otros cambios?</tr>
   </text>
   <text>
-    <en>Write a copy of the document with what is under the boxes removed, as a plain PDF (or PDF/A, PDF/X: Save the redacted copy as)</en>
-    <tr>Escribir una copia del documento sin lo que hay debajo de los recuadros, como PDF corriente (o PDF/A, PDF/X: Guardar la copia censurada como)</tr>
+    <en>Write a copy of the document with what is under the boxes removed, as a plain PDF (or PDF/A, PDF/X: Save redacted copy as)</en>
+    <tr>Escribir una copia del documento sin lo que hay debajo de los recuadros, como PDF corriente (o PDF/A, PDF/X: Guardar copia censurada como)</tr>
   </text>
   <text>
     <en>Delete the pages chosen</en>
@@ -10017,8 +9989,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Efectos de transparencia</tr>
   </text>
   <text>
-    <en>More arranging</en>
-    <tr>Más formas de ordenar</tr>
+    <en>More page actions</en>
+    <tr>Más acciones de páginas</tr>
   </text>
   <text>
     <en>Move</en>
@@ -10205,20 +10177,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Vista anterior</tr>
   </text>
   <text>
-    <en>Open again the documents that were open when py-pdftools was ended</en>
-    <tr>Abrir otra vez los documentos que estaban abiertos al terminar py-pdftools</tr>
+    <en>Reopen the files that were open when py-pdftools last closed</en>
+    <tr>Reabrir los archivos que estaban abiertos al cerrar py-pdftools</tr>
   </text>
   <text>
-    <en>The first page alone, as a cover</en>
-    <tr>La primera página sola, como portada</tr>
+    <en>Show cover page</en>
+    <tr>Mostrar la portada aparte</tr>
   </text>
   <text>
     <en>The pages in pairs, as an open book; next and previous move a pair at a time</en>
     <tr>Las páginas de dos en dos, como un libro abierto; siguiente y anterior avanzan de dos en dos</tr>
   </text>
   <text>
-    <en>Two pages side by side</en>
-    <tr>Dos páginas lado a lado</tr>
+    <en>Two-page view</en>
+    <tr>Vista de dos páginas</tr>
   </text>
   <text>
     <en>With two pages side by side: the first page by itself, so that the even pages are on the left</en>
@@ -10229,12 +10201,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Tamaño real</tr>
   </text>
   <text>
-    <en>Fit the height</en>
+    <en>Fit height</en>
     <tr>Ajustar al alto</tr>
   </text>
   <text>
-    <en>Fit the inked area</en>
-    <tr>Ajustar a lo impreso</tr>
+    <en>Fit visible content</en>
+    <tr>Ajustar al contenido visible</tr>
   </text>
   <text>
     <en>The page at its printed size on this screen</en>
@@ -10265,12 +10237,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Todas las páginas se ven giradas; el archivo queda como está (para girar páginas de verdad: Foliar, Girar)</tr>
   </text>
   <text>
-    <en>Rotate the view clockwise</en>
-    <tr>Girar la vista en el sentido del reloj</tr>
+    <en>Rotate view clockwise</en>
+    <tr>Girar la vista en sentido horario</tr>
   </text>
   <text>
-    <en>Rotate the view counterclockwise</en>
-    <tr>Girar la vista en sentido contrario al reloj</tr>
+    <en>Rotate view counterclockwise</en>
+    <tr>Girar la vista en sentido antihorario</tr>
   </text>
   <text>
     <en>The view is turned {degrees}°</en>
@@ -10337,16 +10309,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Cada documento que se abre va a una pestaña de la ventana, no a una ventana propia</tr>
   </text>
   <text>
-    <en>Move the tab to a window of its own</en>
-    <tr>Llevar la pestaña a una ventana propia</tr>
+    <en>Move tab to new window</en>
+    <tr>Mover la pestaña a una ventana nueva</tr>
   </text>
   <text>
     <en>Move to a window of its own</en>
     <tr>Llevar a una ventana propia</tr>
   </text>
   <text>
-    <en>Move to the other side</en>
-    <tr>Pasar al otro lado</tr>
+    <en>Move to other split view</en>
+    <tr>Mover a la otra vista dividida</tr>
   </text>
   <text>
     <en>No document</en>
@@ -10377,8 +10349,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Enseguida si aquí no hay nada sin guardar; si no, py-pdftools pregunta antes</tr>
   </text>
   <text>
-    <en>Open a document again when another program changes it</en>
-    <tr>Abrir de nuevo un documento cuando otro programa lo cambie</tr>
+    <en>Reload documents when their files change on disk</en>
+    <tr>Recargar los documentos cuando sus archivos cambian en el disco</tr>
   </text>
   <text>
     <en>The file has changed</en>
@@ -10421,8 +10393,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>{width} × {height} mm ({inches_w} × {inches_h} pulg.)</tr>
   </text>
   <text>
-    <en>Gaps between the pages</en>
-    <tr>Espacio entre las páginas</tr>
+    <en>Show gaps between pages</en>
+    <tr>Mostrar espacio entre páginas</tr>
   </text>
   <text>
     <en>Unticked, the pages follow one another without a gap, as one long sheet</en>
@@ -10453,8 +10425,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Lo cubre</tr>
   </text>
   <text>
-    <en>Find text only covered…</en>
-    <tr>Buscar texto solo cubierto…</tr>
+    <en>Find covered text…</en>
+    <tr>Buscar texto cubierto…</tr>
   </text>
   <text>
     <en>Find text that seems redacted but is still in the file, under a box, a picture or an annotation drawn over it (it can be copied or found), and put boxes over it</en>
@@ -10865,11 +10837,11 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Margen:</tr>
   </text>
   <text>
-    <en>New PDF from pictures</en>
+    <en>New PDF from images</en>
     <tr>PDF nuevo a partir de imágenes</tr>
   </text>
   <text>
-    <en>New PDF from pictures…</en>
+    <en>New PDF from images…</en>
     <tr>PDF nuevo a partir de imágenes…</tr>
   </text>
   <text>
@@ -11017,8 +10989,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Se guardó {path}: {before} → {after} ({percent} % menos)</tr>
   </text>
   <text>
-    <en>Smaller…</en>
-    <tr>Más pequeña…</tr>
+    <en>Reduced file size…</en>
+    <tr>Con tamaño reducido…</tr>
   </text>
   <text>
     <en>Smallest</en>
@@ -11113,19 +11085,19 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Enlaces</tr>
   </text>
   <text>
-    <en>Make links of the addresses in the text</en>
-    <tr>Hacer enlaces de las direcciones del texto</tr>
+    <en>Create links from web addresses</en>
+    <tr>Crear enlaces de las direcciones web</tr>
   </text>
   <text>
     <en>No address of the text is without a link</en>
     <tr>No hay dirección del texto sin enlace</tr>
   </text>
   <text>
-    <en>Remove all the links</en>
+    <en>Remove all links</en>
     <tr>Quitar todos los enlaces</tr>
   </text>
   <text>
-    <en>Remove all the links…</en>
+    <en>Remove all links…</en>
     <tr>Quitar todos los enlaces…</tr>
   </text>
   <text>
@@ -11167,10 +11139,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Every field back to its first value (or empty)</en>
     <tr>Cada campo vuelve a su primer valor (o queda vacío)</tr>
-  </text>
-  <text>
-    <en>Form</en>
-    <tr>Formulario</tr>
   </text>
   <text>
     <en>Reset the form</en>
@@ -11273,8 +11241,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Lo que muestran los campos del formulario pasa a formar parte de las páginas: ya no se puede cambiar</tr>
   </text>
   <text>
-    <en>With the form flattened…</en>
-    <tr>Con el formulario aplanado…</tr>
+    <en>With form fields flattened…</en>
+    <tr>Con los campos aplanados…</tr>
   </text>
   <text>
     <en>Wrote {path} ({count} fields filled)</en>
@@ -11529,12 +11497,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Firmarlo con un ID digital, de forma visible o no, y guardar la copia firmada</tr>
   </text>
   <text>
-    <en>Sign the document</en>
-    <tr>Firmar el documento</tr>
+    <en>Sign digitally</en>
+    <tr>Firmar digitalmente</tr>
   </text>
   <text>
-    <en>Sign the document…</en>
-    <tr>Firmar el documento…</tr>
+    <en>Sign digitally…</en>
+    <tr>Firmar digitalmente…</tr>
   </text>
   <text>
     <en>Signature:</en>
@@ -11577,8 +11545,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>(desconocido)</tr>
   </text>
   <text>
-    <en>Check the signatures…</en>
-    <tr>Comprobar las firmas…</tr>
+    <en>Validate signatures…</en>
+    <tr>Validar las firmas…</tr>
   </text>
   <text>
     <en>Comments were added after it, or the form was filled in</en>
@@ -11689,12 +11657,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Si cada firma es válida, quién firmó y si es de confianza, y qué cambió después</tr>
   </text>
   <text>
-    <en>signed once: File &gt; Digital signatures &gt; Check the signatures</en>
-    <tr>firmado una vez: Archivo &gt; Firmas digitales &gt; Comprobar las firmas</tr>
+    <en>signed once: File &gt; Digital signatures &gt; Validate signatures</en>
+    <tr>firmado una vez: Archivo &gt; Firmas digitales &gt; Validar las firmas</tr>
   </text>
   <text>
-    <en>signed {count} times: File &gt; Digital signatures &gt; Check the signatures</en>
-    <tr>firmado {count} veces: Archivo &gt; Firmas digitales &gt; Comprobar las firmas</tr>
+    <en>signed {count} times: File &gt; Digital signatures &gt; Validate signatures</en>
+    <tr>firmado {count} veces: Archivo &gt; Firmas digitales &gt; Validar las firmas</tr>
   </text>
   <text>
     <en>{good} of {count} signatures valid and trusted</en>
@@ -11735,10 +11703,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Security</en>
     <tr>Seguridad</tr>
-  </text>
-  <text>
-    <en>The annotations</en>
-    <tr>Las anotaciones</tr>
   </text>
   <text>
     <en>As all the toolbars</en>
@@ -11857,8 +11821,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Dejar fuera las menores de:</tr>
   </text>
   <text>
-    <en>Pages as pictures…</en>
-    <tr>Las páginas como imágenes…</tr>
+    <en>Pages as images…</en>
+    <tr>Páginas como imágenes…</tr>
   </text>
   <text>
     <en>Pictures smaller than this on a side (rules, bullets, marks) are left out</en>
@@ -11889,8 +11853,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Las páginas dibujadas como imágenes PNG, JPEG o TIFF, a una resolución</tr>
   </text>
   <text>
-    <en>The pictures of the document…</en>
-    <tr>Las imágenes del documento…</tr>
+    <en>All images…</en>
+    <tr>Todas las imágenes…</tr>
   </text>
   <text>
     <en>The pictures the pages show, each in a file, as they are stored</en>
@@ -11901,8 +11865,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>El texto de las páginas como Markdown (títulos y listas deducidos), HTML o texto simple</tr>
   </text>
   <text>
-    <en>The text…</en>
-    <tr>El texto…</tr>
+    <en>Text…</en>
+    <tr>Texto…</tr>
   </text>
   <text>
     <en>Wrote {count} pictures in {folder}</en>
@@ -12089,8 +12053,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>VERSIÓN</tr>
   </text>
   <text>
-    <en>With another PDF version…</en>
-    <tr>Con otra versión de PDF…</tr>
+    <en>As another PDF version…</en>
+    <tr>Como otra versión de PDF…</tr>
   </text>
   <text>
     <en>Wrote {path}, as PDF {version} (it was {before})</en>
@@ -12137,16 +12101,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>la página {page} es ahora {label}</tr>
   </text>
   <text>
-    <en>Start with the session, in the tray: the first document opens at once too</en>
-    <tr>Empezar con la sesión, en la bandeja: también el primer documento se abre al instante</tr>
+    <en>Start at login, in the system tray: the first document opens at once too</en>
+    <tr>Empezar al iniciar la sesión, en la bandeja del sistema: también el primer documento se abre al instante</tr>
   </text>
   <text>
     <en>py-pdftools starts when you log in, without a window, and waits in the background (so this needs the setting above, which is turned on with it)</en>
     <tr>py-pdftools empieza al iniciar la sesión, sin ventana, y espera en segundo plano (así que necesita el ajuste de arriba, que se activa con este)</tr>
   </text>
   <text>
-    <en>A document opens showing:</en>
-    <tr>Un documento se abre mostrando:</tr>
+    <en>Default zoom:</en>
+    <tr>Zoom inicial:</tr>
   </text>
   <text>
     <en>Actual size (100 %)</en>
@@ -12165,12 +12129,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Preguntar antes de abrir una dirección web o de correo</tr>
   </text>
   <text>
-    <en>Clear the list of recent documents</en>
-    <tr>Vaciar la lista de documentos recientes</tr>
+    <en>Clear recent files</en>
+    <tr>Vaciar los archivos recientes</tr>
   </text>
   <text>
-    <en>Colours of the interface:</en>
-    <tr>Colores de la interfaz:</tr>
+    <en>Theme:</en>
+    <tr>Tema:</tr>
   </text>
   <text>
     <en>Dark</en>
@@ -12189,23 +12153,23 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Los diálogos de abrir y guardar empiezan en:</tr>
   </text>
   <text>
-    <en>Open each document where it was left (its page and zoom)</en>
-    <tr>Abrir cada documento donde se dejó (su página y su zoom)</tr>
+    <en>Restore the last page and zoom of each document</en>
+    <tr>Recordar la página y el zoom de cada documento</tr>
   </text>
   <text>
     <en>Over the pages, for a few seconds; Help &gt; Tips for this mode (F1) shows it always</en>
     <tr>Sobre las páginas, unos segundos; Ayuda &gt; Consejos de este modo (F1) lo muestra siempre</tr>
   </text>
   <text>
-    <en>Recent documents in the menu:</en>
-    <tr>Documentos recientes en el menú:</tr>
+    <en>Recent files to keep:</en>
+    <tr>Archivos recientes que se guardan:</tr>
   </text>
   <text>
     <en>Show a hint of what can be done when a mode is chosen</en>
     <tr>Mostrar un consejo de lo que se puede hacer al elegir un modo</tr>
   </text>
   <text>
-    <en>Size of the interface:</en>
+    <en>Interface size:</en>
     <tr>Tamaño de la interfaz:</tr>
   </text>
   <text>
@@ -12233,12 +12197,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>El zoom de un documento abierto por primera vez (uno abierto antes se abre donde se dejó, si eso se recuerda)</tr>
   </text>
   <text>
-    <en>Toolbars, icons:</en>
-    <tr>Barras, iconos:</tr>
+    <en>Toolbar icon size:</en>
+    <tr>Tamaño de los iconos:</tr>
   </text>
   <text>
-    <en>Toolbars, text:</en>
-    <tr>Barras, texto:</tr>
+    <en>Toolbar button style:</en>
+    <tr>Estilo de los botones:</tr>
   </text>
   <text>
     <en>none</en>
@@ -12317,12 +12281,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>No permitido</tr>
   </text>
   <text>
-    <en>PDF properties</en>
-    <tr>Propiedades del PDF</tr>
+    <en>Document properties</en>
+    <tr>Propiedades del documento</tr>
   </text>
   <text>
-    <en>PDF properties…</en>
-    <tr>Propiedades del PDF…</tr>
+    <en>Document properties…</en>
+    <tr>Propiedades del documento…</tr>
   </text>
   <text>
     <en>PDF version</en>
@@ -12697,12 +12661,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Revisar de nuevo</tr>
   </text>
   <text>
-    <en>Check the configuration</en>
-    <tr>Revisar la configuración</tr>
+    <en>System check</en>
+    <tr>Comprobación del sistema</tr>
   </text>
   <text>
-    <en>Check the configuration…</en>
-    <tr>Revisar la configuración…</tr>
+    <en>System check…</en>
+    <tr>Comprobación del sistema…</tr>
   </text>
   <text>
     <en>Choose it again in Settings, or leave the field empty to use the one of py-pdftools</en>
@@ -12965,12 +12929,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>El zoom crece o se reduce en unos pocos pasos, y la rueda se desliza, en lugar de saltar; más suave aún con la tarjeta gráfica</tr>
   </text>
   <text>
-    <en>Check for a new version…</en>
-    <tr>Buscar una versión nueva…</tr>
+    <en>Check for updates…</en>
+    <tr>Buscar actualizaciones…</tr>
   </text>
   <text>
-    <en>Check for a new version</en>
-    <tr>Buscar una versión nueva</tr>
+    <en>Check for updates</en>
+    <tr>Buscar actualizaciones</tr>
   </text>
   <text>
     <en>Ask GitHub for the latest version of py-pdftools (only now, never by itself), and say how to install it</en>

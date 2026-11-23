@@ -213,7 +213,7 @@ class CombineDialog(_ListDialog):
 
 
 class ImagesDialog(_ListDialog):
-    title = N_("New PDF from pictures")
+    title = N_("New PDF from images")
     suffixes = tuple(s[1:] for s in combine.IMAGES)
     filter_text = N_("Pictures ({patterns})")
 

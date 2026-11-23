@@ -42,7 +42,7 @@ class SettingsDialog(QDialog):
         self.drawings = QComboBox()
         for value, name in DRAWINGS:
             self.drawings.addItem(tr(name), value)
-        self.clean = QCheckBox(tr("Also remove metadata, hidden text, attachments and scripts"))
+        self.clean = QCheckBox(tr("Also remove hidden information"))
         form = QFormLayout()
         form.addRow(tr("Colour of new boxes:"), self.color_button)
         form.addRow(tr("Images under a box:"), self.images)

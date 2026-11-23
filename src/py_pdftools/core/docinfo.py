@@ -92,7 +92,7 @@ def properties(doc: pymupdf.Document, path: str | Path | None = None) -> list[tu
         items.append((CONTENTS, N_("Tagged (structure for accessibility)"),
                       yes if "/Marked true" in _catalog_has(doc, "MarkInfo") or _catalog_has(doc, "StructTreeRoot")
                       else no))
-        items.append((CONTENTS, N_("Form"), yes if doc.is_form_pdf else no))
+        items.append((CONTENTS, N_("Form fields"), yes if doc.is_form_pdf else no))
         layers = doc.layer_ui_configs() or []
         items.append((CONTENTS, N_("Layers"), str(len(layers)) if layers else no))
         items.append((CONTENTS, N_("Attached files"), str(doc.embfile_count()) if doc.embfile_count() else no))

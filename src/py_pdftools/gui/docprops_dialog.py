@@ -17,7 +17,7 @@ from ..core.interface import tr
 class DocumentPropertiesDialog(QDialog):
     def __init__(self, doc, path=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(tr("PDF properties"))
+        self.setWindowTitle(tr("Document properties"))
         self.items = docinfo.properties(doc, path)
         self.font_list = docinfo.fonts(doc)
         tabs = QTabWidget()

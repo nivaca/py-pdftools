@@ -182,7 +182,7 @@ conservaron sus nombres.
 Este manual explica primero la ventana, modo por modo; luego, el trabajo
 sobre archivos enteros, la configuración y la línea de órdenes. Los menús
 van en cursiva, con sus submenús tras un \enquote{>}, así:
-\menu{Archivo\then Guardar una copia\then Más pequeña}; las teclas, como
+\menu{Archivo\then Guardar una copia\then Con tamaño reducido}; las teclas, como
 \key{Ctrl+S}. En macOS, \key{Ctrl} es la tecla Comando. Las imágenes
 muestran la ventana en español; con la interfaz en inglés, todos los menús
 y diálogos están en inglés (véase la sección~\ref{sec:settings}).
@@ -497,7 +497,7 @@ una pestaña de la misma ventana; con \menu{Configuración\then General\then
 Abrir los documentos en pestañas de una sola ventana}, todos se abren así.
 \menu{Ver\then Dividir la vista} (\key{Ctrl+\textbackslash}) pone la
 pestaña visible junto a las otras, para leer dos documentos lado a lado, y
-\menu{Ver\then Llevar la pestaña a una ventana propia} la saca.
+\menu{Ver\then Mover la pestaña a una ventana nueva} la saca.
 
 \index{contrasenas@contraseñas}\index{zoom}%
 Un documento protegido con contraseña la pide al abrirse. Un documento que
@@ -543,7 +543,7 @@ Tiene también:
 \item[Comparar con otra versión] marca en este documento lo que difiere de
   otra versión del mismo texto (otra edición, un borrador): sus palabras,
   en el orden de lectura.
-\item[Propiedades del PDF] muestra qué es el documento: su título, autor,
+\item[Propiedades del documento] muestra qué es el documento: su título, autor,
   asunto, palabras clave y fechas, el programa que lo hizo, su archivo
   (nombre, carpeta, tamaño, versión de PDF, si está linealizado para la
   vista web rápida), su contenido (páginas, tamaño de página, si está
@@ -670,9 +670,9 @@ sobre la página, o acerca donde se hace clic.
 \index{modos}\index{disposicion de pagina@disposición de página!dos paginas@dos páginas}\index{disposicion de pagina@disposición de página!portada}\index{disposicion de pagina@disposición de página!espacio entre paginas@espacio entre páginas}\index{vista!girar}\index{paginas@páginas!ordenar}%
 \menu{Ver\then Disposición de página} muestra las páginas de una en una, en
 lugar del desplazamiento continuo, o dos lado a lado (\key{Ctrl+Shift+2}),
-como un libro abierto; con \menu{La primera página sola, como portada}, las
+como un libro abierto; con \menu{Mostrar la portada aparte}, las
 páginas pares quedan a la izquierda (figura~\ref{fig:view_es}). Si se
-desmarca \menu{Espacio entre las páginas}, forman una sola hoja larga.
+desmarca \menu{Mostrar espacio entre páginas}, forman una sola hoja larga.
 \menu{Girar la vista} (\key{Ctrl+]} y \key{Ctrl+[}) gira todas las páginas
 en la ventana, pero no en el archivo; para girarlas de verdad está el modo
 Foliar.
@@ -789,17 +789,17 @@ significa para usted: cada color se ve como una muestra suya, con su
 nombre en el consejo, junto al campo de su significado; un clic sobre él
 ofrece los demás.
 
-\subsection{El panel de las anotaciones}
+\subsection{El panel de anotaciones}
 
 \index{anotaciones}\index{anotaciones!panel}\index{anotaciones!filtrar}\index{anotaciones!ordenar}\index{anotaciones!estado}\index{anotaciones!categorias@categorías}%
-El panel de las anotaciones (\key{F4}) lista todas las del documento, con
+El panel de anotaciones (\key{F4}) lista todas las del documento, con
 su página, tipo, autor, estado, la fecha en que cambiaron y su texto (lo que
 marcan, o lo que dicen). Su cuadro de arriba busca en su texto, y las
 listas de abajo las filtran por tipo, autor, color, estado, etiqueta y
 categoría; la lista de la derecha las ordena por página, por tipo, por
 autor, por estado, o primero la última cambiada. Con \menu{Ver\then
-Anotaciones\then Solo las que muestra la lista}, las páginas muestran solo
-las anotaciones que dejan pasar los filtros; \menu{Mostrar las anotaciones}
+Anotaciones\then Solo las anotaciones de la lista}, las páginas muestran solo
+las anotaciones que dejan pasar los filtros; \menu{Mostrar anotaciones}
 (\key{Ctrl+Shift+A}) las oculta todas, para ver el documento tal como es.
 
 \index{anotaciones}\index{anotaciones!nota}\index{anotaciones!respuestas}\index{anotaciones!estado}\index{etiquetas de pagina@etiquetas de página}%
@@ -833,7 +833,7 @@ lectura del manuscrito, enmienda, conjetura, laguna, corrección del
 copista, adición marginal\ldots), la lectura del texto y la otra lectura,
 el testimonio (un manuscrito o una edición, por su sigla), su ubicación, su
 fuente, la justificación y el grado de certeza. \menu{Archivo\then
-Exportar\then Las anotaciones\then El aparato crítico} escribe esas
+Exportar\then Anotaciones\then El aparato crítico} escribe esas
 entradas en el orden del texto.
 
 \index{anotaciones}\index{anotaciones!categorias@categorías}%
@@ -891,7 +891,7 @@ saca del documento todos los enlaces.
 \subsection{Exportar e importar anotaciones}
 
 \index{anotaciones}\index{anotaciones!exportar}\index{exportar}%
-\menu{Archivo\then Exportar\then Las anotaciones} escribe las anotaciones:
+\menu{Archivo\then Exportar\then Anotaciones} escribe las anotaciones:
 
 \index{anotaciones}\index{anotaciones!respuestas}\index{anotaciones!categorias@categorías}\index{critica textual@crítica textual}\index{anotaciones!exportar}\index{etiquetas de pagina@etiquetas de página}\index{exportar!texto}%
 \begin{itemize}
@@ -916,7 +916,7 @@ persona; las anotaciones que ya están en el documento no se añaden dos
 veces.
 
 \index{enlaces}\index{anotaciones}\index{aplanar}\index{formularios}%
-\menu{Archivo\then Guardar una copia\then Aplanada} hace las anotaciones
+\menu{Archivo\then Guardar una copia\then Con las anotaciones aplanadas} hace las anotaciones
 parte de las páginas: se ven y se imprimen en todas partes, pero ya no se
 pueden editar ni quitar. \menu{Sin anotaciones} guarda el documento sin
 ninguna (los enlaces y los campos de formulario se quedan).
@@ -934,13 +934,13 @@ contenido opcional).
 \label{sec:forms}
 
 \index{formularios}\index{formularios!panel}%
-Un documento con formulario abre solo el panel Formulario (\key{F6}), o lo
+Un documento con formulario abre solo el panel Campos de formulario (\key{F6}), o lo
 abre un clic en un campo. Los campos se llenan sobre la página, como en
 cualquier visor, o en el panel, que los lista todos con sus nombres
 (figura~\ref{fig:form_es}). Los campos marcados con un asterisco son
 obligatorios.
 
-\shot{form_es}{1}{Un formulario, con el panel Formulario. El precio y el
+\shot{form_es}{1}{Un formulario, con el panel Campos de formulario. El precio y el
   impuesto se muestran en su formato, y el total se calcula.}
 
 \index{guardar}\index{formularios}\index{javascript@JavaScript}%
@@ -955,7 +955,7 @@ un valor. El formulario se guarda con el documento, con
 Los botones del panel devuelven el formulario a sus valores por defecto,
 exportan sus valores (JSON, CSV, XFDF o FDF) y los importan, para llenar el
 formulario con datos guardados en otra parte. \menu{Archivo\then Guardar
-una copia\then Con el formulario aplanado} hace parte de las páginas lo que
+una copia\then Con los campos aplanados} hace parte de las páginas lo que
 muestran los campos, de modo que ya no puede cambiarse.
 
 \index{formularios}\index{formularios!linea de ordenes@línea de órdenes}\index{linea de ordenes@línea de órdenes}%
@@ -996,7 +996,7 @@ recuadros} hace lo mismo con los recuadros seleccionados. Bajo la lista,
 por dibujar.
 
 \index{anotaciones!nota}\index{anotaciones!estado}\index{anotaciones!bloquear}\index{censura}\index{censura!propiedades de los recuadros}\index{censura!codigos@códigos}%
-\menu{Censurar\then Propiedades de los recuadros} decide cómo serán una vez
+\menu{Censurar\then Propiedades de la censura} decide cómo serán una vez
 censurados: su relleno (sin color, lo que hay debajo se quita y no se
 pinta nada encima), un texto escrito sobre ellos (\enquote{CENSURADO}, un
 nombre), su tamaño, color y alineación, y si se repite a lo largo del
@@ -1007,11 +1007,11 @@ se censuró, como los de la ley estadounidense de libertad de información
 (\texttt{(b)(6)}) o de la Privacy Act; pueden añadirse conjuntos propios.
 
 \index{censura}\index{censura!mostrar el resultado}%
-\menu{Censurar\then Mostrar el resultado} (\key{Ctrl+R}) muestra los
+\menu{Censurar\then Vista previa de la censura} (\key{Ctrl+R}) muestra los
 recuadros como quedarán una vez aplicados: opacos, con su texto
 (figura~\ref{fig:redact_result_es}). Todavía pueden cambiarse.
 
-\shot{redact_result_es}{1}{Mostrar el resultado: los recuadros tal como
+\shot{redact_result_es}{1}{Vista previa de la censura: los recuadros tal como
   quedarán en la copia censurada.}
 
 \subsection{Buscar y censurar}
@@ -1049,7 +1049,7 @@ para que la copia censurada lo quite.
 \subsection{La copia censurada}
 
 \index{modos}\index{anotaciones}\index{censura}\index{censura!copia censurada}%
-\menu{Censurar\then Guardar la copia censurada} (\key{Ctrl+Shift+R})
+\menu{Censurar\then Guardar copia censurada} (\key{Ctrl+Shift+R})
 escribe una copia del documento en la que se quita lo que hay bajo los
 recuadros: texto, imágenes (la parte cubierta), dibujos y anotaciones. La
 copia se comprueba mientras se escribe: si algún texto bajo un recuadro
@@ -1058,7 +1058,7 @@ copia se hace a partir del documento tal como se guardó por última vez, de
 modo que el programa ofrece guardar antes los demás cambios.
 
 \index{enlaces}\index{capas}\index{javascript@JavaScript}\index{censura}\index{censura!copia censurada}\index{metadatos}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
-\menu{Guardar la copia censurada como} la hace PDF/A o PDF/X
+\menu{Guardar copia censurada como} la hace PDF/A o PDF/X
 (sección~\ref{sec:pdfa}). Con \menu{Quitar también metadatos, texto oculto,
 adjuntos y scripts} marcado, la copia pierde además lo que el documento
 guarda aparte de sus páginas: su título, autor y demás metadatos, el texto
@@ -1084,9 +1084,9 @@ esté marcado; el documento abierto no cambia y sus recuadros no se aplican.
 \shot{hidden_es}{0.55}{Quitar información oculta.}
 
 \index{enlaces}\index{capas}\index{censura}\index{metadatos}\index{sanear}\index{censura!configuracion@configuración}\index{imposicion@imposición!aplicar}%
-\menu{Censurar\then Sanear el documento} guarda de una vez una copia sin
+\menu{Censurar\then Sanear documento} guarda de una vez una copia sin
 metadatos, texto ni capas ocultos, adjuntos, scripts ni enlaces, y sin
-ningún otro cambio. \menu{Configuración de la censura} fija el color de los
+ningún otro cambio. \menu{Configuración de censura} fija el color de los
 recuadros nuevos, qué pasa con las imágenes y los dibujos bajo un recuadro
 (se quita solo la parte cubierta, la imagen entera o nada) y cómo se ven
 los recuadros aún sin aplicar (su contorno y la opacidad de su relleno). El
@@ -1201,7 +1201,7 @@ insertar las páginas de otro PDF o reemplazarlas por páginas de otro PDF
 arrastrarse en las miniaturas.
 
 \index{modos}\index{marcadores}\index{paginas@páginas!ordenar}\index{paginas@páginas!extraer}\index{paginas@páginas!dividir}\index{varios archivos a la vez}%
-\menu{Extraer a un PDF nuevo} guarda las páginas elegidas como un archivo
+\menu{Extraer páginas} guarda las páginas elegidas como un archivo
 nuevo, y lo abre en una pestaña nueva junto al documento. \menu{Ordenar páginas\then Dividir} (figura~\ref{fig:split_es})
 corta el documento en varios archivos: cada tantas páginas (una por
 página, con el nombre de su etiqueta), en páginas dadas, en sus marcadores
@@ -1279,15 +1279,15 @@ y se quita como los encabezados.
 números Bates o marcas de agua en muchos PDF a la vez, con los números
 Bates siguiendo de un archivo al siguiente.
 
-\subsection{Al abrir el documento}
+\subsection{Vista inicial}
 
 \index{zoom!tamano real@tamaño real}\index{vista al abrir}\index{configuracion@configuración!documentos}%
-\menu{Páginas\then Al abrir el documento} fija cómo muestran el documento
+\menu{Páginas\then Vista inicial} fija cómo muestran el documento
 los visores de PDF al abrirlo: su disposición (una página, una página
 continua, páginas enfrentadas, enfrentadas continuas, portada, portada
 continua), su vista (tamaño real, ajustar al ancho, ajustar a la página) y
 la página en que se abre. Este programa también las obedece, si
-\menu{Configuración\then Documentos\then Un documento se abre mostrando}
+\menu{Configuración\then Documentos\then Zoom inicial}
 está en \menu{Lo que pide el documento}.
 
 \section{Índice de palabras}
@@ -1438,7 +1438,7 @@ Cada página puede ser tan grande como su imagen, o del tamaño de un papel
 \subsection{Copias más pequeñas}
 
 \index{copias mas pequenas@copias más pequeñas}%
-\menu{Archivo\then Guardar una copia\then Más pequeña}
+\menu{Archivo\then Guardar una copia\then Con tamaño reducido}
 (figura~\ref{fig:reduce_es}) hace una copia que ocupa menos. Primero
 muestra a qué se van los bytes del documento: sus imágenes, el contenido de
 sus páginas y lo demás. Luego vuelve a dibujar las imágenes que pasan de
@@ -1471,7 +1471,7 @@ documento.
 
 \index{capas}\index{version de pdf@versión de PDF}\index{cifrado}%
 Algunos programas y oficinas piden un PDF de una versión dada.
-\menu{Archivo\then Guardar una copia\then Con otra versión de PDF}
+\menu{Archivo\then Guardar una copia\then Como otra versión de PDF}
 (figura~\ref{fig:version_es}) hace una copia que dice ser PDF 1.3 a 2.0, y
 nombra lo que el documento usa y la versión elegida no tiene
 (transparencias, objetos en flujos comprimidos, capas, imágenes JPEG 2000,
@@ -1517,7 +1517,7 @@ nombre, una dirección de correo y los demás datos.
 \shot{make_id_es}{0.5}{Crear un ID digital.}
 
 \index{contrasenas@contraseñas}\index{anotaciones!sello}\index{anotaciones!bloquear}\index{formularios}\index{censura!recuadros}\index{firmas digitales}\index{firmas digitales!certificar}%
-\menu{Archivo\then Seguridad\then Firmar el documento}
+\menu{Archivo\then Seguridad\then Firmar digitalmente}
 (figura~\ref{fig:sign_es}) lo firma con un ID y su contraseña, con un
 motivo, un lugar y un contacto. Una firma visible se arrastra a su lugar en
 la página, o va en un campo de firma vacío del formulario; una invisible
@@ -1532,7 +1532,7 @@ guarda en ese momento.
 \shot{sign_es}{0.6}{Firmar un documento.}
 
 \index{firmas digitales!comprobar}%
-\menu{Archivo\then Seguridad\then Comprobar las firmas}
+\menu{Archivo\then Seguridad\then Validar las firmas}
 (figura~\ref{fig:signatures_es}) comprueba las firmas del documento: si
 cada una está intacta y es válida, quién firmó y si está entre los
 firmantes de confianza, cuándo, y qué cambió después.
@@ -1576,9 +1576,9 @@ pestañas.
 \end{description}
 
 \index{configuracion@configuración!revisar}%
-\menu{Revisar la configuración}, un botón al pie del diálogo de la
+\menu{Comprobación del sistema}, un botón al pie del diálogo de la
 configuración, a la vista desde cualquier pestaña, y también
-\menu{Ayuda\then Revisar la configuración}, abre una lista de lo que
+\menu{Ayuda\then Comprobación del sistema}, abre una lista de lo que
 py-pdftools
 necesita y si lo tiene, cada cosa marcada como bien, nota, advertencia o
 problema, con lo que hay que hacer: las versiones de Python y de sus
@@ -1593,7 +1593,7 @@ otra acción. \menu{Copiar el informe} copia la lista como texto, para
 pegarla en un mensaje en el que se pida ayuda.
 
 \index{version nueva@versión nueva}\index{actualizar}%
-\menu{Ayuda\then Buscar una versión nueva} pregunta a GitHub cuál es la
+\menu{Ayuda\then Buscar actualizaciones} pregunta a GitHub cuál es la
 última versión de py-pdftools. Solo pregunta entonces: el programa nunca
 lo hace por sí solo, y la pregunta no lleva nada de usted ni de su
 computador. Si hay una versión más nueva, dice cómo instalarla, lo que
@@ -1615,7 +1615,7 @@ Al pie de la pestaña se dice dónde se guarda la configuración
 
 \index{modos}\index{consejos de los modos}\index{barras de herramientas}\index{barras de herramientas!iconos y texto}\index{nitidez del texto}\index{anotaciones!bloquear}\index{configuracion@configuración!aspecto}\index{idioma de la interfaz}%
 \begin{description}
-\item[Colores de la interfaz] como el sistema, claros u oscuros, al instante y sea cual sea el tema del escritorio; claros y oscuros toman también la variante clara u oscura de los iconos del escritorio, si está instalada (breeze y breeze-dark, por ejemplo).
+\item[Tema] como el sistema, claros u oscuros, al instante y sea cual sea el tema del escritorio; claros y oscuros toman también la variante clara u oscura de los iconos del escritorio, si está instalada (breeze y breeze-dark, por ejemplo).
 \item[Tamaño de la interfaz] el tamaño de las letras de los menús, los
   paneles y los diálogos: de 90\,\% a 150\,\%.
 \item[Texto de las páginas] Como se dibuja, Más nítido o Lo más nítido
@@ -1637,13 +1637,13 @@ Al pie de la pestaña se dice dónde se guarda la configuración
 
 \index{abrir!documentos recientes}\index{zoom}\index{zoom!tamano real@tamaño real}\index{configuracion@configuración!documentos}%
 \begin{description}
-\item[Un documento se abre mostrando] el zoom de un documento que se abre
+\item[Zoom inicial] el zoom de un documento que se abre
   por primera vez: lo que pide el documento, la página entera, el ancho
   de la página o el tamaño real.
 \item[Abrir cada documento donde se dejó] en su página y con su zoom.
 \item[Preguntar antes de abrir una dirección web o de correo] en la que se
   hace clic en un documento.
-\item[Documentos recientes en el menú] cuántos muestra
+\item[Archivos recientes que se guardan] cuántos muestra
   \menu{Archivo\then Abrir reciente}, y un botón para vaciar la lista.
 \item[Los diálogos de abrir y guardar empiezan en] la última carpeta usada
   o la carpeta del documento.
@@ -1687,7 +1687,7 @@ a las habituales.
   página que tarda un momento en aparecer tarda lo mismo. Desactivado al
   principio; cambia la próxima vez que el programa se inicie. Donde OpenGL
   no funciona (algunas máquinas virtuales y pantallas remotas), las páginas
-  se dibujan como siempre, y \menu{Revisar la configuración} dice por qué;
+  se dibujan como siempre, y \menu{Comprobación del sistema} dice por qué;
   si las páginas se ven negras o parpadean, desactívelo.
 \end{description}
 
@@ -1867,7 +1867,7 @@ Tecla & Acción\\
 \item[La copia censurada avisa de que aún se lee texto] algún texto bajo un
   recuadro no se quitó (puede estar en una forma que no se puede
   analizar): mire las páginas nombradas y ponga un recuadro sobre toda la
-  zona, o use \menu{Buscar texto solo cubierto}.
+  zona, o use \menu{Buscar texto cubierto}.
 \item[El programa terminó sin guardar] abra de nuevo el documento: ofrece
   recuperar los cambios de su copia de recuperación.
 \item[Un valor de la configuración está mal] borre \texttt{config.toml}

@@ -21,7 +21,7 @@ def ask_latest(parent) -> updates.Release | None:
     future: Future = pool.submit(updates.latest)
     pool.shutdown(wait=False)  # (el hilo termina por sí solo; cancelar no lo espera)
     wait = QProgressDialog(tr("Asking GitHub for the latest version…"), tr("Cancel"), 0, 0, parent)
-    wait.setWindowTitle(tr("Check for a new version"))
+    wait.setWindowTitle(tr("Check for updates"))
     wait.setMinimumDuration(300)  # (una respuesta rápida no hace parpadear el diálogo)
     loop = QEventLoop()
     timer = QTimer(interval=50)
@@ -41,7 +41,7 @@ def ask_latest(parent) -> updates.Release | None:
 def check_for_updates(parent) -> str:
     """Help > Check for a new version: what was found is said. Returns 'newer', 'latest', 'ahead' (this one is
     newer than the latest published), 'cancelled' or 'error'."""
-    title = tr("Check for a new version")
+    title = tr("Check for updates")
     try:
         release = ask_latest(parent)
     except updates.UpdateError as e:

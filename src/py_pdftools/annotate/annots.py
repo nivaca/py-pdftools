@@ -68,7 +68,7 @@ KINDS = ("highlight", "underline", "strikeout", "squiggly", "caret", "note", "fr
 # (those of the mode Annotate, with their styles and tools: a redaction box is of the mode Redact, and its look is
 # that of the settings of redaction, see redact/settings.py)
 ANNOTATING = KINDS[:-1]
-NAMES = {"highlight": N_("Highlight"), "underline": N_("Underline"), "strikeout": N_("Strikeout"),
+NAMES = {"highlight": N_("Highlight"), "underline": N_("Underline"), "strikeout": N_("Strikethrough"),
          "squiggly": N_("Squiggly underline"), "caret": N_("Insert text"), "note": N_("Note"),
          "freetext": N_("Text box"), "attachment": N_("Attached file"), "callout": N_("Callout"), "area": N_("Area highlight"),
          "rect": N_("Rectangle"), "ellipse": N_("Ellipse"), "polygon": N_("Polygon"), "cloud": N_("Cloud"),

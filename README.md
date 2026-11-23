@@ -279,7 +279,7 @@ itself. The toolbar Page navigation, at the top between Navigation and Zoom, goe
 the first, previous, next and last page, and its box takes a page number
 or label; like the other toolbars, it can be changed in Customize the
 toolbars. The box of the zoom is on the toolbar Zoom box, which can be moved
-anywhere or hidden. File > PDF properties
+anywhere or hidden. File > Document properties
 shows what a document is (its metadata, file, pages, security) and the
 fonts it uses.
 
@@ -293,7 +293,7 @@ text or CSV. Words split by a hyphen at the end of a line are joined
 first, and accents can be ignored. From the command line:
 `py-pdftools find-words book.pdf --words-file terms.txt --txt index.txt`.
 
-Redact > Find text only covered looks for text that only seems redacted:
+Redact > Find covered text looks for text that only seems redacted:
 still in the file under a black or white box, a picture or an annotation
 drawn over it, where anyone can copy it; boxes put over what it finds take
 it out in the redacted copy. Remove hidden information also takes out the
@@ -311,7 +311,7 @@ Import, Security; View > Panels, Go to, Zoom, Page layout...).
 File > Combine files makes one PDF of several, or of some of their pages
 in an order (`1-3, 7`), with their links, annotations, form fields and
 bookmarks; the files are dropped on its list or added, and put in order
-by dragging them. File > New PDF from pictures makes a PDF of photographs
+by dragging them. File > New PDF from images makes a PDF of photographs
 or scans, a page for each, as big as each picture or on paper with a
 margin, and can open it in the mode OCR to read its text. From the
 command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
@@ -320,7 +320,7 @@ command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
 File > Export saves the pages as pictures (PNG, JPEG or TIFF, at a
 resolution, in grey if wished), the pictures of the document, or its text
 (Markdown, with its headings guessed, HTML or plain text); File > Save a
-copy > With another PDF version makes a copy that says it is PDF 1.3 to
+copy > As another PDF version makes a copy that says it is PDF 1.3 to
 2.0, naming what the document uses that the version chosen doesn't have.
 Pages > Arrange pages > Split cuts a document every so many pages (one per
 page, named after their labels), at given pages, at its bookmarks (each
@@ -329,14 +329,14 @@ From the command line: `py-pdftools export pages | images | text`,
 `py-pdftools pdf-version`, and `py-pdftools pages --split-bookmarks 1` or
 `--split-size 10`.
 
-File > Save a copy > Smaller makes a copy that takes less space: its
+File > Save a copy > Reduced file size makes a copy that takes less space: its
 pictures drawn again at a lower resolution (only those shown above it),
 its fonts reduced to the characters used, what nothing uses taken out;
 the dialog shows where the bytes go. The tool Link (J, in Annotate) draws
 a link to a page, an address or another PDF, and a click on a link changes
 or removes it; Edit > Links makes links of the addresses in the text.
 
-Forms are filled in the panel Form (F6), which opens by itself with a
+Forms are filled in the panel Form fields (F6), which opens by itself with a
 document that has one, or with clicks on the page. What most forms ask is
 done without JavaScript: numbers and dates checked and shown in their
 format, sums worked out. The panel exports and imports the values (JSON,
@@ -375,7 +375,7 @@ the modes Foliate and Impose. Those changes are made at once on a working
 copy, and shown, but the file stays as it was until it is saved.
 
 **Redacting.** Nothing under the boxes is removed until the redacted copy is
-written, with Redact > Save the redacted copy (Ctrl+Shift+R): a new file,
+written, with Redact > Save redacted copy (Ctrl+Shift+R): a new file,
 never the one open, in which what is under the boxes is removed for good.
 It is checked as it is written: if any text under a box can still be read,
 or a bookmark gives it away, the window says so. The copy is made from the
@@ -427,12 +427,12 @@ the tables `[window]` and `[impose]`; older versions kept it in a second
 file, `py-pdftools.conf`, which is moved into `config.toml` at the first
 start. Each setting is checked when it is read, so a file edited by hand
 can't stop the program.
-Help > Check the configuration (also a button at the foot of Settings) lists what py-pdftools needs
+Help > System check (also a button at the foot of Settings) lists what py-pdftools needs
 and whether it has it (Python and its libraries, pyHanko, tesseract and the
 OCR languages chosen, Ghostscript, the space of the temporary folder),
 which settings in the file aren't valid or known, and shortcuts used twice;
 each with what to do, and a report that can be copied.
-Help > Check for a new version asks GitHub for the latest release (only
+Help > Check for updates asks GitHub for the latest release (only
 then: the program never asks by itself, and sends nothing about the user)
 and, if there is a newer one, says how to install it for the way this copy
 was installed (`dnf upgrade` for the RPM, the new `.deb` or AppImage, the

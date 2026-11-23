@@ -76,7 +76,7 @@ class FormMixin:
         lay.addWidget(self.form_head)
         lay.addWidget(scroll, 1)
         lay.addLayout(self.form_buttons)
-        self.form_dock = dock = QDockWidget(tr("Form"), self)
+        self.form_dock = dock = QDockWidget(tr("Form fields"), self)
         dock.setObjectName("form")
         dock.setWidget(inner)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, dock)

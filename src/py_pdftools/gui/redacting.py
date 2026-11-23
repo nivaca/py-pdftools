@@ -69,7 +69,7 @@ class RedactMixin:
         self._redaction_look()
 
         # the tool: added to those of the window (it is chosen with set_tool, as they are)
-        act = QAction(icon("edit-select-text"), tr("Redact (text or area)"), self, checkable=True)
+        act = QAction(icon("edit-select-text"), tr("Mark for redaction"), self, checkable=True)
         act.setShortcut(QKeySequence("R"))
         act.setToolTip(tr("Over text, dragging selects it and a box is made over each of its lines; elsewhere it "
                           "draws a box (Ctrl+drag always draws one). Double-click a word or an image to mark only "
@@ -88,27 +88,27 @@ class RedactMixin:
                                           tip=tr("Find a text, or a regular expression, on some or all pages, and "
                                                  "put boxes over it"))
         self.a_redact_covered = self._action(
-            m, tr("Find text only covered…"), self.find_covered,
+            m, tr("Find covered text…"), self.find_covered,
             tip=tr("Find text that seems redacted but is still in the file, under a box, a picture or an "
                    "annotation drawn over it (it can be copied or found), and put boxes over it"))
-        self.a_redact_result = QAction(icon("view-preview"), tr("Show the result"), self, checkable=True)
+        self.a_redact_result = QAction(icon("view-preview"), tr("Preview redactions"), self, checkable=True)
         self.a_redact_result.setShortcut(QKeySequence("Ctrl+R"))
         self.a_redact_result.setToolTip(tr("The boxes as they will look once applied: opaque, with their text "
                                            "(they can still be changed)"))
         self.a_redact_result.toggled.connect(lambda _: self._redaction_look())
         m.addAction(self.a_redact_result)
         m.addSeparator()
-        self.a_redact_props = self._action(m, tr("Properties of the boxes…"), self.redact_properties_dialog)
-        self.a_redact_pages = self._action(m, tr("Pages of the boxes…"), self.ask_redact_pages,
+        self.a_redact_props = self._action(m, tr("Redaction properties…"), self.redact_properties_dialog)
+        self.a_redact_pages = self._action(m, tr("Repeat on pages…"), self.ask_redact_pages,
                                            tip=tr("The pages the selected boxes go on, besides their own"))
         self._action(m, tr("Redaction codes…"), lambda: CodesDialog(self).exec())
         m.addSeparator()
-        self.a_redact_save = self._action(m, tr("Save the redacted copy…"), lambda: self.save_redacted_dialog(),
+        self.a_redact_save = self._action(m, tr("Save redacted copy…"), lambda: self.save_redacted_dialog(),
                                           "Ctrl+Shift+R",
                                           tr("Write a copy of the document with what is under the boxes removed, "
-                                             "as a plain PDF (or PDF/A, PDF/X: Save the redacted copy as)"))
+                                             "as a plain PDF (or PDF/A, PDF/X: Save redacted copy as)"))
         self.a_redact_save.setIcon(icon("document-save-as"))
-        self.m_redact_output = m.addMenu(tr("Save the redacted copy as"))
+        self.m_redact_output = m.addMenu(tr("Save redacted copy as"))
         self.m_redact_output.setToolTipsVisible(True)
         self.redact_output_actions: dict[str, QAction] = {}
         # Una entrada por norma (PDF/A, PDF/X); solo se activan si se encuentra pdf2iso
@@ -118,7 +118,7 @@ class RedactMixin:
             out.triggered.connect(lambda _=False, v=value: self.save_redacted_dialog(v))
             self.m_redact_output.addAction(out)
             self.redact_output_actions[value] = out
-        self.a_redact_clean = QAction(tr("Also remove metadata, hidden text, attachments and scripts"), self,
+        self.a_redact_clean = QAction(tr("Also remove hidden information"), self,
                                       checkable=True, checked=self.redact_prefs.clean)
         self.a_redact_clean.setToolTip(tr("Remove as well what the document holds besides its pages: its title, "
                                           "author and other metadata, text that isn't shown, layers switched "
@@ -134,19 +134,19 @@ class RedactMixin:
                                             tip=tr("See what the document holds besides its pages (metadata, "
                                                    "attachments, bookmarks, comments, hidden text…), and save a "
                                                    "copy without what you choose"))
-        self.a_redact_sanitize = self._action(m, tr("Sanitize the document…"), lambda: self.sanitize_dialog(),
+        self.a_redact_sanitize = self._action(m, tr("Sanitize document…"), lambda: self.sanitize_dialog(),
                                               tip=tr("Save a copy without metadata, hidden text and layers, "
                                                      "attachments, scripts and links, and with nothing else "
                                                      "changed (the boxes aren't applied)"))
         m.addSeparator()
-        self._action(m, tr("Settings of redaction…"), self.redact_settings_dialog)
+        self._action(m, tr("Redaction settings…"), self.redact_settings_dialog)
         # Placed just before the Layers menu.
         self.menuBar().insertMenu(self.m_layers.menuAction(), m)
 
         bars = [self.toolbar_of("redaction", tr("Redaction"), [self.tool_actions["select"], act]),
                 self.toolbar_of("redacted-copy", tr("Redacted copy"), [self.a_redact_result, self.a_redact_save])]
 
-        dock = QDockWidget(tr("Boxes"), self)
+        dock = QDockWidget(tr("Redaction marks"), self)
         dock.setObjectName("boxes")
         dock.setWidget(self._redact_panel())
         dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
@@ -577,7 +577,7 @@ class RedactMixin:
                                    len(here)), lambda: self.pick(here, False))
             menu.addSeparator()
             menu.addAction(self.a_redact_result)
-            menu.addAction(tr("Settings of redaction…"), self.redact_settings_dialog)
+            menu.addAction(tr("Redaction settings…"), self.redact_settings_dialog)
         self.show_menu(menu, where)
 
     def _swatch_menu(self, menu: QMenu, title: str, current: str | None, choose) -> QMenu:
@@ -757,7 +757,7 @@ class RedactMixin:
         if self.path is None:
             return False
         default = Path(self.last_dir()) / f"{self.path.stem}-sanitized.pdf"
-        name, _ = QFileDialog.getSaveFileName(self, tr("Sanitize the document"), str(default),
+        name, _ = QFileDialog.getSaveFileName(self, tr("Sanitize document"), str(default),
                                               tr("PDF files (*.pdf)"))
         if not name:
             return False
@@ -823,8 +823,8 @@ class RedactMixin:
         if not self._ask_save_first():
             return False
         default = Path(self.last_dir()) / f"{self.path.stem}-redacted.pdf"
-        title = tr("Save the redacted copy") if not standard \
-            else tr("Save the redacted copy as {standard}", standard=conform.label(standard))
+        title = tr("Save redacted copy") if not standard \
+            else tr("Save redacted copy as {standard}", standard=conform.label(standard))
         name, _ = QFileDialog.getSaveFileName(self, title, str(default), tr("PDF files (*.pdf)"))
         if not name:
             return False

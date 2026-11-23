@@ -155,9 +155,9 @@ class LinkEditMixin:
         sub.setToolTipsVisible(True)
         sub.addAction(act)
         self.a_links_from_text = self._action(
-            sub, tr("Make links of the addresses in the text"), lambda: self.links_from_text(),
+            sub, tr("Create links from web addresses"), lambda: self.links_from_text(),
             tip=tr("Every web and mail address written in the text, on every page, becomes a link"))
-        self.a_links_remove = self._action(sub, tr("Remove all the links…"), lambda: self.remove_all_links(),
+        self.a_links_remove = self._action(sub, tr("Remove all links…"), lambda: self.remove_all_links(),
                                            tip=tr("Take every link out of the document"))
         self.canvas.link_drawn.connect(self.new_link)
         self.canvas.link_edit.connect(self.change_link)
@@ -258,7 +258,7 @@ class LinkEditMixin:
     def confirm_remove_links(self, total: int) -> bool:
         from PySide6.QtWidgets import QMessageBox
 
-        return QMessageBox.question(self, tr("Remove all the links"),
+        return QMessageBox.question(self, tr("Remove all links"),
                                     ntr("Remove the {count} link of the document?",
                                         "Remove the {count} links of the document?", total)) \
             == QMessageBox.StandardButton.Yes

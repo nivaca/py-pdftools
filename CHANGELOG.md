@@ -15,6 +15,13 @@ Debian package, the RPM, the wheel and the source, are on
   macOS); the first start moves it there and removes the old file.
 - **"The tabbar"** in place of "the bar of the tabs", in Settings > General
   and in the documentation.
+- **Shorter, usual names** for about ninety menu items, panels, tools and
+  settings, in English and in Spanish, after comparing them with those of
+  PDFCraft: Fit page, Fit width, Two-page view, Page thumbnails, Document
+  properties…, Check for updates…, Validate signatures…, Extract pages…,
+  Insert pages from file…, Mark for redaction, Preview redactions, the
+  panels Form fields and Redaction marks, Strikethrough, and others. The
+  manuals and their pictures use the new names.
 
 ## 1.8.14 — 2026-11-22
 

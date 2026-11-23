@@ -114,7 +114,7 @@ class FilesMixin:
         if chosen is None:
             return None
         images, options, read_text = chosen
-        target = self.ask_new_pdf(tr("New PDF from pictures"), f"{images[0].stem}.pdf")
+        target = self.ask_new_pdf(tr("New PDF from images"), f"{images[0].stem}.pdf")
         if target is None or self.path is not None and self._same_file(target):
             return None
         try:

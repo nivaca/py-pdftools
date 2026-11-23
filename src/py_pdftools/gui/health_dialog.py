@@ -129,7 +129,7 @@ def run(window=None) -> list[Check]:
 class HealthDialog(QDialog):
     def __init__(self, window=None, parent=None):
         super().__init__(parent)
-        self.setWindowTitle(tr("Check the configuration"))
+        self.setWindowTitle(tr("System check"))
         self.window_ = window
         self.summary = QLabel()
         self.summary.setWordWrap(True)

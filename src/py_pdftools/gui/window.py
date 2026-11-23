@@ -121,7 +121,8 @@ TOOL_BARS = [("selection", N_("Selection")), ("markup", N_("Text markup")), ("no
              ("shapes", N_("Shapes")), ("drawing", N_("Drawing"))]
 TOOL_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"),
               "zoomarea": N_("Zoom to area"), "link": N_("Link"), "eraser": N_("Eraser"), "replace": N_("Replace text"),
-              "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature")}
+              "typewriter": N_("Typewriter"), "mark": N_("Check mark"), "signature": N_("Signature"),
+              "attachment": N_("Attach file")}  # (the tool; the annotation it makes is an "Attached file")
 # the marks of the Check mark tool, drawn in a square of side 1: strokes (a drawing), or None (a dot: a disc)
 MARKS = {"check": (N_("Check mark ✓"), (((0.1, 0.55), (0.4, 0.85), (0.9, 0.15)),)),
          "cross": (N_("Cross ✕"), (((0.15, 0.15), (0.85, 0.85)), ((0.85, 0.15), (0.15, 0.85)))),
@@ -338,8 +339,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.zoom_label.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
         self.zoom_label.setMinimumContentsLength(7)
         self.zoom_label.setToolTip(tr("The zoom: type a percentage and press Enter, or choose"))
-        for text, data in ((tr("Fit the page"), "page"), (tr("Fit the width"), "width"),
-                           (tr("Fit the height"), "height"), (tr("Fit the inked area"), "visible"),
+        for text, data in ((tr("Fit page"), "page"), (tr("Fit width"), "width"),
+                           (tr("Fit height"), "height"), (tr("Fit visible content"), "visible"),
                            (tr("Actual size"), "actual"), *[(f"{p} %", p / 100) for p in ZOOMS]):
             self.zoom_label.addItem(text, data)
         self.zoom_label.activated.connect(lambda i: self._choose_zoom(self.zoom_label.itemData(i)))
@@ -427,7 +428,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_open = self._action(m, tr("Open…"), self.open_dialog, QKeySequence.StandardKey.Open)
         self.m_recent = m.addMenu(tr("Open recent"))
         self._recent_menu()
-        self.a_images = self._action(m, tr("New PDF from pictures…"), lambda: self.images_dialog(),
+        self.a_images = self._action(m, tr("New PDF from images…"), lambda: self.images_dialog(),
                                      tip=tr("A PDF of photographs or scans, a page for each, and then, if wished, "
                                             "their text read (OCR)"))
         self.a_combine = self._action(m, tr("Combine files…"), lambda: self.combine_dialog(),
@@ -440,19 +441,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                                       tr("Write a copy of the document with the annotations, and go on with it"))
         sub = self.m_save_copy = m.addMenu(tr("Save a copy"))
         sub.setToolTipsVisible(True)
-        self.a_flat = self._action(sub, tr("Flattened…"), self.save_flattened_dialog,
+        self.a_flat = self._action(sub, tr("With annotations flattened…"), self.save_flattened_dialog,
                                    tip=tr("The annotations become part of the pages: they are seen and printed "
                                           "everywhere, but can no longer be edited or removed"))
-        self.a_flat_form = self._action(sub, tr("With the form flattened…"), lambda: self.save_flat_form_dialog(),
+        self.a_flat_form = self._action(sub, tr("With form fields flattened…"), lambda: self.save_flat_form_dialog(),
                                         tip=tr("What the fields of the form show becomes part of the pages: it "
                                                "can no longer be changed"))
-        self.a_version = self._action(sub, tr("With another PDF version…"), lambda: self.save_version_dialog(),
+        self.a_version = self._action(sub, tr("As another PDF version…"), lambda: self.save_version_dialog(),
                                       tip=tr("The same document, saying it is another version of PDF (1.3 to "
                                              "2.0), for programs that ask for one"))
         self.a_bare = self._action(sub, tr("Without annotations…"), self.save_without_dialog,
                                    tip=tr("The document as it is without any annotation (links and form fields "
                                           "stay)"))
-        self.a_smaller = self._action(sub, tr("Smaller…"), lambda: self.save_smaller_dialog(),
+        self.a_smaller = self._action(sub, tr("Reduced file size…"), lambda: self.save_smaller_dialog(),
                                       tip=tr("A copy that takes less space: its pictures at a lower resolution, "
                                              "its fonts reduced, what nothing uses taken out"))
         self.a_ocr = self._action(sub, tr("Searchable (OCR)…"), self.save_searchable_dialog,
@@ -471,7 +472,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self._build_sign_menu(m)
         self.a_print = self._action(m, tr("Print…"), self.print_dialog, QKeySequence.StandardKey.Print,
                                     tr("Print the pages with their annotations"))
-        self.a_doc_props = self._action(m, tr("PDF properties…"), self.document_properties,
+        self.a_doc_props = self._action(m, tr("Document properties…"), self.document_properties,
                                         tip=tr("What the document is: its title, author and dates, its PDF version, "
                                                "pages and size, its security, and the fonts it uses"))
         self.a_doc_props.setIcon(icon("document-properties"))
@@ -482,13 +483,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         # (un icono propio, con un nombre que ningún tema tiene: va en la barra Buscar)
         self.a_word_index.setIcon(icon("pdftools-word-index"))
         m.addSeparator()
-        self.a_export_pages = self._action(None, tr("Pages as pictures…"), lambda: self.export_pages_dialog(),
+        self.a_export_pages = self._action(None, tr("Pages as images…"), lambda: self.export_pages_dialog(),
                                            tip=tr("The pages drawn as PNG, JPEG or TIFF pictures, at a resolution"))
-        self.a_export_images = self._action(None, tr("The pictures of the document…"),
+        self.a_export_images = self._action(None, tr("All images…"),
                                             lambda: self.export_images_dialog(),
                                             tip=tr("The pictures the pages show, each in a file, as they are "
                                                    "stored"))
-        self.a_export_text = self._action(None, tr("The text…"), lambda: self.export_text_dialog(),
+        self.a_export_text = self._action(None, tr("Text…"), lambda: self.export_text_dialog(),
                                           tip=tr("The text of the pages as Markdown (headings and lists "
                                                  "guessed), HTML or plain text"))
         sub = self.m_export_annots = m.addMenu(tr("Export the annotations"))
@@ -503,7 +504,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_export_xfdf = self._action(sub, tr("For other PDF programs (XFDF)…"), lambda: self.export_dialog("xfdf"),
                                           tip=tr("XFDF, the format in which PDF programs exchange annotations (tags and "
                                                  "categories are py-pdftools's own, and are left out)"))
-        self.a_summary = self._action(sub, tr("A summary of the comments (PDF)…"), lambda: self.export_dialog("pdf"),
+        self.a_summary = self._action(sub, tr("Comment summary (PDF)…"), lambda: self.export_dialog("pdf"),
                                       tip=tr("Each page with annotations, beside a numbered list of them, with the "
                                              "text they mark, their comments and their replies"))
         sub = self.m_import_annots = m.addMenu(tr("Import annotations"))
@@ -542,31 +543,31 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_ungroup = self._action(m, tr("Ungroup"), self.ungroup_selected)
         m.addSeparator()
         self.a_props = self._action(m, tr("Properties…"), self.properties_dialog)
-        self.a_comment = self._action(m, tr("Comment on the annotation selected"), self.comment_action,
+        self.a_comment = self._action(m, tr("Edit comment…"), self.comment_action,
                                       tip=tr("Write the comment of the annotation selected; with none, add a note"))
         self.a_lock = self._action(m, tr("Lock"), self.toggle_lock)
         # Backspace as well as Delete: some keyboards (laptops, Macs) have no separate Delete key.
-        self.a_delete = self._action(m, tr("Delete the selected annotations"), self.delete_selected,
+        self.a_delete = self._action(m, tr("Delete"), self.delete_selected,
                                      [QKeySequence(QKeySequence.StandardKey.Delete), QKeySequence("Backspace")])
         m.addSeparator()
-        self.a_select_all = self._action(m, tr("Select the annotations of this page"), self.select_page,
+        self.a_select_all = self._action(m, tr("Select all on this page"), self.select_page,
                                          QKeySequence.StandardKey.SelectAll)
 
-        self.a_select_kind = self._action(m, tr("Select those of the same kind on this page"), self.select_kind)
-        self.a_select_none = self._action(m, tr("Select none"), lambda: self.pick([], False), "Escape")
+        self.a_select_kind = self._action(m, tr("Select same kind on this page"), self.select_kind)
+        self.a_select_none = self._action(m, tr("Deselect all"), lambda: self.pick([], False), "Escape")
         self.m_align = m.addMenu(tr("Align"))
         # Un par vacío marca un separador del menú.
-        for key, name in (("left", N_("Left sides")), ("hcenter", N_("Centres, across")),
-                          ("right", N_("Right sides")), ("top", N_("Tops")), ("vcenter", N_("Middles, up and down")),
-                          ("bottom", N_("Bottoms")), ("", ""), ("across", N_("Spread evenly across")),
-                          ("down", N_("Spread evenly up and down")), ("size", N_("Make them the same size"))):
+        for key, name in (("left", N_("Align left")), ("hcenter", N_("Centre horizontally")),
+                          ("right", N_("Align right")), ("top", N_("Align top")), ("vcenter", N_("Centre vertically")),
+                          ("bottom", N_("Align bottom")), ("", ""), ("across", N_("Distribute horizontally")),
+                          ("down", N_("Distribute vertically")), ("size", N_("Make same size"))):
             if key:
                 self._action(self.m_align, tr(name), lambda _=False, k=key: self.align(k))
             else:
                 self.m_align.addSeparator()
         m.addSeparator()
-        self.a_clear_page = self._action(m, tr("Delete the annotations of this page"), self.delete_page)
-        self.a_clear_all = self._action(m, tr("Delete all the annotations"), self.delete_all)
+        self.a_clear_page = self._action(m, tr("Delete all on this page"), self.delete_page)
+        self.a_clear_all = self._action(m, tr("Delete all annotations"), self.delete_all)
         # Sus textos, y qué acciones están habilitadas, se fijan cada vez que se abre (ver _edit_menu).
         m.aboutToShow.connect(self._edit_menu)
 
@@ -587,7 +588,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.tool_actions["select"].setChecked(True)
         self._build_link_tool(self.m_edit, m)  # (la herramienta Enlace, también en este menú)
         m.addSeparator()
-        self._action(m, tr("Properties of the tool…"), lambda: self.tool_dialog(self.canvas.mode))
+        self._action(m, tr("Tool properties…"), lambda: self.tool_dialog(self.canvas.mode))
         m.addSeparator()
         self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(),
                                    QKeySequence.StandardKey.Find,
@@ -605,26 +606,26 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.m_layers.aboutToShow.connect(self.layers_menu)
         m = self.m_view = self.menuBar().addMenu(tr("&View"))
         m.setToolTipsVisible(True)
-        self.a_show = QAction(tr("Show the annotations"), self, checkable=True, checked=True)
+        self.a_show = QAction(tr("Show annotations"), self, checkable=True, checked=True)
         self.a_show.setShortcut(QKeySequence("Ctrl+Shift+A"))
         self.a_show.setToolTip(tr("Hide them to see the document as it is without them"))
         # Hiding the annotations leaves the list as it is: only the pages are drawn again.
         self.a_show.toggled.connect(lambda _: self.refresh(table=False))
         m.addAction(self.a_show)
-        self.a_only_listed = QAction(tr("Only those the list shows"), self, checkable=True)
+        self.a_only_listed = QAction(tr("Only annotations in the list"), self, checkable=True)
         self.a_only_listed.setToolTip(tr("On the page, only the annotations that the search and filters of the list "
                                          "let through"))
         self.a_only_listed.toggled.connect(lambda _: self.refresh(table=False))
         m.addAction(self.a_only_listed)
         # La acción que muestra u oculta el panel la da el propio QDockWidget; así sigue también a su botón de cerrar.
         self.a_panel = self.panel.toggleViewAction()
-        self.a_panel.setText(tr("The panel of the annotations"))
+        self.a_panel.setText(tr("Annotations panel"))
         self.a_panel.setShortcut(QKeySequence("F4"))
         self.a_panel.setToolTip(tr("The list of the annotations, with their authors, on the right of the window"))
         m.addAction(self.a_panel)
         m.addAction(self.a_outline)
         m.addAction(self.a_form)
-        self.a_thumbs = QAction(tr("The thumbnails of the pages"), self, checkable=True, checked=True)
+        self.a_thumbs = QAction(tr("Page thumbnails"), self, checkable=True, checked=True)
         self.a_thumbs.setShortcut(QKeySequence("F3"))
         self.a_thumbs.setToolTip(tr("The pages, small, on the left of the window"))
         self.a_thumbs.toggled.connect(self.show_thumbnails)
@@ -634,25 +635,25 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_continuous.setToolTip(tr("The pages one under the other; otherwise, one page at a time"))
         self.a_continuous.toggled.connect(self.set_continuous)
         m.addAction(self.a_continuous)
-        self.a_spread = QAction(tr("Two pages side by side"), self, checkable=True, checked=self.canvas.spread)
+        self.a_spread = QAction(tr("Two-page view"), self, checkable=True, checked=self.canvas.spread)
         self.a_spread.setShortcut(QKeySequence("Ctrl+Shift+2"))
         self.a_spread.setToolTip(tr("The pages in pairs, as an open book; next and previous move a pair at a time"))
         self.a_spread.toggled.connect(lambda on: self.set_spread(on))
         m.addAction(self.a_spread)
-        self.a_cover = QAction(tr("The first page alone, as a cover"), self, checkable=True, checked=self.canvas.cover)
+        self.a_cover = QAction(tr("Show cover page"), self, checkable=True, checked=self.canvas.cover)
         self.a_cover.setToolTip(tr("With two pages side by side: the first page by itself, so that the even pages "
                                    "are on the left"))
         self.a_cover.toggled.connect(lambda on: self.set_spread(self.a_spread.isChecked(), on))
         self.a_cover.setEnabled(self.canvas.spread)
         m.addAction(self.a_cover)
-        self.a_gaps = QAction(tr("Gaps between the pages"), self, checkable=True, checked=bool(self.canvas.gap))
+        self.a_gaps = QAction(tr("Show gaps between pages"), self, checkable=True, checked=bool(self.canvas.gap))
         self.a_gaps.setToolTip(tr("Unticked, the pages follow one another without a gap, as one long sheet"))
         self.a_gaps.toggled.connect(self.set_gaps)
         m.addAction(self.a_gaps)
         self.a_split = self._action(m, tr("Split the view"), self.split_tab, "Ctrl+\\",
                                     tip=tr("This tab beside the others, on the other side of the window, to read two "
                                            "documents side by side; again, to bring it back"))
-        self.a_detach = self._action(m, tr("Move the tab to a window of its own"), self.detach_tab)
+        self.a_detach = self._action(m, tr("Move tab to new window"), self.detach_tab)
         self.a_present = self._action(m, tr("Full screen"), self.present, "F11",
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
@@ -697,20 +698,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_page_number = PageNumberAction(self)
         self._update_history()
         m.addSeparator()
-        self.a_fit = self._action(m, tr("Fit the page"), lambda: self._fit("page"), "Ctrl+0")
-        self.a_fit_width = self._action(m, tr("Fit the width"), lambda: self._fit("width"), "Ctrl+9")
-        self.a_fit_height = self._action(m, tr("Fit the height"), lambda: self._fit("height"), "Ctrl+8")
-        self.a_fit_visible = self._action(m, tr("Fit the inked area"), lambda: self._fit("visible"), "Ctrl+7",
+        self.a_fit = self._action(m, tr("Fit page"), lambda: self._fit("page"), "Ctrl+0")
+        self.a_fit_width = self._action(m, tr("Fit width"), lambda: self._fit("width"), "Ctrl+9")
+        self.a_fit_height = self._action(m, tr("Fit height"), lambda: self._fit("height"), "Ctrl+8")
+        self.a_fit_visible = self._action(m, tr("Fit visible content"), lambda: self._fit("visible"), "Ctrl+7",
                                           tip=tr("The part of the page that has ink (its margins left out), as wide "
                                                  "as the window"))
         self.a_actual = self._action(m, tr("Actual size"), self.canvas.actual_size, "Ctrl+Shift+0",
                                      tip=tr("The page at its printed size on this screen"))
         m.addSeparator()
         # Girar la vista, no el archivo: las páginas se ven giradas hasta abrir otro documento.
-        self.a_turn_right = self._action(m, tr("Rotate the view clockwise"), lambda: self.turn_view(90), "Ctrl+]",
+        self.a_turn_right = self._action(m, tr("Rotate view clockwise"), lambda: self.turn_view(90), "Ctrl+]",
                                          tip=tr("Every page is shown turned; the file stays as it is (to turn pages "
                                                 "for good: Foliate, Rotate)"))
-        self.a_turn_left = self._action(m, tr("Rotate the view counterclockwise"), lambda: self.turn_view(-90),
+        self.a_turn_left = self._action(m, tr("Rotate view counterclockwise"), lambda: self.turn_view(-90),
                                         "Ctrl+[")
         self.a_zoom_in = self._action(m, tr("Zoom in"), lambda: self.canvas.zoom_by(1.25),
                                       [QKeySequence(QKeySequence.StandardKey.ZoomIn), QKeySequence("Ctrl+=")])
@@ -738,13 +739,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         self.a_tips = self._action(m, tr("Tips for this mode"), self.show_tips, "F1",
                                    tip=tr("What can be done in this mode, and how, shown over the pages"))
         # (también en Configuración, en la fila de los botones)
-        self.a_check = self._action(m, tr("Check the configuration…"), self.check_configuration,
+        self.a_check = self._action(m, tr("System check…"), self.check_configuration,
                                     tip=tr("Whether py-pdftools has what it needs (Python, its libraries, "
                                            "tesseract, Ghostscript), and whether its settings are right"))
-        self.a_updates = self._action(m, tr("Check for a new version…"), self.check_for_updates,
+        self.a_updates = self._action(m, tr("Check for updates…"), self.check_for_updates,
                                       tip=tr("Ask GitHub for the latest version of py-pdftools (only now, never "
                                              "by itself), and say how to install it"))
-        self._action(m, tr("About"), self.about)
+        self._action(m, tr("About py-pdftools"), self.about)
 
         for act, name in ((self.a_open, "document-open"), (self.a_save, "document-save"),
                           (self.a_save_as, "document-save-as"), (self.a_undo, "edit-undo"),
@@ -1307,8 +1308,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         signed = self.signature_count()
         self.status(tr("Opened {path}", path=path) + " (" + ntr("{count} page", "{count} pages", self.count) + ", "
                     + ntr("{count} annotation", "{count} annotations", len(found)) + ")"
-                    + (" — " + ntr("signed once: File > Digital signatures > Check the signatures",
-                                   "signed {count} times: File > Digital signatures > Check the signatures", signed)
+                    + (" — " + ntr("signed once: File > Digital signatures > Validate signatures",
+                                   "signed {count} times: File > Digital signatures > Validate signatures", signed)
                        if signed else ""))
         # Una copia de recuperación igual a lo que tiene el archivo no se ofrece: se guardó después.
         kept = recovery.find(path)
@@ -1538,7 +1539,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
                 act.setCheckable(True)
                 act.setChecked(bool(custom))
             menu.addSeparator()
-            menu.addAction(tr("Properties of the tool…"), lambda: self.tool_dialog(tool))
+            menu.addAction(tr("Tool properties…"), lambda: self.tool_dialog(tool))
         if tool == "signature":
             menu.addAction(tr("Draw my signature again…"), self.draw_signature)
         if tool == "mark":
@@ -2010,7 +2011,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
     def delete_all(self):
         mine = sum(map(self.owns, self.annotations))
         if mine and QMessageBox.question(
-                self, tr("Delete all the annotations"),
+                self, tr("Delete all annotations"),
                 ntr("Delete the {count} annotation of the document?", "Delete the {count} annotations of the "
                     "document?", mine)) == QMessageBox.StandardButton.Yes:
             self._remove(lambda a: False)
@@ -2488,7 +2489,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
         """The Edit menu, as things are when it opens."""
         n = len(self.selected)
         self.a_delete.setText(ntr("Delete the selected annotation", "Delete the {count} selected annotations", n)
-                              if n else tr("Delete the selected annotations"))
+                              if n else tr("Delete"))
         here = self.doc is not None and any(a.page == self.page for a in self.annotations)
         self.a_select_all.setEnabled(here)
         self.a_select_kind.setEnabled(bool(self.selected))

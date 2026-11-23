@@ -176,7 +176,7 @@ class TabHost(QMainWindow):
             return
         win = tabs.widget(index)
         menu = QMenu(self)
-        other = menu.addAction(tr("Move to the other side"), lambda: self.move_to_other_side(win))
+        other = menu.addAction(tr("Move to other split view"), lambda: self.move_to_other_side(win))
         other.setEnabled(len(self.windows()) > 1)
         menu.addAction(tr("Move to a window of its own"), lambda: self.detach(win))
         menu.addSeparator()

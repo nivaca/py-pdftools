@@ -154,7 +154,7 @@ class PropertiesDialog(QDialog):
         # Los campos que se muestran dependen de los tipos seleccionados: basta con que uno los use.
         kinds = {a.kind for a in annotations}
         if tool is not None:
-            self.setWindowTitle(tr("Properties of the tool ({kind})", kind=tr(NAMES[annotations[0].kind]).lower()))
+            self.setWindowTitle(tr("Tool properties ({kind})", kind=tr(NAMES[annotations[0].kind]).lower()))
         elif len(annotations) == 1:
             self.setWindowTitle(tr("Properties of the annotation ({kind})", kind=annotations[0].name().lower()))
         else:

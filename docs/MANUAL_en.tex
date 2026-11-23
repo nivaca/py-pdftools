@@ -181,7 +181,7 @@ their names.
 This manual explains the window first, mode by mode, then the work on
 whole files, the settings and the command line. The menus are written in
 italics, with their submenus after a \enquote{>}, as \menu{File\then Save a
-copy\then Smaller}; keys are written as \key{Ctrl+S}. On macOS, \key{Ctrl}
+copy\then Reduced file size}; keys are written as \key{Ctrl+S}. On macOS, \key{Ctrl}
 is the Command key. The pictures show the window in English; with the
 interface in Spanish, every menu and dialog is in Spanish too (see
 section~\ref{sec:settings}).
@@ -523,7 +523,7 @@ PDF version, PDF/A and PDF/X\ldots), \menu{Export}, \menu{Import} and
 \item[Compare with another version] marks on this document what differs
   from another version of the same text (another edition, a draft): its
   words, in reading order.
-\item[PDF properties] shows what the document is: its title, author,
+\item[Document properties] shows what the document is: its title, author,
   subject, keywords and dates, the program that made it, its file (name,
   folder, size, PDF version, whether it is linearized for fast web view),
   its contents (pages, page size, whether it is tagged, has a form, layers,
@@ -639,8 +639,8 @@ zooms to a frame dragged on a page, or zooms in where it clicks.
 \index{modes}\index{modes!foliate@Foliate}\index{page layout!two pages}\index{page layout!cover}\index{page layout!gaps}\index{view!rotating}%
 \menu{View\then Page layout} shows the pages one at a time, instead of
 scrolling, or two side by side (\key{Ctrl+Shift+2}), as an open book; with
-\menu{The first page alone, as a cover}, the even pages are on the left
-(figure~\ref{fig:view_en}). Unticking \menu{Gaps between the pages} makes
+\menu{Show cover page}, the even pages are on the left
+(figure~\ref{fig:view_en}). Unticking \menu{Show gaps between pages} makes
 them one long sheet. \menu{Rotate the view} (\key{Ctrl+]} and \key{Ctrl+[})
 turns every page in the window, but not in the file; to turn pages for
 good, use the mode Foliate.
@@ -704,7 +704,7 @@ Eraser & \key{E} & Erases the annotations dragged over (in a drawing, only what 
 Highlight & \key{H} & Highlights the text dragged over.\\
 Area highlight & \key{Shift+H} & Highlights a region: a picture, a table, a scanned page.\\
 Underline & \key{U} & Underlines the text dragged over.\\
-Strikeout & \key{S} & Strikes out the text dragged over.\\
+Strikethrough & \key{S} & Strikes out the text dragged over.\\
 Squiggly underline & \key{Q} & Underlines it with a wavy line.\\
 Insert text & \key{I} & Marks where text should be inserted, and writes it.\\
 Replace text & \key{Shift+I} & Strikes out the text dragged over and writes the new one at its end.\\
@@ -732,7 +732,7 @@ Link & \key{J} & A link (section~\ref{sec:links}).\\
 \index{tools!hand@Hand}\index{annotations}\index{annotations!stamp}\index{annotations!check mark}\index{signature, handwritten}\index{tools!properties}%
 The right click on a tool sets what it does: the stamp or check mark it
 puts, and the signature, which is drawn once by hand in a small dialog and
-kept for later. \menu{Tools\then Properties of the tool} sets the colour,
+kept for later. \menu{Tools\then Tool properties} sets the colour,
 width, font and opacity the tool gives to new annotations.
 
 \index{settings!shortcuts}%
@@ -750,17 +750,17 @@ Colours} changes the colours and what each means to you: each colour is
 shown as a patch of it, its name in the tip, beside the field of its
 meaning; a click on it offers the others.
 
-\subsection{The panel of the annotations}
+\subsection{The Annotations panel}
 
 \index{annotations}\index{annotations!panel}\index{annotations!filtering}\index{annotations!sorting}\index{annotations!status}\index{annotations!tags}\index{annotations!categories}%
-The panel of the annotations (\key{F4}) lists every annotation of the
+The Annotations panel (\key{F4}) lists every annotation of the
 document, with its page, kind, author, status, the date it was changed, and
 its text (what it marks, or what it says). Its box at the top searches their
 text, and the lists below filter them by kind, author, colour, status, tag
 and category; the list on the right sorts them by page, by kind, by author,
-by status, or the last changed first. With \menu{View\then Annotations\then Only those the list shows},
+by status, or the last changed first. With \menu{View\then Annotations\then Only annotations in the list},
 the pages show only the annotations the filters let through;
-\menu{Show the annotations} (\key{Ctrl+Shift+A}) hides them all, to see the
+\menu{Show annotations} (\key{Ctrl+Shift+A}) hides them all, to see the
 document as it is.
 
 \index{annotations}\index{annotations!note}\index{annotations!replies}\index{annotations!status}\index{annotations!tags}%
@@ -792,7 +792,7 @@ reading, a manuscript reading, an emendation, a conjecture, a lacuna, a
 scribal correction, a marginal addition\ldots), the reading of the text and
 the other reading, the witness (a manuscript or edition, by its siglum),
 its location, its source, the rationale and the confidence. \menu{File\then
-Export\then The annotations\then The critical apparatus} writes those
+Export\then Annotations\then The critical apparatus} writes those
 entries in the order of the text.
 
 \index{annotations}\index{annotations!categories}%
@@ -836,7 +836,7 @@ The tool Link (\key{J}, also in \menu{Edit\then Links}) makes a link where
 it is dragged on the page. The dialog asks where it goes: to a page of the
 document, to a web address, or to another PDF (figure~\ref{fig:link_en}).
 A click with the tool on a link changes or removes it. \menu{Edit\then
-Links\then Make links of the addresses in the text} makes a link of every
+Links\then Create links from web addresses} makes a link of every
 web and mail address written in the text, on every page; \menu{Remove all
 the links} takes every link out of the document.
 
@@ -845,7 +845,7 @@ the links} takes every link out of the document.
 \subsection{Exporting and importing annotations}
 
 \index{annotations}\index{annotations!exporting}\index{exporting}%
-\menu{File\then Export\then The annotations} writes the annotations:
+\menu{File\then Export\then Annotations} writes the annotations:
 
 \index{annotations}\index{annotations!replies}\index{annotations!tags}\index{annotations!categories}\index{textual criticism}\index{annotations!exporting}\index{exporting!text}%
 \begin{itemize}
@@ -868,7 +868,7 @@ or XFDF file, or from another copy of the same PDF, such as one annotated by
 someone else; the annotations already in the document are not added twice.
 
 \index{links}\index{annotations}\index{flattening}\index{forms}%
-\menu{File\then Save a copy\then Flattened} makes the annotations part of
+\menu{File\then Save a copy\then With annotations flattened} makes the annotations part of
 the pages: they are seen and printed everywhere, but can't be edited or
 removed any more. \menu{Without annotations} saves the document without
 any (links and form fields stay).
@@ -885,13 +885,13 @@ and hides the layers of a document that has them (its optional content).
 \label{sec:forms}
 
 \index{forms}\index{forms!panel}%
-A document with a form opens the panel Form (\key{F6}) by itself, or it
+A document with a form opens the panel Form fields (\key{F6}) by itself, or it
 opens with a click on a field. The fields can be filled on the page, as in
 any viewer, or in the panel, which lists them all, with their names
 (figure~\ref{fig:form_en}). The fields marked with an asterisk are
 required.
 
-\shot{form_en}{1}{A form, with the panel Form. The price and the tax are
+\shot{form_en}{1}{A form, with the panel Form fields. The price and the tax are
   shown in their format, and the total is worked out.}
 
 \index{saving}\index{forms}\index{javascript@JavaScript}%
@@ -939,12 +939,12 @@ The panel of the boxes, on the right, lists them, with their page, the
 other pages they go on, their colour and size. A box can be repeated on
 other pages, in the same place, as a letterhead or a stamp would need: its
 column \enquote{Goes on} takes a list of pages (\texttt{2-} in the picture:
-from page 2 to the end), and \menu{Redact\then Pages of the boxes} does the
+from page 2 to the end), and \menu{Redact\then Repeat on pages} does the
 same for the boxes selected. Under the list, \menu{New boxes} sets the
 colour and the pages of the boxes still to be drawn.
 
 \index{annotations!note}\index{annotations!locking}\index{redaction}\index{redaction!properties of boxes}\index{redaction!codes}%
-\menu{Redact\then Properties of the boxes} sets how they will be once
+\menu{Redact\then Redaction properties} sets how they will be once
 redacted: their fill (with no colour, what is under the box is removed and
 nothing is painted there), a text written over them (\enquote{REDACTED},
 a name), its size, colour and alignment, and whether it repeats all along
@@ -955,11 +955,11 @@ it was redacted, such as the codes of the U.S. Freedom of Information Act
 (\texttt{(b)(6)}) or of the Privacy Act; sets of one's own can be added.
 
 \index{redaction}\index{redaction!showing the result}%
-\menu{Redact\then Show the result} (\key{Ctrl+R}) shows the boxes as they
+\menu{Redact\then Preview redactions} (\key{Ctrl+R}) shows the boxes as they
 will look once applied: opaque, with their text (figure~\ref{fig:redact_result_en}).
 They can still be changed.
 
-\shot{redact_result_en}{1}{Show the result: the boxes as they will be in
+\shot{redact_result_en}{1}{Preview redactions: the boxes as they will be in
   the redacted copy.}
 
 \subsection{Find and redact}
@@ -985,7 +985,7 @@ with their context; \menu{Mark them all} puts a box over each, and
 A document may look redacted and not be: a black box drawn over a name, or
 a picture or an annotation over it, hides it on the screen, but the name is
 still in the file, and anyone can select it, copy it, or find it.
-\menu{Redact\then Find text only covered} looks for such text, and lists
+\menu{Redact\then Find covered text} looks for such text, and lists
 it, with what covers it (figure~\ref{fig:covered_en}). \menu{Put boxes over
 all} marks it, so that the redacted copy takes it out.
 
@@ -995,7 +995,7 @@ all} marks it, so that the redacted copy takes it out.
 \subsection{The redacted copy}
 
 \index{bookmarks}\index{annotations}\index{redaction}\index{redaction!redacted copy}%
-\menu{Redact\then Save the redacted copy} (\key{Ctrl+Shift+R}) writes a
+\menu{Redact\then Save redacted copy} (\key{Ctrl+Shift+R}) writes a
 copy of the document in which what is under the boxes is removed: text,
 pictures (the part under the box), drawings and annotations. The copy is
 checked as it is written: if any text under a box can still be read, or a
@@ -1004,7 +1004,7 @@ document as it was last saved, so the program offers to save the other
 changes first.
 
 \index{links}\index{annotations!attached file}\index{layers}\index{javascript@JavaScript}\index{redaction}\index{redaction!redacted copy}\index{metadata}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
-\menu{Save the redacted copy as} makes it a PDF/A or PDF/X
+\menu{Save redacted copy as} makes it a PDF/A or PDF/X
 (section~\ref{sec:pdfa}). With \menu{Also remove metadata, hidden text,
 attachments and scripts} ticked, the copy loses as well what the document
 holds besides its pages: its title, author and other metadata, text that
@@ -1030,9 +1030,9 @@ is not changed, and its boxes are not applied.
 \shot{hidden_en}{0.55}{Remove hidden information.}
 
 \index{links}\index{layers}\index{redaction}\index{metadata}\index{sanitizing}\index{redaction!settings}%
-\menu{Redact\then Sanitize the document} saves at once a copy without
+\menu{Redact\then Sanitize document} saves at once a copy without
 metadata, hidden text and layers, attachments, scripts and links, and
-with nothing else changed. \menu{Settings of redaction} sets the colour of new boxes, what
+with nothing else changed. \menu{Redaction settings} sets the colour of new boxes, what
 happens to the pictures and drawings under a box (only the part covered is
 removed, or the whole picture, or nothing), and how the boxes not yet
 applied are shown (their outline and the opacity of their fill). Text
@@ -1141,7 +1141,7 @@ pages of another PDF, or replace them by pages of another PDF (their links
 and bookmarks stay). Pages can also be dragged in the thumbnails.
 
 \index{bookmarks}\index{annotations!grouping and aligning}\index{page labels}\index{page labels!ranges}\index{pages!arranging}\index{pages!extracting}\index{pages!splitting}%
-\menu{Extract to a new PDF} saves the pages chosen as a new file, and
+\menu{Extract pages} saves the pages chosen as a new file, and
 opens it in a new tab beside the document.
 \menu{Arrange pages\then Split} (figure~\ref{fig:split_en}) cuts the
 document into several files: every so many pages (one per page, named
@@ -1218,14 +1218,14 @@ and removed as the headers can.
 numbers or watermarks on many PDFs at once, the Bates numbers going on from
 one file to the next.
 
-\subsection{When the document is opened}
+\subsection{Initial view}
 
 \index{opening view}\index{settings!documents}%
-\menu{Pages\then When the document is opened} sets how PDF viewers show
+\menu{Pages\then Initial view} sets how PDF viewers show
 the document when they open it: its page layout (single, single continuous,
 facing, facing continuous, cover, cover continuous), its page view (actual
 size, fit to width, fit to page), and the page it opens at. This program obeys them too, with
-\menu{Settings\then Documents\then A document opens showing} set to
+\menu{Settings\then Documents\then Default zoom} set to
 \menu{As the document asks}.
 
 \section{A word index}
@@ -1352,7 +1352,7 @@ page labels of each file can be kept.
 \subsection{A PDF from pictures}
 
 \index{modes}\index{modes!ocr@OCR}\index{annotations!sorting}\index{ocr@OCR}\index{pdf from pictures@PDF from pictures}%
-\menu{File\then New\then New PDF from pictures} (figure~\ref{fig:images_en})
+\menu{File\then New\then New PDF from images} (figure~\ref{fig:images_en})
 makes a PDF of photographs or scans, a page for each, in the order of the
 list. \menu{By name} sorts them. Each page can be as big as its picture, or
 the size of a paper (A4, Letter\ldots), with a margin; and with
@@ -1364,7 +1364,7 @@ read its text at once.
 \subsection{Smaller copies}
 
 \index{smaller copies}%
-\menu{File\then Save a copy\then Smaller} (figure~\ref{fig:reduce_en})
+\menu{File\then Save a copy\then Reduced file size} (figure~\ref{fig:reduce_en})
 makes a copy that takes less space. It shows first where the bytes of the
 document go: its pictures, the content of its pages, and the rest. Then it
 draws again the pictures shown above a resolution (220 dpi for good
@@ -1396,7 +1396,7 @@ latter, and nothing changes in how the document looks.
 
 \index{layers}\index{pdf version@PDF version}\index{encryption}%
 Some programs and offices ask for a PDF of a given version.
-\menu{File\then Save a copy\then With another PDF version}
+\menu{File\then Save a copy\then As another PDF version}
 (figure~\ref{fig:version_en}) makes a copy that says it is PDF 1.3 to 2.0,
 and names what the document uses that the version chosen doesn't have
 (transparency, objects in compressed streams, layers, JPEG 2000
@@ -1443,7 +1443,7 @@ name, an e-mail address and the rest of the details.
 \shot{make_id_en}{0.5}{Making a digital ID.}
 
 \index{passwords}\index{annotations!locking}\index{forms}\index{redaction!boxes}\index{digital signatures}\index{digital signatures!certifying}\index{digital signatures!timestamp}%
-\menu{File\then Security\then Sign the document} (figure~\ref{fig:sign_en})
+\menu{File\then Security\then Sign digitally} (figure~\ref{fig:sign_en})
 signs it with an ID and its password, with a reason, a place and a contact.
 A visible signature is dragged where it goes on the page, or put in an
 empty signature field of the form; an invisible one is only in the file.
@@ -1458,7 +1458,7 @@ then.
 \shot{sign_en}{0.6}{Signing a document.}
 
 \index{digital signatures!checking}%
-\menu{File\then Security\then Check the signatures}
+\menu{File\then Security\then Validate signatures}
 (figure~\ref{fig:signatures_en}) checks the signatures of the document:
 whether each is intact and valid, who signed it and whether they are among
 the signers trusted, when, and what changed after it. \menu{Trust this
@@ -1499,7 +1499,7 @@ opens the document as it was when that signature was made.
 \end{description}
 
 \index{settings!check}%
-\menu{Check the configuration}, a button at the foot of the dialog of the
+\menu{System check}, a button at the foot of the dialog of the
 settings, seen from every tab, and also \menu{Help\then Check the
 configuration}, opens a list of what py-pdftools needs and
 whether it has it, each marked as fine, a note, a warning or a problem,
@@ -1515,7 +1515,7 @@ action already has. \menu{Copy the report} copies the list as text, to
 paste into a message asking for help.
 
 \index{new version}\index{updates}%
-\menu{Help\then Check for a new version} asks GitHub which is the latest
+\menu{Help\then Check for updates} asks GitHub which is the latest
 version of py-pdftools. It asks only then: the program never does it by
 itself, and the question carries nothing about you or your computer. If
 there is a newer version, it says how to install it, which depends on how
@@ -1536,8 +1536,8 @@ section~\ref{sec:files-kept}).
 
 \index{modes}\index{hints of the modes}\index{toolbars}\index{toolbars!icons and text}\index{sharpness of text}\index{annotations!locking}\index{settings!appearance}\index{language of the interface}%
 \begin{description}
-\item[Colours of the interface] as the system, light or dark, at once and whatever the desktop's own theme; light and dark also take the light or dark variant of the desktop's icons, where it is installed (breeze and breeze-dark, for one).
-\item[Size of the interface] the size of the letters of the menus,
+\item[Theme] as the system, light or dark, at once and whatever the desktop's own theme; light and dark also take the light or dark variant of the desktop's icons, where it is installed (breeze and breeze-dark, for one).
+\item[Interface size] the size of the letters of the menus,
   panels and dialogs: 90\,\% to 150\,\%.
 \item[Text on the pages] As drawn, Sharper or Sharpest (see
   section~\ref{sec:reading}).
@@ -1556,12 +1556,12 @@ section~\ref{sec:files-kept}).
 
 \index{opening!recent documents}\index{zoom}\index{zoom!actual size}\index{settings!documents}%
 \begin{description}
-\item[A document opens showing] the zoom of a document opened for the
+\item[Default zoom] the zoom of a document opened for the
   first time: as the document asks, the whole page, the width of the page,
   or actual size.
 \item[Open each document where it was left] at its page and zoom.
 \item[Ask before opening a web or mail address] clicked in a document.
-\item[Recent documents in the menu] how many \menu{File\then Open recent}
+\item[Recent files to keep] how many \menu{File\then Open recent}
   shows, and a button to clear the list.
 \item[Open and save dialogs start in] the last folder used, or the
   folder of the document.

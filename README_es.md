@@ -293,7 +293,7 @@ la siguiente y la última página, y su casilla acepta un número o una
 etiqueta de página; como las demás barras, se cambia en Personalizar las
 barras de herramientas. El cuadro del zoom está en la barra Cuadro del
 zoom, que puede moverse a cualquier lugar u ocultarse.
-Archivo > Propiedades del PDF muestra qué es un documento (sus metadatos,
+Archivo > Propiedades del documento muestra qué es un documento (sus metadatos,
 su archivo, sus páginas, su seguridad) y las fuentes que usa.
 
 Editar > Índice de palabras (de pdf-word-finder; también un botón de la
@@ -307,7 +307,7 @@ unen las palabras partidas por un guion a final de renglón, y pueden no
 distinguirse los acentos. Desde la línea de órdenes:
 `py-pdftools find-words libro.pdf --words-file terminos.txt --txt indice.txt`.
 
-Censurar > Buscar texto solo cubierto busca texto que solo parece
+Censurar > Buscar texto cubierto busca texto que solo parece
 censurado: sigue en el archivo bajo un recuadro negro o blanco, una imagen
 o una anotación dibujados encima, y cualquiera puede copiarlo; los
 recuadros puestos sobre lo encontrado lo quitan en la copia censurada.
@@ -336,7 +336,7 @@ b.pdf:2-5 -o todo.pdf` y `py-pdftools from-images *.jpg -o escaneos.pdf
 Archivo > Exportar guarda las páginas como imágenes (PNG, JPEG o TIFF, a
 una resolución, en gris si se quiere), las imágenes del documento o su
 texto (Markdown, con sus títulos deducidos, HTML o texto simple); Archivo >
-Guardar una copia > Con otra versión de PDF hace una copia que dice ser PDF
+Guardar una copia > Como otra versión de PDF hace una copia que dice ser PDF
 1.3 a 2.0, y nombra lo que el documento usa que la versión elegida no
 tiene. Páginas > Ordenar páginas > Dividir corta un documento cada tantas
 páginas (una por página, con el nombre de su etiqueta), en páginas dadas,
@@ -345,7 +345,7 @@ ninguna parte pase de un tamaño. Desde la línea de órdenes:
 `py-pdftools export pages | images | text`, `py-pdftools pdf-version`, y
 `py-pdftools pages --split-bookmarks 1` o `--split-size 10`.
 
-Archivo > Guardar una copia > Más pequeña hace una copia que ocupa menos:
+Archivo > Guardar una copia > Con tamaño reducido hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
 encima de ella), sus fuentes reducidas a los caracteres usados, sin lo que
 nada usa; el diálogo muestra adónde van los bytes. La herramienta Enlace
@@ -353,7 +353,7 @@ nada usa; el diálogo muestra adónde van los bytes. La herramienta Enlace
 un clic sobre un enlace lo cambia o lo quita; Editar > Enlaces hace enlaces
 de las direcciones del texto.
 
-Los formularios se rellenan en el panel Formulario (F6), que se abre solo
+Los formularios se rellenan en el panel Campos de formulario (F6), que se abre solo
 con un documento que lo tiene, o con clics en la página. Lo que piden casi
 todos los formularios se hace sin JavaScript: números y fechas comprobados
 y mostrados en su formato, sumas calculadas. El panel exporta e importa
@@ -452,13 +452,13 @@ va en el mismo archivo, después de los ajustes, en las tablas `[window]` e
 `py-pdftools.conf`, que se pasa a `config.toml` en el primer arranque. Cada
 ajuste se comprueba al leerlo, de modo que un archivo editado a mano no
 puede detener el programa.
-Ayuda > Revisar la configuración (también un botón al pie de Configuración) muestra lo que
+Ayuda > Comprobación del sistema (también un botón al pie de Configuración) muestra lo que
 py-pdftools necesita y si lo tiene (Python y sus bibliotecas, pyHanko,
 tesseract y los idiomas del OCR elegidos, Ghostscript, el espacio de la
 carpeta temporal), qué ajustes del archivo no son válidos o no se conocen y
 qué atajos se usan dos veces; cada cosa con lo que hay que hacer, y un
 informe que se puede copiar.
-Ayuda > Buscar una versión nueva pregunta a GitHub por la última versión
+Ayuda > Buscar actualizaciones pregunta a GitHub por la última versión
 (solo entonces: el programa nunca pregunta por sí solo, y no envía nada del
 usuario) y, si hay una más nueva, dice cómo instalarla según cómo se instaló
 esta copia (`dnf upgrade` para el RPM, el `.deb` o la AppImage nuevos, los

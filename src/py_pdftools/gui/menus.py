@@ -59,7 +59,7 @@ def _fill(window, menu: QMenu, layout: list):
 
 def regroup(window):
     """File, Edit and View in groups (see the module's text)."""
-    window.m_export_annots.setTitle(tr("The annotations"))
+    window.m_export_annots.setTitle(tr("Annotations"))
     window.m_import_annots.setTitle(tr("Annotations"))
     window.m_export = QMenu(tr("Export"), window)
     window.m_export.setToolTipsVisible(True)

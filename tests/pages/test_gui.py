@@ -216,10 +216,10 @@ def test_the_menu_of_pages_in_groups(window):
     menu = window.build_pages_menu()
     top = [a.text() for a in menu.actions() if a.text()]
     assert top[0] == "Page 3 (iii)"
-    assert top[1:5] == ["Rotate", "Duplicate", "Extract to a new PDF…", "Delete"]
+    assert top[1:5] == ["Rotate", "Duplicate", "Extract pages…", "Delete"]
     subs = [a.text() for a in menu.actions() if a.menu() is not None]
-    assert subs == ["Rotate", "Move", "Insert", "Labels", "Header, footer and watermark", "More arranging",
-                    "When the document is opened"]
+    assert subs == ["Rotate", "Move", "Insert", "Labels", "Header, footer and watermark", "More page actions",
+                    "Initial view"]
     labels_menu = next(a.menu() for a in menu.actions() if a.text() == "Labels")
     assert "Number this page…" in all_texts(labels_menu) and len(top) < 14
     for row in (3, 4, 5, 8):

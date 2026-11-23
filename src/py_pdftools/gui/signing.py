@@ -92,7 +92,7 @@ class SignDialog(QDialog):
         from ..signatures.sign import CERTIFY
 
         super().__init__(parent)
-        self.setWindowTitle(tr("Sign the document"))
+        self.setWindowTitle(tr("Sign digitally"))
         r = remembered or {}
         self.id_path = QLineEdit(id_path)
         choose = QPushButton(tr("Choose…"))
@@ -275,10 +275,10 @@ class SignMixin:
         self.m_signatures = sub
         self.a_make_id = self._action(sub, tr("Create a digital ID…"), lambda: self.make_id_dialog(),
                                       tip=tr("A self-signed digital ID (a .p12 file), to sign documents with"))
-        self.a_sign = self._action(sub, tr("Sign the document…"), lambda: self.sign_dialog(),
+        self.a_sign = self._action(sub, tr("Sign digitally…"), lambda: self.sign_dialog(),
                                    tip=tr("Sign it with a digital ID, visibly or not, and save the signed copy"))
         sub.insertAction(self.a_make_id, self.a_sign)
-        self.a_check_signatures = self._action(sub, tr("Check the signatures…"), lambda: self.signatures_dialog(),
+        self.a_check_signatures = self._action(sub, tr("Validate signatures…"), lambda: self.signatures_dialog(),
                                                tip=tr("Whether each signature is valid, who signed and whether "
                                                       "they are trusted, and what changed after it"))
         sub.insertAction(self.a_make_id, self.a_check_signatures)

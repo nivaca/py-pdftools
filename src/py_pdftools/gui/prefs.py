@@ -42,7 +42,7 @@ from .props import ColorButton
 
 # the actions with a shortcut that aren't tools
 ACTION_NAMES = {"select": N_("Select"), "selecttext": N_("Select text"), "hand": N_("Hand"), "zoomarea": N_("Zoom to area"), "link": N_("Link"), "eraser": N_("Eraser"),
-                "comment": N_("Comment on the annotation selected"), "next": N_("Next annotation"),
+                "comment": N_("Edit comment…"), "next": N_("Next annotation"),
                 "previous": N_("Previous annotation"), "copy": N_("Copy"), "paste": N_("Paste"),
                 "duplicate": N_("Duplicate"), "properties": N_("Properties"),
                 "group": N_("Group"), "ungroup": N_("Ungroup"), "replace": N_("Replace text"),
@@ -100,7 +100,7 @@ class SettingsDialog(QDialog):
         form.addRow("", self.background)
         from . import autostart
 
-        self.login = QCheckBox(tr("Start with the session, in the tray: the first document opens at once too"))
+        self.login = QCheckBox(tr("Start at login, in the system tray: the first document opens at once too"))
         self.login.setChecked(autostart.enabled())
         self.login.setToolTip(tr("py-pdftools starts when you log in, without a window, and waits in the "
                                  "background (so this needs the setting above, which is turned on with it)"))
@@ -108,7 +108,7 @@ class SettingsDialog(QDialog):
         self.login.toggled.connect(lambda on: self.background.setChecked(True) if on else None)
         self.background.toggled.connect(lambda on: self.login.setChecked(False) if not on else None)
         form.addRow("", self.login)
-        self.reopen = QCheckBox(tr("Open again the documents that were open when py-pdftools was ended"))
+        self.reopen = QCheckBox(tr("Reopen the files that were open when py-pdftools last closed"))
         try:
             self.reopen.setChecked(bool(config.get("reopen")))
         except config.ConfigError:
@@ -127,7 +127,7 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.lone_tab)
-        self.reload = QCheckBox(tr("Open a document again when another program changes it"))
+        self.reload = QCheckBox(tr("Reload documents when their files change on disk"))
         self.reload.setToolTip(tr("At once if nothing is unsaved here; else py-pdftools asks first"))
         try:
             self.reload.setChecked(bool(config.get("reload")))
@@ -280,7 +280,7 @@ class SettingsDialog(QDialog):
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         # Revisar la configuración: en la fila de los botones, a la vista desde cualquier pestaña (al pie de
         # General, bajo una lista larga, no se veía)
-        self.check = buttons.addButton(tr("Check the configuration…"), QDialogButtonBox.ButtonRole.HelpRole)
+        self.check = buttons.addButton(tr("System check…"), QDialogButtonBox.ButtonRole.HelpRole)
         self.check.setToolTip(tr("Whether py-pdftools has what it needs (Python, its libraries, tesseract, "
                                  "Ghostscript), and whether its settings are right"))
         self.check.clicked.connect(lambda: self.check_configuration(parent))
@@ -306,13 +306,13 @@ class SettingsDialog(QDialog):
         for key, name in (("system", N_("As the system")), ("light", N_("Light")), ("dark", N_("Dark"))):
             self.theme.addItem(tr(name), key)
         self.theme.setCurrentIndex(max(0, self.theme.findData(appearance.value("theme"))))
-        form.addRow(tr("Colours of the interface:"), self.theme)
+        form.addRow(tr("Theme:"), self.theme)
         self.scale = QComboBox()
         for percent in appearance.SCALES:
             self.scale.addItem(f"{percent} %", percent)
         self.scale.setCurrentIndex(max(0, self.scale.findData(int(appearance.value("scale") or 100))))
         self.scale.setToolTip(tr("The size of the letters of the menus, panels and dialogs"))
-        form.addRow(tr("Size of the interface:"), self.scale)
+        form.addRow(tr("Interface size:"), self.scale)
         self.sharpness = QComboBox()
         for key, name in (("drawn", N_("As drawn")), ("sharper", N_("Sharper")), ("sharpest", N_("Sharpest"))):
             self.sharpness.addItem(tr(name), key)
@@ -345,8 +345,8 @@ class SettingsDialog(QDialog):
         self.bar_lock = QCheckBox(tr("Lock the toolbars"))
         self.bar_lock.setChecked(bool(looks.get("locked")))
         self._bars_before = (self.bar_style.currentData(), self.bar_size.currentData(), self.bar_lock.isChecked())
-        form.addRow(tr("Toolbars, text:"), self.bar_style)
-        form.addRow(tr("Toolbars, icons:"), self.bar_size)
+        form.addRow(tr("Toolbar button style:"), self.bar_style)
+        form.addRow(tr("Toolbar icon size:"), self.bar_size)
         form.addRow("", self.bar_lock)
         return page
 
@@ -363,8 +363,8 @@ class SettingsDialog(QDialog):
         self.opening.setCurrentIndex(max(0, self.opening.findData(appearance.value("opening"))))
         self.opening.setToolTip(tr("The zoom of a document opened for the first time (one opened before opens "
                                    "where it was left, if that is remembered)"))
-        form.addRow(tr("A document opens showing:"), self.opening)
-        self.places = QCheckBox(tr("Open each document where it was left (its page and zoom)"))
+        form.addRow(tr("Default zoom:"), self.opening)
+        self.places = QCheckBox(tr("Restore the last page and zoom of each document"))
         self.places.setChecked(bool(appearance.value("places")))
         form.addRow("", self.places)
         self.ask_links = QCheckBox(tr("Ask before opening a web or mail address"))
@@ -373,8 +373,8 @@ class SettingsDialog(QDialog):
         self.recent = QSpinBox(minimum=0, maximum=30)
         self.recent.setValue(int(appearance.value("recent") or 0))
         self.recent.setSpecialValueText(tr("none"))
-        form.addRow(tr("Recent documents in the menu:"), self.recent)
-        clear = QPushButton(tr("Clear the list of recent documents"))
+        form.addRow(tr("Recent files to keep:"), self.recent)
+        clear = QPushButton(tr("Clear recent files"))
         clear.clicked.connect(self._clear_recent)
         form.addRow("", clear)
         self.dialogs = QComboBox()

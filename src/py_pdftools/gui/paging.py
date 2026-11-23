@@ -39,11 +39,11 @@ from .pages.widgets import FIELDS, LABELS, NumberDialog, edited_signal, fit_colu
 KIND = "pages"
 # The operations on the pages, each with its dialog (the menu Pages ▸ Arrange, and "More")
 ARRANGE_MENU = (("rotate", N_("Rotate…")), ("delete", N_("Delete…")), ("move", N_("Move…")),
-                ("duplicate", N_("Duplicate…")), ("reverse", N_("Reverse the order…")),
+                ("duplicate", N_("Duplicate…")), ("reverse", N_("Reverse pages…")),
                 ("order", N_("New order…")), (None, None),
-                ("blank", N_("Insert blank pages…")), ("insert", N_("Insert from a PDF…")),
-                ("replace", N_("Replace by pages of a PDF…")),
-                (None, None), ("extract", N_("Extract to a new PDF…")), ("split", N_("Split…")))
+                ("blank", N_("Insert blank pages…")), ("insert", N_("Insert pages from file…")),
+                ("replace", N_("Replace pages…")),
+                (None, None), ("extract", N_("Extract pages…")), ("split", N_("Split…")))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -105,9 +105,9 @@ class PagesMixin:
                                   lambda pages: self.arrange_pages(arrange.Rotate(tuple(pages), 90)))
         # Las condiciones con "and" hacen que la acción no haga nada en los bordes: no se sube la página 1
         # ni se baja la última. move_pages recibe la posición "antes de", por eso el + 2.
-        self.a_earlier = act(N_("Move one page earlier"), "go-up", ["Alt+Up"],
+        self.a_earlier = act(N_("Move page earlier"), "go-up", ["Alt+Up"],
                              lambda pages: pages[0] > 1 and self.move_pages(pages, pages[0] - 1))
-        self.a_later = act(N_("Move one page later"), "go-down", ["Alt+Down"],
+        self.a_later = act(N_("Move page later"), "go-down", ["Alt+Down"],
                            lambda pages: pages[-1] < self.count and self.move_pages(pages, pages[-1] + 2))
         self.a_page_duplicate = act(N_("Duplicate"), "edit-copy", [],
                                     lambda pages: self.arrange_pages(arrange.Duplicate(tuple(pages))),
@@ -116,9 +116,9 @@ class PagesMixin:
         self.a_page_delete = act(N_("Delete"), "edit-delete", [],
                                  lambda pages: len(pages) < self.count
                                  and self.arrange_pages(arrange.Delete(tuple(pages))), N_("Delete the pages chosen"))
-        self.a_blank = act(N_("Insert a blank page after these"), "document-new", [],
+        self.a_blank = act(N_("Insert blank page after"), "document-new", [],
                            lambda pages: self.arrange_pages(arrange.InsertBlank(pages[-1] + 1)))
-        self.a_insert = act(N_("Insert pages of a PDF before these…"), "document-import", [],
+        self.a_insert = act(N_("Insert pages from file…"), "document-import", [],
                             lambda pages: self.arrange_dialog("insert", pages))
         self.page_actions = [self.a_rotate_left, self.a_rotate_right, self.a_earlier, self.a_later,
                              self.a_page_duplicate, self.a_page_delete, self.a_blank, self.a_insert]
@@ -144,7 +144,7 @@ class PagesMixin:
                      tip=tr("Remove all the page labels: viewers number the pages 1, 2, 3 ..."))
         # La regla para las etiquetas cuando se mueven páginas se guarda en la configuración; las tres opciones
         # forman un grupo exclusivo, como botones de radio.
-        rule = sub.addMenu(tr("The labels, when pages move"))
+        rule = sub.addMenu(tr("Labels of moved pages"))
         group = QActionGroup(rule)
         for value, text in (("ask", N_("Ask each time")), (arrange.FOLLOW, N_("Their labels")),
                             (arrange.POSITION, N_("The labels of their new places"))):
@@ -161,7 +161,7 @@ class PagesMixin:
         self.m_watermark.aboutToShow.connect(lambda: self._fill_stamp_menu(self.m_watermark, stamps.WATERMARK))
         self.m_arrange = m.addMenu(tr("Arrange pages"))
         self.m_arrange.aboutToShow.connect(lambda: self._fill_arrange(self.m_arrange))
-        self.m_opening = m.addMenu(tr("When the document is opened"))
+        self.m_opening = m.addMenu(tr("Initial view"))
         self.m_opening.aboutToShow.connect(lambda: (self.m_opening.clear(),
                                                     self.add_view_menus(self.m_opening, self.page + 1)))
         m.addSeparator()
@@ -174,7 +174,7 @@ class PagesMixin:
                 self.toolbar_of("layers", tr("Headers and watermarks"), [self.a_headfoot, self.a_watermark])]
 
         # El panel lateral reúne la tabla de intervalos de etiquetas y la lista de páginas.
-        dock = QDockWidget(tr("Pages and their labels"), self)
+        dock = QDockWidget(tr("Page labels"), self)
         dock.setObjectName("labels")
         dock.setWidget(self._pages_panel())
         dock.setAllowedAreas(Qt.DockWidgetArea.LeftDockWidgetArea | Qt.DockWidgetArea.RightDockWidgetArea)
@@ -235,7 +235,7 @@ class PagesMixin:
         lay.addWidget(QLabel("<b>" + tr("Ranges of page labels") + "</b>"))
         lay.addWidget(table, 2)
         lay.addLayout(buttons)
-        lay.addWidget(QLabel("<b>" + tr("Pages and their labels") + "</b>"))
+        lay.addWidget(QLabel("<b>" + tr("Page labels") + "</b>"))
         lay.addWidget(pl, 3)
         lay.addWidget(self.go_to_field)
         lay.addWidget(QLabel(tr("Command line:")))
@@ -553,7 +553,7 @@ class PagesMixin:
         whose title says it already)."""
         opening = self.pages_state().opening
         if heading:
-            menu.addSection(tr("When the document is opened"))
+            menu.addSection(tr("Initial view"))
         for title, field, current, titles, tips in (
                 (tr("Page layout"), "layout", opening.layout, view.LAYOUT_TITLES, view.LAYOUT_TIPS),
                 (tr("Page view"), "zoom", opening.zoom, view.PAGE_VIEW_TITLES, view.PAGE_VIEW_TIPS)):
@@ -798,7 +798,7 @@ class PagesMixin:
         # Extracting and splitting do not change the document: they write new files from it.
         if mode == "extract":
             default = Path(self.last_dir()) / f"{self.path.stem}-{stamps.compact_pages(value)}.pdf"
-            name, _ = QFileDialog.getSaveFileName(self, tr("Extract to a new PDF"), str(default),
+            name, _ = QFileDialog.getSaveFileName(self, tr("Extract pages"), str(default),
                                                   tr("PDF files (*.pdf)"))
             target = Path(name).with_suffix(".pdf") if name else None
             if target is None or not self.write_parts([(target, value)]):
@@ -920,7 +920,7 @@ class PagesMixin:
         for angle, text in ((90, N_("90° clockwise")), (270, N_("90° counterclockwise")), (180, N_("180°"))):
             turn.addAction(tr(text), lambda *_, a=angle: self.arrange_pages(arrange.Rotate(tuple(pages), a)))
         menu.addAction(tr("Duplicate"), lambda *_: self.arrange_pages(arrange.Duplicate(tuple(pages))))
-        menu.addAction(tr("Extract to a new PDF…"), lambda *_: self.arrange_dialog("extract", pages))
+        menu.addAction(tr("Extract pages…"), lambda *_: self.arrange_dialog("extract", pages))
         # Delete is disabled when every page is chosen: the document must keep at least one.
         menu.addAction(tr("Delete"), lambda *_: self.arrange_pages(arrange.Delete(tuple(pages)))).setEnabled(
             count < self.count)
@@ -939,12 +939,12 @@ class PagesMixin:
                          tr("Insert a blank page before these"),
                          lambda *_: self.arrange_pages(arrange.InsertBlank(pages[0])))
         insert.addAction(tr("Insert a blank page after this one") if count == 1 else
-                         tr("Insert a blank page after these"),
+                         tr("Insert blank page after"),
                          lambda *_: self.arrange_pages(arrange.InsertBlank(pages[-1] + 1)))
         insert.addSeparator()
         insert.addAction(tr("Insert pages of a PDF before this one…") if count == 1 else
-                         tr("Insert pages of a PDF before these…"), lambda *_: self.arrange_dialog("insert", pages))
-        insert.addAction(tr("Replace by pages of a PDF…"), lambda *_: self.arrange_dialog("replace", pages))
+                         tr("Insert pages from file…"), lambda *_: self.arrange_dialog("insert", pages))
+        insert.addAction(tr("Replace pages…"), lambda *_: self.arrange_dialog("replace", pages))
 
         names = menu.addMenu(tr("Labels"))
         names.addAction(tr("Number these pages…") if count > 1 else tr("Number this page…"), self.number_selected)
@@ -973,8 +973,8 @@ class PagesMixin:
                             lambda *_: self.remove_stamps(stamps.WATERMARK, pages))
         a.setEnabled(bool(self.pages_with(stamps.WATERMARK) & set(pages)))
 
-        self._fill_arrange(menu.addMenu(tr("More arranging")))
-        self.add_view_menus(menu.addMenu(tr("When the document is opened")), pages[0], heading=False)
+        self._fill_arrange(menu.addMenu(tr("More page actions")))
+        self.add_view_menus(menu.addMenu(tr("Initial view")), pages[0], heading=False)
         return menu
 
     # ----------------------------------------------------------------- the panel
