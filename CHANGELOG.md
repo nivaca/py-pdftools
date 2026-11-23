@@ -5,6 +5,18 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.8.18 — 2026-11-23
+
+- **Toolbars that stay together**: when a toolbar is let go, the toolbars of
+  its row go side by side again, from the start of the row and in their
+  order, without the empty space a drag used to leave between them; each
+  stays in its row. To have an empty space where one is wanted, Customize
+  the toolbars has **Add a spacer**, beside Add a separator: an empty space
+  that stretches, as in KDE's toolbars (at the end of a row it pushes what
+  follows to the edge of the window).
+- The **handles** of the toolbars, by which they are dragged, are wider (14
+  pixels; Fusion's were 9).
+
 ## 1.8.17 — 2026-11-22
 
 - **Every release signed**: besides the RPM, each file published (the
