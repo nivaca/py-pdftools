@@ -12,16 +12,23 @@ from __future__ import annotations
 
 import json
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QEvent, QObject, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QInputDialog, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QMenu, QPushButton, QToolBar, QVBoxLayout,
+    QLineEdit, QListWidget, QListWidgetItem, QMenu, QProxyStyle, QPushButton, QSizePolicy, QStyle, QToolBar,
+    QVBoxLayout, QWidget,
 )
 
 from ..core.interface import N_, tr
 
 SEPARATOR = "|"
+# Un espacio que se estira, como el «--- expanding spacer ---» de las barras de KDE: al final de una fila empuja lo
+# que lo sigue hasta el borde; en otro lugar es un hueco pequeño (SPACER_MIN)
+SPACER = "<->"
+SPACER_NAME = "toolbar-spacer"  # (the object name of its action, by which bar_ids knows it)
+SPACER_MIN = 16
+HANDLE = 14  # the width of a toolbar's handle, in pixels, at least (Fusion's is 9: hard to take hold of)
 SETTING = "toolbar_contents"
 LOOKS = "toolbar_looks"  # (the setting of how the toolbars look: see looks())
 # how the buttons show: (key, name, Qt's style)
@@ -38,6 +45,39 @@ DEFAULT_LOOKS = {"style": "icons", "size": 16, "locked": False, "bars": {}}
 def plain(text: str) -> str:
     """The text of an action as shown in a list: without its key marker (&) and its dots."""
     return text.replace("&&", "\0").replace("&", "").replace("\0", "&").rstrip("…").rstrip(".")
+
+
+class _HandleStyle(QProxyStyle):
+    """The style of the application, with a wider handle for the toolbars (by which they are dragged)."""
+
+    def pixelMetric(self, metric, option=None, widget=None):
+        value = super().pixelMetric(metric, option, widget)
+        if metric == QStyle.PixelMetric.PM_ToolBarHandleExtent:
+            return max(value, HANDLE)
+        return value
+
+
+class _DragEnd(QObject):
+    """When a toolbar is let go (after being dragged), the rows of toolbars are packed again: see pack_toolbars."""
+
+    def __init__(self, win):
+        super().__init__(win)
+        self.win = win
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.MouseButtonRelease:
+            self.win.schedule_pack()
+        return False
+
+
+def add_spacer(bar: QToolBar) -> QAction:
+    """An expanding spacer at the end of BAR."""
+    space = QWidget(bar)
+    space.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+    space.setMinimumSize(SPACER_MIN, SPACER_MIN)
+    act = bar.addWidget(space)
+    act.setObjectName(SPACER_NAME)
+    return act
 
 
 class ToolbarsMixin:
@@ -68,8 +108,8 @@ class ToolbarsMixin:
 
     def bar_ids(self, bar: QToolBar) -> list[str]:
         names = {id(a): n for n, a in self.action_ids().items()}
-        return [SEPARATOR if a.isSeparator() else names[id(a)] for a in bar.actions()
-                if a.isSeparator() or id(a) in names]
+        return [SEPARATOR if a.isSeparator() else SPACER if a.objectName() == SPACER_NAME else names[id(a)]
+                for a in bar.actions() if a.isSeparator() or a.objectName() == SPACER_NAME or id(a) in names]
 
     def editable_bars(self) -> list[QToolBar]:
         # (ni la barra de los modos ni Página y zoom, que lleva widgets fijos, no acciones)
@@ -122,10 +162,15 @@ class ToolbarsMixin:
             ids = layout["bars"].get(bar.objectName(), self._tb_defaults.get(bar.objectName(), []))
             if self.bar_ids(bar) == ids:
                 continue
+            for act in bar.actions():  # (los espacios son de su barra: se van con ella)
+                if act.objectName() == SPACER_NAME:
+                    act.deleteLater()
             bar.clear()
             for name in ids:
                 if name == SEPARATOR:
                     bar.addSeparator()
+                elif name == SPACER:
+                    add_spacer(bar)
                 elif name in actions:
                     bar.addAction(actions[name])
             self._tool_button_menus(bar)
@@ -181,6 +226,77 @@ class ToolbarsMixin:
             bar.setToolButtonStyle(styles.get(style, Qt.ToolButtonStyle.ToolButtonIconOnly))
             bar.setIconSize(QSize(size, size))
             bar.setMovable(not looks.get("locked"))
+            self._fit_toolbar(bar)
+        # (con otro tamaño, las barras quedarían separadas por los huecos que dejaron)
+        self.schedule_pack()
+
+    # ----------------------------------------------------------------- where they are
+
+    def _fit_toolbar(self, bar: QToolBar):
+        """BAR with a wider handle, and packed with its row when it is let go (once for each toolbar)."""
+        if bar.property("fitted"):
+            return
+        if getattr(self, "_handle_style", None) is None:
+            self._handle_style = _HandleStyle()  # (the application's style, whatever it is)
+            self._drag_end = _DragEnd(self)
+        bar.setStyle(self._handle_style)
+        bar.installEventFilter(self._drag_end)
+        bar.topLevelChanged.connect(lambda _floating: self.schedule_pack())
+        bar.setProperty("fitted", True)
+
+    def schedule_pack(self):
+        """Pack the rows of toolbars a moment later (after a drag, Qt places the toolbar first)."""
+        if not getattr(self, "_pack_due", False):
+            self._pack_due = True
+            QTimer.singleShot(0, self.pack_toolbars)
+
+    def pack_toolbars(self) -> bool:
+        """The toolbars of each row side by side, from its start, in their order, without the empty spaces a
+        drag leaves between them (Qt keeps the place where a toolbar was let go, and stretches the one before
+        it up to there); each stays in its row. Whether a row was packed. (An empty space where one is wanted:
+        a spacer, in Customize the toolbars.)"""
+        self._pack_due = False
+        packed = False
+        areas = {Qt.ToolBarArea.TopToolBarArea: True, Qt.ToolBarArea.BottomToolBarArea: True,
+                 Qt.ToolBarArea.LeftToolBarArea: False, Qt.ToolBarArea.RightToolBarArea: False}
+        for area, across in areas.items():
+            rows: dict[int, list[QToolBar]] = {}
+            for bar in self.toolbars():
+                if self.toolBarArea(bar) == area and bar.isVisible() and not bar.isFloating():
+                    rows.setdefault(bar.geometry().y() if across else bar.geometry().x(), []).append(bar)
+            for row in rows.values():
+                row.sort(key=lambda b: b.geometry().x() if across else b.geometry().y())
+                if len(row) < 2 or not self._gaps(row, across):
+                    continue
+                # insertToolBar forgets where a toolbar was let go: each is put again before the last, which is
+                # first put at the start of the row (so that it forgets its place too)
+                last = row[-1]
+                self.insertToolBar(row[0], last)
+                for bar in row[:-1]:
+                    self.insertToolBar(last, bar)
+                for bar in row:
+                    bar.show()
+                packed = True
+        if packed and getattr(self, "mode", None) and hasattr(self, "keep_arrangement"):
+            self.keep_arrangement()  # (the mode's arrangement, as it is now)
+        return packed
+
+    @staticmethod
+    def _gaps(row: list[QToolBar], across: bool) -> bool:
+        """Whether ROW (of toolbars, in their order) has empty spaces: one before the first, or a toolbar
+        stretched beyond what it needs up to the next one."""
+        def start(b):
+            return b.geometry().x() if across else b.geometry().y()
+
+        def length(b):
+            return b.width() if across else b.height()
+
+        def wanted(b):
+            hint = b.sizeHint()
+            return hint.width() if across else hint.height()
+
+        # (only across: a column of the sides begins under the toolbars of the top, not at 0)
+        return (across and start(row[0]) > 2) or any(length(b) > wanted(b) + 2 for b in row[:-1])
 
     def set_bar_look(self, bar: QToolBar | None = None, style: str | None = None, size: int | None = None):
         """STYLE and SIZE (those given) of BAR, or of all the toolbars (BAR None: then those of each go)."""
@@ -298,12 +414,15 @@ class ToolbarsDialog(QDialog):
         self.b_add, self.b_remove = button(tr("Add →"), self.add), button(tr("← Remove"), self.remove)
         self.b_up, self.b_down = button(tr("Up"), lambda: self.move(-1)), button(tr("Down"), lambda: self.move(1))
         self.b_separator = button(tr("Add a separator"), self.add_separator)
+        self.b_spacer = button(tr("Add a spacer"), self.add_spacer)
+        self.b_spacer.setToolTip(tr("Empty space that stretches: at the end of a row of toolbars it pushes what "
+                                    "follows to the edge of the window; elsewhere it is a small gap"))
         self.b_reset = button(tr("As it was at first"), self.reset)
         self.b_new = button(tr("New toolbar…"), self.new_bar)
         self.b_delete = button(tr("Delete this toolbar"), self.delete_bar)
         middle = QVBoxLayout()
         middle.addStretch(1)
-        for b in (self.b_add, self.b_remove, self.b_up, self.b_down, self.b_separator):
+        for b in (self.b_add, self.b_remove, self.b_up, self.b_down, self.b_separator, self.b_spacer):
             middle.addWidget(b)
         middle.addStretch(1)
         grid = QGridLayout()
@@ -365,6 +484,10 @@ class ToolbarsDialog(QDialog):
     def _item(self, name: str) -> QListWidgetItem:
         if name == SEPARATOR:
             item = QListWidgetItem("――――――――")
+        elif name == SPACER:
+            item = QListWidgetItem(tr("— spacer —"))
+            item.setToolTip(tr("Empty space that stretches: at the end of a row of toolbars it pushes what follows to "
+                               "the edge of the window"))
         else:
             act = self.actions_[name]
             # (una acción sin icono lleva uno vacío, para que los textos queden alineados)
@@ -385,7 +508,7 @@ class ToolbarsDialog(QDialog):
     def _show_bar(self):
         self.chosen.clear()
         for name in self.contents.get(self.current(), []):
-            if name == SEPARATOR or name in self.actions_:
+            if name in (SEPARATOR, SPACER) or name in self.actions_:
                 self.chosen.addItem(self._item(name))
         self._fill_available()
         custom = any(name == self.current() for name, _ in self.custom)
@@ -408,7 +531,7 @@ class ToolbarsDialog(QDialog):
         row = self.chosen.currentRow() + 1 if self.chosen.currentRow() >= 0 else self.chosen.count()
         ids = self.contents.setdefault(self.current(), [])
         for name in names:
-            if name == SEPARATOR or name not in ids:
+            if name in (SEPARATOR, SPACER) or name not in ids:
                 ids.insert(row, name)
                 row += 1
         self._show_bar()
@@ -416,6 +539,9 @@ class ToolbarsDialog(QDialog):
 
     def add_separator(self):
         self.add([SEPARATOR])
+
+    def add_spacer(self):
+        self.add([SPACER])
 
     def remove(self):
         rows = sorted({self.chosen.row(i) for i in self.chosen.selectedItems()}, reverse=True)

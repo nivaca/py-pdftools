@@ -1045,6 +1045,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, N
             # The bookmarks stay as the user left them: their panel isn't part of a mode's arrangement
             bookmarks = self.outline_dock.isVisibleTo(self)
             self.restoreState(state)
+            self.schedule_pack()  # (an arrangement kept before may have the empty spaces of a drag)
             self.outline_dock.setVisible(bookmarks)
             mode = self.modes[key]
             for other in self.modes.values():

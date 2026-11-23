@@ -194,3 +194,56 @@ def test_a_change_reaches_every_window(app, tmp_path, monkeypatch):
         for w in (one, two):
             _WINDOWS.remove(w)
             w.close()
+
+
+def test_a_spacer_on_a_toolbar(window):
+    """Customize the toolbars offers an expanding spacer (as KDE's toolbars do), kept as '<->' and back."""
+    from py_pdftools.gui.toolbars import SPACER, ToolbarsDialog
+
+    before = window.bar_ids(bar(window, "file"))
+    d = ToolbarsDialog(window)
+    d.bar.setCurrentIndex(d.bar.findData("file"))
+    d.chosen.setCurrentRow(0)
+    d.add_spacer()
+    d.add_spacer()  # (as many as wished, as separators)
+    layout = d.layout_chosen()
+    assert layout["bars"]["file"] == [before[0], SPACER, SPACER, *before[1:]]
+    window.apply_toolbar_layout(layout)
+    assert window.bar_ids(bar(window, "file")) == layout["bars"]["file"]
+    other = MainWindow()  # (kept: a new window has them too)
+    try:
+        assert other.bar_ids(bar(other, "file")) == layout["bars"]["file"]
+    finally:
+        other.close()
+
+
+def test_the_rows_of_toolbars_are_packed(window):
+    """A toolbar dragged along its row leaves no empty space: once it is let go, the toolbars of the row go
+    side by side again, in their order (Qt keeps the place where it was let go, and stretches the one before
+    it up to there); their handle is wide enough to take hold of."""
+    from PySide6.QtCore import QPoint, Qt
+    from PySide6.QtTest import QTest
+    from PySide6.QtWidgets import QStyle
+
+    from py_pdftools.gui.toolbars import HANDLE
+
+    window.resize(1400, 800)
+    window.show()
+    QApplication.processEvents()
+    find = bar(window, "find")
+    assert find.style().pixelMetric(QStyle.PixelMetric.PM_ToolBarHandleExtent, None, find) >= HANDLE
+    row = sorted((b for b in window.toolbars() if b.isVisible() and b.geometry().y() == find.geometry().y()),
+                 key=lambda b: b.x())
+    order = [b.objectName() for b in row]
+    press = QPoint(4, find.height() // 2)
+    QTest.mousePress(find, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, press)
+    for dx in range(0, 201, 20):
+        QTest.mouseMove(find, press + QPoint(dx, 0))
+        QApplication.processEvents()
+    QTest.mouseRelease(find, Qt.MouseButton.LeftButton, Qt.KeyboardModifier.NoModifier, press + QPoint(200, 0))
+    for _ in range(5):
+        QApplication.processEvents()
+    row = sorted((b for b in window.toolbars() if b.isVisible() and b.geometry().y() == find.geometry().y()),
+                 key=lambda b: b.x())
+    assert [b.objectName() for b in row] == order
+    assert not window._gaps(row, True)

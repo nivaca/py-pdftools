@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in fifty-two stages.
+I explain how it was made, in fifty-three stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1298,10 +1298,33 @@ file changed after signing, or a published key that is not the one that
 signed, stops the release. The tests sign with a key made for them, in a
 folder of their own, never with mine.
 
+53. Toolbars that stay together
+-------------------------------
+
+Moving a toolbar was clumsy, and a toolbar moved along its row left an
+empty space behind. Qt keeps the place where a toolbar is let go, and
+stretches the toolbar before it up to there, so the space was in fact a
+toolbar too wide, and the ones after it were squeezed. Now, when a toolbar
+is let go, the toolbars of each row are put again side by side from its
+start, in their order, each in the row it was in; this is also done when a
+mode brings back its arrangement, which may keep the spaces of an older
+drag, and when the size of the icons changes. A toolbar hidden in that row
+(of another mode) keeps its row. Where an empty space is wanted, a spacer
+can be added in Customize the toolbars, beside the separator, as KDE's
+toolbars have one. The handles, by which a toolbar is dragged, are wider
+too: Fusion draws them nine pixels wide, which is hard to take hold of.
+
+I was asked to arrange the toolbars as Okular does. Okular's toolbars come
+from KDE's own library, which has no binding for PySide6, so I took from
+it what could be done here: the handle, the spacer, the lock and the menu of
+the right click; and I left out dragging a toolbar by any empty part of it,
+which I had tried, since KDE's style uses that part to drag the whole
+window.
+
 Testing
 -------
 
-The program has 684 tests (`uv run pytest`): those of the four programs,
+The program has 686 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -13016,4 +13016,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Install its wheel (py_pdftools-{version}-py3-none-any.whl), from the page of the release, with pip install --upgrade</en>
     <tr>Instale su wheel (py_pdftools-{version}-py3-none-any.whl), de la página de la versión, con pip install --upgrade</tr>
   </text>
+  <text>
+    <en>Add a spacer</en>
+    <tr>Añadir un espacio</tr>
+  </text>
+  <text>
+    <en>— spacer —</en>
+    <tr>— espacio —</tr>
+  </text>
+  <text>
+    <en>Empty space that stretches: at the end of a row of toolbars it pushes what follows to the edge of the window</en>
+    <tr>Espacio vacío que se estira: al final de una fila de barras, empuja lo que sigue hasta el borde de la ventana</tr>
+  </text>
+  <text>
+    <en>Empty space that stretches: at the end of a row of toolbars it pushes what follows to the edge of the window; elsewhere it is a small gap</en>
+    <tr>Espacio vacío que se estira: al final de una fila de barras, empuja lo que sigue hasta el borde de la ventana; en otro lugar es un hueco pequeño</tr>
+  </text>
 </interface>

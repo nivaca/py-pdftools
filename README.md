@@ -318,8 +318,10 @@ permissions password changes or removes them. Settings > Toolbars sets how the t
 position of their text (icons only, text only, beside or under the icons),
 the size of their icons, and whether they stay where they are; the right
 click on any toolbar sets them for all of them. Customize the toolbars chooses
-the buttons of each toolbar and their order, and adds toolbars of one's
-own. The menus File, Edit and View are in submenus (File > New, Export,
+the buttons of each toolbar and their order, with separators and spacers,
+and adds toolbars of one's own. The toolbars of a row stay side by side,
+without the empty spaces a drag would leave; a spacer makes one where it is
+wanted. The menus File, Edit and View are in submenus (File > New, Export,
 Import, Security; View > Panels, Go to, Zoom, Page layout...).
 
 File > Combine files makes one PDF of several, or of some of their pages

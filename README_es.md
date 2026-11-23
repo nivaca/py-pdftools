@@ -333,7 +333,9 @@ las quita. Configuración > Barras de herramientas fija cómo se ven las
 barras, como en KDE: la posición de su texto (solo iconos, solo texto, junto
 a los iconos o debajo), el tamaño de los iconos y si se quedan donde están;
 el clic derecho sobre cualquier barra los fija para todas. Personalizar las barras
-elige los botones de cada una y su orden, y añade barras propias. Los menús
+elige los botones de cada una y su orden, con separadores y espacios, y
+añade barras propias. Las barras de una fila quedan juntas, sin los espacios
+vacíos que dejaría un arrastre; un espacio los pone donde se quieran. Los menús
 Archivo, Editar y Ver van en submenús (Archivo > Nuevo, Exportar,
 Importar, Seguridad; Ver > Paneles, Ir a, Zoom, Disposición de página...).
 
