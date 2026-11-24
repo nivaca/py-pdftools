@@ -63,6 +63,18 @@ def source(settings) -> str:
     return "drawn"
 
 
+WIDTH = "signature_width"  # (in points: how wide the Signature tool puts it with a click)
+
+
+def width(settings, default: float) -> float:
+    """The usual width of the signature on the page, in points."""
+    try:
+        value = float(settings.value(WIDTH, default))
+    except (TypeError, ValueError):
+        return default
+    return value if 20 <= value <= 600 else default
+
+
 def picture() -> tuple[bytes, float] | None:
     """The PNG of the signature's picture, and its height for a width of 1; None if there is none."""
     import pymupdf
@@ -73,6 +85,28 @@ def picture() -> tuple[bytes, float] | None:
     except (OSError, RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase):
         return None
     return data, pix.height / max(pix.width, 1)
+
+
+def on_white(pix):
+    """PIX (with its own transparency) as it looks on a white page: a PNG of a signature already made
+    transparent keeps, under its transparent pixels, colours that aren't seen, often black; taking the
+    transparency away without this turns the picture into its negative."""
+    import pymupdf
+    from PySide6.QtCore import QBuffer, QByteArray, QIODevice, Qt
+    from PySide6.QtGui import QImage, QPainter
+
+    source = QImage.fromData(pix.tobytes("png"))
+    page = QImage(source.size(), QImage.Format.Format_RGB32)
+    page.fill(Qt.GlobalColor.white)
+    painter = QPainter(page)
+    painter.drawImage(0, 0, source)
+    painter.end()
+    out = QByteArray()
+    buffer = QBuffer(out)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+    page.save(buffer, "PNG")
+    flat = pymupdf.Pixmap(bytes(out.data()))
+    return pymupdf.Pixmap(flat, 0) if flat.alpha else flat
 
 
 def prepared(path, transparent: bool = True) -> bytes:
@@ -86,7 +120,7 @@ def prepared(path, transparent: bool = True) -> bytes:
     except (RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase) as e:
         raise SignatureError(tr("{path} can't be read as a picture: {error}", path=str(path), error=e)) from None
     if pix.alpha:
-        pix = pymupdf.Pixmap(pix, 0)  # (sin su transparencia: se calcula de nuevo, a partir de lo claro)
+        pix = on_white(pix)
     if pix.n not in (1, 3):
         pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
     while max(pix.width, pix.height) > LARGEST:
@@ -224,8 +258,8 @@ class SignatureDialog(QDialog):
     """My signature: drawn here, with the pen or the mouse, or taken from a picture (Use a picture…). OK keeps
     the one shown, and the Signature tool puts that one."""
 
-    def __init__(self, parent=None):
-        from PySide6.QtWidgets import QCheckBox, QStackedWidget
+    def __init__(self, parent=None, width_points: float = 120.0):
+        from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox, QHBoxLayout, QStackedWidget
 
         super().__init__(parent)
         self.setWindowTitle(tr("My signature"))
@@ -253,6 +287,16 @@ class SignatureDialog(QDialog):
                                        "away, so that it sits on the page like ink"))
         self.transparent.toggled.connect(lambda _on: self._load_picture())
         lay.addWidget(self.transparent)
+        # El ancho de siempre en la página, en centímetros (se guarda en puntos: 72 por pulgada)
+        self.width_cm = QDoubleSpinBox(minimum=1.0, maximum=20.0, singleStep=0.5, decimals=1, suffix=" cm")
+        self.width_cm.setValue(round(width_points / 72 * 2.54, 1))
+        self.width_cm.setToolTip(tr("How wide the Signature tool puts it with a click; drag a box with the tool to "
+                                    "make it as wide as the box, or drag its corners afterwards"))
+        row = QHBoxLayout()
+        row.addWidget(QLabel(tr("Width on the page:")))
+        row.addWidget(self.width_cm)
+        row.addStretch(1)
+        lay.addLayout(row)
         self.problem = QLabel()
         self.problem.setWordWrap(True)
         self.problem.setStyleSheet("color: #c0392b;")
@@ -272,6 +316,9 @@ class SignatureDialog(QDialog):
         buttons.rejected.connect(self.reject)
         lay.addWidget(buttons)
         self.show_kind("drawn")
+
+    def width_points(self) -> float:
+        return round(self.width_cm.value() / 2.54 * 72, 1)
 
     def show_kind(self, kind: str):
         """Show the pad ('drawn') or the picture ('picture'), with what to do."""

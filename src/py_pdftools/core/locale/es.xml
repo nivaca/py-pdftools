@@ -13904,4 +13904,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Your signature, from {file}. It is kept on this computer only, in the settings of py-pdftools, and put on documents with the Signature tool.</en>
     <tr>Su firma, de {file}. Se guarda solo en este computador, en la configuración de py-pdftools, y se pone en los documentos con la herramienta Firma.</tr>
   </text>
+  <text>
+    <en>How wide the Signature tool puts it with a click; drag a box with the tool to make it as wide as the box, or drag its corners afterwards</en>
+    <tr>De qué ancho la pone la herramienta Firma con un clic; arrastre un recuadro con la herramienta para que tenga el ancho del recuadro, o arrastre después sus esquinas</tr>
+  </text>
+  <text>
+    <en>Width on the page:</en>
+    <tr>Ancho en la página:</tr>
+  </text>
 </interface>

@@ -2329,8 +2329,13 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             box = self._callout_box(page, start, self._clamp(page, point))
             self.drawn.emit(self._new("callout", n, box, (((round(start.x(), 2), round(start.y(), 2)),),)))
             return
-        if self.mode == "signature":  # (its top left corner where the click was: the window knows its size)
-            self.drawn.emit(self._new("signature", n, (start.x(), start.y(), start.x(), start.y())))
+        if self.mode == "signature":
+            end = self._clamp(page, point)
+            if (end - start).manhattanLength() * self.zoom() > 6:  # (dragged: as wide as that, its height its own)
+                r = QRectF(start, end).normalized()
+                self.drawn.emit(self._new("signature", n, (r.left(), r.top(), r.right(), r.top())))
+            else:  # (its top left corner where the click was: of its usual width, which the window knows)
+                self.drawn.emit(self._new("signature", n, (start.x(), start.y(), start.x(), start.y())))
             return
         if self.mode == "mark":  # (a check mark, a cross...: centred where the click was)
             s = MARK_SIZE / 2

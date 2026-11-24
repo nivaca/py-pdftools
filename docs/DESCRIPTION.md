@@ -1744,14 +1744,19 @@ bluish, came out as a blue-grey box: none of its paper was light enough.
 Now they are measured in each picture: most of a picture of a signature is
 paper, so the median grey is the paper's, and the two thresholds are set
 below it; and only what is clearly dark counts when the picture is cut, so
-that a few faint specks of the paper don't widen it. The Signature tool puts the
+that a few faint specks of the paper don't widen it. A picture that was
+transparent already came out as its negative: under its transparent
+pixels it kept black, which is not seen until the transparency is taken
+away; it is now put on white first, as a page would show it. And the
+signature can be any size: a box dragged with the tool sets its width,
+and My signature the width of a click, in centimetres. The Signature tool puts the
 drawing or the picture, whichever was chosen last; the picture goes as an
 image stamp, which the program already knew how to read and write.
 
 Testing
 -------
 
-The program has 765 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 767 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

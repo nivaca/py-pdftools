@@ -110,3 +110,47 @@ def test_a_photo_taken_indoors(tmp_path):
     assert out.width() < 450 and out.height() < 60  # (cut to the stroke, not the whole photo)
     corners = [out.pixelColor(x, y).alpha() for x in (0, out.width() - 1) for y in (0, out.height() - 1)]
     assert corners == [0, 0, 0, 0]
+
+
+def test_a_picture_with_its_own_transparency(tmp_path):
+    """A PNG already transparent around the signature, black under its transparent pixels (as many are): not
+    turned into its negative."""
+    QApplication.instance() or QApplication([])
+    img = QImage(600, 300, QImage.Format.Format_ARGB32)
+    img.fill(QColor(0, 0, 0, 0))  # (transparent, and black underneath)
+    p = QPainter(img)
+    p.setPen(QPen(QColor(0, 0, 0), 8, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+    p.drawLine(QPointF(150, 150), QPointF(450, 160))
+    p.end()
+    path = tmp_path / "clear.png"
+    img.save(str(path))
+    out = QImage.fromData(signature.prepared(path))
+    assert out.width() < 330 and out.height() < 40  # (cut to the stroke: not a black box)
+    assert out.pixelColor(0, 0).alpha() == 0
+    assert max(out.pixelColor(x, out.height() // 2).alpha() for x in range(out.width())) == 255
+
+
+def test_the_size(tmp_path, monkeypatch, scan):
+    """A drag with the tool makes the signature as wide as the box; a click, of the width set in My signature."""
+    from py_pdftools.gui.window import MainWindow
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    doc = pymupdf.open()
+    doc.new_page()
+    doc.save(tmp_path / "d.pdf")
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    try:
+        assert w.open_path(tmp_path / "d.pdf")
+        signature.store_picture(w.settings, signature.prepared(scan))
+        dragged = w._signature(0, (100, 100, 300, 100))
+        assert dragged.rect[2] - dragged.rect[0] == 200
+        d = signature.SignatureDialog(None, 120.0)
+        assert d.width_cm.value() == 4.2
+        d.width_cm.setValue(6.0)
+        w.settings.setValue(signature.WIDTH, d.width_points())
+        clicked = w._signature(0, (100, 100, 100, 100))
+        assert abs((clicked.rect[2] - clicked.rect[0]) - 6.0 / 2.54 * 72) < 0.5
+    finally:
+        w.drop_work()
+        w.close()

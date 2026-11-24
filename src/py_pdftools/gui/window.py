@@ -1826,15 +1826,16 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             a = self._stamp(a, style)
         return a
 
-    SIGNATURE_WIDTH = 120.0  # points
+    SIGNATURE_WIDTH = 120.0  # points (the usual width, if My signature doesn't say another)
 
     def _signature(self, page: int, rect: Rect) -> Annotation:
-        """The signature kept (see gui/signature.py), as a drawing SIGNATURE_WIDTH wide, its top left
-        corner at RECT's (or an empty drawing, if there is none yet)."""
+        """The signature kept (see gui/signature.py), its top left corner at RECT's: as wide as RECT, if it was
+        dragged, or of the width set in My signature; a drawing, or its picture as an image stamp (or an empty
+        drawing, if there is none yet)."""
         from . import signature
 
         x0, y0 = rect[0], rect[1]
-        s = self.SIGNATURE_WIDTH
+        s = rect[2] - rect[0] if rect[2] - rect[0] > 5 else signature.width(self.settings, self.SIGNATURE_WIDTH)
         if signature.source(self.settings) == "picture":
             # Una imagen de la firma: un sello de imagen, de ese ancho y con sus proporciones
             found = signature.picture()
@@ -1856,9 +1857,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         """My signature: drawn, or from a picture (Signature tool, right-click; or the first time it is used)."""
         from . import signature
 
-        dialog = signature.SignatureDialog(self)
+        dialog = signature.SignatureDialog(self, signature.width(self.settings, self.SIGNATURE_WIDTH))
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
+        self.settings.setValue(signature.WIDTH, dialog.width_points())
         if dialog.kind == "picture":
             if not dialog.picture_data:
                 return False
