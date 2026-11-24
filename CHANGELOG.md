@@ -5,6 +5,25 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.15.0 — 2026-11-24
+
+- **Every search as quick as Find as you type**: Find and highlight, Find
+  all and Find as you type read each page once, into one index of the
+  document that they share. Find all on a thousand pages took nearly half a
+  minute; now under two seconds the first time, and a tenth of a second
+  after. The places found are the same as before.
+- **Find all doesn't freeze the window**: the places come into the list as
+  they are found (the first ones at once), a new search or the panel closed
+  stops the one running, and the pages are read ahead while the panel is
+  open.
+- **The mode OCR opens at once**: finding the scanned pages no longer reads
+  the text of every page (a book of text: a twentieth of a second instead
+  of almost half).
+- **`py-pdftools-gui --no-tray`**: a program of its own that time, whatever
+  Keep running in the background says (to try a version from the source
+  beside the one installed).
+- The manuals show My signatures in a picture.
+
 ## 1.14.0 — 2026-11-24
 
 - **Signing digitally, said plainly** (File > Security > Sign digitally): in
