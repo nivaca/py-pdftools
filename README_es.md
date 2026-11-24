@@ -283,6 +283,11 @@ búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F o /), va de un lugar de un
 texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
 desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
 las miniaturas se muestran u ocultan con F7.
+Editar > Buscar mientras se escribe (Alt+Mayús+F) abre una barra al pie de la
+ventana que busca con cada letra escrita, resalta todos los lugares
+encontrados y va de uno al siguiente con Intro; las mayúsculas y los acentos
+cuentan solo si se pide. Lee el texto por adelantado, así que buscar en mil
+páginas toma unos milisegundos.
 Ver > Paneles > Resultados de la búsqueda (F8) hace la lista de todos los lugares de
 un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic.
 Ver > Paneles > Archivos adjuntos (F9) hace la lista de los archivos adjuntos al

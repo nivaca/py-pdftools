@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-five stages.
+I explain how it was made, in sixty-six stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1570,10 +1570,39 @@ itself, drawn at 72 dpi, by the rows and columns that are not
 transparent. A stamp removed from the library while it is the one chosen
 gives way to a standard one, and the window says why.
 
+66. Finding as you type
+-----------------------
+
+The quick find box searched only when Enter was pressed, and showed one
+place at a time. I added a toolbar, always at the bottom of the window,
+that searches at every letter, highlights every place found, and keeps the
+last texts searched; it has its own options for capitals and accents, and
+two buttons that take its text to the other searches, which stay as they
+were. It had to be very fast, and the search that the dialogs use was not:
+in a document of a thousand dense pages it took almost a second for each
+search, even with the text of the pages already read, because it took
+the accents off every character again each time, and reading the pages the
+first time took nineteen seconds. Measuring showed where: MuPDF gives the
+characters of a page with their boxes in less than a millisecond, and the
+other fifteen were spent in Python, turning a rectangle for each character
+as the page is shown. So the bar has an index of its own
+(annotate/textindex.py). It reads each page once, following the same rules
+(a word cut with a hyphen at the end of a line is one word), keeps the
+boxes as plain numbers, unturned, and keeps the text also without accents
+and in lower case; a search is then only a search of a string. A place
+found is only its page and where it starts and ends: its rectangles are
+worked out when it is shown, and only the pages in view are highlighted.
+When the text typed goes on from the one before, only the pages where that
+one was are searched again. The pages are read ahead, a few at a time,
+while the bar is open. Now reading the thousand pages takes a second and a
+half, and a search a few milliseconds; a test checks that the index finds
+exactly what the old search finds, with and without capitals and accents,
+also on turned pages.
+
 Testing
 -------
 
-The program has 700 tests (`uv run pytest`): those of the four programs,
+The program has 740 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

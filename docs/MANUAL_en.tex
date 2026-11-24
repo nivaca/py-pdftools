@@ -663,6 +663,28 @@ anywhere in the window; beside the box, \texttt{3/17} says which place is
 shown, of how many. It marks nothing: each place is only shown for a
 moment. \key{Esc} goes back to the pages.
 
+\index{finding!as you type}%
+\menu{Edit\then Find as you type} (\key{Alt+Shift+F}) opens a toolbar at
+the bottom of the window, above the status bar, that finds as one types:
+each letter typed or deleted searches the whole document again, and the
+view goes to the first place from the page shown, while every place found
+is highlighted on the pages and the one shown more strongly.
+\menu{Next} (\key{Enter}) and \menu{Previous} (\key{Shift+Enter}) go
+through them, and so do \key{F3} and \key{Shift+F3} while the toolbar is
+open; beside it, \texttt{3 of 17} says which place is shown. \menu{All}
+turns the highlighting of every place on or off (off, only the one shown is
+highlighted); without \menu{As you type}, the search waits for
+\key{Enter}; \menu{Match case} and \menu{Match accents} make capitals and
+accents count (without them, \enquote{cancion} also finds
+\enquote{canción}). The box keeps the last texts searched, in its list,
+and turns reddish when the text isn't in the document. Its last two
+buttons take the same text to \menu{Find and highlight} (or
+\menu{Find and redact}) and to the panel \menu{Search results}. The
+search is quick even in long documents: the text of the pages is read
+ahead while the toolbar is open, and then a search in a thousand pages
+takes a few thousandths of a second. The close button or \key{Esc} closes
+the toolbar, and the highlights go with it.
+
 \index{finding!search results}%
 \menu{View\then Panels\then Search results} (\key{F8}), or
 \menu{Tools\then Find all}, lists every place where a text is, each with its
@@ -1878,7 +1900,9 @@ Key & Action\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & group; ungroup\\
 \key{Ctrl+F} & find (and highlight, or redact)\\
 \key{Ctrl+Shift+F}, \key{/} & quick find\\
-\key{F3}, \key{Shift+F3} & next and previous place of the quick find\\
+\key{F3}, \key{Shift+F3} & next and previous place of the quick find (or of
+Find as you type, when open)\\
+\key{Alt+Shift+F} & Find as you type\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Select, Select text, Hand, Zoom to area\\
 \key{Shift+Z} & Magnifier\\
 \key{F1} & tips for this mode\\

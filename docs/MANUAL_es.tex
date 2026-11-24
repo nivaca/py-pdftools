@@ -696,6 +696,29 @@ desde cualquier parte de la ventana; junto a la casilla, \texttt{3/17} dice qué
 lugar se muestra, de cuántos. No marca nada: cada lugar solo se resalta un
 momento. \key{Esc} vuelve a las páginas.
 
+\index{buscar!mientras se escribe}%
+\menu{Editar\then Buscar mientras se escribe} (\key{Alt+Mayús+F}) abre una
+barra al pie de la ventana, encima de la barra de estado, que busca a medida
+que se escribe: cada letra escrita o borrada busca otra vez en todo el
+documento, y la vista va al primer lugar desde la página visible; todos los
+lugares encontrados se resaltan en las páginas, y el que se muestra, con más
+fuerza. \menu{Siguiente} (\key{Intro}) y \menu{Anterior}
+(\key{Mayús+Intro}) los recorren, y también \key{F3} y \key{Mayús+F3}
+mientras la barra está abierta; a su lado, \texttt{3 de 17} dice qué lugar
+se muestra. \menu{Todos} enciende o apaga el resaltado de todos los lugares
+(apagado, solo se resalta el que se muestra); sin \menu{Mientras se
+escribe}, la búsqueda espera a \key{Intro}; \menu{Distinguir mayúsculas} y
+\menu{Distinguir acentos} hacen que cuenten las mayúsculas y los acentos
+(sin ellos, \enquote{cancion} encuentra también \enquote{canción}). La
+casilla guarda en su lista los últimos textos buscados, y se vuelve rojiza
+cuando el texto no está en el documento. Sus dos últimos botones llevan el
+mismo texto a \menu{Buscar y resaltar} (o \menu{Buscar y censurar}) y al
+panel \menu{Resultados de la búsqueda}. La búsqueda es rápida aun en
+documentos largos: el texto de las páginas se lee por adelantado mientras la
+barra está abierta, y luego buscar en mil páginas toma unas milésimas de
+segundo. El botón de cerrar o \key{Esc} cierra la barra, y con ella se van
+los resaltados.
+
 \index{buscar!resultados de la búsqueda}%
 \menu{Ver\then Paneles\then Resultados de la búsqueda} (\key{F8}), o
 \menu{Herramientas\then Buscar todos}, hace la lista de todos los lugares
@@ -1980,7 +2003,9 @@ Tecla & Acción\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & agrupar; desagrupar\\
 \key{Ctrl+F} & buscar (y resaltar, o censurar)\\
 \key{Ctrl+Shift+F}, \key{/} & búsqueda rápida\\
-\key{F3}, \key{Shift+F3} & lugar siguiente y anterior de la búsqueda rápida\\
+\key{F3}, \key{Shift+F3} & lugar siguiente y anterior de la búsqueda rápida (o
+de Buscar mientras se escribe, si está abierta)\\
+\key{Alt+Shift+F} & Buscar mientras se escribe\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Seleccionar, Seleccionar texto, Mano, Ampliar una zona\\
 \key{Shift+Z} & Lupa\\
 \key{F1} & consejos de este modo\\

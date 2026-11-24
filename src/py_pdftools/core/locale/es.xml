@@ -13684,4 +13684,64 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} can't be read as a picture: {error}</en>
     <tr>{path} no se puede leer como imagen: {error}</tr>
   </text>
+  <text>
+    <en>A toolbar at the bottom of the window that finds as you type, and highlights every place found</en>
+    <tr>Una barra al pie de la ventana que busca mientras se escribe y resalta todos los lugares encontrados</tr>
+  </text>
+  <text>
+    <en>All</en>
+    <tr>Todos</tr>
+  </text>
+  <text>
+    <en>As you type</en>
+    <tr>Mientras se escribe</tr>
+  </text>
+  <text>
+    <en>Close this toolbar (Esc)</en>
+    <tr>Cerrar esta barra (Esc)</tr>
+  </text>
+  <text>
+    <en>Every place of this text, listed in the panel Search results</en>
+    <tr>Todos los lugares de este texto, en el panel Resultados de la búsqueda</tr>
+  </text>
+  <text>
+    <en>Find as you type</en>
+    <tr>Buscar mientras se escribe</tr>
+  </text>
+  <text>
+    <en>Find only what has the same accents (otherwise «cancion» finds «canción»)</en>
+    <tr>Encontrar solo lo que tiene los mismos acentos (si no, «cancion» encuentra «canción»)</tr>
+  </text>
+  <text>
+    <en>Find only what has the same capitals</en>
+    <tr>Encontrar solo lo que tiene las mismas mayúsculas</tr>
+  </text>
+  <text>
+    <en>Highlight every place found on the pages, not only the one shown</en>
+    <tr>Resaltar en las páginas todos los lugares encontrados, no solo el que se muestra</tr>
+  </text>
+  <text>
+    <en>Match accents</en>
+    <tr>Distinguir acentos</tr>
+  </text>
+  <text>
+    <en>Search again at every letter typed or deleted (otherwise, with Enter)</en>
+    <tr>Buscar de nuevo con cada letra escrita o borrada (si no, con Intro)</tr>
+  </text>
+  <text>
+    <en>The dialog with every option, with this text (Ctrl+F)</en>
+    <tr>El diálogo con todas las opciones, con este texto (Ctrl+F)</tr>
+  </text>
+  <text>
+    <en>The next place found (Enter)</en>
+    <tr>El lugar siguiente (Intro)</tr>
+  </text>
+  <text>
+    <en>The previous place found (Shift+Enter)</en>
+    <tr>El lugar anterior (Mayús+Intro)</tr>
+  </text>
+  <text>
+    <en>{n} of {count}</en>
+    <tr>{n} de {count}</tr>
+  </text>
 </interface>

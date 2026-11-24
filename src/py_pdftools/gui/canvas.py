@@ -23,11 +23,13 @@ from collections.abc import Callable
 import pymupdf
 from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, Signal
 from PySide6.QtGui import (
-    QBrush, QColor, QCursor, QImage, QKeySequence, QPainter, QPen, QPixmap, QPointingDevice, QTextOption,
+    QBrush, QColor, QCursor, QImage, QKeySequence, QPainter, QPainterPath, QPen, QPixmap, QPointingDevice,
+    QTextOption,
 )
 from PySide6.QtWidgets import (
     QToolTip,
-    QApplication, QColorDialog, QGraphicsItem, QGraphicsPixmapItem, QGraphicsRectItem, QGraphicsScene,
+    QApplication, QColorDialog, QGraphicsItem, QGraphicsPathItem, QGraphicsPixmapItem, QGraphicsRectItem,
+    QGraphicsScene,
     QGraphicsTextItem, QGraphicsView, QMenu,
 )
 
@@ -648,6 +650,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._word_texts = {}
         self._links = {}
         self.text_sel, self._sel_marks = None, []
+        self._found_of, self._found_pages, self._found_current = None, frozenset(), None
         # id(doc) forma parte de la clave de la caché, pero un documento nuevo puede heredar el id del viejo:
         # por eso se vacía.
         self._cache.clear()
@@ -668,6 +671,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         scene = self.scene()
         scene.clear()
         self.pages, self.items_ = {}, []
+        self._found_items, self._found_drawn = [], set()  # (scene.clear() acaba de borrarlos)
         self.shown_sizes = {}
         self._row_tops, self._row_pages = [], []
         if self.doc is None:
@@ -711,6 +715,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             y += max(shown[n].height() for n in row) + self.gap
         scene.setSceneRect(QRectF(-widest / 2 - self.gap, 0, widest + 2 * self.gap, y))
         self._place_annotations()
+        self._place_found()
         self.render_timer.start()
 
     def shown_rect(self, number: int) -> QRectF:
@@ -923,6 +928,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
 
     def _scrolled(self, _value):
         self.render_timer.start()
+        self._more_found()
         if self._quiet or not self.continuous or not self.pages:
             return
         # The page in view is the one under the middle of the window or, in the gap between two, the nearest.
@@ -2364,6 +2370,61 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             if r.normalize().contains(pymupdf.Point(point.x(), point.y())):
                 return w[4]
         return ""
+
+    # ----------------------------------------------------------------- the places found by the find bar
+
+    _found_of = None
+    _found_pages: frozenset = frozenset()
+    _found_current = None
+    _found_items: list = []
+    _found_drawn: set = set()
+
+    def set_found(self, rects_of, pages, current: tuple[int, list[Rect]] | None):
+        """Highlight the places found by the find bar: RECTS_OF(page) gives the rectangles of those on a page,
+        PAGES which pages have some, CURRENT (page, rectangles) the one shown, more strongly (None: none). Only
+        the pages in view, and near it, are highlighted; the others as they come into view."""
+        self._found_of, self._found_pages, self._found_current = rects_of, frozenset(pages or ()), current
+        self._place_found()
+
+    def _place_found(self):
+        for item in self._found_items:
+            try:
+                if item.scene() is not None:
+                    item.scene().removeItem(item)
+            except RuntimeError:  # (ya borrado con la escena)
+                pass
+        self._found_items, self._found_drawn = [], set()
+        current = self._found_current
+        if current is not None and current[0] in self.pages:
+            self._found_items.append(self._found_item(current[0], current[1], True))
+        self._more_found()
+
+    def _found_item(self, number: int, rects, current: bool) -> QGraphicsPathItem:
+        path = QPainterPath()
+        path.setFillRule(Qt.FillRule.WindingFill)  # (dos rectángulos que se tocan no se anulan)
+        for r in rects:
+            path.addRect(qrect(r).adjusted(-1, -1, 1, 1))
+        item = QGraphicsPathItem(path, self.pages[number])
+        if current:
+            pen = QPen(QColor(230, 110, 0), 2)
+            pen.setCosmetic(True)
+            item.setPen(pen)
+            item.setBrush(QBrush(QColor(255, 150, 0, 110)))
+            item.setZValue(4)
+        else:
+            item.setPen(QPen(Qt.PenStyle.NoPen))
+            item.setBrush(QBrush(QColor(255, 225, 0, 100)))
+            item.setZValue(3)
+        return item
+
+    def _more_found(self):
+        """The highlights of the pages that came into view (each page once, until the next search)."""
+        if self._found_of is None or not self._found_pages or not self.pages:
+            return
+        for number in self.visible_pages():
+            if number in self._found_pages and number not in self._found_drawn and number in self.pages:
+                self._found_drawn.add(number)
+                self._found_items.append(self._found_item(number, self._found_of(number), False))
 
     def flash(self, number: int, rect: Rect):
         """Bring RECT of page NUMBER into view, and show it for a moment."""

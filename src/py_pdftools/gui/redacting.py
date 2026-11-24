@@ -210,10 +210,12 @@ class RedactMixin:
     def _redact_entered(self):
         self.set_tool(KIND)
         self.a_find.setText(tr("Find and redact…"))
+        self.find_bar.mode_changed()
         self._redaction_look()
 
     def _redact_left(self):
         self.a_find.setText(tr("Find and highlight…"))
+        self.find_bar.mode_changed()
         # Al salir del modo se apaga la vista del resultado, que no tiene sentido en los demás.
         if self.a_redact_result.isChecked():
             self.a_redact_result.setChecked(False)

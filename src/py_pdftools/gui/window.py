@@ -642,6 +642,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                         tr("The next place of the text of the quick find"))
         self.a_find_previous = self._action(m, tr("Find previous"), lambda: self.find_again(-1), "Shift+F3",
                                             tr("The previous place of the text of the quick find"))
+        from .findbar import FindBar, key
+
+        # Buscar mientras se escribe: una barra propia, siempre abajo (gui/findbar.py); las otras búsquedas siguen
+        self.find_bar = FindBar(self)
+        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.find_bar)
+        self.a_find_bar = self._action(m, tr("Find as you type"), lambda: self.find_bar.open_bar(), key(),
+                                       tr("A toolbar at the bottom of the window that finds as you type, and "
+                                          "highlights every place found"))
         m.addAction(self.a_find_all)
 
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
@@ -1023,7 +1031,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
     def find_again(self, by: int):
         """The next place (BY 1) or the previous one (BY -1) of the text of the quick find; with no text
-        yet, the cursor in its box."""
+        yet, the cursor in its box. With the bar Find as you type open and a text in it, its places."""
+        if self.find_bar.isVisible() and self.find_bar.text().strip():
+            self.find_bar.step(by)
+            return
         boxes = self.a_quick_find.boxes()
         if not boxes or not boxes[0].text().strip():
             self.quick_find()
@@ -1464,6 +1475,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._fill_pages()
         self.outline_refresh()
         self.results_clear()
+        self.find_bar.document_changed()
         self.attachments_refresh()
         self.form_refresh()
         self.watch_file()

@@ -113,8 +113,9 @@ class ToolbarsMixin:
 
     def editable_bars(self) -> list[QToolBar]:
         # (ni la barra de los modos ni Página y zoom, que lleva widgets fijos, no acciones)
+        # (ni la barra Buscar mientras se escribe, hecha de un solo widget)
         return [bar for bar in self.toolbars()
-                if bar is not getattr(self, "modes_bar", None) and bar.objectName() != "pagezoom"]
+                if bar is not getattr(self, "modes_bar", None) and bar.objectName() not in ("pagezoom", "findbar")]
 
     def bar_title(self, bar: QToolBar) -> str:
         """The name of BAR, with that of its mode, if it is of one."""
@@ -225,7 +226,7 @@ class ToolbarsMixin:
             style, size = self.look_of(bar)
             bar.setToolButtonStyle(styles.get(style, Qt.ToolButtonStyle.ToolButtonIconOnly))
             bar.setIconSize(QSize(size, size))
-            bar.setMovable(not looks.get("locked"))
+            bar.setMovable(not looks.get("locked") and bar.objectName() != "findbar")  # (esa, siempre abajo)
             self._fit_toolbar(bar)
         # (con otro tamaño, las barras quedarían separadas por los huecos que dejaron)
         self.schedule_pack()
