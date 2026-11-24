@@ -86,3 +86,27 @@ def test_put_with_the_tool(scan, tmp_path, monkeypatch):
     finally:
         w.drop_work()
         w.close()
+
+
+def test_a_photo_taken_indoors(tmp_path):
+    """A photo under a lamp: the paper grey and bluish, darker towards a corner. It is all paper all the same:
+    transparent, and the picture cut to the signature (with a fixed threshold, it stayed a blue-grey box)."""
+    import random
+
+    QApplication.instance() or QApplication([])
+    img = QImage(800, 400, QImage.Format.Format_RGB32)
+    random.seed(1)
+    for y in range(400):
+        for x in range(800):
+            shade = 190 - int(25 * (x + y) / 1200) + random.randint(-6, 6)
+            img.setPixelColor(x, y, QColor(shade - 8, shade - 2, shade + 10))
+    p = QPainter(img)
+    p.setPen(QPen(QColor(25, 25, 60), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+    p.drawLine(QPointF(200, 200), QPointF(600, 220))
+    p.end()
+    path = tmp_path / "indoor.jpg"
+    img.save(str(path), "JPG", 85)
+    out = QImage.fromData(signature.prepared(path))
+    assert out.width() < 450 and out.height() < 60  # (cut to the stroke, not the whole photo)
+    corners = [out.pixelColor(x, y).alpha() for x in (0, out.width() - 1) for y in (0, out.height() - 1)]
+    assert corners == [0, 0, 0, 0]

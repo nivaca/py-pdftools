@@ -1734,18 +1734,24 @@ photograph it. The dialog My signature can now take a picture. A photo of
 a signature is mostly paper, and paper is never quite white; put on a page
 as it is, it would be a grey box with a signature in it. So the paper is
 made transparent: each pixel becomes as transparent as it is light, all
-of it paper above a light grey, all of it ink below a dark one, and the
-edges of the strokes in between stay soft. MuPDF's pixmaps do this with a
-table of 256 values applied to all the pixels at once, so a photo of
-several megapixels takes some twenty milliseconds, and the picture is then
-cut to the rows and columns that have ink. The Signature tool puts the
+of it paper above a certain grey, all of it ink below a darker one, and
+the edges of the strokes in between stay soft. MuPDF's pixmaps do this
+with a table of 256 values applied to all the pixels at once, in a few
+tens of milliseconds, and the picture is then cut to the rows and columns
+that have ink. My first version took those two greys as fixed, a light
+one and a dark one, and a photo taken under a lamp, its paper grey and
+bluish, came out as a blue-grey box: none of its paper was light enough.
+Now they are measured in each picture: most of a picture of a signature is
+paper, so the median grey is the paper's, and the two thresholds are set
+below it; and only what is clearly dark counts when the picture is cut, so
+that a few faint specks of the paper don't widen it. The Signature tool puts the
 drawing or the picture, whichever was chosen last; the picture goes as an
 image stamp, which the program already knew how to read and write.
 
 Testing
 -------
 
-The program has 764 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 765 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

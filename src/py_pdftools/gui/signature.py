@@ -22,8 +22,28 @@ KEY = "signature"  # (in what the window keeps, see state.py: the strokes, as JS
 SOURCE = "signature_source"  # ('drawn' or 'picture': which of the two the Signature tool puts)
 PICTURE = "signature.png"  # (in the configuration folder)
 LARGEST = 1600  # (pixels: a larger picture is made smaller, keeping its proportions)
-PAPER = 225  # (a grey this light, or lighter, is the paper: fully transparent)
-INK = 120  # (a grey this dark, or darker, is the ink: fully opaque; between the two, partly)
+# El papel de una foto rara vez es blanco: bajo la luz de una lámpara sale gris, a veces azulado, y más oscuro en
+# un rincón. Por eso el umbral no es fijo: se mide en cada imagen (véase paper_level)
+PAPER_MARGIN = 28  # (greys down to this much darker than the paper's own are paper too: shadows, unevenness)
+INK_SPAN = 80  # (from there, this much darker again is ink, fully opaque; between the two, partly)
+
+
+def paper_level(gray) -> int:
+    """How light the paper of the picture GRAY (a grey pixmap) is: the median grey, since most of a picture of
+    a signature is paper. Measured on a small copy, quickly."""
+    import pymupdf
+
+    small = pymupdf.Pixmap(gray, 0) if gray.alpha else pymupdf.Pixmap(gray)
+    while small.width * small.height > 40000:
+        small.shrink(1)
+    data = bytes(small.samples)
+    counts = [data.count(bytes([v])) for v in range(256)]
+    half, seen = len(data) / 2, 0
+    for v, n in enumerate(counts):
+        seen += n
+        if seen >= half:
+            return v
+    return 255
 
 
 class SignatureError(Exception):
@@ -72,9 +92,11 @@ def prepared(path, transparent: bool = True) -> bytes:
     while max(pix.width, pix.height) > LARGEST:
         pix.shrink(1)
     gray = pix if pix.n == 1 else pymupdf.Pixmap(pymupdf.csGRAY, pix)
+    paper = max(paper_level(gray) - PAPER_MARGIN, 60)  # (lighter than this: paper)
+    ink = max(paper - INK_SPAN, 0)  # (darker than this: ink)
     if transparent:
         # Cuanto más claro, más transparente: una tabla de 256 valores aplicada a todos los píxeles de una vez
-        table = bytes(0 if v >= PAPER else 255 if v <= INK else round(255 * (PAPER - v) / (PAPER - INK))
+        table = bytes(0 if v >= paper else 255 if v <= ink else round(255 * (paper - v) / (paper - ink))
                       for v in range(256))
     else:
         table = bytes([255]) * 256
@@ -83,12 +105,15 @@ def prepared(path, transparent: bool = True) -> bytes:
     color.set_alpha(alpha)
     # Recortada a lo dibujado: las filas y columnas con algo que no es papel
     w, h = gray.width, gray.height
-    ink = bytes(gray.samples).translate(bytes(0 if v >= PAPER else 1 for v in range(256)))
-    rows = [y for y in range(h) if ink[y * w:(y + 1) * w].strip(b"\0")]
+    # (para recortar cuenta solo lo claramente oscuro: unas motas débiles del papel, casi invisibles, no deben
+    # agrandar el recorte; los bordes suaves de los trazos quedan, con su transparencia)
+    middle = (paper + ink) // 2
+    drawn = bytes(gray.samples).translate(bytes(0 if v >= middle else 1 for v in range(256)))
+    rows = [y for y in range(h) if drawn[y * w:(y + 1) * w].strip(b"\0")]
     if not rows:
         raise SignatureError(tr("Nothing is drawn on {path}: is it a picture of a signature?", path=str(path)))
-    left = min(len(ink[y * w:(y + 1) * w]) - len(ink[y * w:(y + 1) * w].lstrip(b"\0")) for y in rows)
-    right = max(len(ink[y * w:(y + 1) * w].rstrip(b"\0")) for y in rows)
+    left = min(len(drawn[y * w:(y + 1) * w]) - len(drawn[y * w:(y + 1) * w].lstrip(b"\0")) for y in rows)
+    right = max(len(drawn[y * w:(y + 1) * w].rstrip(b"\0")) for y in rows)
     margin = max(2, w // 200)
     box = pymupdf.IRect(max(left - margin, 0), max(rows[0] - margin, 0), min(right + margin, w),
                         min(rows[-1] + 1 + margin, h))
