@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import json
 
-from PySide6.QtCore import QEvent, QObject, QSize, Qt, QTimer
+from PySide6.QtCore import QByteArray, QEvent, QObject, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QInputDialog, QLabel,
@@ -31,6 +31,9 @@ SPACER_MIN = 16
 HANDLE = 14  # the width of a toolbar's handle, in pixels, at least (Fusion's is 9: hard to take hold of)
 SETTING = "toolbar_contents"
 LOOKS = "toolbar_looks"  # (the setting of how the toolbars look: see looks())
+# El orden de las barras de arriba: cuando cambia, las disposiciones guardadas se ponen en el nuevo una vez
+ORDER = "toolbar_order"
+ORDER_VERSION = 2  # (2: Herramientas del ratón y Herramientas, y Buscar y Herramientas al final, 1.12.2)
 # how the buttons show: (key, name, Qt's style)
 STYLES = [("icons", N_("Icons only"), Qt.ToolButtonStyle.ToolButtonIconOnly),
           ("text", N_("Text only"), Qt.ToolButtonStyle.ToolButtonTextOnly),
@@ -82,6 +85,44 @@ def add_spacer(bar: QToolBar) -> QAction:
 
 class ToolbarsMixin:
     """(Mixed into MainWindow: it uses its toolbars, tool_actions and mode_actions.)"""
+
+    def order_top_toolbars(self):
+        """The toolbars at the top as the program puts them: the modes and those of every mode in one row, in
+        their order (common_bars), and below them the others (those of each mode, as they were made). Those the
+        user put on a side, at the bottom or out of the window stay there, and each keeps being shown or hidden."""
+        top = Qt.ToolBarArea.TopToolBarArea
+        here = [bar for bar in self.toolbars() if self.toolBarArea(bar) == top and not bar.isFloating()]
+        hidden = {id(bar): bar.isHidden() for bar in here}
+        first = [bar for bar in [self.modes_bar, *self.common_bars] if bar in here]
+        rest = [bar for bar in here if bar not in first]
+        for bar in here:
+            self.removeToolBar(bar)
+        for bar in first:
+            self.addToolBar(top, bar)
+        if rest:
+            self.addToolBarBreak(top)
+            for bar in rest:
+                self.addToolBar(top, bar)
+        for bar in here:
+            bar.setHidden(hidden[id(bar)])
+
+    def update_toolbar_order(self):
+        """Once, when the order of the toolbars changed in a new version: each arrangement kept (the window's,
+        and that of each mode) is opened, its toolbars at the top put in the new order, and kept again; the
+        panels stay where they were."""
+        try:
+            done = int(self.settings.value(ORDER, 1))
+        except (TypeError, ValueError):
+            done = 1
+        if done >= ORDER_VERSION:
+            return
+        for key in ["toolbars"] + [f"arrangement/{mode}/state" for mode in getattr(self, "modes", {})]:
+            state = self.settings.value(key)
+            if isinstance(state, QByteArray):
+                self.restoreState(state)
+                self.order_top_toolbars()
+                self.settings.setValue(key, self.saveState())
+        self.settings.setValue(ORDER, ORDER_VERSION)
 
     def _init_toolbars(self):
         """What each toolbar has at first (to go back to it), and the toolbars as they were left."""

@@ -13740,4 +13740,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The previous place of the text of Find as you type</en>
     <tr>El lugar anterior del texto de Buscar mientras se escribe</tr>
   </text>
+  <text>
+    <en>Mouse tools</en>
+    <tr>Herramientas del ratón</tr>
+  </text>
+  <text>
+    <en>Tools</en>
+    <tr>Herramientas</tr>
+  </text>
 </interface>

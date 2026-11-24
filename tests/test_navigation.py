@@ -762,9 +762,9 @@ def test_the_page_navigation_bar(window):
     row = [b.objectName() for b in window.common_bars]
     assert row.index("navigation") + 1 == row.index("pagenav") == row.index("zoom") - 1
     assert window.bar_ids(bar) == ["a_first", "a_prev", "a_page_number", "a_next", "a_last"]
-    # (and they are not also on the toolbar Navigation, which keeps the history and the tools)
+    # (and they are not also on the toolbar Navigation, which keeps the history; the tools are in Mouse tools)
     navigation = window.findChild(QToolBar, "navigation")
-    assert window.bar_ids(navigation) == ["a_back", "a_forward", "tool:selecttext", "tool:hand", "tool:zoomarea", "tool:magnifier"]
+    assert window.bar_ids(navigation) == ["a_back", "a_forward"]
     box, count = bar.findChild(QLineEdit, "page"), bar.findChild(QLabel, "count")
     assert box.text() == "1" and count.text() == "of 6"
     window.a_last.trigger()

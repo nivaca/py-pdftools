@@ -56,7 +56,8 @@ def test_the_modes_in_order(app, sample, monkeypatch):
     # (the first time, Read: only the pages, the hand, and the toolbars of every mode but Edit)
     assert w.mode == "read" and w.canvas.mode == "hand"
     assert not any(shown(b) for m in w.modes.values() for b in m.bars + m.docks)
-    assert [b.objectName() for b in w.common_bars if shown(b)] == ["file", "find", "navigation", "pagenav", "zoom", "pagezoom"]
+    assert [b.objectName() for b in w.common_bars if shown(b)] == ["file", "mousetools", "navigation", "pagenav", "zoom",
+                                                                   "pagezoom", "find", "tools"]
     close(w)
 
 

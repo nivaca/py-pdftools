@@ -247,3 +247,70 @@ def test_the_rows_of_toolbars_are_packed(window):
                  key=lambda b: b.x())
     assert [b.objectName() for b in row] == order
     assert not window._gaps(row, True)
+
+
+def top_rows(w):
+    """The names of the toolbars shown at the top, row by row, from left to right."""
+    from PySide6.QtCore import Qt
+
+    rows = {}
+    for b in w.toolbars():
+        if b.isVisible() and w.toolBarArea(b) == Qt.ToolBarArea.TopToolBarArea:
+            rows.setdefault(b.geometry().y(), []).append((b.geometry().x(), b.objectName()))
+    return [[n for _, n in sorted(r)] for _, r in sorted(rows.items())]
+
+
+NEW = ["modes", "file", "edit", "mousetools", "navigation", "pagenav", "zoom", "pagezoom", "find", "tools"]
+
+
+def test_the_order_of_the_toolbars(window, app):
+    """By kinds of work: the file, editing, what the mouse does, moving, zooming, finding, and the tools
+    that work on the whole document (Word index there, not beside Find)."""
+    w = window
+    w.resize(1900, 900)
+    w.show()
+    w.set_mode("annotate")
+    app.processEvents()
+    assert top_rows(w)[0] == NEW
+    assert w.bar_ids(bar(w, "find")) == ["a_find", "a_find_bar"]
+    assert w.bar_ids(bar(w, "tools")) == ["a_sorter", "a_word_index"]
+    assert w.bar_ids(bar(w, "navigation")) == ["a_back", "a_forward"]
+    assert w.bar_ids(bar(w, "mousetools")) == ["tool:selecttext", "tool:hand", "tool:zoomarea", "tool:magnifier"]
+
+
+def test_an_old_arrangement_in_the_new_order(app, tmp_path, monkeypatch):
+    """An arrangement kept by an older version, its toolbars in another order and a panel on the right, comes
+    in the new order once, the panel where it was."""
+    from PySide6.QtCore import Qt
+
+    monkeypatch.setenv("HOME", str(tmp_path))
+    old = MainWindow()
+    try:
+        old.resize(1900, 900)
+        old.show()
+        old.set_mode("annotate")
+        top = Qt.ToolBarArea.TopToolBarArea
+        # (the order of before: Find after Edit, Tools nowhere yet)
+        old.insertToolBar(bar(old, "mousetools"), bar(old, "find"))
+        old.removeToolBar(bar(old, "tools"))
+        old.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, old.attach_dock)
+        old.attach_dock.show()
+        app.processEvents()
+        assert top_rows(old)[0][:5] == ["modes", "file", "edit", "find", "mousetools"]
+        old.keep_arrangement()
+        old.save_settings()
+        old.settings.setValue("toolbar_order", 1)
+        old.settings.sync()
+    finally:
+        old.close()
+    new = MainWindow()
+    try:
+        new.resize(1900, 900)
+        new.show()
+        new.set_mode("annotate")
+        app.processEvents()
+        assert top_rows(new)[0] == NEW and new.settings.value("toolbar_order", type=int) == 2
+        assert new.attach_dock.isVisible() and new.dockWidgetArea(new.attach_dock) == Qt.DockWidgetArea.RightDockWidgetArea
+        assert top in (new.toolBarArea(bar(new, "tools")),)
+    finally:
+        new.close()

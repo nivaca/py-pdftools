@@ -148,8 +148,9 @@ def test_the_dialog(labelled, tmp_path):
     w.close()
 
 
-def test_the_button_on_the_toolbar_find():
-    """Word index is also on the toolbar Find, with its own icon (a name no theme has, so it is always that)."""
+def test_the_button_on_the_toolbar_tools():
+    """Word index is also on the toolbar Tools, beside Page sorter, with its own icon (a name no theme has, so
+    it is always that); not on Find, which has the searches."""
     from PySide6.QtWidgets import QApplication
 
     from py_pdftools.gui.window import MainWindow
@@ -157,7 +158,9 @@ def test_the_button_on_the_toolbar_find():
     QApplication.instance() or QApplication([])
     w = MainWindow()
     w.ask_recover = lambda when: False
-    bar = next(b for b in w.toolbars() if b.objectName() == "find")
+    bar = next(b for b in w.toolbars() if b.objectName() == "tools")
+    find = next(b for b in w.toolbars() if b.objectName() == "find")
     assert w.a_word_index in bar.actions() and not w.a_word_index.icon().isNull()
-    assert "a_word_index" in w._tb_defaults["find"]  # (and Customize the toolbars can put it back there)
+    assert w.a_word_index not in find.actions()
+    assert "a_word_index" in w._tb_defaults["tools"]  # (and Customize the toolbars can put it back there)
     w.close()

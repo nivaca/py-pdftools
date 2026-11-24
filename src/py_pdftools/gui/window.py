@@ -494,7 +494,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_word_index = self._action(None, tr("Word index…"), self.word_index,
                                          tip=tr("On which pages each word, phrase or pattern of a list appears, by "
                                                 "the labels of the pages: lines ready for an index"))
-        # (un icono propio, con un nombre que ningún tema tiene: va en la barra Buscar)
+        # (un icono propio, con un nombre que ningún tema tiene: va en la barra Herramientas)
         self.a_word_index.setIcon(icon("pdftools-word-index"))
         m.addSeparator()
         self.a_export_pages = self._action(None, tr("Pages as images…"), lambda: self.export_pages_dialog(),
@@ -827,21 +827,25 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                           (self.a_zoom_in, "zoom-in"), (self.a_copy, "edit-copy"), (self.a_paste, "edit-paste"),
                           (self.a_find, "edit-find"), (self.a_print, "document-print")):
             act.setIcon(icon(name))
-        # the toolbars of every mode, one for each kind of work: the file, editing, finding, moving through
-        # the pages, and zooming (each mode adds its own, on the row below). All in one row, in this order:
-        # Page navigation between Navigation and Zoom. (Print is in the menu File, Ctrl+P, not on the bar.)
+        self.a_sorter.setIcon(icon("pdftools-page-sorter"))
+        # Las barras de todos los modos, una por cada clase de trabajo y en este orden, en una fila (cada modo
+        # pone las suyas en la de abajo): el archivo; editar; lo que hace el ratón; moverse (atrás y adelante,
+        # y las páginas); el zoom; buscar; y las herramientas que trabajan sobre el documento entero, como en
+        # el menú Herramientas. (Imprimir está en el menú Archivo, Ctrl+P, no en la barra.)
         self.common_bars = [
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
-            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_find_bar, self.a_word_index]),
-            # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
-            self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
-                                                             self.tool_actions["selecttext"],
-                                                             self.tool_actions["hand"], self.tool_actions["zoomarea"],
-                                                             self.tool_actions["magnifier"]]),
+            # (Select text and Hand: in every mode, Read too)
+            self.toolbar_of("mousetools", tr("Mouse tools"), [self.tool_actions["selecttext"],
+                                                              self.tool_actions["hand"],
+                                                              self.tool_actions["zoomarea"],
+                                                              self.tool_actions["magnifier"]]),
+            self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward]),
             self.page_bar(),
             self.toolbar_of("zoom", tr("Zoom"), [self.a_fit, self.a_fit_width, self.a_zoom_out, self.a_zoom_in]),
             self.page_zoom_bar(),
+            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_find_bar]),
+            self.toolbar_of("tools", tr("Tools"), [self.a_sorter, self.a_word_index]),
         ]
         self.addToolBarBreak()
         # those of the mode Annotate: a toolbar for each group of tools (Hand and Select text are in Navigation)
@@ -1177,6 +1181,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         mark = self.settings.value("mark", "check")
         self.mark = mark if mark in MARKS else "check"
         # restoreState goes last: it needs every toolbar and dock of every mode to exist, with its object name.
+        # (las disposiciones guardadas con otro orden de las barras se ponen antes en el de ahora: toolbars.py)
+        self.update_toolbar_order()
         bars = self.settings.value("toolbars")
         if isinstance(bars, QByteArray):
             self.restoreState(bars)
