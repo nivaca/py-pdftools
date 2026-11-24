@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-seven stages.
+I explain how it was made, in seventy-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1791,6 +1791,15 @@ the connections, and the buttons are connected to methods now. A box
 dragged with the Signature tool sets the width of the signature, but
 nothing was seen while it was dragged; it shows now as a frame of dashes,
 as the one that selects.
+
+78. The key of the command palette
+----------------------------------
+
+Find a command had Ctrl+Alt+I, the key of KDE's command bar; for those who
+come from VS Code, the key is Ctrl+Shift+P, and they press it without
+thinking. It was the second key of Full screen, taken with Okular's keys;
+it opens Find a command now, which keeps Ctrl+Alt+I too, and Full screen
+keeps F11.
 
 Testing
 -------

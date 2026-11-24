@@ -532,7 +532,7 @@ def test_full_screen_presentation(window, book):
     key(Qt.Key.Key_Down)
     key(Qt.Key.Key_Escape)
     assert not show.isVisible() and window.page == 1  # (the window, at the page reached)
-    assert [k.toString() for k in window.a_present.shortcuts()] == ["F11", "Ctrl+Shift+P"]
+    assert [k.toString() for k in window.a_present.shortcuts()] == ["F11"]  # (Ctrl+Shift+P: Find a command)
 
 
 def test_a_presentation_with_timed_pages(window, tmp_path):

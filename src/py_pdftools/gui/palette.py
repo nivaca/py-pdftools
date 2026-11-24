@@ -1,5 +1,5 @@
-"""La paleta de órdenes (Ayuda > Buscar una orden, Ctrl+Alt+I, como la barra de órdenes de KDE): una casilla
-sobre la ventana que busca entre todas las acciones de los menús por su nombre, y la que se elige se ejecuta.
+"""La paleta de órdenes (Ayuda > Buscar una orden, Ctrl+Shift+P como en VS Code, o Ctrl+Alt+I como la barra de
+órdenes de KDE): una casilla sobre la ventana que busca entre todas las acciones de los menús por su nombre, y la que se elige se ejecuta.
 Cada una se muestra con su camino en los menús (Ver › Zoom › Ajustar al ancho) y su tecla; se encuentra por
 cualquier palabra de ese camino, sin distinguir mayúsculas ni acentos, en el orden en que se escriban o no.
 Solo aparecen las que se pueden usar en ese momento: las del modo elegido y activas."""

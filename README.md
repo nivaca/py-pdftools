@@ -299,7 +299,7 @@ a lens that shows the part of the page under the pointer three times nearer), th
 the file (Ctrl+] and Ctrl+[), reading colours (white, yellow or green on
 black, or one's own), the gaps between the pages hidden, the margins trimmed (only the
 inked part of each page), and Full screen
-(F11 or Ctrl+Shift+P) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
+(F11) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
 in tabs of one window (the tabbar shows from the second one on,
 or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
 side by side. Ctrl+Shift+T reopens the last tab closed, and Alt+Shift+1 to 9
@@ -396,7 +396,7 @@ Help > Tips for this mode (F1) shows, over the bottom of the pages, a hint
 on what can be done in the mode chosen; Settings > Appearance can show it
 whenever a mode is chosen, and can turn on the tooltips (both are off at
 first). The tooltips of the toolbars show always. Help > Find a command
-(Ctrl+Alt+I) finds any command of the menus by any word of its name or of its
+(Ctrl+Shift+P, or Ctrl+Alt+I) finds any command of the menus by any word of its name or of its
 place in them, and runs it. View > Next panel (Ctrl+F6) takes the keyboard to
 the thumbnails, the pages and each panel in turn, and every field and list has
 a name for screen readers.

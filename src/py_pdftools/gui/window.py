@@ -720,7 +720,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                      tip=tr("Every page in a grid of large thumbnails, to put them in order by dragging "
                                             "them, turn, duplicate or delete them; OK makes it all as one step"))
         self.a_present = self._action(m, tr("Full screen"), self.present,
-                                      [QKeySequence("F11"), QKeySequence("Ctrl+Shift+P")],
+                                      "F11",
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
         # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
@@ -807,8 +807,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         m = self.menuBar().addMenu(tr("&Help"))
         self.a_tips = self._action(m, tr("Tips for this mode"), self.show_tips, "F1",
                                    tip=tr("What can be done in this mode, and how, shown over the pages"))
-        # La paleta de órdenes: Ctrl+Alt+I, la tecla de la barra de órdenes de los programas de KDE.
-        self.a_palette = self._action(m, tr("Find a command…"), self.command_palette, "Ctrl+Alt+I",
+        # La paleta de órdenes: Ctrl+Shift+P, como en VS Code; también Ctrl+Alt+I, la tecla de la barra de órdenes
+        # de los programas de KDE
+        self.a_palette = self._action(m, tr("Find a command…"), self.command_palette,
+                                      [QKeySequence("Ctrl+Shift+P"), QKeySequence("Ctrl+Alt+I")],
                                       tip=tr("Any command of the menus, found by its name, and run"))
         # (también en Configuración, en la fila de los botones)
         self.a_check = self._action(m, tr("System check…"), self.check_configuration,

@@ -1,4 +1,4 @@
-"""Full screen, as a presentation (View > Full screen, F11 or Ctrl+Shift+P): one page at a time (or the pair,
+"""Full screen, as a presentation (View > Full screen, F11): one page at a time (or the pair,
 with two pages side by side), fitted on black. Arrows, Page Up/Down, Space, a click or the wheel turn the
 pages; Home and End go to the first and the last; B makes the screen black, and any key brings the page
 back; links are followed; Escape or a right click goes back to the window, at the page reached. A page with a display time (/Dur) turns by itself, and one with a transition (/Trans)

@@ -90,11 +90,11 @@ def test_shortcuts_kept(window):
 
 
 def test_the_command_palette(window, monkeypatch):
-    """Ayuda > Buscar una orden (Ctrl+Alt+I): las acciones de los menús por cualquier palabra de su camino, sin
-    acentos ni mayúsculas; la elegida se ejecuta, después de cerrarse la paleta."""
+    """Ayuda > Buscar una orden (Ctrl+Shift+P, o Ctrl+Alt+I): las acciones de los menús por cualquier palabra de
+    su camino, sin acentos ni mayúsculas; la elegida se ejecuta, después de cerrarse la paleta."""
     from py_pdftools.gui import palette
 
-    assert window.a_palette.shortcut().toString() == "Ctrl+Alt+I"
+    assert [k.toString() for k in window.a_palette.shortcuts()] == ["Ctrl+Shift+P", "Ctrl+Alt+I"]
     found = palette.commands(window)
     paths = [p for p, _ in found]
     assert "View › Panels › Page thumbnails" in paths

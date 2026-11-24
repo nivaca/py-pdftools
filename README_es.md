@@ -310,8 +310,8 @@ zona, Z; y la herramienta Lupa, Mayús+Z, un círculo que muestra la parte de la
 bajo el puntero tres veces más cerca), la vista girada sin cambiar el archivo (Ctrl+] y Ctrl+[), los
 colores de lectura (blanco, amarillo o verde sobre negro, o propios), el
 espacio entre las páginas, que se puede quitar, los márgenes recortados (solo la parte
-con tinta de cada página), y Pantalla completa (F11
-o Ctrl+Mayús+P) como presentación, donde B deja la pantalla en negro. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
+con tinta de cada página), y Pantalla completa (F11)
+como presentación, donde B deja la pantalla en negro. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
 documentos en pestañas de una ventana (la barra de las pestañas aparece
 desde la segunda, o siempre, con una opción), y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Ctrl+Mayús+T reabre la última pestaña cerrada, y
@@ -417,7 +417,7 @@ páginas, un consejo sobre lo que se puede hacer en el modo elegido;
 Configuración > Aspecto puede mostrarlo cada vez que se elige un modo, y
 activar las ayudas emergentes (al principio, ambas cosas están
 desactivadas). Las de las barras de herramientas se ven siempre. Ayuda > Buscar
-una orden (Ctrl+Alt+I) busca cualquier orden de los menús por cualquier palabra
+una orden (Ctrl+Mayús+P, o Ctrl+Alt+I) busca cualquier orden de los menús por cualquier palabra
 de su nombre o de su lugar en ellos, y la ejecuta. Ver > Panel siguiente
 (Ctrl+F6) lleva el teclado a las miniaturas, las páginas y cada panel por turno,
 y cada casilla y lista tiene un nombre para los lectores de pantalla.
