@@ -1642,7 +1642,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             menu.addSeparator()
             menu.addAction(tr("Tool properties…"), lambda: self.tool_dialog(tool))
         if tool == "signature":
-            menu.addAction(tr("My signature (draw it, or use a picture)…"), self.draw_signature)
+            menu.addAction(tr("My signatures (draw them, or use pictures)…"), self.draw_signature)
+            self._signatures_menu(menu)
         if tool == "mark":
             for key, (name, _) in MARKS.items():
                 act = menu.addAction(tr(name), lambda k=key: self.set_mark(k))
@@ -1829,49 +1830,68 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     SIGNATURE_WIDTH = 120.0  # points (the usual width, if My signature doesn't say another)
 
     def _signature(self, page: int, rect: Rect) -> Annotation:
-        """The signature kept (see gui/signature.py), its top left corner at RECT's: as wide as RECT, if it was
-        dragged, or of the width set in My signature; a drawing, or its picture as an image stamp (or an empty
+        """The signature chosen in My signatures (see gui/signature.py), its top left corner at RECT's: as wide as
+        RECT, if it was dragged, or of its width; a drawing, or its picture as an image stamp (or an empty
         drawing, if there is none yet)."""
         from . import signature
 
         x0, y0 = rect[0], rect[1]
-        s = rect[2] - rect[0] if rect[2] - rect[0] > 5 else signature.width(self.settings, self.SIGNATURE_WIDTH)
-        if signature.source(self.settings) == "picture":
+        kept = signature.chosen(self.settings)
+        s = rect[2] - rect[0] if rect[2] - rect[0] > 5 else signature.width(self.settings, kept, self.SIGNATURE_WIDTH)
+        if kept is not None and kept.kind == "picture":
             # Una imagen de la firma: un sello de imagen, de ese ancho y con sus proporciones
-            found = signature.picture()
+            found = signature.picture_of(kept)
             if found is not None:
                 data, ratio = found
                 box = (round(x0, 2), round(y0, 2), round(x0 + s, 2), round(y0 + s * ratio, 2))
                 return Annotation("stamp", page, box, "#000000", image=data, contents=tr("Signature"),
                                   author=self.prefs.author, layer=self.layer)
         style = self.prefs.style("ink")
-        # The signature is kept in a unit square: it is scaled to SIGNATURE_WIDTH and placed at the click.
-        paths = tuple(tuple((round(x0 + u * s, 2), round(y0 + v * s, 2)) for u, v in stroke)
-                      for stroke in signature.load(self.settings))
+        # The signature is kept in a unit square: it is scaled to its width and placed at the click.
+        strokes = kept.strokes if kept is not None and kept.kind == "drawn" else []
+        paths = tuple(tuple((round(x0 + u * s, 2), round(y0 + v * s, 2)) for u, v in stroke) for stroke in strokes)
         # Un ancho mínimo, para que la firma no salga demasiado fina con el estilo de la herramienta a mano alzada.
         width = max(style.width, 1.2)
         return Annotation("ink", page, annots.frame("ink", paths, width) if paths else rect, style.color, width=width,
                           paths=paths, author=self.prefs.author, contents=tr("Signature"), layer=self.layer)
 
-    def draw_signature(self) -> bool:
-        """My signature: drawn, or from a picture (Signature tool, right-click; or the first time it is used)."""
+    def _signatures_menu(self, menu):
+        """The signatures kept, in the menu of the Signature tool: the one checked is the one it puts."""
         from . import signature
 
-        dialog = signature.SignatureDialog(self, signature.width(self.settings, self.SIGNATURE_WIDTH))
+        kept = [e for e in signature.kept(self.settings) if signature.usable(e)]
+        if len(kept) < 2:
+            return
+        current = signature.chosen(self.settings)
+        menu.addSeparator()
+        for e in kept:
+            act = menu.addAction(signature.icon(e), e.name, lambda k=e.id: self.choose_signature(k))
+            act.setCheckable(True)
+            act.setChecked(current is not None and e.id == current.id)
+
+    def choose_signature(self, kid: str):
+        from . import signature
+
+        signature.choose(self.settings, kid)
+        kept = signature.chosen(self.settings)
+        if kept is not None:
+            self.status(tr("The Signature tool puts {name}", name=kept.name))
+
+    def draw_signature(self) -> bool:
+        """My signatures: drawn, or from pictures (Signature tool, right-click; or the first time it is used)."""
+        from . import signature
+
+        current = signature.chosen(self.settings)
+        dialog = signature.SignatureDialog(self, signature.kept(self.settings), current.id if current else "",
+                                           signature.usual_width(self.settings, self.SIGNATURE_WIDTH))
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
-        self.settings.setValue(signature.WIDTH, dialog.width_points())
-        if dialog.kind == "picture":
-            if not dialog.picture_data:
-                return False
-            try:
-                signature.store_picture(self.settings, dialog.picture_data)
-            except OSError as e:
-                self.status(tr("Could not keep the setting: {error}", error=e), error=True)
-                return False
-        elif dialog.strokes():
-            signature.store(self.settings, dialog.strokes())
-        else:
+        try:
+            signature.save(self.settings, dialog.kept_entries(), dialog.chosen_id())
+        except OSError as e:
+            self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+            return False
+        if signature.chosen(self.settings) is None:
             return False
         self.status(tr("Signature kept: click with the Signature tool where it goes"))
         return True

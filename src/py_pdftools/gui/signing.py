@@ -158,19 +158,27 @@ class SignDialog(QDialog):
             self._place_buttons.append(b)
         # (un campo vacío del formulario es lo que el documento pide: va elegido; si no, en la página)
         self._place_buttons[1 if empty else 0].setChecked(True)
-        # La imagen de la firma a mano, dentro de la firma visible (la misma de Mi firma, en la herramienta Firma)
+        # La imagen de la firma a mano, dentro de la firma visible: una de Mis firmas (la herramienta Firma)
+        from .state import State
+
+        self.settings = getattr(parent, "settings", None) or State("window")
         self.with_picture = QCheckBox(tr("Show the picture of my handwritten signature in it"))
-        self.with_picture.setToolTip(tr("Your signature, as in My signature (the Signature tool), with your name "
+        self.with_picture.setToolTip(tr("Your signature, as in My signatures (the Signature tool), with your name "
                                         "and the time in small letters under it"))
+        self.which_picture = QComboBox()
+        self.which_picture.setToolTip(tr("Which of your signatures (My signatures, in the Signature tool)"))
         self.b_signature_picture = QPushButton(tr("Choose a picture…"))
         self.b_signature_picture.setToolTip(tr("A scan or a photo of your signature (PNG, JPEG…)"))
         self.b_signature_picture.clicked.connect(self._choose_signature_picture)
         pic_row = QHBoxLayout()
         pic_row.addWidget(self.with_picture)
+        pic_row.addWidget(self.which_picture)
         pic_row.addWidget(self.b_signature_picture)
         pic_row.addStretch(1)
         box2.addLayout(pic_row)
+        self._fill_signatures(r.get("signature", ""))
         self.with_picture.setChecked(r.get("picture", "") == "true")
+        self.with_picture.toggled.connect(lambda _on: self._picture_state())
         self.places.buttonToggled.connect(lambda *_: self._picture_state())
         self._picture_state()
 
@@ -314,43 +322,64 @@ class SignDialog(QDialog):
 
     # ----------------------------------------------------------------- the picture of the handwritten signature
 
-    @staticmethod
-    def signature_picture() -> bytes | None:
-        from .signature import picture
+    def _fill_signatures(self, wanted: str = ""):
+        """The signatures kept, in the list; WANTED (an id) selected, or else the one the Signature tool puts."""
+        from . import signature
 
-        found = picture()
+        if not wanted:
+            current = signature.chosen(self.settings)
+            wanted = current.id if current else ""
+        self.which_picture.clear()
+        for e in signature.kept(self.settings):
+            if signature.usable(e):
+                self.which_picture.addItem(signature.icon(e), e.name, e.id)
+        found = self.which_picture.findData(wanted)
+        self.which_picture.setCurrentIndex(max(found, 0))
+
+    def signature_picture(self) -> bytes | None:
+        """The PNG of the signature chosen in the list (a drawn one, made a picture); None if there is none."""
+        from . import signature
+
+        kid = self.which_picture.currentData()
+        entry = next((e for e in signature.kept(self.settings) if e.id == kid), None)
+        found = signature.picture_of(entry) if entry is not None else None
         return found[0] if found else None
 
     def _picture_state(self):
         """The picture can go only in a visible signature, and only if there is one."""
         visible = self.where != "none"
-        have = self.signature_picture() is not None
+        have = self.which_picture.count() > 0
         self.with_picture.setEnabled(visible and have)
+        self.which_picture.setVisible(have)
+        self.which_picture.setEnabled(visible and self.with_picture.isChecked())
         self.b_signature_picture.setVisible(not have)
         self.b_signature_picture.setEnabled(visible)
         if not have:
             self.with_picture.setChecked(False)
 
     def _choose_signature_picture(self) -> bool:
-        from . import signature
-
         name, _ = QFileDialog.getOpenFileName(self, tr("A picture of your signature"), str(Path.home()),
                                               tr("Pictures (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.webp)"))
         return bool(name) and self.use_signature_picture(name)
 
     def use_signature_picture(self, path) -> bool:
-        """The picture at PATH as the picture of the handwritten signature (kept, as in My signature), shown."""
+        """The picture at PATH as a new signature of My signatures (kept), chosen here and shown."""
         from PySide6.QtWidgets import QMessageBox
 
         from . import signature
 
+        entries = signature.kept(self.settings)
         try:
-            signature.store_picture(None, signature.prepared(path))
+            entry = signature.Kept(signature.new_id(entries), tr("Signature {n}", n=len(entries) + 1), "picture",
+                                   file=str(path), data=signature.prepared(path))
+            current = signature.chosen(self.settings)
+            signature.save(self.settings, [*entries, entry], current.id if current else entry.id)
         except (signature.SignatureError, OSError) as e:
             QMessageBox.warning(self, tr("A picture of your signature"), str(e))
             return False
-        self._picture_state()
+        self._fill_signatures(entry.id)
         self.with_picture.setChecked(True)
+        self._picture_state()
         return True
 
     # ----------------------------------------------------------------- what was chosen
@@ -535,7 +564,8 @@ class SignMixin:
         options, where = dialog.chosen()
         for key, value in (("id", str(options.id_path)), ("reason", options.reason), ("location",
                            options.location), ("contact", options.contact), ("timestamp", options.timestamp_url),
-                           ("picture", "true" if dialog.with_picture.isChecked() else "false")):
+                           ("picture", "true" if dialog.with_picture.isChecked() else "false"),
+                           ("signature", str(dialog.which_picture.currentData() or ""))):
             self.settings.setValue(f"sign_{key}", value)
         return options, where
 

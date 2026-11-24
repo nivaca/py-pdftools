@@ -1,12 +1,15 @@
-"""La firma a mano: dibujada una vez (con el lápiz de una tableta o el ratón) o tomada de una imagen (una firma
-escaneada o fotografiada), guardada, y puesta en los documentos con la herramienta Firma. La dibujada va como un
-dibujo (sus trazos, en la configuración); la imagen, como un sello de imagen, en signature.png de la carpeta de
-configuración, con el fondo blanco o del papel vuelto transparente y recortada a la firma misma. Se usa la que
-se eligió la última vez (SOURCE)."""
+"""La firma a mano: las firmas guardadas (la firma entera, las iniciales…), cada una dibujada una vez (con el
+lápiz de una tableta o el ratón) o tomada de una imagen (una firma escaneada o fotografiada), y puestas en los
+documentos con la herramienta Firma. La lista va en la configuración (KEPT): de cada una, su nombre, sus trazos
+si es dibujada y su ancho en la página; la imagen, en la carpeta signatures/ de la configuración, con el fondo
+blanco o del papel vuelto transparente y recortada a la firma misma. La herramienta pone la elegida (CHOSEN);
+una firma digital visible puede mostrar cualquiera de ellas."""
 
 from __future__ import annotations
 
+import dataclasses
 import json
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from PySide6.QtCore import QPointF, Qt
@@ -17,10 +20,16 @@ from ..annotate.annots import smooth_segments
 from ..core.interface import tr
 
 Strokes = list[list[tuple[float, float]]]
-# Se guarda normalizada: así no depende del tamaño que tenía el panel de dibujo al firmar.
-KEY = "signature"  # (in what the window keeps, see state.py: the strokes, as JSON, in a box of width 1)
-SOURCE = "signature_source"  # ('drawn' or 'picture': which of the two the Signature tool puts)
-PICTURE = "signature.png"  # (in the configuration folder)
+KEPT = "signatures"  # (in what the window keeps, see state.py: the signatures, as a JSON list; see Kept)
+CHOSEN = "signature_chosen"  # (the id of the one the Signature tool puts)
+FOLDER = "signatures"  # (in the configuration folder: the pictures, <id>.png)
+WIDTH = "signature_width"  # (in points: the usual width, for a signature that doesn't have its own)
+# De las versiones que guardaban una sola firma: se pasan a la lista la primera vez (véase _from_before), y se
+# dejan donde estaban
+OLD_STROKES = "signature"  # (the strokes, as JSON, in a box of width 1)
+OLD_SOURCE = "signature_source"  # ('drawn' or 'picture')
+OLD_PICTURE = "signature.png"  # (in the configuration folder)
+INK = Qt.GlobalColor.darkBlue  # (a drawn signature, made a picture: the colour of the pad)
 LARGEST = 1600  # (pixels: a larger picture is made smaller, keeping its proportions)
 # El papel de una foto rara vez es blanco: bajo la luz de una lámpara sale gris, a veces azulado, y más oscuro en
 # un rincón. Por eso el umbral no es fijo: se mide en cada imagen (véase paper_level)
@@ -49,44 +58,6 @@ def paper_level(gray) -> int:
 class SignatureError(Exception):
     """A file that can't be read as a picture of a signature."""
 
-
-def picture_path():
-    from ..core import config
-
-    return config.config_dir() / PICTURE
-
-
-def source(settings) -> str:
-    """Which signature the tool puts: 'picture' if one was chosen last and is there, else 'drawn'."""
-    if str(settings.value(SOURCE, "drawn")) == "picture" and picture_path().is_file():
-        return "picture"
-    return "drawn"
-
-
-WIDTH = "signature_width"  # (in points: how wide the Signature tool puts it with a click)
-
-
-def width(settings, default: float) -> float:
-    """The usual width of the signature on the page, in points."""
-    try:
-        value = float(settings.value(WIDTH, default))
-    except (TypeError, ValueError):
-        return default
-    return value if 20 <= value <= 600 else default
-
-
-def picture() -> tuple[bytes, float] | None:
-    """The PNG of the signature's picture, and its height for a width of 1; None if there is none."""
-    import pymupdf
-
-    try:
-        data = picture_path().read_bytes()
-        pix = pymupdf.Pixmap(data)
-    except (OSError, RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase):
-        return None
-    if negative(pix):
-        return None
-    return data, pix.height / max(pix.width, 1)
 
 
 def negative(pix) -> bool:
@@ -179,30 +150,216 @@ def prepared(path, transparent: bool = True) -> bytes:
     return bytes(out.data())
 
 
-def store_picture(settings, data: bytes) -> None:
-    """Keep DATA (a PNG made by prepared) as the signature, and choose it for the Signature tool (if SETTINGS:
-    without them, only kept, as when the picture is chosen to sign digitally)."""
-    path = picture_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_bytes(data)
-    tmp.replace(path)
-    if settings is not None:
-        settings.setValue(SOURCE, "picture")
+
+# ----------------------------------------------------------------- the signatures kept
 
 
-def load(settings) -> Strokes:
-    # A damaged or hand-edited value gives no signature rather than an error.
+@dataclass
+class Kept:
+    """A signature kept: its NAME; drawn (its STROKES, in a box of width 1) or a PICTURE (its PNG in the folder,
+    or DATA while it isn't kept yet; FILE, the picture it was made from, to make it again, TRANSPARENT or not);
+    and its WIDTH on the page, in points (0: the usual one)."""
+
+    id: str
+    name: str
+    kind: str = "drawn"  # ('drawn' or 'picture')
+    strokes: Strokes = field(default_factory=list)
+    width: float = 0.0
+    file: str = ""
+    transparent: bool = True
+    data: bytes | None = None
+
+    def as_json(self) -> dict:
+        d = {"id": self.id, "name": self.name, "kind": self.kind}
+        if self.kind == "drawn":
+            d["strokes"] = self.strokes
+        else:
+            d.update(file=self.file, transparent=self.transparent)
+        if self.width:
+            d["width"] = self.width
+        return d
+
+
+def folder() -> Path:
+    from ..core import config
+
+    return config.config_dir() / FOLDER
+
+
+def picture_path(kid: str) -> Path:
+    return folder() / f"{kid}.png"
+
+
+def _strokes(value) -> Strokes:
+    # Un valor dañado o editado a mano no da firma, en lugar de un error
     try:
-        strokes = json.loads(settings.value(KEY, "") or "[]")
-        return [[(float(x), float(y)) for x, y in stroke] for stroke in strokes if stroke]
+        return [[(float(x), float(y)) for x, y in stroke] for stroke in value if stroke]
     except (TypeError, ValueError):
         return []
 
 
-def store(settings, strokes: Strokes) -> None:
-    settings.setValue(KEY, json.dumps(normalized(strokes)))
-    settings.setValue(SOURCE, "drawn")
+def kept(settings) -> list[Kept]:
+    """The signatures kept, in their order (those of a version that kept only one, the first time)."""
+    raw = settings.value(KEPT, None)
+    if raw is None:
+        return _from_before(settings)
+    try:
+        items = json.loads(raw)
+    except (TypeError, ValueError):
+        return []
+    out = []
+    for d in items if isinstance(items, list) else []:
+        try:
+            kind = "picture" if d.get("kind") == "picture" else "drawn"
+            out.append(Kept(str(d["id"]), str(d.get("name") or ""), kind, _strokes(d.get("strokes") or []),
+                            float(d.get("width") or 0), str(d.get("file") or ""), bool(d.get("transparent", True))))
+        except (AttributeError, KeyError, TypeError, ValueError):
+            continue
+    return out
+
+
+def _from_before(settings) -> list[Kept]:
+    """The one signature of an earlier version, drawn or a picture (or both), as the first of the list. A
+    picture kept as its negative (see negative) is left out: it is asked for again."""
+    import pymupdf
+
+    from ..core import config
+
+    try:
+        strokes = _strokes(json.loads(settings.value(OLD_STROKES, "") or "[]"))
+    except (TypeError, ValueError):
+        strokes = []
+    entries = [Kept("1", tr("Signature"), "drawn", strokes)] if strokes else []
+    try:
+        data = (config.config_dir() / OLD_PICTURE).read_bytes()
+        if not negative(pymupdf.Pixmap(data)):
+            entries.append(Kept("2", tr("Signature (picture)"), "picture", data=data))
+    except (OSError, RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase):
+        pass
+    pictured = str(settings.value(OLD_SOURCE, "drawn")) == "picture" and entries[-1:] and entries[-1].kind == "picture"
+    try:
+        save(settings, entries, entries[-1].id if pictured else entries[0].id if entries else "")
+    except OSError:
+        pass
+    return kept(settings) if settings.value(KEPT, None) is not None else entries
+
+
+def save(settings, entries: list[Kept], chosen_id: str) -> None:
+    """Keep ENTRIES (the pictures just chosen written in the folder; those of signatures no longer there,
+    deleted), and CHOSEN_ID as the one the Signature tool puts."""
+    pictures = {e.id for e in entries if e.kind == "picture"}
+    for e in entries:
+        if e.kind == "picture" and e.data is not None:
+            path = picture_path(e.id)
+            path.parent.mkdir(parents=True, exist_ok=True)
+            tmp = path.with_name(path.name + ".tmp")
+            tmp.write_bytes(e.data)
+            tmp.replace(path)
+    if folder().is_dir():
+        for path in folder().glob("*.png"):
+            if path.stem not in pictures:
+                path.unlink(missing_ok=True)
+    settings.setValue(KEPT, json.dumps([e.as_json() for e in entries]))
+    settings.setValue(CHOSEN, chosen_id)
+
+
+def new_id(entries: list[Kept]) -> str:
+    return str(max((int(e.id) for e in entries if e.id.isdigit()), default=0) + 1)
+
+
+def picture_of(entry: Kept) -> tuple[bytes, float] | None:
+    """ENTRY as a PNG, and its height for a width of 1: its picture, or its drawing made a picture; None if it
+    has neither (or its picture is a negative kept by an earlier version)."""
+    import pymupdf
+
+    if entry.kind == "drawn":
+        if not entry.strokes:
+            return None
+        data = drawn_picture(entry.strokes)
+    else:
+        try:
+            data = entry.data if entry.data is not None else picture_path(entry.id).read_bytes()
+        except OSError:
+            return None
+    try:
+        pix = pymupdf.Pixmap(data)
+    except (RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase):
+        return None
+    if negative(pix):
+        return None
+    return data, pix.height / max(pix.width, 1)
+
+
+def usable(entry: Kept) -> bool:
+    return bool(entry.strokes) if entry.kind == "drawn" else picture_of(entry) is not None
+
+
+def chosen(settings) -> Kept | None:
+    """The signature the Signature tool puts: the one chosen, or else the first that has something."""
+    entries = [e for e in kept(settings) if usable(e)]
+    wanted = str(settings.value(CHOSEN, ""))
+    return next((e for e in entries if e.id == wanted), entries[0] if entries else None)
+
+
+def choose(settings, kid: str) -> None:
+    settings.setValue(CHOSEN, kid)
+
+
+def usual_width(settings, default: float) -> float:
+    """The usual width of a signature on the page, in points."""
+    try:
+        value = float(settings.value(WIDTH, default))
+    except (TypeError, ValueError):
+        return default
+    return value if 20 <= value <= 600 else default
+
+
+def width(settings, entry: Kept | None, default: float) -> float:
+    """How wide ENTRY goes on the page with a click, in points: its own width, or the usual one."""
+    return entry.width if entry is not None and 20 <= entry.width <= 600 else usual_width(settings, default)
+
+
+def stroke_path(stroke, scale: float = 1.0, dx: float = 0.0, dy: float = 0.0) -> QPainterPath:
+    """A stroke as the curves the annotation will have in the PDF (annots.smooth_segments), scaled and moved."""
+    def at(p):
+        return QPointF(dx + p[0] * scale, dy + p[1] * scale)
+
+    path = QPainterPath(at(stroke[0]))
+    if len(stroke) < 3:
+        path.lineTo(at(stroke[-1]) + QPointF(0.01, 0))  # (one or two points: a dot, or a short line)
+        return path
+    for c1, c2, end in smooth_segments(stroke):
+        path.cubicTo(at(c1), at(c2), at(end))
+    return path
+
+
+def drawn_picture(strokes: Strokes, size: int = 800) -> bytes:
+    """STROKES (in a box of width 1) drawn on a transparent PNG SIZE pixels wide (or high), as on the page."""
+    from PySide6.QtCore import QBuffer, QByteArray, QIODevice
+    from PySide6.QtGui import QImage
+
+    points = [p for stroke in strokes for p in stroke]
+    w = max(max(p[0] for p in points), 1e-3)
+    h = max(max(p[1] for p in points), 1e-3)
+    scale = size / max(w, h)
+    pen_width = size * 0.012  # (as on the page: about 1.2 points for 100)
+    margin = pen_width
+    image = QImage(round(w * scale + 2 * margin), round(h * scale + 2 * margin), QImage.Format.Format_ARGB32)
+    image.fill(Qt.GlobalColor.transparent)
+    p = QPainter(image)
+    p.setRenderHint(QPainter.RenderHint.Antialiasing)
+    pen = QPen(INK, pen_width)
+    pen.setCapStyle(Qt.PenCapStyle.RoundCap)
+    pen.setJoinStyle(Qt.PenJoinStyle.RoundJoin)
+    p.setPen(pen)
+    for stroke in strokes:
+        p.drawPath(stroke_path(stroke, scale, margin, margin))
+    p.end()
+    out = QByteArray()
+    buffer = QBuffer(out)
+    buffer.open(QIODevice.OpenModeFlag.WriteOnly)
+    image.save(buffer, "PNG")
+    return bytes(out.data())
 
 
 def normalized(strokes: Strokes) -> Strokes:
@@ -273,31 +430,86 @@ class Pad(QWidget):
         self.update()
 
 
-class SignatureDialog(QDialog):
-    """My signature: drawn here, with the pen or the mouse, or taken from a picture (Use a picture…). OK keeps
-    the one shown, and the Signature tool puts that one."""
 
-    def __init__(self, parent=None, width_points: float = 120.0):
-        from PySide6.QtWidgets import QCheckBox, QDoubleSpinBox, QHBoxLayout, QStackedWidget
+def icon(entry: Kept, w: int = 96, h: int = 36):
+    """A small picture of ENTRY, on white (as on a page, and seen in a dark theme too)."""
+    from PySide6.QtGui import QIcon, QImage, QPixmap
+
+    page = QPixmap(w, h)
+    page.fill(Qt.GlobalColor.white)
+    found = picture_of(entry)
+    if found is not None:
+        image = QImage.fromData(found[0]).scaled(w - 4, h - 4, Qt.AspectRatioMode.KeepAspectRatio,
+                                                 Qt.TransformationMode.SmoothTransformation)
+        p = QPainter(page)
+        p.drawImage((w - image.width()) // 2, (h - image.height()) // 2, image)
+        p.end()
+    return QIcon(page)
+
+
+class SignatureDialog(QDialog):
+    """My signatures: the signatures kept (a whole signature, initials…), in a list; the one selected is shown,
+    and can be renamed, drawn again here with the pen or the mouse, or taken from a picture (Use a picture…),
+    with its width on the page. OK keeps them all, and the Signature tool puts the one selected."""
+
+    def __init__(self, parent=None, entries: list[Kept] | None = None, chosen_id: str = "",
+                 width_points: float = 120.0):
+        from PySide6.QtCore import QSize
+        from PySide6.QtWidgets import (QCheckBox, QDoubleSpinBox, QHBoxLayout, QLineEdit, QListWidget, QSizePolicy,
+                                       QStackedWidget)
 
         super().__init__(parent)
-        self.setWindowTitle(tr("My signature"))
-        self.kind = "drawn"  # (which one is shown, and kept with OK: 'drawn' or 'picture')
+        self.setWindowTitle(tr("My signatures"))
+        self.usual = width_points  # (the width of a signature that has none of its own)
+        self.entries = [dataclasses.replace(e) for e in entries or []]  # (copies: kept only with OK)
+        self.current = -1
+        self.kind = "drawn"  # (what the one selected is: 'drawn' or 'picture')
         self.picture_data: bytes | None = None
         self.picture_file = ""
-        lay = QVBoxLayout(self)
+        self._loading = False
+        outer = QHBoxLayout(self)
+
+        # A la izquierda, la lista de firmas, con lo que se hace con ella
+        left = QVBoxLayout()
+        self.list = QListWidget()
+        self.list.setIconSize(QSize(96, 36))
+        self.list.setMinimumWidth(220)
+        # (all connected to methods, never to a lambda that holds the dialog: freed when the program ends, such a
+        # lambda freed the dialog a second time, and it crashed on exit)
+        self.list.currentRowChanged.connect(self._row_changed)
+        left.addWidget(self.list, 1)
+        self.b_new = QPushButton(tr("New signature"))
+        self.b_new.setToolTip(tr("A new signature, drawn here (initials, for example)"))
+        self.b_new.clicked.connect(self._new)
+        self.b_new_picture = QPushButton(tr("New from a picture…"))
+        self.b_new_picture.setToolTip(tr("A new signature, from a scan or a photo of it (PNG, JPEG…)"))
+        self.b_new_picture.clicked.connect(self.add_picture)
+        self.b_delete = QPushButton(tr("Delete"))
+        self.b_delete.setToolTip(tr("Delete the signature selected"))
+        self.b_delete.clicked.connect(self.delete)
+        for b in (self.b_new, self.b_new_picture, self.b_delete):
+            left.addWidget(b)
+        outer.addLayout(left)
+
+        # A la derecha, la firma elegida: su nombre, el panel para dibujarla o su imagen, y su ancho
+        lay = QVBoxLayout()
+        outer.addLayout(lay, 1)
         self.note = QLabel()
         self.note.setWordWrap(True)
         lay.addWidget(self.note)
-        # Dos páginas: el panel para dibujar, o la imagen elegida
+        name_row = QHBoxLayout()
+        name_row.addWidget(QLabel(tr("Name:")))
+        self.name = QLineEdit()
+        self.name.setToolTip(tr("What this signature is called in the list (Signature, Initials…)"))
+        self.name.textEdited.connect(self._renamed)
+        name_row.addWidget(self.name, 1)
+        lay.addLayout(name_row)
         self.pages = QStackedWidget()
         self.pad = Pad(self)
         self.preview = QLabel()
         self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview.setMinimumSize(420, 160)
         # (no crece con la imagen: si creciera, la imagen se escalaría a un espacio más grande que el diálogo)
-        from PySide6.QtWidgets import QSizePolicy
-
         self.preview.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         self.preview.installEventFilter(self)  # (la imagen se ajusta cada vez que el espacio cambia)
         # (sobre blanco, como una página: la firma se ve como quedará en un documento)
@@ -309,9 +521,9 @@ class SignatureDialog(QDialog):
         self.transparent.setChecked(True)
         self.transparent.setToolTip(tr("The white (or the colour of the paper) around the signature is taken "
                                        "away, so that it sits on the page like ink"))
-        self.transparent.toggled.connect(lambda _on: self._load_picture())
+        self.transparent.toggled.connect(self._transparency_changed)
         lay.addWidget(self.transparent)
-        # El ancho de siempre en la página, en centímetros (se guarda en puntos: 72 por pulgada)
+        # El ancho en la página, en centímetros (se guarda en puntos: 72 por pulgada)
         self.width_cm = QDoubleSpinBox(minimum=1.0, maximum=20.0, singleStep=0.5, decimals=1, suffix=" cm")
         self.width_cm.setValue(round(width_points / 72 * 2.54, 1))
         self.width_cm.setToolTip(tr("How wide the Signature tool puts it with a click; drag a box with the tool to "
@@ -325,21 +537,156 @@ class SignatureDialog(QDialog):
         self.problem.setWordWrap(True)
         self.problem.setStyleSheet("color: #c0392b;")
         lay.addWidget(self.problem)
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        edit_row = QHBoxLayout()
         self.b_picture = QPushButton(tr("Use a picture…"))
-        self.b_picture.setToolTip(tr("A scan or a photo of your signature (PNG, JPEG…)"))
+        self.b_picture.setToolTip(tr("Replace this signature by a scan or a photo of it (PNG, JPEG…)"))
         self.b_picture.clicked.connect(self.choose_picture)
         self.b_draw = QPushButton(tr("Draw it"))
-        self.b_draw.setToolTip(tr("Draw your signature here, with the pen or the mouse"))
-        self.b_draw.clicked.connect(lambda: self.show_kind("drawn"))
+        self.b_draw.setToolTip(tr("Draw this signature here, with the pen or the mouse"))
+        self.b_draw.clicked.connect(self._draw)
         self.b_clear = QPushButton(tr("Clear"))
         self.b_clear.clicked.connect(self.pad.clear)
         for b in (self.b_picture, self.b_draw, self.b_clear):
-            buttons.addButton(b, QDialogButtonBox.ButtonRole.ResetRole)
+            edit_row.addWidget(b)
+        edit_row.addStretch(1)
+        lay.addLayout(edit_row)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         lay.addWidget(buttons)
+
+        if not self.entries:
+            self.entries.append(Kept("1", tr("Signature")))
+        for e in self.entries:
+            self.list.addItem(e.name)
+        self._refresh_icons()
+        self.list.setCurrentRow(next((i for i, e in enumerate(self.entries) if e.id == chosen_id), 0))
+
+    # ----------------------------------------------------------------- the list
+
+    def _row_changed(self, row: int):
+        # Sin fila (-1): la lista se vacía (al borrar, o cuando el diálogo se destruye)
+        if self._loading or row < 0:
+            return
+        self._commit()
+        self.current = row
+        if 0 <= row < len(self.entries):
+            self._show_entry(self.entries[row])
+        self.b_delete.setEnabled(len(self.entries) > 1)
+
+    def _commit(self):
+        """What is shown, kept in the signature selected (still in this dialog only)."""
+        if not 0 <= self.current < len(self.entries):
+            return
+        e = self.entries[self.current]
+        e.name = self.name.text().strip() or e.name
+        e.width = self.width_points()
+        e.kind = self.kind
+        if self.kind == "drawn":
+            e.strokes = normalized(self.strokes())
+        else:
+            if self.picture_data is not None:
+                e.data = self.picture_data
+            e.file = self.picture_file or e.file
+            e.transparent = self.transparent.isChecked()
+        item = self.list.item(self.current)
+        item.setText(e.name)
+        item.setIcon(icon(e))
+
+    def _refresh_icons(self):
+        for i, e in enumerate(self.entries):
+            self.list.item(i).setIcon(icon(e))
+
+    def _renamed(self, text: str):
+        if 0 <= self.current < len(self.entries) and text.strip():
+            self.list.item(self.current).setText(text.strip())
+
+    def _new(self, *_):
+        self.add()
+
+    def _draw(self, *_):
         self.show_kind("drawn")
+
+    def add(self) -> Kept:
+        """A new signature at the end of the list, selected (drawn, its pad empty)."""
+        self._commit()
+        e = Kept(new_id(self.entries), tr("Signature {n}", n=len(self.entries) + 1))
+        self.entries.append(e)
+        self.list.addItem(e.name)
+        self.list.setCurrentRow(len(self.entries) - 1)
+        return e
+
+    def add_picture(self, *_) -> bool:
+        from PySide6.QtWidgets import QFileDialog
+
+        name, _ = QFileDialog.getOpenFileName(self, tr("A picture of your signature"), str(Path.home()),
+                                              tr("Pictures (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.webp)"))
+        if not name:
+            return False
+        self.add()
+        if self.use_picture(name):
+            return True
+        self.delete()  # (unreadable: the new one goes)
+        return False
+
+    def delete(self, *_):
+        """The signature selected, out of the list (there is always one left)."""
+        if len(self.entries) < 2 or not 0 <= self.current < len(self.entries):
+            return
+        row = self.current
+        self._loading = True
+        del self.entries[row]
+        self.list.takeItem(row)
+        self._loading = False
+        self.current = -1  # (nothing to keep from the one deleted)
+        self.list.setCurrentRow(min(row, len(self.entries) - 1))
+        if self.current < 0:  # (the same row as before: no signal)
+            self._row_changed(self.list.currentRow())
+
+    def chosen_id(self) -> str:
+        return self.entries[self.current].id if 0 <= self.current < len(self.entries) else ""
+
+    def kept_entries(self) -> list[Kept]:
+        """The signatures as they are now; those with nothing drawn and no picture, left out."""
+        self._commit()
+        return [e for e in self.entries if (e.strokes if e.kind == "drawn" else
+                                            e.data is not None or picture_path(e.id).is_file())]
+
+    # ----------------------------------------------------------------- the signature selected
+
+    def _show_entry(self, e: Kept):
+        self._loading = True
+        self.name.setText(e.name)
+        self.width_cm.setValue(round((e.width or self.usual) / 72 * 2.54, 1))
+        self.problem.setText("")
+        if e.kind == "picture":
+            self.picture_file = e.file if e.file and Path(e.file).is_file() else ""
+            self.transparent.setChecked(e.transparent)
+            found = picture_of(e)
+            self.picture_data = None  # (only a picture chosen again is written again)
+            self._shown_data(found[0] if found else None)
+            if found is None:
+                self.problem.setText(tr("The picture of this signature is missing or damaged: use a picture again."))
+            self.pad.strokes = []
+            self.show_kind("picture")
+        else:
+            self.picture_file, self.picture_data = "", None
+            self._shown_data(None)
+            self.pad.strokes = self._on_pad(e.strokes)
+            self.pad.update()
+            self.show_kind("drawn")
+        self._loading = False
+
+    def _on_pad(self, strokes: Strokes) -> Strokes:
+        """STROKES (in a box of width 1) as large as the pad lets them, to be seen and drawn on."""
+        if not strokes:
+            return []
+        margin = 20
+        w = max(self.pad.width(), self.pad.minimumWidth()) - 2 * margin
+        h = (max(self.pad.height(), self.pad.minimumHeight()) - 2 * margin)
+        points = [p for s in strokes for p in s]
+        scale = min(w / max(max(p[0] for p in points), 1e-3), h / max(max(p[1] for p in points), 1e-3))
+        return [[(margin + x * scale, margin + y * scale) for x, y in s] for s in strokes]
 
     def width_points(self) -> float:
         return round(self.width_cm.value() / 2.54 * 72, 1)
@@ -352,15 +699,21 @@ class SignatureDialog(QDialog):
         self.b_draw.setVisible(not drawn)
         self.b_clear.setVisible(drawn)
         self.transparent.setVisible(not drawn)
-        self.problem.setText("")
-        self.note.setText(tr("Sign above the line, with the pen or the mouse, or use a picture of your signature. "
-                             "It is kept on this computer only, in the settings of py-pdftools, and put on "
-                             "documents with the Signature tool.") if drawn else
-                          tr("Your signature, from {file}. It is kept on this computer only, in the settings of "
-                             "py-pdftools, and put on documents with the Signature tool.",
-                             file=Path(self.picture_file).name))
+        # (sin la imagen de la que se hizo, la transparencia no se puede rehacer)
+        self.transparent.setEnabled(bool(self.picture_file))
+        if not self._loading:
+            self.problem.setText("")
+        kept_where = tr("It is kept on this computer only, in the settings of py-pdftools, and put on documents "
+                        "with the Signature tool.")
+        if drawn:
+            self.note.setText(tr("Sign above the line, with the pen or the mouse, or use a picture of your "
+                                 "signature.") + " " + kept_where)
+        elif self.picture_file:
+            self.note.setText(tr("Your signature, from {file}.", file=Path(self.picture_file).name) + " " + kept_where)
+        else:
+            self.note.setText(tr("Your signature, from a picture.") + " " + kept_where)
 
-    def choose_picture(self) -> bool:
+    def choose_picture(self, *_) -> bool:
         from PySide6.QtWidgets import QFileDialog
 
         name, _ = QFileDialog.getOpenFileName(self, tr("A picture of your signature"), str(Path.home()),
@@ -368,29 +721,41 @@ class SignatureDialog(QDialog):
         return bool(name) and self.use_picture(name)
 
     def use_picture(self, path) -> bool:
-        """The picture at PATH, as the signature shown (and kept with OK)."""
+        """The picture at PATH, as the signature selected (kept with OK)."""
+        previous = self.picture_file
         self.picture_file = str(path)
         if not self._load_picture():
+            self.picture_file = previous
             return False
         self.show_kind("picture")
+        self._commit()
         return True
+
+    def _transparency_changed(self, _on: bool):
+        if not self._loading and self.picture_file:
+            self._load_picture()
+            self._commit()
 
     def _load_picture(self) -> bool:
         if not self.picture_file:
             return False
-        from PySide6.QtGui import QPixmap
-
         try:
             self.picture_data = prepared(self.picture_file, self.transparent.isChecked())
         except SignatureError as e:
-            self.picture_data = None
             self.problem.setText(str(e))
             return False
-        self._shown = QPixmap()
-        self._shown.loadFromData(self.picture_data)
-        self._fit_preview()
+        self._shown_data(self.picture_data)
         self.problem.setText("")
         return True
+
+    def _shown_data(self, data: bytes | None):
+        from PySide6.QtGui import QPixmap
+
+        self._shown = QPixmap()
+        if data:
+            self._shown.loadFromData(data)
+        self.preview.clear()
+        self._fit_preview()
 
     def _fit_preview(self):
         """The picture made to fit the space it has now (when it is loaded, the dialog may not have its size yet:

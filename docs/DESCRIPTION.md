@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-six stages.
+I explain how it was made, in seventy-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1766,10 +1766,33 @@ lines so that the lowest stroke of the signature is not crossed. The
 picture is the same as the Signature tool's, kept once; the dialog to sign
 offers to choose one when there is none.
 
+77. Several signatures
+----------------------
+
+One signature was not enough: people sign some papers in full and initial
+others, and a scanned signature and a drawn one may both be useful. My
+signature became My signatures, a list: each one has a name, is drawn or
+comes from a picture, and has its own width on the page; the one selected
+when the dialog is closed is the one the Signature tool puts, and the
+right click on the tool lists them all, to choose another without opening
+the dialog. A digital signature can show any of them, chosen in its
+dialog; a drawn one is painted into a picture first, with the same curves
+it has on the page. The list goes in the configuration, and the pictures
+in a folder of their own, one file for each, so that deleting a signature
+deletes its picture. The one signature of the earlier versions goes into
+the list the first time, and is left where it was, for an older version
+to find. That first time also brought out a problem. A picture kept before
+the fix of the transparent PNGs was kept as its negative, and signing
+reused it as it was; such a picture, mostly dark and opaque where the
+paper should be, is not taken, and the program asks for the picture
+again. The dialog also made the tests crash at exit: a button connected to
+a lambda that held the dialog freed it a second time when Qt let go of
+the connections, and the buttons are connected to methods now.
+
 Testing
 -------
 
-The program has 768 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 772 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

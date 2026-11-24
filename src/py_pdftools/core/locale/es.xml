@@ -2356,10 +2356,6 @@
     <tr>Firma</tr>
   </text>
   <text>
-    <en>My signature</en>
-    <tr>Mi firma</tr>
-  </text>
-  <text>
     <en>Clear</en>
     <tr>Borrar</tr>
   </text>
@@ -13869,16 +13865,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Dibujarla</tr>
   </text>
   <text>
-    <en>Draw your signature here, with the pen or the mouse</en>
-    <tr>Dibujar aquí su firma, con el lápiz o el ratón</tr>
-  </text>
-  <text>
     <en>Make the paper transparent</en>
     <tr>Volver transparente el papel</tr>
-  </text>
-  <text>
-    <en>My signature (draw it, or use a picture)…</en>
-    <tr>Mi firma (dibujarla, o usar una imagen)…</tr>
   </text>
   <text>
     <en>Nothing is drawn on {path}: is it a picture of a signature?</en>
@@ -13889,20 +13877,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Imágenes (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.webp)</tr>
   </text>
   <text>
-    <en>Sign above the line, with the pen or the mouse, or use a picture of your signature. It is kept on this computer only, in the settings of py-pdftools, and put on documents with the Signature tool.</en>
-    <tr>Firme sobre la línea, con el lápiz o el ratón, o use una imagen de su firma. Se guarda solo en este computador, en la configuración de py-pdftools, y se pone en los documentos con la herramienta Firma.</tr>
-  </text>
-  <text>
     <en>The white (or the colour of the paper) around the signature is taken away, so that it sits on the page like ink</en>
     <tr>Se quita el blanco (o el color del papel) alrededor de la firma, para que quede sobre la página como tinta</tr>
   </text>
   <text>
     <en>Use a picture…</en>
     <tr>Usar una imagen…</tr>
-  </text>
-  <text>
-    <en>Your signature, from {file}. It is kept on this computer only, in the settings of py-pdftools, and put on documents with the Signature tool.</en>
-    <tr>Su firma, de {file}. Se guarda solo en este computador, en la configuración de py-pdftools, y se pone en los documentos con la herramienta Firma.</tr>
   </text>
   <text>
     <en>How wide the Signature tool puts it with a click; drag a box with the tool to make it as wide as the box, or drag its corners afterwards</en>
@@ -13921,7 +13901,87 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Mostrar en ella la imagen de mi firma a mano</tr>
   </text>
   <text>
-    <en>Your signature, as in My signature (the Signature tool), with your name and the time in small letters under it</en>
-    <tr>Su firma, como en Mi firma (la herramienta Firma), con su nombre y la hora en letra pequeña debajo</tr>
+    <en>A new signature, drawn here (initials, for example)</en>
+    <tr>Una firma nueva, dibujada aquí (las iniciales, por ejemplo)</tr>
+  </text>
+  <text>
+    <en>A new signature, from a scan or a photo of it (PNG, JPEG…)</en>
+    <tr>Una firma nueva, tomada de un escaneo o una foto (PNG, JPEG…)</tr>
+  </text>
+  <text>
+    <en>Delete the signature selected</en>
+    <tr>Borrar la firma seleccionada</tr>
+  </text>
+  <text>
+    <en>Draw this signature here, with the pen or the mouse</en>
+    <tr>Dibujar esta firma aquí, con el lápiz o el ratón</tr>
+  </text>
+  <text>
+    <en>It is kept on this computer only, in the settings of py-pdftools, and put on documents with the Signature tool.</en>
+    <tr>Se guarda solo en este computador, en la configuración de py-pdftools, y se pone en los documentos con la herramienta Firma.</tr>
+  </text>
+  <text>
+    <en>My signatures</en>
+    <tr>Mis firmas</tr>
+  </text>
+  <text>
+    <en>My signatures (draw them, or use pictures)…</en>
+    <tr>Mis firmas (dibujarlas, o usar imágenes)…</tr>
+  </text>
+  <text>
+    <en>Name:</en>
+    <tr>Nombre:</tr>
+  </text>
+  <text>
+    <en>New from a picture…</en>
+    <tr>Nueva desde una imagen…</tr>
+  </text>
+  <text>
+    <en>Replace this signature by a scan or a photo of it (PNG, JPEG…)</en>
+    <tr>Cambiar esta firma por un escaneo o una foto (PNG, JPEG…)</tr>
+  </text>
+  <text>
+    <en>Sign above the line, with the pen or the mouse, or use a picture of your signature.</en>
+    <tr>Firme sobre la línea, con el lápiz o el ratón, o use una imagen de su firma.</tr>
+  </text>
+  <text>
+    <en>Signature (picture)</en>
+    <tr>Firma (imagen)</tr>
+  </text>
+  <text>
+    <en>Signature {n}</en>
+    <tr>Firma {n}</tr>
+  </text>
+  <text>
+    <en>The Signature tool puts {name}</en>
+    <tr>La herramienta Firma pone {name}</tr>
+  </text>
+  <text>
+    <en>The picture of this signature is missing or damaged: use a picture again.</en>
+    <tr>La imagen de esta firma falta o está dañada: use una imagen otra vez.</tr>
+  </text>
+  <text>
+    <en>What this signature is called in the list (Signature, Initials…)</en>
+    <tr>Cómo se llama esta firma en la lista (Firma, Iniciales…)</tr>
+  </text>
+  <text>
+    <en>Which of your signatures (My signatures, in the Signature tool)</en>
+    <tr>Cuál de sus firmas (Mis firmas, en la herramienta Firma)</tr>
+  </text>
+  <text>
+    <en>Your signature, as in My signatures (the Signature tool), with your name and the time in small letters under it</en>
+    <tr>Su firma, como en Mis firmas (la herramienta Firma), con su nombre y la hora en letra pequeña debajo</tr>
+  </text>
+  <text>
+    <en>Your signature, from a picture.</en>
+    <tr>Su firma, tomada de una imagen.</tr>
+  </text>
+  <text>
+    <en>Your signature, from {file}.</en>
+    <tr>Su firma, tomada de {file}.</tr>
+  </text>
+  <text>
+    <en>New signature</en>
+    <tr>Nueva firma</tr>
   </text>
 </interface>

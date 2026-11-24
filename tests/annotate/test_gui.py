@@ -1139,7 +1139,7 @@ def test_signature(window):
 
     from py_pdftools.gui import signature
 
-    window.settings.remove(signature.KEY)
+    window.settings.setValue(signature.KEPT, "[]")
     window.draw_signature = lambda: False  # (none drawn: nothing)
     window.set_tool("signature")
     click(window, (100, 600))
@@ -1154,7 +1154,8 @@ def test_signature(window):
     assert len(pad.strokes) == 1 and len(pad.strokes[0]) == 4
 
     def drawn():
-        signature.store(window.settings, pad.strokes)
+        signature.save(window.settings, [signature.Kept("1", "Signature", strokes=signature.normalized(pad.strokes))],
+                       "1")
         return True
 
     window.draw_signature = drawn
