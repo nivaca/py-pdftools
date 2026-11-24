@@ -367,7 +367,9 @@ def run(path: Path, password: str, pages: list[int], language: str, *, rotate: b
 
 def scanned(page: pymupdf.Page) -> bool:
     """Whether PAGE is a scan: it has images, and no text."""
-    return not page.get_text("text").strip() and bool(page.get_images())
+    # Las imágenes primero: mirarlas es barato, y una página sin imágenes no es un escaneo; leer el texto de
+    # cada página de un libro hecho de texto costaba casi medio segundo cada mil páginas al entrar al modo OCR.
+    return bool(page.get_images()) and not page.get_text("text").strip()
 
 
 def write_words(page: pymupdf.Page, result: PageResult, corrections: dict[int, str] | None = None) -> int:

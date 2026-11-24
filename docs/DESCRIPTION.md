@@ -1822,7 +1822,11 @@ puts the places of each page in its list as soon as that page is searched
 (the first ones show within a fifth of a second), a new search or the
 panel closed stops the one running (before, a second search could start
 inside the first, which then wrote its stale list over it), and the panel
-reads the pages ahead while it is open.
+reads the pages ahead while it is open. The same measure found the mode OCR slow to
+open, almost half a second on a thousand pages: to tell which pages are
+scans without text it read the text of every page. It now looks first for
+images, which is cheap, and reads the text only of the pages that have
+some; a book made of text opens the mode in a twentieth of a second.
 
 Testing
 -------
