@@ -291,6 +291,16 @@ def shoot(lang: str, out: Path, work: Path):
     save(w, "view")
     w.set_reading("")
     w.set_spread(False, False)
+    # Buscar mientras se escribe: la barra al pie, con todos los lugares del texto resaltados
+    w._fit("width")
+    w.show_page(1)
+    bar = w.find_bar
+    bar.open_bar()
+    bar.box.setText("copy" if lang == "en" else "copia")
+    bar.run()
+    settle(app)
+    save(w, "findbar")
+    bar.close_bar()
 
     # Files: combining, pictures, smaller, exports, version, protection
     from py_pdftools.gui.combine_dialog import CombineDialog, ImagesDialog
