@@ -5,6 +5,19 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.12.0 — 2026-11-23
+
+- **Find as you type** (Edit, Alt+Shift+F): a toolbar at the bottom of the
+  window that searches the whole document at every letter typed, goes to
+  the first place from the page shown and highlights every place found.
+  Next and Previous (Enter, Shift+Enter, or F3, Shift+F3 while it is open),
+  All, As you type, Match case and Match accents; the box keeps the last
+  texts searched and turns reddish when nothing is found; two buttons take
+  the text to Find and highlight (or Find and redact) and to Search
+  results. The other searches are as they were.
+- It is fast: it searches an index of the text read ahead while the bar is
+  open, so a search in a thousand dense pages takes a few milliseconds.
+
 ## 1.11.0 — 2026-11-23
 
 - **Tools menu**, in every mode, between View and Settings: what works on
