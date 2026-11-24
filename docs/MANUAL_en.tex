@@ -665,13 +665,17 @@ moment. \key{Esc} goes back to the pages.
 
 \index{finding!as you type}%
 \menu{Edit\then Find as you type} (\key{Alt+Shift+F}, figure~\ref{fig:findbar_en}) opens a toolbar at
-the bottom of the window, above the status bar, that finds as one types:
-each letter typed or deleted searches the whole document again, and the
-view goes to the first place from the page shown, while every place found
-is highlighted on the pages and the one shown more strongly.
+the bottom of the window, alone in the last row: while it is open, the
+status bar is hidden and its messages are shown at the right end of the
+toolbar. It finds as one types: at each letter typed or deleted, it
+searches forward from the page shown and stops at the first place found,
+which is shown at once; the other places are counted afterwards, a little
+at a time while the program is idle, and every place found is highlighted
+on the pages, the one shown more strongly.
 \menu{Next} (\key{Enter}) and \menu{Previous} (\key{Shift+Enter}) go
 through them, and so do \key{F3} and \key{Shift+F3} while the toolbar is
-open; beside it, \texttt{3 of 17} says which place is shown. \menu{All}
+open; beside it, \texttt{3 of 17} says which place is shown (or, while
+the places are still being counted, the page where it is). \menu{All}
 turns the highlighting of every place on or off (off, only the one shown is
 highlighted); without \menu{As you type}, the search waits for
 \key{Enter}; \menu{Match case} and \menu{Match accents} make capitals and
@@ -680,9 +684,11 @@ accents count (without them, \enquote{cancion} also finds
 and turns reddish when the text isn't in the document. Its last two
 buttons take the same text to \menu{Find and highlight} (or
 \menu{Find and redact}) and to the panel \menu{Search results}. The
-search is quick even in long documents: the text of the pages is read
-ahead while the toolbar is open, and then a search in a thousand pages
-takes a few thousandths of a second. The close button or \key{Esc} closes
+search is instantaneous even in long documents, since it stops at the
+first place found and the text of each page is read only once (ahead,
+while the toolbar is open); only a text that isn't in the document makes
+it read every page not read yet, and then it says how far it has got. The
+close button or \key{Esc} closes
 the toolbar, and the highlights go with it.
 
 \shot{findbar_en}{0.9}{Find as you type, at the bottom of the window: the

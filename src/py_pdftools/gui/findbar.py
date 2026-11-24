@@ -1,18 +1,23 @@
-"""La barra Buscar mientras se escribe (Editar, Alt+Mayús+F): una barra de herramientas siempre abajo, encima de
-la barra de estado, que se cierra con su botón o con Esc. Con «Mientras se escribe» marcado, cada letra escrita o
-borrada busca otra vez, y la vista va al primer lugar desde la página mostrada; Intro y Siguiente van al
-siguiente, Mayús+Intro y Anterior al anterior. «Todos» resalta todos los lugares encontrados (si no, solo el
-actual). «Mayúsculas» y «Acentos» deciden si cuentan las mayúsculas y los acentos. La casilla guarda los
-últimos textos buscados y se vuelve rojiza cuando el texto no está en el documento. Dos botones llevan a las
-otras búsquedas con el mismo texto: el diálogo Buscar y resaltar (o Buscar y censurar) y el panel Resultados
-de la búsqueda. Las demás búsquedas (Ctrl+F, la casilla de búsqueda rápida, «/») quedan como estaban.
+"""La barra Buscar mientras se escribe (Editar, Alt+Mayús+F): una barra de herramientas sola en el borde de abajo
+de la ventana, debajo de todo; mientras está abierta, la barra de estado se oculta y sus mensajes se leen en el
+extremo derecho de esta. Se cierra con su botón o con Esc. Con «Mientras se escribe» marcado, cada letra escrita
+o borrada busca otra vez; Intro y Siguiente van al lugar siguiente, Mayús+Intro y Anterior al anterior.
+«Todos» resalta todos los lugares encontrados (si no, solo el actual). «Mayúsculas» y «Acentos» deciden si
+cuentan las mayúsculas y los acentos. La casilla guarda los últimos textos buscados y se vuelve rojiza cuando
+el texto no está en el documento. Dos botones llevan a las otras búsquedas con el mismo texto: el diálogo
+Buscar y resaltar (o Buscar y censurar) y el panel Resultados de la búsqueda. Las demás búsquedas (Ctrl+F, la
+casilla de búsqueda rápida, «/») quedan como estaban.
 
-Tiene que ser muy rápida: busca en un índice del texto (annotate/textindex.py), que se lee por adelantado,
-unas páginas cada vez, mientras la barra está abierta; una búsqueda en mil páginas ya leídas tarda unos
-milisegundos. Si una página aún no se leyó, la búsqueda atiende los eventos entre una y otra, y si el texto
-cambia entretanto se detiene y empieza otra. Solo se resaltan las páginas que se ven."""
+Tiene que ser instantánea. Cada búsqueda va hacia adelante desde la página mostrada y se detiene en el primer
+lugar que encuentra, que se muestra enseguida; Siguiente y Anterior buscan igual, desde el lugar actual. Contar
+todos los lugares (para «3 de 41» y para resaltarlos) se hace después, por tramos de unos milisegundos cuando
+el programa está desocupado, así que nunca demora lo que se escribe. Todo se busca en un índice del texto
+(annotate/textindex.py), cuyas páginas se leen una vez, también por tramos, mientras la barra está abierta.
+Solo se resaltan las páginas que se ven."""
 
 from __future__ import annotations
+
+import time
 
 from PySide6.QtCore import QEvent, Qt, QTimer
 from PySide6.QtGui import QColor, QIcon, QKeySequence, QPalette
@@ -26,9 +31,9 @@ from ..core.interface import tr
 
 NAME = "findbar"  # (the toolbar's object name: the customizer of the toolbars leaves it alone)
 KEY = "Alt+Shift+F"
-PAUSE = 60  # (ms after a key before searching: a search takes a few ms, this only joins fast keys)
+PAUSE = 30  # (ms after a key before searching: only joins keys typed together)
 HISTORY = 15  # (the texts kept in the box's list)
-AHEAD_PAGES = 12  # (pages read ahead at each turn of the event loop while the bar is open)
+SLICE = 0.008  # (seconds of work at each turn of the event loop, counting or reading ahead: never felt)
 
 
 def _button(text: str, icon: str, tip: str, slot) -> QToolButton:
@@ -46,23 +51,29 @@ def _button(text: str, icon: str, tip: str, slot) -> QToolButton:
 
 class FindBar(QToolBar):
     """The toolbar Find as you type: its box, Next, Previous, All, As you type, Match case, Match accents, the
-    buttons to the other searches, how many places were found, and Close."""
+    buttons to the other searches, where the place shown is, the messages of the window, and Close."""
 
     def __init__(self, window):
         super().__init__(tr("Find as you type"), window)
         self.window = window
         self.setObjectName(NAME)
-        # Siempre abajo: ni se arrastra a otro borde ni se saca de la ventana
+        # Sola abajo: ni se arrastra a otro borde ni se saca de la ventana
         self.setAllowedAreas(Qt.ToolBarArea.BottomToolBarArea)
         self.setFloatable(False)
         self.setMovable(False)
-        self.hits: list[Hit] = []
-        self.by_page: dict[int, list[Hit]] = {}
-        self.current = -1  # (the place shown, in hits; -1: none)
         self.index: TextIndex | None = None
+        self.q = None  # (the query being searched, prepared: see TextIndex.query)
+        self.hit: Hit | None = None  # (the place shown)
+        self.by_page: dict[int, list[Hit]] = {}  # (the places counted so far, by page)
+        self.counted: set[int] = set()  # (the pages already counted)
+        self.order: list[int] = []  # (the pages still to count, in order)
+        self.complete = False  # (every page counted: hits is the whole list)
+        self.hits: list[Hit] = []
         self.searching = False
         self.again = False  # (the text changed while a search ran: that one stops, and another starts)
-        self.searched = None  # (the document, text and options of the last search)
+        self.status_shown = True  # (whether the status bar was shown before the bar opened)
+        self.listening = False  # (whether the messages of the status bar come here)
+        self.started = self.told = 0.0  # (when the search began, and when it last said how far it got)
 
         inner = QWidget()
         inner.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
@@ -78,7 +89,7 @@ class FindBar(QToolBar):
         self.combo = QComboBox()
         self.combo.setEditable(True)
         self.combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.combo.setMinimumContentsLength(24)
+        self.combo.setMinimumContentsLength(20)
         self.combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.combo.setAccessibleName(tr("Find as you type"))
         self.box = self.combo.lineEdit()
@@ -118,6 +129,11 @@ class FindBar(QToolBar):
         # (gris, como el número de páginas: un dato, no un control)
         self.said.setStyleSheet("color: palette(placeholder-text); padding-left: 4px;")
         lay.addWidget(self.said)
+        # Los mensajes de la ventana, que van a la barra de estado: mientras esta barra está abierta, aquí
+        self.message = QLabel()
+        self.message.setStyleSheet("padding-left: 8px;")
+        self.message.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
+        lay.addWidget(self.message, 1)
         self.addWidget(inner)
 
         settings = window.settings
@@ -137,10 +153,10 @@ class FindBar(QToolBar):
         self.timer.setSingleShot(True)
         self.timer.setInterval(PAUSE)
         self.timer.timeout.connect(self.run)
-        # La lectura por adelantado: unas páginas en cada vuelta, mientras la barra está abierta
-        self.reader = QTimer(self)
-        self.reader.setInterval(0)
-        self.reader.timeout.connect(self._read_ahead)
+        # Contar los lugares y leer por adelantado: un tramo en cada vuelta, mientras el programa está desocupado
+        self.worker = QTimer(self)
+        self.worker.setInterval(0)
+        self.worker.timeout.connect(self._work)
         self.visibilityChanged.connect(self._visibility)
         self.hide()
 
@@ -169,13 +185,27 @@ class FindBar(QToolBar):
         self.window.canvas.setFocus()
 
     def _visibility(self, shown: bool):
+        status = self.window.statusBar()
         if shown:
+            # Debajo de todo: Qt pone siempre la barra de estado al final, así que se oculta mientras esta está
+            # abierta, y sus mensajes se leen aquí.
+            self.status_shown = not status.isHidden()
+            status.hide()
+            self.message.setText(status.currentMessage())
+            if not self.listening:
+                status.messageChanged.connect(self.message.setText)
+                self.listening = True
             self._index()
-            self.reader.start()
+            self.worker.start()
             return
+        if not self.listening:
+            return  # (hidden when it was made: it had changed nothing)
+        status.messageChanged.disconnect(self.message.setText)
+        self.listening = False
+        status.setVisible(self.status_shown)
         # (cerrada por su botón, por Esc o desde el menú de las barras: ningún resaltado queda en las páginas)
         self.timer.stop()
-        self.reader.stop()
+        self.worker.stop()
         self.again = self.searching
         self.keep_text()
         self.window.canvas.set_found(None, (), None)
@@ -216,70 +246,95 @@ class FindBar(QToolBar):
             self.index = TextIndex(doc)
         return self.index
 
-    def _read_ahead(self):
-        index = self._index()
-        if self.searching or index is None or not index.read_some(AHEAD_PAGES):
-            self.reader.stop()
-
     def _edited(self, _text: str):
         if self.o_typing.isChecked():
             self.timer.start()
         else:  # (sin buscar mientras se escribe: lo hallado ya no es de este texto)
-            self.searched = None
-            self._show([], -1, quiet=True)
+            self._forget()
+            self._show(None, quiet=True)
+
+    def _forget(self):
+        self.q, self.hit = None, None
+        self.by_page, self.counted, self.order, self.hits, self.complete = {}, set(), [], [], False
+
+    def _stop(self) -> bool:
+        # (entre una página leída y la siguiente: lo que se escribió entretanto se atiende, y manda)
+        now = time.perf_counter()
+        if now - self.started > 0.15 and now - self.told > 0.1 and self.index is not None:
+            # Una búsqueda larga (un texto que no está, en un documento aún sin leer) dice por dónde va
+            self.told = now
+            self.said.setText(tr("Looking… page {page} of {count}", page=len(self.index.pages),
+                                 count=self.index.doc.page_count))
+        QApplication.processEvents()
+        return self.again
 
     def run(self):
-        """Search the text of the box in the whole document, and show the first place from the page shown."""
+        """Search the text of the box, forward from the page shown, and show the first place found at once;
+        counting the others is left for later (see _work)."""
         if self.searching:
             self.again = True  # (the running search stops at its next page; then this one runs)
             return
         self.timer.stop()
         index = self._index()
         text = self.text()
+        self._forget()
         if index is None or not text.strip() or not self.isVisible():
-            self.searched = None
-            self._show([], -1)
+            self._show(None)
             return
-        case, accents = self.options()
-        page = self.window.page
+        q = index.query(text, *self.options())
+        self.q = q
         self.searching, self.again = True, False
-        shown = [False]
-
-        def progress(done, total, found):
-            # (solo con páginas aún no leídas: se dice cuánto falta, y el primer lugar se muestra en cuanto aparece)
-            if found and not shown[0]:
-                shown[0] = True
-                self._show(sorted(found), self._first(sorted(found), page), count=False)
-            if total > 50 and done % 20 == 0:
-                self.said.setText(tr("Looking… page {page} of {count}", page=done, count=total))
-            QApplication.processEvents()
-            return not self.again
-
+        self.started = self.told = time.perf_counter()
         try:
-            hits = index.search(text, case, page, progress, accents=accents)
+            hit = index.next_hit(q, self.window.page, 0, 1, stop=self._stop)
         finally:
             self.searching = False
         if self.again:
-            # (el texto cambió, o la barra se cerró, mientras buscaba: lo hallado no vale)
+            # (el texto cambió, o la barra se cerró, mientras buscaba: otra búsqueda, con lo de ahora)
             self.again = False
             if self.isVisible():
                 self.timer.start(0)
             return
-        self.searched = (id(index.doc), text, case, accents)
-        # (si el primer lugar ya se mostró mientras buscaba, la vista no se mueve otra vez)
-        first = self._first(hits, page)
-        if shown[0] and 0 <= self.current < len(self.hits):
-            first = hits.index(self.hits[self.current]) if self.hits[self.current] in hits else first
-        self._show(hits, first, move=not shown[0])
-        if not index.complete():
-            self.reader.start()
+        # El conteo empieza por la página del lugar mostrado, que así se resalta primero
+        only = index.candidates(q)
+        n = index.doc.page_count
+        start = hit.page if hit is not None else 0
+        self.order = [p for p in (list(range(start, n)) + list(range(0, start))) if only is None or p in only]
+        self._show(hit)
+        self.worker.start()
 
-    @staticmethod
-    def _first(hits: list[Hit], page: int) -> int:
-        """The first place on PAGE or after it (or the very first), in HITS; -1 if there are none."""
-        if not hits:
-            return -1
-        return next((n for n, h in enumerate(hits) if h.page >= page), 0)
+    def _work(self):
+        """A slice of work, while the program is idle: counting the places of the text, or else reading pages
+        ahead for the next search."""
+        index = self.index
+        if index is None or self.searching:
+            self.worker.stop()
+            return
+        end = time.perf_counter() + SLICE
+        if self.q is not None and self.order:
+            found = []
+            while self.order and time.perf_counter() < end:
+                number = self.order.pop(0)
+                hits = index.page_hits(number, self.q)
+                self.counted.add(number)
+                if hits:
+                    self.by_page[number] = hits
+                    found.append(number)
+            if found and self.b_all.isChecked():
+                self.window.canvas.add_found(found)
+            if not self.order:
+                self._counted()
+            return
+        if not index.read_some_for(end):
+            self.worker.stop()
+
+    def _counted(self):
+        """Every page counted: the whole list, and where the place shown is in it."""
+        self.hits = [h for p in sorted(self.by_page) for h in self.by_page[p]]
+        self.complete = True
+        if self.index is not None and self.q is not None:
+            self.index.finished(self.q, set(self.by_page))
+        self._say()
 
     def _enter(self):
         shift = QApplication.keyboardModifiers() & Qt.KeyboardModifier.ShiftModifier
@@ -290,16 +345,26 @@ class FindBar(QToolBar):
         if self.searching:
             return
         self.keep_text()
-        doc = self.window.doc
-        if self.timer.isActive() or self.searched != (id(doc), self.text(), *self.options()):
+        index = self._index()
+        if index is None:
+            return
+        if self.timer.isActive() or self.q != index.query(self.text(), *self.options()):
             self.run()
             return
-        if self.hits:
-            self._show(self.hits, (self.current + by) % len(self.hits))
+        if self.hit is None:
+            return
+        if self.complete and self.hits:
+            k = self.hits.index(self.hit) if self.hit in self.hits else 0
+            self._show(self.hits[(k + by) % len(self.hits)])
+            return
+        # (aún contando: el siguiente se busca desde el actual, como el primero)
+        h = self.hit
+        hit = index.next_hit(self.q, h.page, h.start + 1 if by > 0 else h.start, by)
+        self._show(hit or h)
 
     def _all_toggled(self):
         self.window.settings.setValue("findbar_all", self.b_all.isChecked())
-        self._show(self.hits, self.current, move=False)
+        self._show(self.hit, move=False)
 
     def _rects_of(self, page: int) -> list:
         index = self.index
@@ -307,30 +372,33 @@ class FindBar(QToolBar):
             return []
         return [r for h in self.by_page.get(page, ()) for r in index.rects(h)]
 
-    def _show(self, hits: list[Hit], current: int, move: bool = True, quiet: bool = False, count: bool = True):
-        self.hits, self.current = hits, current
-        by_page: dict[int, list[Hit]] = {}
-        for h in hits:
-            by_page.setdefault(h.page, []).append(h)
-        self.by_page = by_page
-        here = hits[current] if 0 <= current < len(hits) and self.index is not None else None
+    def _show(self, hit: Hit | None, move: bool = True, quiet: bool = False):
+        self.hit = hit
         canvas = self.window.canvas
-        rects = list(self.index.rects(here)) if here is not None else []
-        canvas.set_found(self._rects_of, by_page.keys() if self.b_all.isChecked() else (),
-                         (here.page, rects) if here is not None else None)
-        if here is not None and move and rects:
+        rects = list(self.index.rects(hit)) if hit is not None and self.index is not None else []
+        canvas.set_found(self._rects_of, self.by_page.keys() if self.b_all.isChecked() else (),
+                         (hit.page, rects) if hit is not None else None)
+        if hit is not None and move and rects:
             self.window.remember_place()
-            canvas.go_to(here.page, annots.union(rects))
-        self.b_next.setEnabled(bool(hits))
-        self.b_previous.setEnabled(bool(hits))
+            canvas.go_to(hit.page, annots.union(rects))
+        self.b_next.setEnabled(hit is not None)
+        self.b_previous.setEnabled(hit is not None)
+        self._say(quiet)
+
+    def _say(self, quiet: bool = False):
         text = self.text().strip()
+        hit = self.hit
         if not text or quiet:
             self.said.setText("")
-        elif not hits:
+        elif hit is None:
             self.said.setText(tr("Not found"))
-        elif count:
-            self.said.setText(tr("{n} of {count}", n=current + 1, count=len(hits)))
-        self._mark_box(bool(text) and not hits and not quiet)
+        elif self.complete and hit in self.hits:
+            self.said.setText(tr("{n} of {count}", n=self.hits.index(hit) + 1, count=len(self.hits)))
+        else:  # (contando todavía)
+            labels = self.window.page_labels()
+            name = labels[hit.page] if hit.page < len(labels) and labels[hit.page] else str(hit.page + 1)
+            self.said.setText(tr("Found on page {page}", page=name))
+        self._mark_box(bool(text) and hit is None and not quiet)
 
     def _mark_box(self, missing: bool):
         """The box reddish when the text isn't in the document."""
@@ -371,11 +439,11 @@ class FindBar(QToolBar):
 
     def document_changed(self):
         """The document changed (another one, or its pages): what was found is no longer where it was."""
-        self.index, self.searched = None, None
-        self.hits, self.by_page, self.current = [], {}, -1
+        self.index = None
+        self._forget()
         if self.isVisible():
             self._index()
-            self.reader.start()
+            self.worker.start()
             if self.text().strip():
                 self.timer.start()
 

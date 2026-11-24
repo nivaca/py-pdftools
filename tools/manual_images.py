@@ -298,6 +298,8 @@ def shoot(lang: str, out: Path, work: Path):
     bar.open_bar()
     bar.box.setText("copy" if lang == "en" else "copia")
     bar.run()
+    while bar.order:  # (los demás lugares, contados como en los ratos libres)
+        bar._work()
     settle(app)
     save(w, "findbar")
     bar.close_bar()

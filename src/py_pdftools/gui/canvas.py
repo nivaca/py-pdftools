@@ -2386,6 +2386,11 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._found_of, self._found_pages, self._found_current = rects_of, frozenset(pages or ()), current
         self._place_found()
 
+    def add_found(self, pages):
+        """PAGES have places found too (counted after the others): highlighted, if they are in view."""
+        self._found_pages = self._found_pages | frozenset(pages)
+        self._more_found()
+
     def _place_found(self):
         for item in self._found_items:
             try:

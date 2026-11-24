@@ -699,14 +699,16 @@ momento. \key{Esc} vuelve a las páginas.
 \index{buscar!mientras se escribe}%
 \menu{Editar\then Buscar mientras se escribe} (\key{Alt+Mayús+F},
 figura~\ref{fig:findbar_es}) abre una
-barra al pie de la ventana, encima de la barra de estado, que busca a medida
-que se escribe: cada letra escrita o borrada busca otra vez en todo el
-documento, y la vista va al primer lugar desde la página visible; todos los
-lugares encontrados se resaltan en las páginas, y el que se muestra, con más
-fuerza. \menu{Siguiente} (\key{Intro}) y \menu{Anterior}
+barra al pie de la ventana, sola en la última fila: mientras está abierta,
+la barra de estado se oculta y sus mensajes se leen en el extremo derecho de
+la barra. Busca a medida que se escribe: con cada letra escrita o borrada
+busca hacia adelante desde la página visible y se detiene en el primer
+lugar que encuentra, que se muestra enseguida; los demás lugares se cuentan
+después, de a poco, mientras el programa está desocupado, y todos se
+resaltan en las páginas, el que se muestra con más fuerza. \menu{Siguiente} (\key{Intro}) y \menu{Anterior}
 (\key{Mayús+Intro}) los recorren, y también \key{F3} y \key{Mayús+F3}
 mientras la barra está abierta; a su lado, \texttt{3 de 17} dice qué lugar
-se muestra. \menu{Todos} enciende o apaga el resaltado de todos los lugares
+se muestra (o, mientras aún se cuentan los lugares, en qué página está). \menu{Todos} enciende o apaga el resaltado de todos los lugares
 (apagado, solo se resalta el que se muestra); sin \menu{Mientras se
 escribe}, la búsqueda espera a \key{Intro}; \menu{Distinguir mayúsculas} y
 \menu{Distinguir acentos} hacen que cuenten las mayúsculas y los acentos
@@ -714,10 +716,11 @@ escribe}, la búsqueda espera a \key{Intro}; \menu{Distinguir mayúsculas} y
 casilla guarda en su lista los últimos textos buscados, y se vuelve rojiza
 cuando el texto no está en el documento. Sus dos últimos botones llevan el
 mismo texto a \menu{Buscar y resaltar} (o \menu{Buscar y censurar}) y al
-panel \menu{Resultados de la búsqueda}. La búsqueda es rápida aun en
-documentos largos: el texto de las páginas se lee por adelantado mientras la
-barra está abierta, y luego buscar en mil páginas toma unas milésimas de
-segundo. El botón de cerrar o \key{Esc} cierra la barra, y con ella se van
+panel \menu{Resultados de la búsqueda}. La búsqueda es instantánea aun en
+documentos largos, porque se detiene en el primer lugar que encuentra y el
+texto de cada página se lee una sola vez (por adelantado, mientras la barra
+está abierta); solo un texto que no está en el documento la obliga a leer
+todas las páginas aún no leídas, y entonces dice por dónde va. El botón de cerrar o \key{Esc} cierra la barra, y con ella se van
 los resaltados.
 
 \shot{findbar_es}{0.9}{Buscar mientras se escribe, al pie de la ventana: el

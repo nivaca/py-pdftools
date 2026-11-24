@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-six stages.
+I explain how it was made, in sixty-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1599,10 +1599,31 @@ half, and a search a few milliseconds; a test checks that the index finds
 exactly what the old search finds, with and without capitals and accents,
 also on turned pages.
 
+67. The find bar, alone and instantaneous
+-----------------------------------------
+
+Used on real documents, the bar was not what it should be, and the
+complaint was right on both points. It sat above the status bar, and it
+should be alone at the bottom of the window; Qt always keeps the status
+bar last, below every toolbar, so while the bar is open the status bar is
+hidden and its messages are shown at the right end of the bar. And it
+took time before it showed anything: on a document whose text was not
+read yet, each search read every page before it counted as done, and a
+letter typed meanwhile started it all again. Now a search goes forward
+from the page shown and stops at the first place it finds, which is shown
+at once; Next and Previous search on from there in the same way. Counting
+the other places, for "3 of 41" and for the highlights, is done
+afterwards, in slices of a few milliseconds while the program is idle,
+and the reading ahead too. On a thousand pages not read yet, the first
+place of a text that is there is shown in a few milliseconds, having read
+one page. A text that is not there still has to read every page to know
+it, two seconds the first time, and the bar says meanwhile how far it has
+got.
+
 Testing
 -------
 
-The program has 740 tests (`uv run pytest`): those of the four programs,
+The program has 743 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

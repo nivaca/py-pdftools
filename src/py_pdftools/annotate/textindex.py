@@ -137,6 +137,18 @@ class TextIndex:
                 n -= 1
         return False
 
+    def read_some_for(self, until: float) -> bool:
+        """Read pages ahead until the clock (time.perf_counter) says UNTIL, one at least; False when every page
+        has been read."""
+        import time
+
+        for number in range(self.doc.page_count):
+            if number not in self.pages:
+                self.page(number)
+                if time.perf_counter() >= until:
+                    return not self.complete()
+        return False
+
     def search(self, query: str, case: bool = False, start: int = 0,
                progress: Callable[[int, int, list[Hit]], bool] | None = None, accents: bool = False) -> list[Hit]:
         """Where QUERY is, in the order of the pages, looking first from page START to the end and then from
@@ -181,6 +193,51 @@ class TextIndex:
         if index is None:
             return [Hit(number, s, e) for s, e in spans]
         return [Hit(number, index[s], index[e - 1] + 1) for s, e in spans]
+
+    def query(self, query: str, case: bool = False, accents: bool = False) -> tuple[str, bool, bool]:
+        """QUERY prepared once (see prepare), with its options: what page_hits and next_hit take."""
+        return prepare(query, case, accents), case, accents
+
+    def candidates(self, q: tuple[str, bool, bool]) -> frozenset[int] | None:
+        """The only pages where Q can be, if a search done whole before says so (None: any page)."""
+        last = self.last
+        if last is not None and last[1:3] == q[1:] and q[0].startswith(last[0]):
+            return last[3]
+        return None
+
+    def page_hits(self, number: int, q: tuple[str, bool, bool]) -> list[Hit]:
+        """The places of Q on page NUMBER (read now if it wasn't)."""
+        return self._find(self.page(number), number, *q) if q[0] else []
+
+    def next_hit(self, q: tuple[str, bool, bool], page: int, at: int, by: int = 1,
+                 stop: Callable[[], bool] | None = None) -> Hit | None:
+        """The first place of Q after the character AT of PAGE (BY 1), or the last one before it (BY -1),
+        going round the document; it reads only the pages it must, and stops at the first place it finds.
+        STOP, if given, is asked after each page read for the first time: True ends the search (None)."""
+        n = self.doc.page_count
+        if not q[0] or not n:
+            return None
+        only = self.candidates(q)
+        for k in range(n + 1):  # (n + 1: la misma página otra vez, por su otra parte, al dar la vuelta)
+            number = (page + by * k) % n
+            if only is not None and number not in only:
+                continue
+            fresh = number not in self.pages
+            hits = self.page_hits(number, q)
+            if k == 0:
+                hits = [h for h in hits if (h.start >= at if by > 0 else h.start < at)]
+            elif k == n:
+                hits = [h for h in hits if (h.start < at if by > 0 else h.start >= at)]
+            if hits:
+                return hits[0] if by > 0 else hits[-1]
+            if fresh and stop is not None and stop():
+                return None
+        return None
+
+    def finished(self, q: tuple[str, bool, bool], pages_hit: set[int]):
+        """A search of Q was done over every page: kept, so that the next one, if it goes on from Q, looks
+        only at PAGES_HIT."""
+        self.last = (q[0], q[1], q[2], frozenset(pages_hit))
 
     def rects(self, hit: Hit) -> tuple[tuple[float, float, float, float], ...]:
         """The rectangles of HIT on its page as it is shown: one for each line it is on."""

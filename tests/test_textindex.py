@@ -55,3 +55,18 @@ def test_progress_stops(doc):
     seen = []
     found = ix.search("scribe", progress=lambda done, total, hits: seen.append(done) or done < 2)
     assert seen == [1, 2] and len(found) == 2 and ix.last is None  # (unfinished: no narrowing from it)
+
+
+def test_next_hit_stops_at_the_first(doc):
+    ix = TextIndex(doc)
+    q = ix.query("scribe")
+    h = ix.next_hit(q, 3, 0)
+    assert h.page == 3 and set(ix.pages) == {3}  # (only the page where it was found was read)
+    h2 = ix.next_hit(q, h.page, h.start + 1)
+    assert h2.page == 4 and set(ix.pages) == {3, 4}
+    back = ix.next_hit(q, 0, 0, -1)
+    assert back.page == 5  # (going back from the start goes round to the end)
+    assert ix.next_hit(ix.query("zzz"), 0, 0) is None
+    # A stop asked for ends the search
+    ix2 = TextIndex(doc)
+    assert ix2.next_hit(ix2.query("zzz"), 0, 0, stop=lambda: True) is None and len(ix2.pages) == 1

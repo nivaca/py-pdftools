@@ -13744,4 +13744,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{n} of {count}</en>
     <tr>{n} de {count}</tr>
   </text>
+  <text>
+    <en>Found on page {page}</en>
+    <tr>Encontrado en la página {page}</tr>
+  </text>
 </interface>

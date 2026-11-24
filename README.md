@@ -276,8 +276,8 @@ without minding capitals or accents; the thumbnails are shown or hidden with F7.
 Edit > Find as you type (Alt+Shift+F) opens a toolbar at the bottom of the
 window that searches at every letter typed, highlights every place found and
 goes from one to the next with Enter; capitals and accents count only if
-asked. It reads the text ahead, so a search in a thousand pages takes a few
-milliseconds.
+asked. It sits alone in the last row of the window, and it is instantaneous:
+it stops at the first place found and counts the others afterwards.
 View > Panels > Search results (F8) lists every place of a text, with its page
 and the words around it, and goes to each with a click. View > Panels >
 Attached files (F9) lists the files attached to the document or to its pages,
