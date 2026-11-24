@@ -605,6 +605,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # Sus textos, y qué acciones están habilitadas, se fijan cada vez que se abre (ver _edit_menu).
         m.aboutToShow.connect(self._edit_menu)
 
+        # El menú Buscar, en todos los modos: todas las búsquedas, juntas (se llena en menus.regroup)
+        self.m_find = self.menuBar().addMenu(tr("F&ind"))
+        self.m_find.setToolTipsVisible(True)
+
         # (el menú del modo Anotar: sus herramientas; el menú Herramientas, de todos los modos, va antes de Configuración)
         m = self.menuBar().addMenu(tr("&Annotate"))
         self.m_tools = m

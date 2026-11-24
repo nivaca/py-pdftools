@@ -273,7 +273,7 @@ Moving through a document works in every mode. The quick find box, on
 the toolbar Find (Ctrl+Shift+F or /), goes from one place of a text to the next
 with Enter (Shift+Enter, back), or F3 (Shift+F3) from anywhere in the window,
 without minding capitals or accents; the thumbnails are shown or hidden with F7.
-Edit > Find as you type (Alt+Shift+F) opens a toolbar at the bottom of the
+Find > Find as you type (Alt+Shift+F) opens a toolbar at the bottom of the
 window that searches at every letter typed, highlights every place found and
 goes from one to the next with Enter; capitals and accents count only if
 asked. It sits alone in the last row of the window, and it is instantaneous:

@@ -283,7 +283,7 @@ búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F o /), va de un lugar de un
 texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
 desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
 las miniaturas se muestran u ocultan con F7.
-Editar > Buscar mientras se escribe (Alt+Mayús+F) abre una barra al pie de la
+Buscar > Buscar mientras se escribe (Alt+Mayús+F) abre una barra al pie de la
 ventana que busca con cada letra escrita, resalta todos los lugares
 encontrados y va de uno al siguiente con Intro; las mayúsculas y los acentos
 cuentan solo si se pide. Va sola en la última fila de la ventana, y es

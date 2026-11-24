@@ -48,15 +48,32 @@ def test_the_menu_tools(window):
     bar = [a.text().replace("&", "") for a in window.menuBar().actions()]
     assert "Annotate" in bar and bar.index("Tools") == bar.index("View") + 1 == bar.index("Settings") - 1
     tools = reachable(window.m_utils)
-    for name in ("a_sorter", "a_word_index", "a_steps", "a_compare", "a_visual_compare", "a_find_all"):
+    for name in ("a_sorter", "a_word_index", "a_steps", "a_compare", "a_visual_compare"):
         assert id(getattr(window, name)) in tools, name
     elsewhere = set()
-    for menu in (window.m_file, window.m_edit, window.m_view):
+    for menu in (window.m_file, window.m_edit, window.m_view, window.m_find):
         elsewhere |= reachable(menu)
     assert not (tools & elsewhere)
     for mode in window.modes:
         window.set_mode(mode)
         assert window.m_utils.menuAction().isVisible(), mode
+
+
+def test_the_menu_find(window):
+    """Find, in every mode, right after Edit: every search, each in that menu only (they were in the menu of
+    the mode Annotate, which the other modes don't show, in Tools and in Edit)."""
+    bar = [a.text().replace("&", "") for a in window.menuBar().actions()]
+    assert bar.index("Find") == bar.index("Edit") + 1
+    found = reachable(window.m_find)
+    names = ("a_find", "quick_find_key", "a_find_next", "a_find_previous", "a_find_bar", "a_find_all")
+    for name in names:
+        assert id(getattr(window, name)) in found, name
+    for menu in (window.m_file, window.m_edit, window.m_view, window.m_utils, window.m_tools):
+        assert not (reachable(menu) & found), menu.title()
+    for mode in window.modes:
+        window.set_mode(mode)
+        assert window.m_find.menuAction().isVisible(), mode
+    assert window.a_find.shortcut().toString() == "Ctrl+F" and window.a_find_bar.shortcut().toString() == "Alt+Shift+F"
 
 
 def test_shortcuts_kept(window):

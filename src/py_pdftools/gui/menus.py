@@ -70,11 +70,18 @@ def regroup(window):
     window.m_import = QMenu(tr("Import"), window)
     window.m_import.setToolTipsVisible(True)
     _fill(window, window.m_import, ["m_import_annots"])
-    # Tools first: what it takes leaves File, Edit and View (each in one menu, not two)
+    # Find and Tools first: what they take leaves File, Edit, View and the menu Annotate (each in one menu)
+    _fill(window, window.m_find, [
+        "a_find", SEP, "quick_find_key", "a_find_next", "a_find_previous", SEP, "a_find_bar", SEP, "a_find_all"])
+    found = _all(window.m_find)
+    # (las búsquedas se hacían en el menú Anotar, que solo se ve en su modo: de ahí salen)
+    for act in list(window.m_tools.actions()):
+        if id(act) in found:
+            window.m_tools.removeAction(act)
     _fill(window, window.m_utils, [
         "a_sorter", "a_word_index", "a_steps", SEP,
-        (tr("Compare"), ["a_compare", "a_visual_compare"]), SEP, "a_find_all"])
-    moved = frozenset(_all(window.m_utils))
+        (tr("Compare"), ["a_compare", "a_visual_compare"])])
+    moved = frozenset(_all(window.m_utils) | found)
     _fill(window, window.m_file, [
         "a_open", "a_open_tab", "a_reopen_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
         "a_save", "a_save_as", "m_save_copy", "m_export", "m_import", SEP,

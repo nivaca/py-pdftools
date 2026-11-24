@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-seven stages.
+I explain how it was made, in sixty-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1620,10 +1620,20 @@ one page. A text that is not there still has to read every page to know
 it, two seconds the first time, and the bar says meanwhile how far it has
 got.
 
+68. A menu Find
+---------------
+
+The searches had ended up in three places: Find and highlight, the quick
+find and its next and previous place were in the menu of the mode
+Annotate, which is shown only in that mode, so in the other modes they
+had no menu at all, only their keys; Find all was in Tools, and Find as
+you type in Edit. They are now together in a menu Find, after Edit, in
+every mode; each is in that menu only, as with Tools.
+
 Testing
 -------
 
-The program has 743 tests (`uv run pytest`): those of the four programs,
+The program has 744 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -13748,4 +13748,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Found on page {page}</en>
     <tr>Encontrado en la página {page}</tr>
   </text>
+  <text>
+    <en>F&amp;ind</en>
+    <tr>&amp;Buscar</tr>
+  </text>
 </interface>
