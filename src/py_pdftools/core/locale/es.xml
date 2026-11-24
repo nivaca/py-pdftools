@@ -13912,4 +13912,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Width on the page:</en>
     <tr>Ancho en la página:</tr>
   </text>
+  <text>
+    <en>Choose a picture…</en>
+    <tr>Elegir una imagen…</tr>
+  </text>
+  <text>
+    <en>Show the picture of my handwritten signature in it</en>
+    <tr>Mostrar en ella la imagen de mi firma a mano</tr>
+  </text>
+  <text>
+    <en>Your signature, as in My signature (the Signature tool), with your name and the time in small letters under it</en>
+    <tr>Su firma, como en Mi firma (la herramienta Firma), con su nombre y la hora en letra pequeña debajo</tr>
+  </text>
 </interface>

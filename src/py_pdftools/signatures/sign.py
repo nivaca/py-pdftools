@@ -39,6 +39,7 @@ class Options:
     certify: str = ""  # of CERTIFY
     lock: bool = False  # the fields of the form locked once signed
     timestamp_url: str = ""  # un servidor de sellos de tiempo (RFC 3161); '' si ninguno
+    picture: bytes = b""  # a PNG of the handwritten signature, shown in a visible signature (b'': only text)
 
 
 def empty_fields(doc: pymupdf.Document) -> list[str]:
@@ -74,10 +75,36 @@ def _new_name(path: Path, password: str) -> str:
     return f"Signature{n}"
 
 
+def _style(text: str, picture: bytes, lines: int):
+    """How a visible signature looks: its TEXT (who, when, why) alone, framed, as pyHanko draws it; or, with a
+    PICTURE of the handwritten signature, the picture filling the box, on no background and with no frame, and
+    the text small under it."""
+    from pyhanko import stamp
+
+    if not picture:
+        return stamp.TextStampStyle(stamp_text=text)
+    import io
+
+    from PIL import Image
+    from pyhanko.pdf_utils import images, layout
+    from pyhanko.pdf_utils import text as texts
+
+    size = 6
+    under = lines * (size + 1.5) + 4  # (el alto de las líneas de texto, más un respiro: la imagen va encima)
+    return stamp.TextStampStyle(
+        stamp_text=text, border_width=0, background=images.PdfImage(Image.open(io.BytesIO(picture))),
+        background_opacity=1,
+        background_layout=layout.SimpleBoxLayoutRule(x_align=layout.AxisAlignment.ALIGN_MID,
+                                                     y_align=layout.AxisAlignment.ALIGN_MAX,
+                                                     margins=layout.Margins(bottom=under)),
+        text_box_style=texts.TextBoxStyle(font_size=size),
+        inner_content_layout=layout.SimpleBoxLayoutRule(x_align=layout.AxisAlignment.ALIGN_MIN,
+                                                        y_align=layout.AxisAlignment.ALIGN_MIN))
+
+
 def sign(source: Path, target: Path, options: Options, password: str = "") -> str:
     """SOURCE (opened with PASSWORD, if it has one) signed with OPTIONS, saved as TARGET (which may be SOURCE).
     Returns the name of the signature field."""
-    from pyhanko import stamp
     from pyhanko.pdf_utils.incremental_writer import IncrementalPdfFileWriter
     from pyhanko.sign import fields, signers, timestamps
     from pyhanko.sign.fields import FieldMDPAction, FieldMDPSpec, MDPPerm, SigFieldSpec
@@ -100,8 +127,8 @@ def sign(source: Path, target: Path, options: Options, password: str = "") -> st
         MDPPerm.FILL_FORMS)
     timestamper = timestamps.HTTPTimeStamper(options.timestamp_url) if options.timestamp_url else None
     lines = ["%(signer)s", "%(ts)s"] + ([options.reason] if options.reason else [])
-    style = stamp.TextStampStyle(stamp_text="\n".join(line.replace("%", "%%") if i > 1 else line
-                                                      for i, line in enumerate(lines)))
+    style = _style("\n".join(line.replace("%", "%%") if i > 1 else line for i, line in enumerate(lines)),
+                   options.picture, len(lines))
     fd, tmp = tempfile.mkstemp(suffix=".pdf", dir=target.parent)
     os.close(fd)
     try:

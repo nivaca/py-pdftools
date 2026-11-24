@@ -1,4 +1,4 @@
-"""Digital signatures in the window (mixed into MainWindow): File > Digital signatures. They need pyHanko,
+"""Digital signatures in the window (mixed into MainWindow): File > Security. They need pyHanko,
 installed apart (pip install 'py-pdftools[signatures]'); without it, the menu says so. See signatures/."""
 
 from __future__ import annotations
@@ -158,6 +158,21 @@ class SignDialog(QDialog):
             self._place_buttons.append(b)
         # (un campo vacío del formulario es lo que el documento pide: va elegido; si no, en la página)
         self._place_buttons[1 if empty else 0].setChecked(True)
+        # La imagen de la firma a mano, dentro de la firma visible (la misma de Mi firma, en la herramienta Firma)
+        self.with_picture = QCheckBox(tr("Show the picture of my handwritten signature in it"))
+        self.with_picture.setToolTip(tr("Your signature, as in My signature (the Signature tool), with your name "
+                                        "and the time in small letters under it"))
+        self.b_signature_picture = QPushButton(tr("Choose a picture…"))
+        self.b_signature_picture.setToolTip(tr("A scan or a photo of your signature (PNG, JPEG…)"))
+        self.b_signature_picture.clicked.connect(self._choose_signature_picture)
+        pic_row = QHBoxLayout()
+        pic_row.addWidget(self.with_picture)
+        pic_row.addWidget(self.b_signature_picture)
+        pic_row.addStretch(1)
+        box2.addLayout(pic_row)
+        self.with_picture.setChecked(r.get("picture", "") == "true")
+        self.places.buttonToggled.connect(lambda *_: self._picture_state())
+        self._picture_state()
 
         # 3. Por qué se firma
         step3 = QGroupBox(tr("3. Why you sign (optional)"))
@@ -297,6 +312,47 @@ class SignDialog(QDialog):
             self.password_said.setStyleSheet("color: #2e7d32;" if right else "color: #c0392b;")
         self.b_ok.setEnabled(right)
 
+    # ----------------------------------------------------------------- the picture of the handwritten signature
+
+    @staticmethod
+    def signature_picture() -> bytes | None:
+        from .signature import picture
+
+        found = picture()
+        return found[0] if found else None
+
+    def _picture_state(self):
+        """The picture can go only in a visible signature, and only if there is one."""
+        visible = self.where != "none"
+        have = self.signature_picture() is not None
+        self.with_picture.setEnabled(visible and have)
+        self.b_signature_picture.setVisible(not have)
+        self.b_signature_picture.setEnabled(visible)
+        if not have:
+            self.with_picture.setChecked(False)
+
+    def _choose_signature_picture(self) -> bool:
+        from . import signature
+
+        name, _ = QFileDialog.getOpenFileName(self, tr("A picture of your signature"), str(Path.home()),
+                                              tr("Pictures (*.png *.jpg *.jpeg *.tif *.tiff *.bmp *.webp)"))
+        return bool(name) and self.use_signature_picture(name)
+
+    def use_signature_picture(self, path) -> bool:
+        """The picture at PATH as the picture of the handwritten signature (kept, as in My signature), shown."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from . import signature
+
+        try:
+            signature.store_picture(None, signature.prepared(path))
+        except (signature.SignatureError, OSError) as e:
+            QMessageBox.warning(self, tr("A picture of your signature"), str(e))
+            return False
+        self._picture_state()
+        self.with_picture.setChecked(True)
+        return True
+
     # ----------------------------------------------------------------- what was chosen
 
     @property
@@ -309,11 +365,12 @@ class SignDialog(QDialog):
         from ..signatures.sign import Options
 
         where = self.where
+        picture = (self.signature_picture() or b"") if self.with_picture.isChecked() and where != "none" else b""
         return Options(Path(self.id_path.text()), self.password.text(), self.reason.text().strip(),
                        self.location.text().strip(), self.contact.text().strip(),
                        field=where[6:] if where.startswith("field:") else "",
                        certify=self.certify.currentData(), lock=self.lock.isChecked(),
-                       timestamp_url=self.timestamp.text().strip()), where
+                       timestamp_url=self.timestamp.text().strip(), picture=picture), where
 
 
 class SignaturesDialog(QDialog):
@@ -413,7 +470,7 @@ class SignMixin:
     """(Mixed into MainWindow.)"""
 
     def _build_sign_menu(self, menu):
-        """File > Digital signatures (disabled, saying why, without pyHanko)."""
+        """The signature actions, disabled (saying why) without pyHanko; menus.py moves them to File > Security."""
         sub = menu.addMenu(tr("Digital signatures"))
         sub.setToolTipsVisible(True)
         self.m_signatures = sub
@@ -469,14 +526,16 @@ class SignMixin:
 
     def ask_sign(self, empty: list[str], signed: bool):
         """(sign.Options, place) chosen; None if cancelled."""
-        r = {k: str(self.settings.value(f"sign_{k}", "")) for k in ("reason", "location", "contact", "timestamp")}
+        r = {k: str(self.settings.value(f"sign_{k}", "")) for k in ("reason", "location", "contact", "timestamp",
+                                                                    "picture")}
         dialog = SignDialog(self, str(self.settings.value("sign_id", "")), empty, signed, r,
                             on_create=self.make_id_dialog)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return None
         options, where = dialog.chosen()
         for key, value in (("id", str(options.id_path)), ("reason", options.reason), ("location",
-                           options.location), ("contact", options.contact), ("timestamp", options.timestamp_url)):
+                           options.location), ("contact", options.contact), ("timestamp", options.timestamp_url),
+                           ("picture", "true" if dialog.with_picture.isChecked() else "false")):
             self.settings.setValue(f"sign_{key}", value)
         return options, where
 

@@ -163,13 +163,15 @@ def prepared(path, transparent: bool = True) -> bytes:
 
 
 def store_picture(settings, data: bytes) -> None:
-    """Keep DATA (a PNG made by prepared) as the signature, and choose it."""
+    """Keep DATA (a PNG made by prepared) as the signature, and choose it for the Signature tool (if SETTINGS:
+    without them, only kept, as when the picture is chosen to sign digitally)."""
     path = picture_path()
     path.parent.mkdir(parents=True, exist_ok=True)
     tmp = path.with_name(path.name + ".tmp")
     tmp.write_bytes(data)
     tmp.replace(path)
-    settings.setValue(SOURCE, "picture")
+    if settings is not None:
+        settings.setValue(SOURCE, "picture")
 
 
 def load(settings) -> Strokes:

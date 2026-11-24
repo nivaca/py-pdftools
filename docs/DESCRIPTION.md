@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-five stages.
+I explain how it was made, in seventy-six stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1753,10 +1753,23 @@ and My signature the width of a click, in centimetres. The Signature tool puts t
 drawing or the picture, whichever was chosen last; the picture goes as an
 image stamp, which the program already knew how to read and write.
 
+76. The picture in a digital signature
+--------------------------------------
+
+A visible digital signature showed only text, framed: the signer, the time
+and the reason. Many people expect to see their signature there, as on
+paper, so the picture of My signature can now go in it. pyHanko, which
+makes the signatures, draws their look with a style that takes a
+background picture; the picture fills the box above, on no background and
+with no frame, and the text goes small under it, with room enough for its
+lines so that the lowest stroke of the signature is not crossed. The
+picture is the same as the Signature tool's, kept once; the dialog to sign
+offers to choose one when there is none.
+
 Testing
 -------
 
-The program has 767 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 768 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

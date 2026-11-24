@@ -148,3 +148,44 @@ def test_the_dialog_in_plain_steps(digital_id, tmp_path):
     d._place_buttons[-1].setChecked(True)
     options, where = d.chosen()
     assert where == "none" and options.password == "secret1" and options.id_path == digital_id
+
+
+def test_with_the_picture_of_the_handwritten_signature(doc, digital_id, tmp_path, monkeypatch):
+    """A visible digital signature can show the picture of the handwritten signature (My signature): it is in
+    the signature's appearance, and the signature is valid all the same; an invisible one can't have it."""
+    import dataclasses
+
+    from PySide6.QtCore import QPointF, Qt
+    from PySide6.QtGui import QColor, QImage, QPainter, QPen
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui import signature
+    from py_pdftools.gui.signing import SignDialog
+    from py_pdftools.signatures import verify
+
+    QApplication.instance() or QApplication([])
+    img = QImage(400, 150, QImage.Format.Format_RGB32)
+    img.fill(QColor("white"))
+    p = QPainter(img)
+    p.setPen(QPen(QColor(0, 0, 0), 6, Qt.PenStyle.SolidLine, Qt.PenCapStyle.RoundCap))
+    p.drawLine(QPointF(50, 100), QPointF(350, 60))
+    p.end()
+    img.save(str(tmp_path / "sig.png"))
+    d = SignDialog(None, str(digital_id), [])
+    # (no picture yet, in this test's own settings: the option off, and the button to choose one offered)
+    assert not d.with_picture.isEnabled() and d.b_signature_picture.isVisibleTo(d)
+    assert d.use_signature_picture(tmp_path / "sig.png")
+    assert d.with_picture.isEnabled() and d.with_picture.isChecked()
+    d.password.setText("secret1")
+    options, where = d.chosen()
+    assert where == "draw" and options.picture
+    d._place_buttons[-1].setChecked(True)  # (invisible: no picture)
+    assert not d.with_picture.isEnabled() and d.chosen()[0].picture == b""
+    target = tmp_path / "signed.pdf"
+    sign.sign(doc, target, dataclasses.replace(options, page=0, rect=(300, 100, 500, 180)))
+    pdf = pymupdf.open(target)
+    widget = next(w for w in pdf[0].widgets() if w.field_type == pymupdf.PDF_WIDGET_TYPE_SIGNATURE)
+    ap = pdf.xref_get_key(widget.xref, "AP/N")[1]
+    assert "Image" in pdf.xref_object(int(ap.split()[0])) or "/XObject" in pdf.xref_object(int(ap.split()[0]))
+    report = verify.check(target)[0]
+    assert report.intact and report.valid
