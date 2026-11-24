@@ -2383,17 +2383,23 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
     def settings_dialog(self):
         dialog = SettingsDialog(self.prefs, self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            self.set_prefs(dialog.settings())
-            if getattr(dialog, "language_changed", False):  # (after the dialog: the windows are built again)
-                QTimer.singleShot(0, lambda code=dialog.language.currentData(): self.change_language(code))
-            if getattr(dialog, "performance_changed", False):
-                # (drawn anew: with the antialiasing chosen, and caches of the new size)
-                self.canvas.clear_cache()
-                self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
-                self.canvas.render_timer.start()
-                self.thumb_timer.start()
-            self.refresh()
+        # (con Aceptar y con Aplicar: los ajustes, en efecto en esta ventana)
+        dialog.on_apply = self._settings_applied
+        done = dialog.exec() == QDialog.DialogCode.Accepted
+        if (done or dialog.applied) and dialog.language_changed:
+            # (after the dialog: the windows are built again)
+            QTimer.singleShot(0, lambda code=dialog.language.currentData(): self.change_language(code))
+
+    def _settings_applied(self, dialog):
+        """The settings of DIALOG in effect here (OK or Apply)."""
+        self.set_prefs(dialog.settings())
+        if dialog.performance_changed:
+            # (drawn anew: with the antialiasing chosen, and caches of the new size)
+            self.canvas.clear_cache()
+            self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+            self.canvas.render_timer.start()
+            self.thumb_timer.start()
+        self.refresh()
 
     def set_reading(self, name: str, ask: bool = False) -> bool:
         """The reading colours NAME (see reading.py; 'custom': asked for, if ASK, else those kept); kept for the

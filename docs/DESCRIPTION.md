@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-one stages.
+I explain how it was made, in seventy-two stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1676,10 +1676,24 @@ program's order, in the arrangement kept for each mode, which is opened
 and kept again as when the order changed (stage 70). The panels are left
 where they are; a reset of the toolbars has no business with them.
 
+72. Apply, in Settings
+----------------------
+
+The window Settings had only OK and Cancel, so seeing a change in effect
+meant closing it and opening it again. It now has Apply too, as in KDE
+Plasma: off until something changes in any of its pages (every check box,
+list, field, number, key and colour of the dialog turns it on), it puts the
+changes in effect and leaves the window open, and Cancel afterwards keeps
+what was applied. OK and Apply do the same work, which was moved out of
+accept() into a method of its own. The one exception is the language: a
+new one makes every window of the program again, which can't be done with
+the dialog still open on one of them, so it comes when the dialog closes,
+whichever button closes it.
+
 Testing
 -------
 
-The program has 742 tests (`uv run pytest`): those of the four programs,
+The program has 744 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -13760,4 +13760,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Reset the toolbars…</en>
     <tr>Restablecer las barras de herramientas…</tr>
   </text>
+  <text>
+    <en>Put the changes in effect now, and keep the window open (a new language comes when it is closed)</en>
+    <tr>Poner en efecto los cambios ya, y dejar abierta la ventana (un idioma nuevo llega al cerrarla)</tr>
+  </text>
 </interface>

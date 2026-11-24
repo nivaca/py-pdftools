@@ -78,7 +78,7 @@ El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios 
 
 ## Validación
 
-Hay 742 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 744 pruebas automáticas (`uv run pytest`): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
@@ -102,7 +102,7 @@ Cada casilla, lista y vista de la ventana tiene un nombre que los lectores de pa
 
 ### Trabajar con muchas páginas
 
-En todos los modos, el menú Buscar reúne las búsquedas, y Herramientas lo que trabaja sobre el documento entero. El clasificador de páginas muestra todas en una cuadrícula de miniaturas grandes, dibujadas solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace en un solo paso del historial (`arrange.Sort`).
+En todos los modos, el menú Buscar reúne las búsquedas, y Herramientas lo que trabaja sobre el documento entero. Configuración tiene Aplicar. El clasificador de páginas muestra todas en una cuadrícula de miniaturas grandes, dibujadas solo cuando se ven; ahí se ordenan arrastrándolas y se giran, duplican o borran, y Aceptar lo hace en un solo paso del historial (`arrange.Sort`).
 
 Aplicar pasos a varios archivos hace, en el orden elegido, algunos de estos pasos en cada archivo de una lista: OCR, encabezado o pie, marca de agua, tamaño reducido, PDF/A. Cada paso es una orden de la línea de órdenes sobre un archivo temporal (`pages/steps.py`); el resultado va a una carpeta, sin escribir sobre otro archivo, y los pasos se guardan como recetas.
 

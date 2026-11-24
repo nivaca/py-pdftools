@@ -277,7 +277,18 @@ class SettingsDialog(QDialog):
             form.addRow("", box)
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
-        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        # Aceptar, Aplicar y Cancelar, como en KDE Plasma: Aplicar deja la ventana abierta, y solo se puede pulsar
+        # cuando algo cambió desde la última vez
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Apply
+                                   | QDialogButtonBox.StandardButton.Cancel)
+        self.apply_button = buttons.button(QDialogButtonBox.StandardButton.Apply)
+        self.apply_button.setToolTip(tr("Put the changes in effect now, and keep the window open (a new language "
+                                        "comes when it is closed)"))
+        self.apply_button.setEnabled(False)
+        self.apply_button.clicked.connect(self.apply)
+        self.applied = False  # (whether Apply was pressed: the window then takes the settings even on Cancel)
+        self.on_apply = None  # (what the window does with the settings applied: see MainWindow.settings_dialog)
+        self.language_changed = self.performance_changed = False
         # Revisar la configuración: en la fila de los botones, a la vista desde cualquier pestaña (al pie de
         # General, bajo una lista larga, no se veía)
         self.check = buttons.addButton(tr("System check…"), QDialogButtonBox.ButtonRole.HelpRole)
@@ -290,6 +301,41 @@ class SettingsDialog(QDialog):
         outer.addWidget(tabs)
         outer.addWidget(buttons)
         self.resize(560, 620)
+        self._watch(buttons)
+
+    def _watch(self, buttons: QDialogButtonBox):
+        """Any change in any page turns Apply on (the buttons of the row at the bottom are not changes)."""
+        from PySide6.QtWidgets import QAbstractButton, QKeySequenceEdit
+
+        own = set(buttons.buttons())
+        changed = lambda *_: self.apply_button.setEnabled(True)  # noqa: E731
+        for w in self.findChildren(QCheckBox):
+            w.toggled.connect(changed)
+        for w in self.findChildren(QComboBox):
+            w.currentIndexChanged.connect(changed)
+            if w.isEditable():
+                w.editTextChanged.connect(changed)
+        for w in self.findChildren(QLineEdit):
+            w.textEdited.connect(changed)
+        for w in self.findChildren(QSpinBox):
+            w.valueChanged.connect(changed)
+        for w in self.findChildren(QPlainTextEdit):
+            w.textChanged.connect(changed)
+        for w in self.findChildren(QKeySequenceEdit):
+            w.keySequenceChanged.connect(changed)
+        for w in self.findChildren(QTableWidget):
+            w.itemChanged.connect(changed)
+        for w in self.findChildren(QAbstractButton):
+            if w not in own and not isinstance(w, QCheckBox) and w is not self.check:
+                w.clicked.connect(changed)  # (los colores, Como era al principio...)
+
+    def apply(self) -> bool:
+        """Apply: the changes in effect, the window left open."""
+        if not self.put_in_effect():
+            return False
+        self.applied = True
+        self.apply_button.setEnabled(False)
+        return True
 
     # ----------------------------------------------------------------- Appearance and Documents
 
@@ -478,13 +524,19 @@ class SettingsDialog(QDialog):
         return out
 
     def accept(self):
+        if self.put_in_effect():
+            super().accept()
+
+    def put_in_effect(self) -> bool:
+        """Keep the settings chosen and put them in effect (OK and Apply); False if they can't be (two actions
+        with one shortcut), and then the window stays open."""
         clash = self.conflicts()
         if clash:
             key, a, b = clash[0]
             QMessageBox.warning(self, tr("Shortcuts"), tr("{key} is the shortcut of two actions: {first} and "
                                                           "{second}. Give another to one of them.", key=key,
                                                           first=action_name(a), second=action_name(b)))
-            return
+            return False
         # (performance: kept in the configuration file, and in effect at once)
         from . import performance
 
@@ -492,7 +544,7 @@ class SettingsDialog(QDialog):
                   "text_antialias": self.text_antialias.isChecked(),
                   "graphics_antialias": self.graphics_antialias.isChecked(), "smooth": self.smooth.isChecked()}
         before = performance.settings()
-        self.performance_changed = values != before
+        self.performance_changed = values != before  # (de esta vez: lo que la ventana debe dibujar de nuevo)
         if self.performance_changed:
             try:
                 config.set_many({k: v for k, v in values.items() if v != before[k]})
@@ -526,7 +578,8 @@ class SettingsDialog(QDialog):
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
             else:
                 background(on)
-        self.language_changed = self._keep_appearance()
+        # (el idioma: si cambió alguna vez, aunque fuera con Aplicar, la ventana se rehace al cerrarse el diálogo)
+        self.language_changed = self._keep_appearance() or self.language_changed
         from . import autostart
 
         if self.login.isChecked() != autostart.enabled():
@@ -534,7 +587,9 @@ class SettingsDialog(QDialog):
                 autostart.enable(self.login.isChecked())
             except OSError as e:
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
-        super().accept()
+        if self.on_apply is not None:
+            self.on_apply(self)
+        return True
 
     def settings(self) -> settings.Settings:
         # Se limitan a 200 caracteres el autor y los significados: van a cada anotación y al archivo de
