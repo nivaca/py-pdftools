@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- **The options in the user manuals have their two hyphens**: in the
+  monospaced font, TeX joined them into a dash, so `--uninstall`, `--user`,
+  `--no-tray`, `--rotate` and the others were printed as `–uninstall`; the
+  font of the manuals now has no TeX ligatures.
+
 ## 1.15.0 — 2026-11-24
 
 - **Every search as quick as Find as you type**: Find and highlight, Find
