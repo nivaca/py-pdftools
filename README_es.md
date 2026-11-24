@@ -407,8 +407,8 @@ con un documento que lo tiene, o con clics en la página. Lo que piden casi
 todos los formularios se hace sin JavaScript: números y fechas comprobados
 y mostrados en su formato, sumas calculadas. El panel exporta e importa
 los valores (JSON, CSV, XFDF, FDF), y `py-pdftools form` muestra, rellena,
-tabula y aplana formularios desde la línea de órdenes. Archivo > Firmas
-digitales firma el documento con un ID digital, de forma visible o no (y
+tabula y aplana formularios desde la línea de órdenes. Archivo > Seguridad
+firma el documento con un ID digital, de forma visible o no (y
 crea un ID propio), y comprueba sus firmas: si cada una está intacta y es
 válida, quién firmó y si es de confianza, y qué cambió después.
 

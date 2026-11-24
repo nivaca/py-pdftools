@@ -387,7 +387,7 @@ document that has one, or with clicks on the page. What most forms ask is
 done without JavaScript: numbers and dates checked and shown in their
 format, sums worked out. The panel exports and imports the values (JSON,
 CSV, XFDF, FDF), and `py-pdftools form` shows, fills, tabulates and
-flattens forms from the command line. File > Digital signatures signs the
+flattens forms from the command line. File > Security signs the
 document with a digital ID, visibly or not (and makes an ID of one's own),
 and checks its signatures: whether each is intact and valid, who signed
 and whether they are trusted, and what changed after it.
