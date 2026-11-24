@@ -287,6 +287,9 @@ de la ventana; las mayúsculas y los acentos cuentan solo si se pide. Es
 instantánea: se detiene en el primer lugar y cuenta los demás después.
 Buscar > Buscar y resaltar (Ctrl+Mayús+F) es la búsqueda con todas las
 opciones.
+Configuración > Barras de herramientas > Restablecer las barras de
+herramientas devuelve cada barra a como era al principio, en todos los
+modos; los paneles quedan donde están.
 Ver > Paneles > Resultados de la búsqueda (F8) hace la lista de todos los lugares de
 un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic.
 Ver > Paneles > Archivos adjuntos (F9) hace la lista de los archivos adjuntos al

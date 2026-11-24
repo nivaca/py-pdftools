@@ -13748,4 +13748,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Tools</en>
     <tr>Herramientas</tr>
   </text>
+  <text>
+    <en>Put every toolbar back as it was at first: its buttons, its place and how it looks? The toolbars you added are removed. The panels stay where they are.</en>
+    <tr>¿Volver a poner cada barra como era al principio: sus botones, su lugar y su aspecto? Las barras que usted añadió se quitan. Los paneles quedan donde están.</tr>
+  </text>
+  <text>
+    <en>Reset the toolbars</en>
+    <tr>Restablecer las barras de herramientas</tr>
+  </text>
+  <text>
+    <en>Reset the toolbars…</en>
+    <tr>Restablecer las barras de herramientas…</tr>
+  </text>
 </interface>

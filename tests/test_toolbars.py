@@ -314,3 +314,47 @@ def test_an_old_arrangement_in_the_new_order(app, tmp_path, monkeypatch):
         assert top in (new.toolBarArea(bar(new, "tools")),)
     finally:
         new.close()
+
+
+def test_reset_the_toolbars(window, app, monkeypatch):
+    """Settings > Toolbars > Reset the toolbars: buttons, places and looks as at first, in every mode's
+    arrangement; the panels stay; it asks first."""
+    from PySide6.QtCore import Qt
+    from PySide6.QtWidgets import QMessageBox
+
+    w = window
+    w.resize(1900, 900)
+    w.show()
+    w.set_mode("annotate")
+    # Everything changed: a toolbar of one's own, a button taken off, Find on the left, Zoom hidden, big icons
+    d = ToolbarsDialog(w)
+    d.new_bar("Mine")
+    d.add(["a_save"])
+    d.bar.setCurrentIndex(d.bar.findData("edit"))
+    d.chosen.setCurrentRow(0)
+    d.remove()
+    w.apply_toolbar_layout(d.layout_chosen())
+    w.addToolBar(Qt.ToolBarArea.LeftToolBarArea, bar(w, "find"))
+    bar(w, "zoom").hide()
+    w.set_bar_look(None, size=32)
+    w.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, w.attach_dock)
+    w.attach_dock.show()
+    w.keep_arrangement()
+    w.set_mode("redact")
+    w.addToolBar(Qt.ToolBarArea.BottomToolBarArea, bar(w, "file"))
+    w.keep_arrangement()
+    # Asked, and No: nothing changes
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.StandardButton.No)
+    assert not w.reset_toolbars()
+    assert w.toolBarArea(bar(w, "file")) == Qt.ToolBarArea.BottomToolBarArea
+    monkeypatch.setattr(QMessageBox, "question", lambda *a, **k: QMessageBox.StandardButton.Yes)
+    assert w.reset_toolbars()
+    app.processEvents()
+    assert top_rows(w)[0] == NEW and w.toolbar_layout() == {"bars": {}, "custom": []}
+    assert w.bar_ids(bar(w, "edit")) == ["a_undo", "a_redo", "a_delete"] and w.looks()["size"] == 16
+    assert top_rows(w)[1] == ["redaction", "redacted-copy"]  # (the bars of the mode on, below)
+    # The other mode's arrangement too; the panel where it was
+    w.set_mode("annotate")
+    app.processEvents()
+    assert top_rows(w)[0] == NEW and bar(w, "zoom").isVisible()
+    assert w.attach_dock.isVisible() and w.dockWidgetArea(w.attach_dock) == Qt.DockWidgetArea.RightDockWidgetArea

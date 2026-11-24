@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy stages.
+I explain how it was made, in seventy-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1665,10 +1665,21 @@ of each mode) is opened, its toolbars at the top are put in the new order,
 and it is kept again; the toolbars moved to a side and the panels stay
 where they were.
 
+71. Resetting the toolbars
+--------------------------
+
+Customize the toolbars could bring one toolbar's buttons back to how they
+were at first, but not everything at once, and not their places. Reset
+the toolbars does it all, after asking: the buttons of every toolbar, the
+toolbars of one's own removed, their looks, and their places, in the
+program's order, in the arrangement kept for each mode, which is opened
+and kept again as when the order changed (stage 70). The panels are left
+where they are; a reset of the toolbars has no business with them.
+
 Testing
 -------
 
-The program has 741 tests (`uv run pytest`): those of the four programs,
+The program has 742 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

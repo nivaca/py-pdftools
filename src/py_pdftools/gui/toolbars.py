@@ -16,8 +16,8 @@ from PySide6.QtCore import QByteArray, QEvent, QObject, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QIcon, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QInputDialog, QLabel,
-    QLineEdit, QListWidget, QListWidgetItem, QMenu, QProxyStyle, QPushButton, QSizePolicy, QStyle, QToolBar,
-    QVBoxLayout, QWidget,
+    QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox, QProxyStyle, QPushButton, QSizePolicy, QStyle,
+    QToolBar, QVBoxLayout, QWidget,
 )
 
 from ..core.interface import N_, tr
@@ -86,13 +86,15 @@ def add_spacer(bar: QToolBar) -> QAction:
 class ToolbarsMixin:
     """(Mixed into MainWindow: it uses its toolbars, tool_actions and mode_actions.)"""
 
-    def order_top_toolbars(self):
+    def order_top_toolbars(self, every: bool = False):
         """The toolbars at the top as the program puts them: the modes and those of every mode in one row, in
         their order (common_bars), and below them the others (those of each mode, as they were made). Those the
-        user put on a side, at the bottom or out of the window stay there, and each keeps being shown or hidden."""
+        user put on a side, at the bottom or out of the window stay there, and each keeps being shown or hidden;
+        with EVERY, all come back to the top, shown (each mode then hides what isn't its own)."""
         top = Qt.ToolBarArea.TopToolBarArea
-        here = [bar for bar in self.toolbars() if self.toolBarArea(bar) == top and not bar.isFloating()]
-        hidden = {id(bar): bar.isHidden() for bar in here}
+        here = [bar for bar in self.toolbars()
+                if every or (self.toolBarArea(bar) == top and not bar.isFloating())]
+        hidden = {id(bar): bar.isHidden() and not every for bar in here}
         first = [bar for bar in [self.modes_bar, *self.common_bars] if bar in here]
         rest = [bar for bar in here if bar not in first]
         for bar in here:
@@ -123,6 +125,45 @@ class ToolbarsMixin:
                 self.order_top_toolbars()
                 self.settings.setValue(key, self.saveState())
         self.settings.setValue(ORDER, ORDER_VERSION)
+
+    def reset_toolbars(self, ask: bool = True) -> bool:
+        """Settings > Toolbars > Reset the toolbars: every toolbar as it was at first, in every window: its
+        buttons (those added by the user removed), its place, in the order of the program, in the arrangement of
+        each mode, and how it looks. The panels stay where they are. ASK: say what it does, and ask, first."""
+        if ask and QMessageBox.question(
+                self, tr("Reset the toolbars"),
+                tr("Put every toolbar back as it was at first: its buttons, its place and how it looks? The "
+                   "toolbars you added are removed. The panels stay where they are.")) \
+                != QMessageBox.StandardButton.Yes:
+            return False
+        self._keep_looks(json.loads(json.dumps(DEFAULT_LOOKS)))
+        for win in self._every_window():
+            win.apply_toolbar_layout({"bars": {}, "custom": []})
+            win.apply_bar_looks()
+            if win.host is None:  # (una pestaña usa la disposición de su ventana)
+                win._reset_arrangements()
+        return True
+
+    def _reset_arrangements(self):
+        """The toolbars of every arrangement kept (the window's, and each mode's) put back at the top, in the
+        program's order; then the mode on arranged again."""
+        for key in ["toolbars"] + [f"arrangement/{mode}/state" for mode in getattr(self, "modes", {})]:
+            state = self.settings.value(key)
+            if isinstance(state, QByteArray):
+                self.restoreState(state)
+                self.order_top_toolbars(every=True)
+                self.settings.setValue(key, self.saveState())
+        self.order_top_toolbars(every=True)
+        mode = getattr(self, "modes", {}).get(getattr(self, "mode", None))
+        if mode is not None:
+            # (lo que se ve, como en arrange: las barras del modo y las de todos, menos las que el modo no usa)
+            for other in self.modes.values():
+                for bar in other.bars:
+                    bar.setVisible(other is mode)
+            for bar in self.common_bars:
+                bar.setVisible(bar.objectName() not in mode.without)
+            self.keep_arrangement()
+        self.schedule_pack()
 
     def _init_toolbars(self):
         """What each toolbar has at first (to go back to it), and the toolbars as they were left."""
@@ -393,6 +434,7 @@ class ToolbarsMixin:
         lock.toggled.connect(self.set_bars_locked)
         if hasattr(self, "a_customize_bars"):
             menu.addAction(self.a_customize_bars)
+            menu.addAction(tr("Reset the toolbars…"), self.reset_toolbars)
 
     def customize_toolbars(self) -> bool:
         layout = self.ask_toolbars()
