@@ -206,7 +206,8 @@ class Release:
 
     def tests(self):
         if not self.args.no_tests:
-            self.plan("Run the tests", "uv", "run", "pytest", "-q")
+            # (a la vez, cada archivo en su proceso: tools/test.py; el %check del RPM las corre una tras otra)
+            self.plan("Run the tests", "uv", "run", "python", "tools/test.py")
 
     def build(self):
         if self.args.no_build:

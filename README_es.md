@@ -525,9 +525,16 @@ abre la página de la versión.
 Pruebas
 -------
 
-    $ uv run pytest
+    $ uv run python tools/test.py
 
-Hay 591 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
+corre cada archivo de pruebas en un proceso propio, tantos a la vez como
+procesadores tenga el computador, primero los más lentos: la suite entera
+tarda más o menos lo que su archivo más lento (unos veinte segundos, en vez
+de más de un minuto). `-v` muestra cada archivo a medida que termina, y unos
+nombres (`test_findbar`, `pages`) corren solo esos. `uv run pytest` las corre
+una tras otra, como antes.
+
+Hay 744 pruebas: las de los cuatro programas, y las de lo nuevo (la línea de
 órdenes entera, los modos de la ventana, los recuadros de censura, las
 copias de trabajo, el OCR, la navegación, la seguridad, los menús y las
 barras de herramientas, la combinación de archivos, los PDF de imágenes,

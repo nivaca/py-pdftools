@@ -496,9 +496,15 @@ opens the page of the release.
 Tests
 -----
 
-    $ uv run pytest
+    $ uv run python tools/test.py
 
-There are 591 tests: those of the four programs, and those of what is new
+runs every file of tests in a process of its own, as many at once as the
+computer has processors, the slowest first: the whole suite takes about as
+long as its slowest file (some twenty seconds, instead of over a minute).
+`-v` shows each file as it ends, and names (`test_findbar`, `pages`) run only
+those. `uv run pytest` runs them one after the other, as before.
+
+There are 744 tests: those of the four programs, and those of what is new
 (the command line as a whole, the modes of the window, the redaction boxes,
 the working copies, OCR, navigation, security, the menus and toolbars,
 combining files and PDFs of pictures, smaller copies, links, forms,
