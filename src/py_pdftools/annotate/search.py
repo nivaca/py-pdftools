@@ -113,12 +113,19 @@ def compile_query(query: str, case: bool = False, whole_words: bool = False, reg
 
 def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None, case: bool = False,
               whole_words: bool = False, regex: bool = False, progress=None, accents: bool = False,
-              uv: bool = False, wildcards: bool = False, cache: dict | None = None) -> list[Match]:
+              uv: bool = False, wildcards: bool = False, cache=None) -> list[Match]:
     """Where QUERY is on PAGES (0-based; all if None) of DOC, in page order. ACCENTS: without
     minding accents; UV: u and v, i and j as one (see fold); WILDCARDS: see compile_query. PROGRESS,
     if given, is called after each page with (pages done, pages in all); if it returns False,
     the search stops there, with what it found so far. CACHE, if given, keeps the text of each page
-    read (for the next search in the same document)."""
+    read for the next search in the same document: a TextIndex (the window's, shared by every search),
+    or a dict by page number.
+
+    The pages are read as annotate/textindex.py reads them: each character's box as plain numbers, not
+    turned (the boxes of what is found are turned at the end), and the text kept also without accents;
+    reading a book was some forty times slower when each character became a turned Rect."""
+    from .textindex import TextIndex, _Page
+
     if not query.strip():
         return []
     folding = accents or uv
@@ -129,13 +136,18 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
     out = []
     for done, number in enumerate(numbers, 1):
         # The cache is keyed by page number alone: whoever passes it must empty it when the document changes.
-        if cache is not None and number in cache:
-            text, where = cache[number]
+        if isinstance(cache, TextIndex):
+            page = cache.page(number)
+        elif cache is not None:
+            page = cache.get(number)
+            if not isinstance(page, _Page):
+                page = cache[number] = _Page(doc[number])
         else:
-            text, where = page_chars(doc[number])
-            if cache is not None:
-                cache[number] = (text, where)
-        if folding:
+            page = _Page(doc[number])
+        text, where = page.text, page.where
+        if accents and not uv:
+            searched, index = page.folded, page.index  # (ya plegado al leer la página)
+        elif folding:
             searched, index = fold(text, accents, uv)
         else:
             searched, index = text, None
@@ -146,21 +158,32 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
                 if start == end:
                     continue
                 start, end = index[start], index[end - 1] + 1
-            chosen = [i for i in range(start, end) if where[i] is not None and not text[i].isspace()]
-            if not chosen:
+            # Un rectángulo por línea (bloque, línea): la unión de las cajas de sus caracteres, sin girar.
+            lines: dict[tuple[int, int], list[float]] = {}
+            for i in range(start, end):
+                w = where[i]
+                if w is None or text[i].isspace():
+                    continue
+                b, n, x0, y0, x1, y1 = w
+                r = lines.get((b, n))
+                if r is None:
+                    lines[(b, n)] = [x0, y0, x1, y1]
+                else:
+                    r[0], r[1], r[2], r[3] = min(r[0], x0), min(r[1], y0), max(r[2], x1), max(r[3], y1)
+            if not lines:
                 continue
-            # Un rectángulo por línea (bloque, línea): la unión de las cajas de sus caracteres.
-            lines: dict[tuple[int, int], pymupdf.Rect] = {}
-            for i in chosen:
-                b, n, r = where[i]
-                lines[(b, n)] = lines[(b, n)] | r if (b, n) in lines else pymupdf.Rect(r)
-            rects = tuple((round(r.x0, 2), round(r.y0, 2), round(r.x1, 2), round(r.y1, 2)) for r in lines.values())
+            rects = []
+            for x0, y0, x1, y1 in lines.values():
+                if page.matrix is not None:  # (girada después, como se muestra: solo lo encontrado)
+                    turned = (pymupdf.Rect(x0, y0, x1, y1) * page.matrix).normalize()
+                    x0, y0, x1, y1 = turned.x0, turned.y0, turned.x1, turned.y1
+                rects.append((round(x0, 2), round(y0, 2), round(x1, 2), round(y1, 2)))
             # El contexto: hasta 40 caracteres a cada lado, cortados donde empieza o acaba una palabra.
             before = text[max(start - 40, 0):start].split(" ", 1)[-1] if start > 40 else text[:start]
             after = text[end:end + 40].rsplit(" ", 1)[0] if len(text) > end + 40 else text[end:]
             snippet = text[start:end].strip()  # (as written on the page, not as folded)
             context = " ".join(p for p in (before.strip(), f"[{snippet}]", after.strip()) if p)
-            out.append(Match(number, rects, snippet, context))
+            out.append(Match(number, tuple(rects), snippet, context))
         if progress is not None and progress(done, len(numbers)) is False:
             break
     return out

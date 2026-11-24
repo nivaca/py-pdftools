@@ -122,8 +122,6 @@ class ResultsMixin:
         self.a_results.setShortcut(QKeySequence("F8"))
         self.a_results.setToolTip(tr("Every place where a text is, in a list, each with the words around it"))
         self.result_matches: list[Match] = []
-        self._results_cache: dict = {}
-        self._results_doc = None
         self.a_find_all = QAction(tr("Find all…"), self)
         self.a_find_all.setToolTip(tr("Every place of the text of Find as you type, in the panel Search results"))
         self.a_find_all.triggered.connect(self.find_all)
@@ -152,7 +150,6 @@ class ResultsMixin:
     def results_clear(self):
         """The list emptied (another document, or this one changed): its places may no longer be there."""
         self.result_matches = []
-        self._results_cache = {}
         self.results_list.clear()
         self.results_count.setText("")
 
@@ -164,8 +161,6 @@ class ResultsMixin:
         if self.doc is None or not text.strip():
             self.results_count.setText("")
             return 0
-        if self._results_doc is not self.doc:  # (otro documento: sus páginas se vuelven a leer)
-            self._results_cache, self._results_doc = {}, self.doc
 
         def progress(done, total):
             self.results_count.setText(tr("Looking… page {page} of {count}", page=done, count=total))
@@ -174,7 +169,7 @@ class ResultsMixin:
 
         case = self.results_case.isChecked()
         self.result_matches = find_text(self.doc, text, None, case=case, whole_words=self.results_whole.isChecked(),
-                                        accents=not case, progress=progress, cache=self._results_cache)
+                                        accents=not case, progress=progress, cache=self.text_index())
         labels = self.page_labels() if hasattr(self, "page_labels") else []
         items = []
         for i, m in enumerate(self.result_matches):

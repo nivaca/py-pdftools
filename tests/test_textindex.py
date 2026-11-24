@@ -70,3 +70,44 @@ def test_next_hit_stops_at_the_first(doc):
     # A stop asked for ends the search
     ix2 = TextIndex(doc)
     assert ix2.next_hit(ix2.query("zzz"), 0, 0, stop=lambda: True) is None and len(ix2.pages) == 1
+
+
+def test_find_text_with_the_index(doc):
+    """find_text reading through a TextIndex finds exactly what it finds alone, and reads each page once for
+    every search that shares the index."""
+    ix = TextIndex(doc)
+    for query, kw in (("scribe", {}), ("cancion", {"accents": True}), ("EDICIÓN", {"case": True}),
+                      (r"tran\\w+", {"regex": True}), ("tran*", {"wildcards": True})):
+        alone = [(m.page, m.rects, m.text, m.context) for m in find_text(doc, query, None, **kw)]
+        shared = [(m.page, m.rects, m.text, m.context) for m in find_text(doc, query, None, cache=ix, **kw)]
+        assert shared == alone, query
+    assert ix.complete()
+
+
+def test_one_index_for_every_search(tmp_path, monkeypatch):
+    """The window keeps one index for the document shown, and Find as you type and Find all use it; another
+    document, another index."""
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui.window import MainWindow
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    d = pymupdf.open()
+    for n in range(3):
+        d.new_page().insert_text((72, 72), f"page {n} the scribe")
+    d.save(tmp_path / "a.pdf")
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    try:
+        assert w.open_path(tmp_path / "a.pdf")
+        ix = w.text_index()
+        w.results_box.setText("scribe")
+        assert w.list_results() == 3 and ix.complete()  # (read once, here)
+        w.find_bar.open_bar()
+        assert w.find_bar._index() is ix
+        assert w.open_path(tmp_path / "a.pdf") and w.text_index() is not ix
+    finally:
+        w.find_bar.close_bar()
+        w.drop_work()
+        w.close()

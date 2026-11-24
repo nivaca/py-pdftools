@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-eight stages.
+I explain how it was made, in seventy-nine stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1801,10 +1801,28 @@ thinking. It was the second key of Full screen, taken with Okular's keys;
 it opens Find a command now, which keeps Ctrl+Alt+I too, and Full screen
 keeps F11.
 
+79. Every search as quick as the find bar
+-----------------------------------------
+
+Measured on a document of a thousand pages, almost everything took less
+than a tenth of a second, and Find all took nearly half a minute, with the
+window still. A profile showed why: nine tenths of the time went into
+reading the text of the pages, where each character became a rectangle
+turned as the page is shown, two million of them; the same fault the find
+bar had (stage 66), which its index had avoided only for itself. Find and
+highlight, Find and redact's search for words and Find all still went
+through the old reader. Now find_text reads the pages as the index does,
+keeps the text also without accents, turns only the boxes of what it finds,
+and gives exactly the same places, as a test checks against the old way on
+turned pages and with every option. And the window keeps one index for the
+document shown, which all the searches share: a page read by one is read
+for all. Find all on a thousand pages takes now under two seconds the first
+time, and a tenth of a second after.
+
 Testing
 -------
 
-The program has 772 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 774 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -74,10 +74,6 @@ class FindDialog(QDialog):
                                 (self.wildcards, "find_wildcards", True)):
             box.setChecked(self.settings.value(key, usual, type=bool))
             box.toggled.connect(lambda on, k=key: self.settings.setValue(k, on))
-        # TODO: the cache is emptied only when another Document object is searched; if the text of the
-        # same document changes (a redaction applied in place), the search still sees the old text.
-        self.cache: dict = {}  # (the text of the pages read: see find_text)
-        self.cache_doc = None
         self.scope = QComboBox()
         for value, name in SCOPES:
             self.scope.addItem(tr(name), value)
@@ -208,14 +204,12 @@ class FindDialog(QDialog):
 
         error = ""
         try:
-            if self.cache_doc is not doc:  # (another document: its pages are read again)
-                self.cache, self.cache_doc = {}, doc
             # Los comodines no se combinan con una expresión regular: con regex, * y ? son de la regex.
             self.matches = find_text(doc, self.query.text(), self.pages(), self.case.isChecked(),
                                      self.whole.isChecked(), self.regex.isChecked(), progress,
                                      accents=self.accents.isChecked(), uv=self.uv.isChecked(),
                                      wildcards=self.wildcards.isChecked() and not self.regex.isChecked(),
-                                     cache=self.cache)
+                                     cache=self.window.text_index())
             self._remember(self.query.text().strip())
         # Una expresión regular mal escrita se informa en el resumen, sin cuadro de error.
         except re.error as e:

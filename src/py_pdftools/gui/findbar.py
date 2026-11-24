@@ -268,11 +268,8 @@ class FindBar(QFrame):
 
     def _index(self) -> TextIndex | None:
         """The index of the document shown (a new one if the document is another)."""
-        doc = self.window.doc
-        if doc is None:
-            self.index = None
-        elif self.index is None or self.index.doc is not doc:
-            self.index = TextIndex(doc)
+        # (el de la ventana, el mismo de las otras búsquedas: cada página se lee una vez para todas)
+        self.index = self.window.text_index()
         return self.index
 
     def _edited(self, _text: str):

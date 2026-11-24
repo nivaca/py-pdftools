@@ -1032,6 +1032,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                 for act in other.actions:
                     act.setEnabled(False)
 
+    _text_index = None
+
+    def text_index(self):
+        """The index of the text of the document shown (annotate/textindex.py), one for every search: Find as
+        you type, Find all and Find and highlight read each page once between them. A new one when the
+        document is another (opening a file, or a change of its pages, which loads a new copy)."""
+        from ..annotate.textindex import TextIndex
+
+        if self.doc is None:
+            return None
+        if self._text_index is None or self._text_index.doc is not self.doc:
+            self._text_index = TextIndex(self.doc)
+        return self._text_index
+
     def find_again(self, by: int):
         """The next place (BY 1) or the previous one (BY -1) of the text of Find as you type; with no text
         yet, or the panel closed, the panel comes down (with its last text, searched again)."""
