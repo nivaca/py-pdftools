@@ -111,3 +111,56 @@ def test_one_index_for_every_search(tmp_path, monkeypatch):
         w.find_bar.close_bar()
         w.drop_work()
         w.close()
+
+
+def test_find_all_page_by_page_and_stopped(tmp_path, monkeypatch):
+    """Find all fills its list as it goes; a new search started meanwhile stops the one running, which leaves
+    the list to it; closing the panel stops it too."""
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui.window import MainWindow
+
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    d = pymupdf.open()
+    for n in range(40):
+        d.new_page().insert_text((72, 72), f"page {n} the scribe and the copy")
+    d.save(tmp_path / "a.pdf")
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    try:
+        assert w.open_path(tmp_path / "a.pdf")
+        w.show()
+        w.results_dock.show()
+        QApplication.processEvents()
+        w._reader.stop()  # (it started reading ahead when the panel opened; stopped, each page is read during the search)
+        w.text_index().pages.clear()
+        w.results_box.setText("scribe")
+        started = []
+        real = w.results_count.setText
+
+        def told(text):  # (the first time the panel says how far it got, a new search is asked for)
+            real(text)
+            if "Looking" in text and not started:
+                started.append(1)
+                w.results_box.setText("copy")
+                assert w.list_results() == 40  # (the new one: whole)
+
+        monkeypatch.setattr(w.results_count, "setText", told)
+        import py_pdftools.gui.results as results
+        monkeypatch.setattr(results.time, "perf_counter", lambda c=iter(range(0, 10 ** 6)): next(c))  # (every page)
+        assert w.list_results() == 0  # (the first one stopped: the list is the new one's)
+        assert started and w.results_list.topLevelItemCount() == 40 and w.result_matches[0].text == "copy"
+        # Closed while it runs: it stops
+        def close_it(text):
+            real(text)
+            if "Looking" in text:
+                w.results_dock.hide()
+                QApplication.processEvents()
+
+        monkeypatch.setattr(w.results_count, "setText", close_it)
+        w.text_index().pages.clear()
+        assert w.list_results() == 0 and not w.results_dock.isVisible()
+    finally:
+        w.drop_work()
+        w.close()

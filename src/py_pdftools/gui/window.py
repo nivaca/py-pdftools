@@ -1046,6 +1046,23 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             self._text_index = TextIndex(self.doc)
         return self._text_index
 
+    def read_ahead(self):
+        """Read the pages of the document shown into its index (text_index), a few milliseconds at a time while
+        the program is idle, so that the first search doesn't wait for them; it stops when every page is read."""
+        timer = getattr(self, "_reader", None)
+        if timer is None:
+            timer = self._reader = QTimer(self)
+            timer.setInterval(0)
+            timer.timeout.connect(self._read_some)
+        timer.start()
+
+    def _read_some(self):
+        import time
+
+        index = self.text_index()
+        if index is None or not index.read_some_for(time.perf_counter() + 0.008):
+            self._reader.stop()
+
     def find_again(self, by: int):
         """The next place (BY 1) or the previous one (BY -1) of the text of Find as you type; with no text
         yet, or the panel closed, the panel comes down (with its last text, searched again)."""

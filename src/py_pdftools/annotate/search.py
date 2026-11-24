@@ -113,8 +113,9 @@ def compile_query(query: str, case: bool = False, whole_words: bool = False, reg
 
 def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None, case: bool = False,
               whole_words: bool = False, regex: bool = False, progress=None, accents: bool = False,
-              uv: bool = False, wildcards: bool = False, cache=None) -> list[Match]:
-    """Where QUERY is on PAGES (0-based; all if None) of DOC, in page order. ACCENTS: without
+              uv: bool = False, wildcards: bool = False, cache=None, on_page=None) -> list[Match]:
+    """Where QUERY is on PAGES (0-based; all if None) of DOC, in page order. ON_PAGE, if given, is told the
+    places of each page as soon as that page is searched (number, matches), to show them while it goes on. ACCENTS: without
     minding accents; UV: u and v, i and j as one (see fold); WILDCARDS: see compile_query. PROGRESS,
     if given, is called after each page with (pages done, pages in all); if it returns False,
     the search stops there, with what it found so far. CACHE, if given, keeps the text of each page
@@ -145,6 +146,7 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
         else:
             page = _Page(doc[number])
         text, where = page.text, page.where
+        first = len(out)  # (where this page's places begin, for ON_PAGE)
         if accents and not uv:
             searched, index = page.folded, page.index  # (ya plegado al leer la página)
         elif folding:
@@ -184,6 +186,8 @@ def find_text(doc: pymupdf.Document, query: str, pages: list[int] | None = None,
             snippet = text[start:end].strip()  # (as written on the page, not as folded)
             context = " ".join(p for p in (before.strip(), f"[{snippet}]", after.strip()) if p)
             out.append(Match(number, tuple(rects), snippet, context))
+        if on_page is not None:
+            on_page(number, out[first:])
         if progress is not None and progress(done, len(numbers)) is False:
             break
     return out

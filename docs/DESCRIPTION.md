@@ -1817,12 +1817,17 @@ and gives exactly the same places, as a test checks against the old way on
 turned pages and with every option. And the window keeps one index for the
 document shown, which all the searches share: a page read by one is read
 for all. Find all on a thousand pages takes now under two seconds the first
-time, and a tenth of a second after.
+time, and a tenth of a second after. Find all also stopped freezing the window: it
+puts the places of each page in its list as soon as that page is searched
+(the first ones show within a fifth of a second), a new search or the
+panel closed stops the one running (before, a second search could start
+inside the first, which then wrote its stale list over it), and the panel
+reads the pages ahead while it is open.
 
 Testing
 -------
 
-The program has 774 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 775 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

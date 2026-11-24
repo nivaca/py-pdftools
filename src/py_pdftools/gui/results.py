@@ -7,6 +7,7 @@ rápida si el suyo está vacío; la lista se vacía cuando el documento cambia."
 from __future__ import annotations
 
 import html
+import time
 
 from PySide6.QtCore import QModelIndex, QRectF, QSize, Qt
 from PySide6.QtGui import QAction, QKeySequence, QPalette, QTextDocument
@@ -129,7 +130,9 @@ class ResultsMixin:
     def _results_shown(self, visible: bool):
         # (al abrirse, el texto de Buscar mientras se escribe, si el panel no tiene uno, y el cursor en la casilla)
         if not visible:
+            self._results_run += 1  # (una búsqueda en curso se detiene)
             return
+        self.read_ahead()  # (las páginas, leídas en los ratos libres: la primera búsqueda ya no las espera)
         if not self.results_box.text().strip():
             text = self.find_bar.text().strip()
             if text:
@@ -153,32 +156,61 @@ class ResultsMixin:
         self.results_list.clear()
         self.results_count.setText("")
 
+    _results_run = 0  # (the search running: a new one, or the panel closed, makes the one before stop)
+
     def list_results(self) -> int:
-        """Every place of the text of the box, in the list; how many."""
+        """Every place of the text of the box, in the list; how many. The places of each page go into the list
+        as soon as it is searched, so the first ones are seen at once in a long document; the window keeps
+        answering, and a new search (Enter again, an option changed) or the panel closed stops this one, which
+        then leaves the list alone."""
+        self._results_run += 1
+        run = self._results_run
         self.results_list.clear()
         self.result_matches = []
         text = self.results_box.text()
         if self.doc is None or not text.strip():
             self.results_count.setText("")
             return 0
+        labels = self.page_labels() if hasattr(self, "page_labels") else []
+        waiting: list = []  # (los lugares hallados que aún no están en la lista)
+        last = [time.perf_counter()]
+
+        def show_waiting():
+            items = []
+            for m in waiting:
+                i = len(self.result_matches)
+                self.result_matches.append(m)
+                label = labels[m.page] if m.page < len(labels) and labels[m.page] else str(m.page + 1)
+                item = QTreeWidgetItem([label, _short(m.context)])
+                item.setData(0, MATCH, i)
+                item.setToolTip(1, " ".join(m.context.split()))
+                items.append(item)
+            waiting.clear()
+            self.results_list.addTopLevelItems(items)
+
+        def on_page(_number, found):
+            if run == self._results_run:
+                waiting.extend(found)
 
         def progress(done, total):
-            self.results_count.setText(tr("Looking… page {page} of {count}", page=done, count=total))
-            QApplication.processEvents()
-            return True
+            if run != self._results_run:  # (another search, or the panel closed: see _results_shown)
+                return False
+            # (unas veces por segundo, no en cada página: la lista y el texto se dibujan entonces)
+            now = time.perf_counter()
+            if now - last[0] > 0.15:
+                last[0] = now
+                show_waiting()
+                self.results_count.setText(tr("Looking… page {page} of {count}: {found} found", page=done,
+                                              count=total, found=len(self.result_matches)))
+                QApplication.processEvents()
+            return run == self._results_run
 
         case = self.results_case.isChecked()
-        self.result_matches = find_text(self.doc, text, None, case=case, whole_words=self.results_whole.isChecked(),
-                                        accents=not case, progress=progress, cache=self.text_index())
-        labels = self.page_labels() if hasattr(self, "page_labels") else []
-        items = []
-        for i, m in enumerate(self.result_matches):
-            label = labels[m.page] if m.page < len(labels) and labels[m.page] else str(m.page + 1)
-            item = QTreeWidgetItem([label, _short(m.context)])
-            item.setData(0, MATCH, i)
-            item.setToolTip(1, " ".join(m.context.split()))
-            items.append(item)
-        self.results_list.addTopLevelItems(items)
+        find_text(self.doc, text, None, case=case, whole_words=self.results_whole.isChecked(), accents=not case,
+                  progress=progress, cache=self.text_index(), on_page=on_page)
+        if run != self._results_run:
+            return 0  # (otra búsqueda empezó mientras tanto: la lista es suya)
+        show_waiting()
         count = len(self.result_matches)
         pages = len({m.page for m in self.result_matches})
         self.results_count.setText(tr("Not found") if not count else

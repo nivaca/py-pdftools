@@ -13984,4 +13984,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>New signature</en>
     <tr>Nueva firma</tr>
   </text>
+  <text>
+    <en>Looking… page {page} of {count}: {found} found</en>
+    <tr>Buscando… página {page} de {count}: encontrados, {found}</tr>
+  </text>
 </interface>

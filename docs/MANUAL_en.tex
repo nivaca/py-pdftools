@@ -702,7 +702,11 @@ over them (see section~\ref{sec:redact}).
 page and the words around it, the text found in bold; when it opens it
 takes the text of Find as you type. It can match case or whole words. A
 click, \key{Enter} or the arrows go to each place and show it for a moment.
-The list is emptied when the document changes.
+The list is emptied when the document changes. In a long document the
+places come into the list as they are found, so the first ones are there
+at once, and the window keeps answering; a new search, or closing the
+panel, stops the one running. While the panel is open the pages are read
+ahead, when the program is idle, so that searching doesn't wait for them.
 
 \index{attached files}%
 \menu{View\then Panels\then Attached files} (\key{F9}) lists the files the
