@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-nine stages.
+I explain how it was made, in eighty stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1828,10 +1828,22 @@ scans without text it read the text of every page. It now looks first for
 images, which is cheap, and reads the text only of the pages that have
 some; a book made of text opens the mode in a twentieth of a second.
 
+80. Starting without the tray
+-----------------------------
+
+To try a version from the source code I had to quit the one installed
+first, every time: with Keep running in the background on, a new start
+gives its files to the program already running and ends, so the source
+code never ran, and the window I saw was the old one; that is how a fixed
+picture of a signature seemed still wrong. py-pdftools-gui --no-tray starts
+a program of its own that time, whatever the setting says: it doesn't give
+its files to the program running, doesn't go into the background, and ends
+with its last window. The setting is left as it is.
+
 Testing
 -------
 
-The program has 775 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 776 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -261,7 +261,11 @@ funcionando, con sus procesos de dibujo listos y un icono en la bandeja
 (donde el escritorio la tiene), y py-pdftools-gui, iniciado otra vez, abre
 allí sus archivos al instante. Archivo > Salir lo termina. Una ventana
 queda lista, oculta, para el siguiente documento, que entonces se abre en
-unas centésimas de segundo. Con Configuración > General > Empezar con la
+unas centésimas de segundo. `py-pdftools-gui --no-tray` arranca esta vez un
+programa propio, diga lo que diga la opción: ni en segundo plano, ni pasando
+sus archivos al que ya corre, y termina con su última ventana (para probar
+una versión desde el código, `uv run py-pdftools-gui --no-tray`, junto a la
+instalada). Con Configuración > General > Empezar con la
 sesión, py-pdftools arranca al iniciar la sesión, en la bandeja y sin
 ventana (`py-pdftools-gui --background`), de modo que también el primer
 documento del día se abre al instante. En Windows, esta opción es un valor

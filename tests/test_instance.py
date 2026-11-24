@@ -88,6 +88,23 @@ def test_a_second_start_ends_at_once(app, tmp_path, monkeypatch):
     assert gui.main([]) == 0 and len(_WINDOWS) == before + 1
 
 
+def test_no_tray(app, tmp_path, monkeypatch, capsys):
+    """--no-tray: with the setting on, this start neither gives its files to the program running nor goes
+    into the background: a program of its own (to try a version from the source beside the one installed).
+    The setting stays as it was."""
+    config.set("background", True)
+    monkeypatch.setattr(instance, "send", lambda files: pytest.fail("given to the program running"))
+    started = []
+    monkeypatch.setattr(gui, "background", lambda on: started.append(on) or True)
+    monkeypatch.setattr(app, "exec", lambda: 0)
+    before = len(_WINDOWS)
+    assert gui.main(["--no-tray"]) == 0
+    assert started == [] and len(_WINDOWS) == before + 1 and config.get("background") is True
+    assert gui.main(["--no-tray", "--background"]) == 2
+    assert "can't go together" in capsys.readouterr().err
+    assert gui.main(["--help"]) == 0 and "--no-tray" in capsys.readouterr().out
+
+
 def test_quit_and_the_setting(app, tmp_path, monkeypatch):
     from py_pdftools.gui.prefs import SettingsDialog
 

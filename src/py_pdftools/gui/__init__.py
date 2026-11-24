@@ -27,10 +27,18 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     if argv and argv[0] in ("--help", "-h"):
         print("Usage: py-pdftools-gui [file.pdf]   (the command line: py-pdftools --help)\n"
-              "       py-pdftools-gui --background  (in the tray, without a window: documents then open at once)")
+              "       py-pdftools-gui --background  (in the tray, without a window: documents then open at once)\n"
+              "       py-pdftools-gui --no-tray     (this time not in the background, whatever the settings say:\n"
+              "                                      a program of its own, which ends with its last window)")
         return 0
     hidden = "--background" in argv  # (started with the session: in the tray, without a window)
-    argv = [a for a in argv if a != "--background"]
+    # --no-tray: esta vez, ni en segundo plano ni pasando los archivos a uno que ya corre (para probar una
+    # versión desde el código sin cerrar la instalada); la configuración no cambia
+    no_tray = "--no-tray" in argv
+    if hidden and no_tray:
+        print("py-pdftools-gui: --background and --no-tray can't go together", file=sys.stderr)
+        return 2
+    argv = [a for a in argv if a not in ("--background", "--no-tray")]
     from .navigation import split_place
 
     # (a file may come with a place: book.pdf#page=12, book.pdf#nameddest=intro)
@@ -42,7 +50,7 @@ def main(argv: list[str] | None = None) -> int:
     # (a local socket needs no application object: none is made, so the window's can be made after)
     if hidden and instance.running():  # (en segundo plano ya: nada que hacer)
         return 0
-    if not hidden and instance.enabled() and instance.send(files):
+    if not hidden and not no_tray and instance.enabled() and instance.send(files):
         return 0
     # Tesseract (sus idiomas) y Ghostscript se buscan ya, en otro hilo, mientras se carga lo demás: buscarlos
     # los ejecuta, y la ventana los necesita (el menú OCR, Guardar como PDF/A).
@@ -102,7 +110,7 @@ def main(argv: list[str] | None = None) -> int:
         win.show()
     for other in files[1:]:
         open_window(other)
-    if instance.enabled():
+    if instance.enabled() and not no_tray:
         background(True)
     return app.exec()
 

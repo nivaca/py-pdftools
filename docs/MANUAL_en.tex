@@ -346,7 +346,11 @@ window ready for the next document, hidden. Running
 \texttt{py-pdftools-gui} again, or opening a PDF from the file manager,
 then shows that window in a few hundredths of a second. The icon of the
 tray opens a window or ends the program; \menu{File\then Quit}
-(\key{Ctrl+Q}) ends it too.
+(\key{Ctrl+Q}) ends it too. \texttt{py-pdftools-gui --no-tray} starts a
+program of its own that time, whatever the setting says: it doesn't go
+into the background, doesn't hand its files to the program running, and
+ends with its last window; the setting stays as it is. It serves to try a
+version from the source code beside the one installed.
 
 \index{background, running in the}\index{session, start with the}%
 With \menu{Settings\then General\then Start with the session} the program

@@ -356,7 +356,11 @@ tenga una) y una ventana preparada, oculta, para el próximo documento.
 Volver a ejecutar \texttt{py-pdftools-gui}, o abrir un PDF desde el gestor
 de archivos, muestra entonces esa ventana en unas centésimas de segundo. El
 icono de la bandeja abre una ventana o termina el programa; también lo
-termina \menu{Archivo\then Salir} (\key{Ctrl+Q}).
+termina \menu{Archivo\then Salir} (\key{Ctrl+Q}). \texttt{py-pdftools-gui
+--no-tray} arranca esa vez un programa propio, diga lo que diga la opción: no
+pasa a segundo plano, no entrega sus archivos al programa que ya corre y
+termina con su última ventana; la opción queda como está. Sirve para probar
+una versión desde el código fuente junto a la instalada.
 
 \index{segundo plano}\index{sesion, empezar con la@sesión, empezar con la}%
 Con \menu{Configuración\then General\then Empezar con la sesión}, el

@@ -253,7 +253,11 @@ faster: when the last window is closed, py-pdftools goes on running, with
 its pages ready to be drawn and an icon in the tray (where the desktop has
 one), and py-pdftools-gui started again opens its files in it, at once.
 File > Quit ends it. A window is kept ready, hidden, for the next document,
-which then opens in a few hundredths of a second. With Settings > General >
+which then opens in a few hundredths of a second. `py-pdftools-gui
+--no-tray` starts a program of its own this time, whatever the setting says:
+not in the background, not handing its files to the one running, and ended
+with its last window (to try a version from the source, `uv run
+py-pdftools-gui --no-tray`, beside the one installed). With Settings > General >
 Start with the session, py-pdftools starts when you log in, in the tray and
 without a window (`py-pdftools-gui --background`), so that the first
 document of the day opens at once too. On Windows this setting is a value
