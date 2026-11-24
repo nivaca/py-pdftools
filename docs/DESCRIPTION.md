@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-four stages.
+I explain how it was made, in seventy-five stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1725,10 +1725,27 @@ the signature appears, as three choices in words; the third, why one
 signs. The rest went under More options. The dialog to create an ID marks
 what is optional and says what the two files it makes are for.
 
+75. A signature from a picture
+------------------------------
+
+The handwritten signature could only be drawn in the program, with a pen
+or the mouse, and many people already have theirs scanned, or can
+photograph it. The dialog My signature can now take a picture. A photo of
+a signature is mostly paper, and paper is never quite white; put on a page
+as it is, it would be a grey box with a signature in it. So the paper is
+made transparent: each pixel becomes as transparent as it is light, all
+of it paper above a light grey, all of it ink below a dark one, and the
+edges of the strokes in between stay soft. MuPDF's pixmaps do this with a
+table of 256 values applied to all the pixels at once, so a photo of
+several megapixels takes some twenty milliseconds, and the picture is then
+cut to the rows and columns that have ink. The Signature tool puts the
+drawing or the picture, whichever was chosen last; the picture goes as an
+image stamp, which the program already knew how to read and write.
+
 Testing
 -------
 
-The program has 761 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 764 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

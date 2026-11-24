@@ -103,8 +103,8 @@ TOOLS = [
      ("callout", "draw-callout", N_("Press on the place to point at, and drag to where its text goes")),
      ("typewriter", "typewriter", N_("Click on the page and write there, as with a typewriter: no box, no "
                                      "border")),
-     ("signature", "signature", N_("Click where your signature goes (drawn once, by hand: right-click the tool "
-                                   "to draw it again)")),
+     ("signature", "signature", N_("Click where your signature goes (drawn once by hand, or a picture of it: "
+                                   "right-click the tool to change it)")),
      ("attachment", "mail-attachment", N_("Click where a file is to be attached, and choose it")),
      ("mark", "check-mark", N_("Click to put a check mark, a cross, a dot or a dash, as on a form (right-click "
                                "the tool to choose it)")),
@@ -1642,7 +1642,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             menu.addSeparator()
             menu.addAction(tr("Tool properties…"), lambda: self.tool_dialog(tool))
         if tool == "signature":
-            menu.addAction(tr("Draw my signature again…"), self.draw_signature)
+            menu.addAction(tr("My signature (draw it, or use a picture)…"), self.draw_signature)
         if tool == "mark":
             for key, (name, _) in MARKS.items():
                 act = menu.addAction(tr(name), lambda k=key: self.set_mark(k))
@@ -1833,9 +1833,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         corner at RECT's (or an empty drawing, if there is none yet)."""
         from . import signature
 
-        style = self.prefs.style("ink")
         x0, y0 = rect[0], rect[1]
         s = self.SIGNATURE_WIDTH
+        if signature.source(self.settings) == "picture":
+            # Una imagen de la firma: un sello de imagen, de ese ancho y con sus proporciones
+            found = signature.picture()
+            if found is not None:
+                data, ratio = found
+                box = (round(x0, 2), round(y0, 2), round(x0 + s, 2), round(y0 + s * ratio, 2))
+                return Annotation("stamp", page, box, "#000000", image=data, contents=tr("Signature"),
+                                  author=self.prefs.author, layer=self.layer)
+        style = self.prefs.style("ink")
         # The signature is kept in a unit square: it is scaled to SIGNATURE_WIDTH and placed at the click.
         paths = tuple(tuple((round(x0 + u * s, 2), round(y0 + v * s, 2)) for u, v in stroke)
                       for stroke in signature.load(self.settings))
@@ -1845,13 +1853,24 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                           paths=paths, author=self.prefs.author, contents=tr("Signature"), layer=self.layer)
 
     def draw_signature(self) -> bool:
-        """Draw the signature again (Signature tool, right-click)."""
+        """My signature: drawn, or from a picture (Signature tool, right-click; or the first time it is used)."""
         from . import signature
 
         dialog = signature.SignatureDialog(self)
-        if dialog.exec() != QDialog.DialogCode.Accepted or not dialog.strokes():
+        if dialog.exec() != QDialog.DialogCode.Accepted:
             return False
-        signature.store(self.settings, dialog.strokes())
+        if dialog.kind == "picture":
+            if not dialog.picture_data:
+                return False
+            try:
+                signature.store_picture(self.settings, dialog.picture_data)
+            except OSError as e:
+                self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+                return False
+        elif dialog.strokes():
+            signature.store(self.settings, dialog.strokes())
+        else:
+            return False
         self.status(tr("Signature kept: click with the Signature tool where it goes"))
         return True
 
