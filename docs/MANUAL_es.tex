@@ -1711,16 +1711,22 @@ nombre, una dirección de correo y los demás datos.
 
 \index{contrasenas@contraseñas}\index{anotaciones!sello}\index{anotaciones!bloquear}\index{formularios}\index{censura!recuadros}\index{firmas digitales}\index{firmas digitales!certificar}%
 \menu{Archivo\then Seguridad\then Firmar digitalmente}
-(figura~\ref{fig:sign_es}) lo firma con un ID y su contraseña, con un
-motivo, un lugar y un contacto. Una firma visible se arrastra a su lugar en
-la página, o va en un campo de firma vacío del formulario; una invisible
-está solo en el archivo. \menu{Certificar}, en la primera firma de un
-documento, hace que diga qué puede cambiarse aún después de ella: nada,
-llenar el formulario, o llenarlo y anotar; \menu{Bloquear los campos del
-formulario una vez firmado} hace lo que dice. Un servidor de sellos de
-tiempo añade una hora que no depende del reloj del computador. El documento
-firmado se guarda como un archivo nuevo: la firma lo cubre tal como se
-guarda en ese momento.
+(figura~\ref{fig:sign_es}) va en tres pasos. Primero, \menu{Su ID
+digital}: si no hay uno, dice qué es y ofrece \menu{Crear mi ID digital}
+(el diálogo de arriba, que luego vuelve aquí) o \menu{Usar un ID digital que
+tengo}; si lo hay, dice de quién es y hasta cuándo vale, y su contraseña se
+comprueba a medida que se escribe, con una marca de verificación cuando es la
+correcta. Segundo, \menu{Dónde se ve la firma}: en una página (luego se
+arrastra un recuadro donde va), en un campo de firma vacío del formulario,
+o en ninguna parte, una firma invisible, que igual está en el archivo.
+Tercero, \menu{Por qué firma}, si se quiere. \menu{Más opciones} tiene el
+lugar, un contacto, \menu{Certificar} (en la primera firma de un documento:
+qué puede cambiarse aún después de ella, nada, llenar el formulario, o
+llenarlo y anotar), \menu{Bloquear los campos del formulario una vez
+firmado} y un servidor de sellos de tiempo, que añade una hora que no
+depende del reloj del computador. \menu{Firmar y guardar} pregunta entonces
+dónde va el documento firmado: es un archivo nuevo, y la firma lo cubre tal
+como se guarda en ese momento; el documento abierto queda como está.
 
 \shot{sign_es}{0.6}{Firmar un documento.}
 

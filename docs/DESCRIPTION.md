@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in seventy-three stages.
+I explain how it was made, in seventy-four stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1707,10 +1707,28 @@ after pytest's summary, and the runner read the last line; it now reads
 the summary, wherever it is. The release runs the tests this way too; the
 %check of the RPM still runs them one after the other.
 
+74. Signing, said plainly
+-------------------------
+
+The dialog to sign digitally asked first for a "Digital ID" (the path of a
+file) and its password, then for a reason, a place, a contact, where the
+signature goes, certifying, locking and a timestamp server, all at once;
+someone who had never had a digital ID couldn't tell what to do, and the
+way to make one was another item of the menu. It now goes in three steps,
+said plainly. The first is the digital ID: without one, the dialog says
+what it is and offers to create it there, or to use one already had; with
+one, it says whose it is and until when it is valid, read from the
+certificate saved beside it, so no password is needed for that, and the
+password is checked as it is typed (a check mark, or "wrong password"), so
+the button to sign is on only when signing can work. The second is where
+the signature appears, as three choices in words; the third, why one
+signs. The rest went under More options. The dialog to create an ID marks
+what is optional and says what the two files it makes are for.
+
 Testing
 -------
 
-The program has 744 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 761 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

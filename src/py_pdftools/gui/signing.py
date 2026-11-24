@@ -24,13 +24,16 @@ class IdDialog(QDialog):
 
     def __init__(self, parent=None, author: str = ""):
         super().__init__(parent)
-        self.setWindowTitle(tr("Create a digital ID"))
+        self.setWindowTitle(tr("Create your digital ID"))
         self.name = QLineEdit(author)
+        self.name.setPlaceholderText(tr("As it will appear in your signatures"))
         self.email = QLineEdit()
         self.organization = QLineEdit()
+        for w in (self.email, self.organization):
+            w.setPlaceholderText(tr("Optional"))
         self.country = QLineEdit()
         self.country.setMaxLength(2)
-        self.country.setPlaceholderText("CO, ES, US…")
+        self.country.setPlaceholderText(tr("Optional: CO, ES, US…"))
         self.years = QSpinBox(minimum=1, maximum=20, value=3, suffix=" " + tr("years"))
         self.password, self.again = QLineEdit(), QLineEdit()
         for w in (self.password, self.again):
@@ -38,21 +41,23 @@ class IdDialog(QDialog):
             w.textChanged.connect(lambda _t: self._check())
         self.name.textChanged.connect(lambda _t: self._check())
         form = QFormLayout()
-        form.addRow(tr("Name:"), self.name)
+        self.password.setPlaceholderText(tr("Six characters or more"))
+        form.addRow(tr("Your name:"), self.name)
         form.addRow(tr("E-mail:"), self.email)
         form.addRow(tr("Organisation:"), self.organization)
         form.addRow(tr("Country:"), self.country)
         form.addRow(tr("Valid for:"), self.years)
-        form.addRow(tr("Password:"), self.password)
-        form.addRow(tr("Again:"), self.again)
-        note = QLabel(tr("A self-signed ID: enough to sign your documents, and for others to check that nothing "
-                         "changed after you signed. They trust it when you give them its certificate (the .cer "
-                         "file saved beside it). Keep the ID file and its password to yourself."))
+        form.addRow(tr("A password:"), self.password)
+        form.addRow(tr("The same password again:"), self.again)
+        note = QLabel(tr("Your digital ID is a file (.p12) that you sign with, protected by this password: keep "
+                         "both to yourself, since anyone who has them can sign as you. A certificate (.cer) is "
+                         "saved beside it: give it to those who must check your signatures, so that their "
+                         "programs trust them."))
         note.setWordWrap(True)
         self.problem = QLabel()
         self.problem.setWordWrap(True)
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
-        self.b_ok = buttons.addButton(tr("Save the ID…"), QDialogButtonBox.ButtonRole.AcceptRole)
+        self.b_ok = buttons.addButton(tr("Create and save…"), QDialogButtonBox.ButtonRole.AcceptRole)
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
         lay = QVBoxLayout(self)
@@ -83,40 +88,93 @@ class IdDialog(QDialog):
 
 
 class SignDialog(QDialog):
-    """How to sign: the digital ID and its password, the reason, place and contact, where the signature goes
-    (an area drawn on the page, an empty field of the form, or nowhere: invisible), whether it certifies the
-    document, locks its fields, and a timestamp server."""
+    """Sign the document digitally, in three steps said plainly: 1. the digital ID to sign with (with a way to
+    make one, for those who have none) and its password, checked as it is typed; 2. where the signature
+    appears (a box dragged on the page, an empty signature field of the form, or nowhere); 3. why one signs.
+    The rest (place, contact, certifying, locking the form, a timestamp server) under More options."""
 
     def __init__(self, parent=None, id_path: str = "", empty: list[str] | None = None, signed: bool = False,
-                 remembered: dict | None = None):
+                 remembered: dict | None = None, on_create=None):
+        from PySide6.QtWidgets import QButtonGroup, QGroupBox, QRadioButton, QToolButton
+
         from ..signatures.sign import CERTIFY
 
         super().__init__(parent)
         self.setWindowTitle(tr("Sign digitally"))
         r = remembered or {}
-        self.id_path = QLineEdit(id_path)
-        choose = QPushButton(tr("Choose…"))
-        choose.clicked.connect(self._choose_id)
-        row = QHBoxLayout()
-        row.setContentsMargins(0, 0, 0, 0)
-        row.addWidget(self.id_path, 1)
-        row.addWidget(choose)
-        id_box = QWidget()
-        id_box.setLayout(row)
+        self.on_create = on_create  # (makes a new digital ID: its path, or None; see SignMixin.make_id_dialog)
+        intro = QLabel(tr("A digital signature shows that you signed this document, and that nothing in it changed "
+                          "afterwards. The signed document is saved as a new file; this one stays as it is."))
+        intro.setWordWrap(True)
+
+        # 1. El identificador digital: quién firma, y su contraseña
+        step1 = QGroupBox(tr("1. Your digital ID"))
+        self.id_path = QLineEdit(id_path)  # (the path chosen; shown in words, not as a field)
+        self.id_path.hide()
+        self.who = QLabel()
+        self.who.setWordWrap(True)
+        self.who.setTextFormat(Qt.TextFormat.RichText)
+        self.b_create = QPushButton(tr("Create my digital ID…"))
+        self.b_create.setToolTip(tr("Make a digital ID now: your name, and a password to protect it"))
+        self.b_create.clicked.connect(self._create)
+        self.b_choose = QPushButton(tr("Use a digital ID I have…"))
+        self.b_choose.setToolTip(tr("A .p12 or .pfx file, made here or given to you"))
+        self.b_choose.clicked.connect(self._choose_id)
+        ids_row = QHBoxLayout()
+        ids_row.addWidget(self.b_create)
+        ids_row.addWidget(self.b_choose)
+        ids_row.addStretch(1)
         self.password = QLineEdit()
         self.password.setEchoMode(QLineEdit.EchoMode.Password)
-        self.reason, self.location, self.contact = (QLineEdit(r.get(k, "")) for k in ("reason", "location",
-                                                                                     "contact"))
-        self.where = QComboBox()
-        self.where.addItem(tr("Visible: drag where it goes on the page"), "draw")
-        for name in empty or []:
-            self.where.addItem(tr("In the empty field {name}", name=name), "field:" + name)
-        self.where.addItem(tr("Invisible"), "none")
-        if empty:
-            self.where.setCurrentIndex(1)
+        self.password.setPlaceholderText(tr("The password you gave it when it was made"))
+        self.password_said = QLabel()
+        pw_row = QHBoxLayout()
+        pw_row.addWidget(QLabel(tr("Its password:")))
+        pw_row.addWidget(self.password, 1)
+        pw_row.addWidget(self.password_said)
+        self.pw_box = QWidget()
+        self.pw_box.setLayout(pw_row)
+        pw_row.setContentsMargins(0, 0, 0, 0)
+        box1 = QVBoxLayout(step1)
+        box1.addWidget(self.who)
+        box1.addLayout(ids_row)
+        box1.addWidget(self.pw_box)
+
+        # 2. Dónde se ve la firma
+        step2 = QGroupBox(tr("2. Where the signature appears"))
+        box2 = QVBoxLayout(step2)
+        self.places = QButtonGroup(self)
+        options = [(tr("On a page: after this, drag a box where it goes"), "draw")]
+        options += [(tr("In the signature field «{name}» of the form", name=name), "field:" + name)
+                    for name in empty or []]
+        options.append((tr("Nowhere: an invisible signature (it is in the file all the same, and can be checked)"),
+                        "none"))
+        self._place_buttons = []
+        for text, key in options:
+            b = QRadioButton(text)
+            b.setProperty("place", key)
+            self.places.addButton(b)
+            box2.addWidget(b)
+            self._place_buttons.append(b)
+        # (un campo vacío del formulario es lo que el documento pide: va elegido; si no, en la página)
+        self._place_buttons[1 if empty else 0].setChecked(True)
+
+        # 3. Por qué se firma
+        step3 = QGroupBox(tr("3. Why you sign (optional)"))
+        self.reason = QLineEdit(r.get("reason", ""))
+        self.reason.setPlaceholderText(tr("For example: I approve this document"))
+        box3 = QVBoxLayout(step3)
+        box3.addWidget(self.reason)
+
+        # Más opciones, plegadas: casi nunca hacen falta
+        self.location, self.contact = (QLineEdit(r.get(k, "")) for k in ("location", "contact"))
+        self.location.setPlaceholderText(tr("For example: Bogotá"))
+        self.contact.setPlaceholderText(tr("For example: an e-mail address"))
         self.certify = QComboBox()
         for key, name in CERTIFY:
             self.certify.addItem(tr(name), key)
+        self.certify.setToolTip(tr("A certifying signature says what may still be changed in the document after "
+                                   "it; an ordinary one says nothing about that"))
         self.certify.setEnabled(not signed)
         if signed:
             self.certify.setToolTip(tr("Only the first signature of a document can certify it"))
@@ -125,46 +183,132 @@ class SignDialog(QDialog):
         self.timestamp.setPlaceholderText(tr("(none) — e.g. http://timestamp.example.org"))
         self.timestamp.setToolTip(tr("A timestamp server (RFC 3161) vouches for the time of the signature; it "
                                      "needs the internet"))
-        form = QFormLayout()
-        form.addRow(tr("Digital ID:"), id_box)
-        form.addRow(tr("Its password:"), self.password)
-        form.addRow(tr("Reason:"), self.reason)
-        form.addRow(tr("Place:"), self.location)
-        form.addRow(tr("Contact:"), self.contact)
-        form.addRow(tr("Signature:"), self.where)
-        form.addRow(tr("Certify:"), self.certify)
-        form.addRow(self.lock)
-        form.addRow(tr("Timestamp server:"), self.timestamp)
-        note = QLabel(tr("The signed document is saved as a new file; the signature covers it as it is saved "
-                         "now."))
-        note.setWordWrap(True)
+        more_form = QFormLayout()
+        more_form.addRow(tr("Place:"), self.location)
+        more_form.addRow(tr("Contact:"), self.contact)
+        more_form.addRow(tr("Certify:"), self.certify)
+        more_form.addRow(self.lock)
+        more_form.addRow(tr("Timestamp server:"), self.timestamp)
+        self.more = QWidget()
+        self.more.setLayout(more_form)
+        self.more.setVisible(any(r.get(k) for k in ("location", "contact", "timestamp")))
+        toggle = QToolButton()
+        toggle.setText(tr("More options"))
+        toggle.setCheckable(True)
+        toggle.setChecked(self.more.isVisible())
+        toggle.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        toggle.setArrowType(Qt.ArrowType.DownArrow if self.more.isVisible() else Qt.ArrowType.RightArrow)
+        toggle.setAutoRaise(True)
+
+        def fold(on):
+            self.more.setVisible(on)
+            toggle.setArrowType(Qt.ArrowType.DownArrow if on else Qt.ArrowType.RightArrow)
+            self.adjustSize()
+        toggle.toggled.connect(fold)
+
         buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Cancel)
-        self.b_ok = buttons.addButton(tr("Sign…"), QDialogButtonBox.ButtonRole.AcceptRole)
+        self.b_ok = buttons.addButton(tr("Sign and save…"), QDialogButtonBox.ButtonRole.AcceptRole)
+        self.b_ok.setToolTip(tr("Then choose where the signed copy is saved"))
         buttons.accepted.connect(self.accept)
         buttons.rejected.connect(self.reject)
-        for w in (self.id_path, self.password):
-            w.textChanged.connect(lambda _t: self._check())
+        self.id_path.textChanged.connect(lambda _t: self._show_id())
+        self.password.textChanged.connect(lambda _t: self._check())
         lay = QVBoxLayout(self)
-        lay.addLayout(form)
-        lay.addWidget(note)
+        lay.addWidget(intro)
+        lay.addWidget(step1)
+        lay.addWidget(step2)
+        lay.addWidget(step3)
+        lay.addWidget(toggle, 0, Qt.AlignmentFlag.AlignLeft)
+        lay.addWidget(self.more)
+        lay.addStretch(1)
         lay.addWidget(buttons)
-        self.setMinimumWidth(520)
+        self.setMinimumWidth(560)
+        self._show_id()
+
+    # ----------------------------------------------------------------- the digital ID
+
+    def has_id(self) -> bool:
+        return bool(self.id_path.text()) and Path(self.id_path.text()).is_file()
+
+    def _show_id(self):
+        """Whose the ID chosen is, and until when (or how to get one), in words."""
+        from html import escape
+
+        if not self.has_id():
+            self.who.setText(tr("To sign, you need a <b>digital ID</b>: a file, protected by a password, that "
+                                "the signature is made with. You don't have one yet: create one (it takes a "
+                                "moment), or use one you already have."))
+            self.b_create.setDefault(True)
+            self.pw_box.hide()
+        else:
+            path = Path(self.id_path.text())
+            info = ids.summary(path)
+            if info is None:
+                said = tr("Signing with <b>{file}</b>.", file=escape(path.name))
+            else:
+                name, until = info
+                said = tr("Signing as <b>{name}</b>, with {file}.", name=escape(name), file=escape(path.name))
+                if until is not None:
+                    from datetime import UTC, datetime
+
+                    if until < datetime.now(UTC):
+                        said += " " + tr("<b>It expired on {date}</b>: create a new one.",
+                                         date=until.strftime("%Y-%m-%d"))
+                    else:
+                        said += " " + tr("Valid until {date}.", date=until.strftime("%Y-%m-%d"))
+            self.who.setText(said)
+            self.b_create.setText(tr("Create a new one…"))
+            self.b_choose.setText(tr("Use another…"))
+            self.pw_box.show()
+            self.password.setFocus()
         self._check()
 
+    def _create(self):
+        if self.on_create is None:
+            return
+        made = self.on_create()
+        if made is not None:
+            self.id_path.setText(str(made))
+            self.password.clear()
+
     def _choose_id(self):
-        name, _ = QFileDialog.getOpenFileName(self, tr("Digital ID"), self.id_path.text(),
+        name, _ = QFileDialog.getOpenFileName(self, tr("Your digital ID"), self.id_path.text(),
                                               tr("Digital IDs (*.p12 *.pfx)"))
         if name:
             self.id_path.setText(name)
+            self.password.clear()
+
+    def password_right(self) -> bool:
+        """Whether the password typed opens the digital ID (checked here, not only when signing)."""
+        if not self.has_id() or not self.password.text():
+            return False
+        try:
+            ids.read_id(Path(self.id_path.text()), self.password.text())
+        except ids.IdError:
+            return False
+        return True
 
     def _check(self):
-        self.b_ok.setEnabled(Path(self.id_path.text()).is_file() and bool(self.password.text()))
+        right = self.password_right()
+        if not self.password.text():
+            self.password_said.setText("")
+        else:
+            self.password_said.setText("✓" if right else tr("wrong password"))
+            self.password_said.setStyleSheet("color: #2e7d32;" if right else "color: #c0392b;")
+        self.b_ok.setEnabled(right)
+
+    # ----------------------------------------------------------------- what was chosen
+
+    @property
+    def where(self) -> str:
+        chosen = self.places.checkedButton()
+        return chosen.property("place") if chosen is not None else "draw"
 
     def chosen(self):
         """(sign.Options without the page and area, what the place is: 'draw', 'none' or 'field:NAME')."""
         from ..signatures.sign import Options
 
-        where = self.where.currentData()
+        where = self.where
         return Options(Path(self.id_path.text()), self.password.text(), self.reason.text().strip(),
                        self.location.text().strip(), self.contact.text().strip(),
                        field=where[6:] if where.startswith("field:") else "",
@@ -326,7 +470,8 @@ class SignMixin:
     def ask_sign(self, empty: list[str], signed: bool):
         """(sign.Options, place) chosen; None if cancelled."""
         r = {k: str(self.settings.value(f"sign_{k}", "")) for k in ("reason", "location", "contact", "timestamp")}
-        dialog = SignDialog(self, str(self.settings.value("sign_id", "")), empty, signed, r)
+        dialog = SignDialog(self, str(self.settings.value("sign_id", "")), empty, signed, r,
+                            on_create=self.make_id_dialog)
         if dialog.exec() != QDialog.DialogCode.Accepted:
             return None
         options, where = dialog.chosen()

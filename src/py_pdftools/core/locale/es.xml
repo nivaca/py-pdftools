@@ -11353,20 +11353,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Un ID digital necesita un nombre</tr>
   </text>
   <text>
-    <en>A self-signed ID: enough to sign your documents, and for others to check that nothing changed after you signed. They trust it when you give them its certificate (the .cer file saved beside it). Keep the ID file and its password to yourself.</en>
-    <tr>Un ID autofirmado: basta para firmar sus documentos, y para que otros comprueben que nada cambió después de que usted firmó. Lo reconocen cuando usted les da su certificado (el archivo .cer guardado a su lado). Guarde para usted el archivo del ID y su contraseña.</tr>
-  </text>
-  <text>
     <en>A self-signed digital ID (a .p12 file), to sign documents with</en>
     <tr>Un ID digital autofirmado (un archivo .p12), para firmar documentos</tr>
   </text>
   <text>
     <en>Country:</en>
     <tr>País:</tr>
-  </text>
-  <text>
-    <en>Create a digital ID</en>
-    <tr>Crear un ID digital</tr>
   </text>
   <text>
     <en>Create a digital ID…</en>
@@ -11385,20 +11377,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Correo:</tr>
   </text>
   <text>
-    <en>Name:</en>
-    <tr>Nombre:</tr>
-  </text>
-  <text>
     <en>Needs pyHanko: {command}</en>
     <tr>Necesita pyHanko: {command}</tr>
   </text>
   <text>
     <en>Organisation:</en>
     <tr>Organización:</tr>
-  </text>
-  <text>
-    <en>Save the ID…</en>
-    <tr>Guardar el ID…</tr>
   </text>
   <text>
     <en>Save the digital ID</en>
@@ -11465,24 +11449,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Contacto:</tr>
   </text>
   <text>
-    <en>Digital ID</en>
-    <tr>ID digital</tr>
-  </text>
-  <text>
-    <en>Digital ID:</en>
-    <tr>ID digital:</tr>
-  </text>
-  <text>
     <en>Drag on the page where the signature goes (Escape: cancel)</en>
     <tr>Arrastre sobre la página donde va la firma (Escape: cancelar)</tr>
-  </text>
-  <text>
-    <en>In the empty field {name}</en>
-    <tr>En el campo vacío {name}</tr>
-  </text>
-  <text>
-    <en>Invisible</en>
-    <tr>Invisible</tr>
   </text>
   <text>
     <en>Lock the fields of the form once signed</en>
@@ -11505,10 +11473,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Lugar:</tr>
   </text>
   <text>
-    <en>Reason:</en>
-    <tr>Motivo:</tr>
-  </text>
-  <text>
     <en>Save the signed document</en>
     <tr>Guardar el documento firmado</tr>
   </text>
@@ -11525,10 +11489,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Firmar digitalmente…</tr>
   </text>
   <text>
-    <en>Signature:</en>
-    <tr>Firma:</tr>
-  </text>
-  <text>
     <en>Signed: saved {path}</en>
     <tr>Firmado: se guardó {path}</tr>
   </text>
@@ -11537,24 +11497,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Firmando…</tr>
   </text>
   <text>
-    <en>Sign…</en>
-    <tr>Firmar…</tr>
-  </text>
-  <text>
     <en>The signature covers the document as it is saved. Save the changes first?</en>
     <tr>La firma cubre el documento tal como está guardado. ¿Guardar antes los cambios?</tr>
   </text>
   <text>
-    <en>The signed document is saved as a new file; the signature covers it as it is saved now.</en>
-    <tr>El documento firmado se guarda como un archivo nuevo; la firma lo cubre tal como está guardado ahora.</tr>
-  </text>
-  <text>
     <en>Timestamp server:</en>
     <tr>Servidor de sellos de tiempo:</tr>
-  </text>
-  <text>
-    <en>Visible: drag where it goes on the page</en>
-    <tr>Visible: arrastre donde va sobre la página</tr>
   </text>
   <text>
     <en>{path} cannot be signed: {error}</en>
@@ -13763,5 +13711,157 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Put the changes in effect now, and keep the window open (a new language comes when it is closed)</en>
     <tr>Poner en efecto los cambios ya, y dejar abierta la ventana (un idioma nuevo llega al cerrarla)</tr>
+  </text>
+  <text>
+    <en>1. Your digital ID</en>
+    <tr>1. Su ID digital</tr>
+  </text>
+  <text>
+    <en>2. Where the signature appears</en>
+    <tr>2. Dónde se ve la firma</tr>
+  </text>
+  <text>
+    <en>3. Why you sign (optional)</en>
+    <tr>3. Por qué firma (opcional)</tr>
+  </text>
+  <text>
+    <en>&lt;b&gt;It expired on {date}&lt;/b&gt;: create a new one.</en>
+    <tr>&lt;b&gt;Venció el {date}&lt;/b&gt;: cree uno nuevo.</tr>
+  </text>
+  <text>
+    <en>A .p12 or .pfx file, made here or given to you</en>
+    <tr>Un archivo .p12 o .pfx, hecho aquí o recibido</tr>
+  </text>
+  <text>
+    <en>A certifying signature says what may still be changed in the document after it; an ordinary one says nothing about that</en>
+    <tr>Una firma que certifica dice qué puede cambiarse todavía en el documento después de ella; una corriente no dice nada de eso</tr>
+  </text>
+  <text>
+    <en>A digital signature shows that you signed this document, and that nothing in it changed afterwards. The signed document is saved as a new file; this one stays as it is.</en>
+    <tr>Una firma digital muestra que usted firmó este documento, y que nada en él cambió después. El documento firmado se guarda como un archivo nuevo; este queda como está.</tr>
+  </text>
+  <text>
+    <en>A password:</en>
+    <tr>Una contraseña:</tr>
+  </text>
+  <text>
+    <en>As it will appear in your signatures</en>
+    <tr>Como aparecerá en sus firmas</tr>
+  </text>
+  <text>
+    <en>Create a new one…</en>
+    <tr>Crear uno nuevo…</tr>
+  </text>
+  <text>
+    <en>Create and save…</en>
+    <tr>Crear y guardar…</tr>
+  </text>
+  <text>
+    <en>Create my digital ID…</en>
+    <tr>Crear mi ID digital…</tr>
+  </text>
+  <text>
+    <en>Create your digital ID</en>
+    <tr>Crear su ID digital</tr>
+  </text>
+  <text>
+    <en>For example: Bogotá</en>
+    <tr>Por ejemplo: Bogotá</tr>
+  </text>
+  <text>
+    <en>For example: I approve this document</en>
+    <tr>Por ejemplo: Apruebo este documento</tr>
+  </text>
+  <text>
+    <en>For example: an e-mail address</en>
+    <tr>Por ejemplo: una dirección de correo</tr>
+  </text>
+  <text>
+    <en>In the signature field «{name}» of the form</en>
+    <tr>En el campo de firma «{name}» del formulario</tr>
+  </text>
+  <text>
+    <en>Make a digital ID now: your name, and a password to protect it</en>
+    <tr>Hacer ahora un ID digital: su nombre, y una contraseña que lo proteja</tr>
+  </text>
+  <text>
+    <en>More options</en>
+    <tr>Más opciones</tr>
+  </text>
+  <text>
+    <en>Nowhere: an invisible signature (it is in the file all the same, and can be checked)</en>
+    <tr>En ninguna parte: una firma invisible (igual está en el archivo, y puede comprobarse)</tr>
+  </text>
+  <text>
+    <en>On a page: after this, drag a box where it goes</en>
+    <tr>En una página: después de esto, arrastre un recuadro donde va</tr>
+  </text>
+  <text>
+    <en>Optional</en>
+    <tr>Opcional</tr>
+  </text>
+  <text>
+    <en>Optional: CO, ES, US…</en>
+    <tr>Opcional: CO, ES, US…</tr>
+  </text>
+  <text>
+    <en>Sign and save…</en>
+    <tr>Firmar y guardar…</tr>
+  </text>
+  <text>
+    <en>Signing as &lt;b&gt;{name}&lt;/b&gt;, with {file}.</en>
+    <tr>Firma como &lt;b&gt;{name}&lt;/b&gt;, con {file}.</tr>
+  </text>
+  <text>
+    <en>Signing with &lt;b&gt;{file}&lt;/b&gt;.</en>
+    <tr>Firma con &lt;b&gt;{file}&lt;/b&gt;.</tr>
+  </text>
+  <text>
+    <en>Six characters or more</en>
+    <tr>Seis caracteres o más</tr>
+  </text>
+  <text>
+    <en>The password you gave it when it was made</en>
+    <tr>La contraseña que le dio al crearlo</tr>
+  </text>
+  <text>
+    <en>The same password again:</en>
+    <tr>La misma contraseña otra vez:</tr>
+  </text>
+  <text>
+    <en>Then choose where the signed copy is saved</en>
+    <tr>Después elija dónde se guarda la copia firmada</tr>
+  </text>
+  <text>
+    <en>To sign, you need a &lt;b&gt;digital ID&lt;/b&gt;: a file, protected by a password, that the signature is made with. You don't have one yet: create one (it takes a moment), or use one you already have.</en>
+    <tr>Para firmar hace falta un &lt;b&gt;ID digital&lt;/b&gt;: un archivo, protegido con una contraseña, con el que se hace la firma. Todavía no tiene uno: cree uno (toma un momento), o use uno que ya tenga.</tr>
+  </text>
+  <text>
+    <en>Use a digital ID I have…</en>
+    <tr>Usar un ID digital que tengo…</tr>
+  </text>
+  <text>
+    <en>Use another…</en>
+    <tr>Usar otro…</tr>
+  </text>
+  <text>
+    <en>Valid until {date}.</en>
+    <tr>Válido hasta el {date}.</tr>
+  </text>
+  <text>
+    <en>Your digital ID</en>
+    <tr>Su ID digital</tr>
+  </text>
+  <text>
+    <en>Your digital ID is a file (.p12) that you sign with, protected by this password: keep both to yourself, since anyone who has them can sign as you. A certificate (.cer) is saved beside it: give it to those who must check your signatures, so that their programs trust them.</en>
+    <tr>Su ID digital es un archivo (.p12) con el que firma, protegido con esta contraseña: guarde ambos para usted, porque quien los tenga puede firmar como usted. A su lado se guarda un certificado (.cer): déselo a quienes deban comprobar sus firmas, para que sus programas confíen en ellas.</tr>
+  </text>
+  <text>
+    <en>Your name:</en>
+    <tr>Su nombre:</tr>
+  </text>
+  <text>
+    <en>wrong password</en>
+    <tr>contraseña equivocada</tr>
   </text>
 </interface>

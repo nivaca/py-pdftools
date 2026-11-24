@@ -362,6 +362,7 @@ def shoot(lang: str, out: Path, work: Path):
         ids.make_id(ids.Identity("Ana Gómez", "ana@example.org"), "secret1", p12)
         sd = SignDialog(w, str(p12), [], False, {"reason": "Approved" if lang == "en" else "Aprobado",
                                                  "location": "Bogotá"})
+        sd.password.setText("secret1")  # (ya escrita: el diálogo dice que es la buena, y Firmar se puede pulsar)
         dialog(sd, "sign")
         signed = work / f"signed-{lang}.pdf"
         sign.sign(book, signed, sign.Options(p12, "secret1", "Approved" if lang == "en" else "Aprobado",

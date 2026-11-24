@@ -110,6 +110,20 @@ def describe(certificate) -> str:
     return f"{name} <{email}>" if name and email else name or email or tr("(no name)")
 
 
+def summary(path: Path) -> tuple[str, dt.datetime | None] | None:
+    """Whom the digital ID at PATH names, and until when it is valid, read from its certificate (saved beside it
+    as .cer when it was made here): no password is needed. None if there is no certificate to read."""
+    from cryptography import x509
+
+    cer = Path(path).with_suffix(".cer")
+    try:
+        data = cer.read_bytes()
+        cert = x509.load_pem_x509_certificate(data) if b"BEGIN" in data else x509.load_der_x509_certificate(data)
+    except (OSError, ValueError):
+        return None
+    return describe(cert), cert.not_valid_after_utc
+
+
 def read_id(path: Path, password: str):
     """(key, certificate) of the digital ID at PATH; IdError if the password is wrong or it is not one."""
     from cryptography.hazmat.primitives.serialization import pkcs12

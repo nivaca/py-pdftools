@@ -63,3 +63,15 @@ def test_in_the_window(tmp_path, monkeypatch):
         assert (tmp_path / "ana.cer").is_file() and "ana.cer" in w.statusBar().currentMessage()
     finally:
         w.close()
+
+
+def test_summary_without_the_password(tmp_path):
+    """Whom an ID names and until when, read from its certificate beside it, with no password."""
+    import datetime as dt
+
+    target = tmp_path / "ana.p12"
+    ids.make_id(WHO, "secret1", target, years=2)
+    name, until = ids.summary(target)
+    assert "Ana" in name and until.year >= dt.datetime.now(dt.UTC).year + 1
+    target.with_suffix(".cer").unlink()
+    assert ids.summary(target) is None  # (no certificate beside it: nothing to say)

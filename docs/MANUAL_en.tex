@@ -1623,16 +1623,21 @@ name, an e-mail address and the rest of the details.
 
 \index{passwords}\index{annotations!locking}\index{forms}\index{redaction!boxes}\index{digital signatures}\index{digital signatures!certifying}\index{digital signatures!timestamp}%
 \menu{File\then Security\then Sign digitally} (figure~\ref{fig:sign_en})
-signs it with an ID and its password, with a reason, a place and a contact.
-A visible signature is dragged where it goes on the page, or put in an
-empty signature field of the form; an invisible one is only in the file.
-\menu{Certify}, for the first signature of a document, makes it say what
-may still be changed after it: nothing, filling the form, or filling and
-annotating; \menu{Lock
-the fields of the form once signed} does what it says. A timestamp server
-adds a time that doesn't depend on the computer's clock. The signed
-document is saved as a new file: the signature covers it as it is saved
-then.
+goes in three steps. First, \menu{Your digital ID}: without one, it says
+what it is and offers \menu{Create my digital ID} (the dialog above, which
+then comes back here) or \menu{Use a digital ID I have}; with one, it says
+whose it is and until when it is valid, and its password is checked as it
+is typed, with a check mark when it is right. Second, \menu{Where the
+signature appears}: on a page (a box is then dragged where it goes), in an
+empty signature field of the form, or nowhere, an invisible signature,
+which is in the file all the same. Third, \menu{Why you sign}, if one
+wishes. \menu{More options} has the place, a contact, \menu{Certify}
+(for the first signature of a document: what may still be changed after
+it, nothing, filling the form, or filling and annotating), \menu{Lock the
+fields of the form once signed}, and a timestamp server, which adds a time
+that doesn't depend on the computer's clock. \menu{Sign and save} then asks
+where the signed document goes: it is a new file, and the signature covers
+it as it is saved then; the document open stays as it is.
 
 \shot{sign_en}{0.6}{Signing a document.}
 

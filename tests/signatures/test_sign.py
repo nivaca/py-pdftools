@@ -124,3 +124,27 @@ def test_in_the_window(doc, digital_id, tmp_path, monkeypatch):
         assert not (tmp_path / "other.pdf").exists() and w.canvas.mode != "signarea"
     finally:
         w.close()
+
+
+def test_the_dialog_in_plain_steps(digital_id, tmp_path):
+    """Sign digitally says what a digital ID is when there is none, and offers to make one; with one, whose it
+    is and until when; the password is checked as it is typed; where the signature goes is said in words."""
+    from PySide6.QtWidgets import QApplication
+
+    from py_pdftools.gui.signing import SignDialog
+
+    QApplication.instance() or QApplication([])
+    made = []
+    d = SignDialog(None, "", [], on_create=lambda: made.append(1) or digital_id)
+    assert not d.has_id() and "digital ID" in d.who.text() and not d.pw_box.isVisibleTo(d)
+    assert not d.b_ok.isEnabled() and d.where == "draw"
+    d.b_create.click()  # (the window makes it: see SignMixin.make_id_dialog)
+    assert made and d.has_id() and d.pw_box.isVisibleTo(d)
+    d.password.setText("wrong!")
+    assert d.password_said.text() == "wrong password" and not d.b_ok.isEnabled()
+    d.password.setText("secret1")
+    assert d.password_said.text() == "✓" and d.b_ok.isEnabled()
+    # Nowhere: an invisible signature
+    d._place_buttons[-1].setChecked(True)
+    options, where = d.chosen()
+    assert where == "none" and options.password == "secret1" and options.id_path == digital_id
