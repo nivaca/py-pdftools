@@ -5,6 +5,30 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.14.0 — 2026-11-24
+
+- **Signing digitally, said plainly** (File > Security > Sign digitally): in
+  three steps. Your digital ID: without one, the dialog says what it is and
+  offers to create it there; with one, whose it is and until when, and its
+  password checked as it is typed. Where the signature appears, in words.
+  Why you sign. The rest under More options. The dialog to create an ID
+  marks what is optional and says what its two files are for.
+- **Handwritten signatures from a picture**: My signature (right click on
+  the Signature tool) takes a scan or a photo of a signature; the paper is
+  made transparent, measured in each picture (grey or bluish paper of a
+  photo taken indoors too), a picture already transparent is taken as it
+  looks on a page, and it is cut to the signature.
+- **My signatures**: several kept (a whole signature, initials…), each
+  drawn or from a picture, with its own width; the Signature tool puts the
+  one chosen, and its right click lists them.
+- The signature's **size**: a box dragged with the Signature tool sets its
+  width (a frame of dashes shows it while dragging), and each signature has
+  its width in centimetres for a click.
+- **A visible digital signature can show the handwritten signature**, with
+  the name, the time and the reason small under it.
+- Help > Find a command has **Ctrl+Shift+P**, as in VS Code (Ctrl+Alt+I
+  still works); View > Full screen keeps F11.
+
 ## 1.13.0 — 2026-11-23
 
 - **A menu Find**, after Edit, in every mode, with every search: Find as
