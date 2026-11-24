@@ -5,6 +5,18 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.12.1 — 2026-11-23
+
+- Find as you type is alone in the last row of the window: while it is
+  open, the status bar is hidden and its messages are shown at the right
+  end of the bar.
+- It is instantaneous: a search goes forward from the page shown and stops
+  at the first place found, shown at once; Next and Previous search on from
+  there. The other places are counted afterwards, a little at a time while
+  the program is idle; meanwhile the bar says the page of the place shown.
+  A text that isn't in the document still reads every page not read yet,
+  and the bar says how far it has got.
+
 ## 1.12.0 — 2026-11-23
 
 - **Find as you type** (Edit, Alt+Shift+F): a toolbar at the bottom of the
