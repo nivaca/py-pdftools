@@ -1915,6 +1915,14 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._drag = {"kind": "click", "page": page, "start": start}
             if self.mode == "callout":
                 self._drag["item"] = self._preview(page, self._new("callout", n, (*here, *here), ((here,),)))
+            elif self.mode == "signature":
+                # Un marco de trazos, como el de seleccionar: el ancho que tendrá la firma si se arrastra
+                band = QGraphicsRectItem(QRectF(start, start), page)
+                pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
+                pen.setCosmetic(True)
+                band.setPen(pen)
+                band.setZValue(4)
+                self._drag["item"] = band
         elif self.mode in BOXES:
             self._drag = {"kind": "draw", "page": page, "start": start,
                           "item": self._preview(page, self._new(self.mode, n, (*here, *here),
@@ -2039,6 +2047,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         elif kind == "erase":
             self._erase_at(point)
         elif kind in ("band", "zoomarea", "linkarea", "signarea"):
+            drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
+        elif kind == "click" and isinstance(drag.get("item"), QGraphicsRectItem):  # (the frame of a signature)
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
             tip = drag["start"]
@@ -2330,6 +2340,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self.drawn.emit(self._new("callout", n, box, (((round(start.x(), 2), round(start.y(), 2)),),)))
             return
         if self.mode == "signature":
+            if "item" in drag:
+                self.scene().removeItem(drag["item"])
             end = self._clamp(page, point)
             if (end - start).manhattanLength() * self.zoom() > 6:  # (dragged: as wide as that, its height its own)
                 r = QRectF(start, end).normalized()

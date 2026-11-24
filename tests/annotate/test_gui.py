@@ -1168,6 +1168,19 @@ def test_signature(window):
     click(window, (100, 700))  # (kept: not asked again)
     assert len(window.annotations) == 2
 
+    # A drag shows a frame of dashes while the mouse moves (as wide as the signature will be), gone on release
+    from PySide6.QtWidgets import QGraphicsRectItem
+
+    mouse(window, QEvent.Type.MouseButtonPress, (100, 300))
+    mouse(window, QEvent.Type.MouseMove, (250, 330))
+    frame = window.canvas._drag["item"]
+    assert isinstance(frame, QGraphicsRectItem) and frame.pen().style() == Qt.PenStyle.DashLine
+    assert abs(frame.rect().width() - 150) < 1 and frame.scene() is not None
+    mouse(window, QEvent.Type.MouseButtonRelease, (250, 330))
+    assert frame.scene() is None and len(window.annotations) == 3
+    xs = [x for x, _ in window.annotations[2].paths[0]]
+    assert abs(max(xs) - min(xs) - 150) < 1
+
 
 def test_find_dialog_steps_and_history(window):
     """Previous and Next go round the places found; the searches made are remembered."""

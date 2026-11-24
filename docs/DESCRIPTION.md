@@ -1787,7 +1787,10 @@ reused it as it was; such a picture, mostly dark and opaque where the
 paper should be, is not taken, and the program asks for the picture
 again. The dialog also made the tests crash at exit: a button connected to
 a lambda that held the dialog freed it a second time when Qt let go of
-the connections, and the buttons are connected to methods now.
+the connections, and the buttons are connected to methods now. A box
+dragged with the Signature tool sets the width of the signature, but
+nothing was seen while it was dragged; it shows now as a frame of dashes,
+as the one that selects.
 
 Testing
 -------
