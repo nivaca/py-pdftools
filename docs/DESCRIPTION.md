@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty stages.
+I explain how it was made, in eighty-one stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1839,6 +1839,22 @@ picture of a signature seemed still wrong. py-pdftools-gui --no-tray starts
 a program of its own that time, whatever the setting says: it doesn't give
 its files to the program running, doesn't go into the background, and ends
 with its last window. The setting is left as it is.
+
+81. An APT repository
+---------------------
+
+On Fedora, Copr brings each new version with `dnf upgrade`; on Debian and
+Ubuntu, the `.deb` of each release had to be downloaded by hand. A
+Launchpad PPA, the usual answer there, builds only from source packages,
+without internet, and this package carries its own Python, made from the
+AppImage. So I made a repository of the packages already built and signed,
+for all my programs that have one: github.com/nivaca/apt, a project of its
+own. It is a flat APT repository whose files are those of a release on
+GitHub, since page sites take no file over 100 MB and this package has
+161. The release script now adds the new `.deb` to it, with that project's
+tool, which signs the index with the same key and checks it before
+uploading (--no-apt leaves it out). Tried in containers of Ubuntu 24.04 and
+26.04, `apt install py-pdftools` installed it and it ran.
 
 Testing
 -------

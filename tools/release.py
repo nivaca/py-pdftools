@@ -40,7 +40,10 @@ In order, each step only if it is needed:
    the project and signs it with its own key. Each build needs a higher
    version-release than the last, so the spec must have been bumped
    (rpmdev-bumpspec; see packaging/RELEASING.md);
-8. with --pypi, uploads the wheel and the source package to PyPI (uv publish,
+8. unless --no-apt (or --no-appimage, which makes no Debian package), adds the
+   Debian package to the APT repository of these programs, github.com/nivaca/apt,
+   with its tool (../apt/tools/apt_repo.py: the index signed and checked);
+9. with --pypi, uploads the wheel and the source package to PyPI (uv publish,
    with the API token in $UV_PUBLISH_TOKEN). PyPI never takes a file twice:
    with --redo, those already there are skipped, not replaced.
 
@@ -73,6 +76,8 @@ SDIST = f"dist/py_pdftools-{VERSION}.tar.gz"
 ZIP = f"dist/py-pdftools-{VERSION}.zip"
 APPIMAGE = f"dist/py-pdftools-{VERSION}-x86_64.AppImage"
 DEB = f"dist/py-pdftools_{VERSION}-1_amd64.deb"  # (hecho de la AppImage, va con ella)
+# La herramienta del repositorio APT de estos programas: el proyecto apt, junto a este (github.com/nivaca/apt)
+APT_TOOL = Path(__file__).resolve().parent.parent.parent / "apt" / "tools" / "apt_repo.py"
 SPEC = "packaging/py-pdftools.spec"
 PUBLIC_KEY = "packaging/RPM-GPG-KEY-py-pdftools"  # (the public key published with every release)
 SUMS = "dist/SHA256SUMS"
@@ -308,6 +313,14 @@ class Release:
         self.plan("PyPI: upload the wheel and the source package", "uv", "publish",
                   "--check-url", "https://pypi.org/simple/", WHEEL, SDIST)
 
+    def apt(self):
+        """The Debian package added to the APT repository of these programs (github.com/nivaca/apt), by its own
+        tool, which keeps only the newest version, signs the index and checks it before uploading."""
+        if not APT_TOOL.is_file():
+            sys.exit(f"release.py: {APT_TOOL} is not there (clone github.com/nivaca/apt beside this project, "
+                     "or use --no-apt)")
+        self.plan("APT: add the Debian package to github.com/nivaca/apt", sys.executable, str(APT_TOOL), "add", DEB)
+
     def __call__(self):
         a = self.args
         self.forges = [a.only] if a.only else ["github", "codeberg"]
@@ -326,6 +339,8 @@ class Release:
             getattr(self, forge)(repos[forge])
         if a.rpm and not a.no_copr:
             self.copr()
+        if not a.no_appimage and not a.no_apt:
+            self.apt()
         if a.pypi:
             self.pypi()
         self.run_plan()
@@ -342,6 +357,8 @@ def main(argv=None):
                         help="(the signed RPM, and a Copr build of it, are made always now: kept for older scripts)")
     parser.add_argument("--no-rpm", action="store_true", help="without the RPM (nor its Copr build)")
     parser.add_argument("--no-copr", action="store_true", help="don't send the RPM to Copr")
+    parser.add_argument("--no-apt", action="store_true",
+                        help="don't add the Debian package to the APT repository (github.com/nivaca/apt)")
     parser.add_argument("--pypi", action="store_true",
                         help="also upload the wheel and the source package to PyPI ($UV_PUBLISH_TOKEN)")
     parser.add_argument("--no-build", action="store_true", help="use the files in dist/ (and build/rpm/) as they are")

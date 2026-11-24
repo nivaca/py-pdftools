@@ -161,6 +161,16 @@ AppImage does):
 
     $ sudo apt install ./py-pdftools_*_amd64.deb
 
+Or add, once, the APT repository of my programs
+([github.com/nivaca/apt](https://github.com/nivaca/apt)), signed with the
+same key; then `apt upgrade` brings each new version:
+
+    $ sudo curl -fsSLo /usr/share/keyrings/nivaca-archive-keyring.gpg \
+        https://github.com/nivaca/apt/releases/download/stable/nivaca-archive-keyring.gpg
+    $ echo "deb [signed-by=/usr/share/keyrings/nivaca-archive-keyring.gpg] https://github.com/nivaca/apt/releases/download/stable ./" \
+        | sudo tee /etc/apt/sources.list.d/nivaca.list
+    $ sudo apt update && sudo apt install py-pdftools
+
 **AppImage (any Linux).** It needs nothing else: it brings its own Python,
 Qt and libraries, and runs with glibc 2.34 or later (Ubuntu 22.04, Debian
 12, Fedora 35 and later). Make it executable and run it:
