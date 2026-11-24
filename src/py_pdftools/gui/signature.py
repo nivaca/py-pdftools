@@ -217,9 +217,8 @@ class SignatureDialog(QDialog):
         self.preview = QLabel()
         self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview.setMinimumSize(420, 160)
-        # (sobre un fondo a cuadros claro: así se ve qué quedó transparente)
-        self.preview.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #ffffff, "
-                                   "stop:1 #eef2f7); border: 1px solid palette(mid);")
+        # (sobre blanco, como una página: la firma se ve como quedará en un documento)
+        self.preview.setStyleSheet("background: #ffffff; border: 1px solid palette(mid);")
         self.pages.addWidget(self.pad)
         self.pages.addWidget(self.preview)
         lay.addWidget(self.pages, 1)
