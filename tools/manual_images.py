@@ -351,6 +351,38 @@ def shoot(lang: str, out: Path, work: Path):
 
     dialog(ProtectDialog(Protection(), w), "protect")
 
+    # Mis firmas: una dibujada y otra de una imagen (inventadas: nunca la firma del autor), la imagen elegida
+    import math
+
+    from PySide6.QtCore import QPointF as _P
+    from PySide6.QtCore import Qt as _Q
+    from PySide6.QtGui import QColor as _C
+    from PySide6.QtGui import QImage, QPainter, QPen
+
+    from py_pdftools.core.interface import tr
+    from py_pdftools.gui import signature
+
+    wave = [[(t / 100, 0.18 + 0.12 * math.sin(t / 9) * math.exp(-t / 160)) for t in range(0, 100)],
+            [(0.05, 0.32), (0.95, 0.28)]]
+    scan = QImage(900, 360, QImage.Format.Format_RGB32)
+    scan.fill(_C(236, 234, 228))  # (papel algo gris, como en una foto)
+    painter = QPainter(scan)
+    painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    painter.setPen(QPen(_C(25, 30, 80), 10, _Q.PenStyle.SolidLine, _Q.PenCapStyle.RoundCap))
+    points = [_P(180 + 2.2 * t, 190 - 90 * math.sin(t / 30)) for t in range(0, 240)]
+    for one, two in zip(points, points[1:]):
+        painter.drawLine(one, two)
+    painter.drawLine(_P(620, 120), _P(700, 250))
+    painter.end()
+    scan.save(str(work / "initials.jpg"), "JPG", 90)
+    entries = [signature.Kept("s1", tr("Signature"), "drawn", wave),
+               signature.Kept("s2", "N. V." if lang == "en" else "N. V.")]
+    mine = signature.SignatureDialog(w, entries, "s2")
+    mine.resize(760, 420)
+    mine.list.setCurrentRow(1)
+    mine.use_picture(work / "initials.jpg")
+    dialog(mine, "my_signatures", 760)
+
     # Firmas (si pyHanko está instalado)
     try:
         from py_pdftools.gui.signing import IdDialog, SignaturesDialog, SignDialog
