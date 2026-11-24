@@ -160,3 +160,20 @@ def test_the_size(tmp_path, monkeypatch, scan):
     finally:
         w.drop_work()
         w.close()
+
+
+def test_a_negative_kept_before_is_not_used(tmp_path, monkeypatch, scan):
+    """A picture kept by an older version as its negative (opaque black where the paper was) is not used: the
+    picture is asked for again; a good one, transparent or on white paper, is."""
+    monkeypatch.setattr(signature, "picture_path", lambda: tmp_path / "signature.png")
+    img = QImage(400, 100, QImage.Format.Format_ARGB32)
+    img.fill(QColor(0, 0, 0, 255))
+    p = QPainter(img)
+    p.setPen(QPen(QColor(40, 40, 40, 80), 6))
+    p.drawLine(QPointF(50, 50), QPointF(350, 55))
+    p.end()
+    img.save(str(tmp_path / "signature.png"))
+    assert signature.picture() is None
+    for transparent in (True, False):
+        (tmp_path / "signature.png").write_bytes(signature.prepared(scan, transparent))
+        assert signature.picture() is not None

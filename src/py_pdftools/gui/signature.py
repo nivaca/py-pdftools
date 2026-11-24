@@ -84,7 +84,24 @@ def picture() -> tuple[bytes, float] | None:
         pix = pymupdf.Pixmap(data)
     except (OSError, RuntimeError, ValueError, pymupdf.mupdf.FzErrorBase):
         return None
+    if negative(pix):
+        return None
     return data, pix.height / max(pix.width, 1)
+
+
+def negative(pix) -> bool:
+    """Whether PIX, a stored picture of a signature, is its negative: mostly dark and opaque, where the paper
+    should be transparent or light. Pictures kept before on_white() existed came out so from a PNG already
+    transparent; one of them is not used (the picture is asked for again)."""
+    import pymupdf
+
+    if not pix.alpha:
+        return False
+    # Ni el papel transparente (alfa 0) ni el papel opaco (claro) cuentan: solo lo opaco y oscuro
+    gray = pymupdf.Pixmap(pymupdf.csGRAY, pymupdf.Pixmap(pix, 0)) if pix.n > 2 else pymupdf.Pixmap(pix, 0)
+    alpha = pix.samples[pix.n - 1::pix.n]
+    dark = sum(1 for g, a in zip(gray.samples, alpha) if a > 200 and g < 100)
+    return dark > len(alpha) // 2
 
 
 def on_white(pix):
