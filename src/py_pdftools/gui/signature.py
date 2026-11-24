@@ -278,6 +278,11 @@ class SignatureDialog(QDialog):
         self.preview = QLabel()
         self.preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.preview.setMinimumSize(420, 160)
+        # (no crece con la imagen: si creciera, la imagen se escalaría a un espacio más grande que el diálogo)
+        from PySide6.QtWidgets import QSizePolicy
+
+        self.preview.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
+        self.preview.installEventFilter(self)  # (la imagen se ajusta cada vez que el espacio cambia)
         # (sobre blanco, como una página: la firma se ve como quedará en un documento)
         self.preview.setStyleSheet("background: #ffffff; border: 1px solid palette(mid);")
         self.pages.addWidget(self.pad)
@@ -364,12 +369,28 @@ class SignatureDialog(QDialog):
             self.picture_data = None
             self.problem.setText(str(e))
             return False
-        shown = QPixmap()
-        shown.loadFromData(self.picture_data)
-        self.preview.setPixmap(shown.scaled(self.preview.size() * 0.9, Qt.AspectRatioMode.KeepAspectRatio,
-                                            Qt.TransformationMode.SmoothTransformation))
+        self._shown = QPixmap()
+        self._shown.loadFromData(self.picture_data)
+        self._fit_preview()
         self.problem.setText("")
         return True
+
+    def _fit_preview(self):
+        """The picture made to fit the space it has now (when it is loaded, the dialog may not have its size yet:
+        scaled then, it showed larger than the space, and cut)."""
+        shown = getattr(self, "_shown", None)
+        if shown is None or shown.isNull():
+            return
+        room = self.preview.contentsRect().size() * 0.92
+        self.preview.setPixmap(shown.scaled(room, Qt.AspectRatioMode.KeepAspectRatio,
+                                            Qt.TransformationMode.SmoothTransformation))
+
+    def eventFilter(self, obj, event) -> bool:
+        from PySide6.QtCore import QEvent
+
+        if obj is getattr(self, "preview", None) and event.type() == QEvent.Type.Resize:
+            self._fit_preview()
+        return False
 
     def strokes(self) -> Strokes:
         # Los trazos vacíos no deberían existir, pero se filtran por si acaso antes de guardar.

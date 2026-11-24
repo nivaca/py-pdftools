@@ -52,6 +52,12 @@ def test_the_dialog(scan):
     assert d.kind == "drawn" and not d.transparent.isVisibleTo(d)
     assert d.use_picture(scan)
     assert d.kind == "picture" and d.picture_data and d.transparent.isVisibleTo(d) and not d.preview.pixmap().isNull()
+    # The whole picture in the space it has (it was scaled before the dialog had its size, and showed cut)
+    d.resize(560, 380)
+    d.show()
+    QApplication.processEvents()
+    room, shown = d.preview.size(), d.preview.pixmap().size()
+    assert shown.width() <= room.width() and shown.height() <= room.height()
     before = d.picture_data
     d.transparent.setChecked(False)  # (made again, with its paper)
     assert d.picture_data != before
