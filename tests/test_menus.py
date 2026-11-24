@@ -65,7 +65,7 @@ def test_the_menu_find(window):
     bar = [a.text().replace("&", "") for a in window.menuBar().actions()]
     assert bar.index("Find") == bar.index("Edit") + 1
     found = reachable(window.m_find)
-    names = ("a_find", "quick_find_key", "a_find_next", "a_find_previous", "a_find_bar", "a_find_all")
+    names = ("a_find", "a_find_next", "a_find_previous", "a_find_bar", "a_find_all")
     for name in names:
         assert id(getattr(window, name)) in found, name
     for menu in (window.m_file, window.m_edit, window.m_view, window.m_utils, window.m_tools):
@@ -73,7 +73,7 @@ def test_the_menu_find(window):
     for mode in window.modes:
         window.set_mode(mode)
         assert window.m_find.menuAction().isVisible(), mode
-    assert window.a_find.shortcut().toString() == "Ctrl+F" and window.a_find_bar.shortcut().toString() == "Alt+Shift+F"
+    assert window.a_find.shortcut().toString() == "Ctrl+Shift+F" and window.a_find_bar.shortcut().toString() == "Ctrl+F"
 
 
 def test_shortcuts_kept(window):

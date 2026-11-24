@@ -269,15 +269,14 @@ transparency or as outlines, whether text and graphics are smoothed
 (OpenGL, off at first, from the next start), which makes scrolling and
 zooming smoother.
 
-Moving through a document works in every mode. The quick find box, on
-the toolbar Find (Ctrl+Shift+F or /), goes from one place of a text to the next
-with Enter (Shift+Enter, back), or F3 (Shift+F3) from anywhere in the window,
-without minding capitals or accents; the thumbnails are shown or hidden with F7.
-Find > Find as you type (Alt+Shift+F) opens a toolbar at the bottom of the
-window that searches at every letter typed, highlights every place found and
-goes from one to the next with Enter; capitals and accents count only if
-asked. It sits alone in the last row of the window, and it is instantaneous:
-it stops at the first place found and counts the others afterwards.
+Moving through a document works in every mode; the thumbnails are shown or
+hidden with F7. Find > Find as you type (Ctrl+F or /) brings down a small
+panel over the top of the pages that searches at every letter typed,
+highlights every place found and goes from one to the next with Enter, or
+F3 (Shift+F3, back) from anywhere in the window; capitals and accents count
+only if asked. It is instantaneous: it stops at the first place found and
+counts the others afterwards. Find > Find and highlight (Ctrl+Shift+F) is
+the search with every option.
 View > Panels > Search results (F8) lists every place of a text, with its page
 and the words around it, and goes to each with a click. View > Panels >
 Attached files (F9) lists the files attached to the document or to its pages,

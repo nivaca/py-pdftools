@@ -125,24 +125,23 @@ class ResultsMixin:
         self._results_cache: dict = {}
         self._results_doc = None
         self.a_find_all = QAction(tr("Find all…"), self)
-        self.a_find_all.setToolTip(tr("Every place of the text of the quick find, in the panel Search results"))
+        self.a_find_all.setToolTip(tr("Every place of the text of Find as you type, in the panel Search results"))
         self.a_find_all.triggered.connect(self.find_all)
 
     def _results_shown(self, visible: bool):
-        # (al abrirse, el texto de la búsqueda rápida, si el panel no tiene uno, y el cursor en la casilla)
+        # (al abrirse, el texto de Buscar mientras se escribe, si el panel no tiene uno, y el cursor en la casilla)
         if not visible:
             return
         if not self.results_box.text().strip():
-            boxes = self.a_quick_find.boxes()
-            if boxes and boxes[0].text().strip():
-                self.results_box.setText(boxes[0].text())
+            text = self.find_bar.text().strip()
+            if text:
+                self.results_box.setText(text)
                 self.list_results()
         self.results_box.setFocus()
 
     def find_all(self):
-        """Edit > Find all: the panel shown, with every place of the text of the quick find (or its own)."""
-        boxes = self.a_quick_find.boxes()
-        text = boxes[0].text().strip() if boxes else ""
+        """Find > Find all: the panel shown, with every place of the text of Find as you type (or its own)."""
+        text = self.find_bar.text().strip()
         self.results_dock.show()
         self.results_dock.raise_()
         if text:

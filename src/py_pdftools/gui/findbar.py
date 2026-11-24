@@ -1,66 +1,66 @@
-"""La barra Buscar mientras se escribe (Editar, Alt+Mayús+F): una barra de herramientas sola en el borde de abajo
-de la ventana, debajo de todo; mientras está abierta, la barra de estado se oculta y sus mensajes se leen en el
-extremo derecho de esta. Se cierra con su botón o con Esc. Con «Mientras se escribe» marcado, cada letra escrita
-o borrada busca otra vez; Intro y Siguiente van al lugar siguiente, Mayús+Intro y Anterior al anterior.
-«Todos» resalta todos los lugares encontrados (si no, solo el actual). «Mayúsculas» y «Acentos» deciden si
-cuentan las mayúsculas y los acentos. La casilla guarda los últimos textos buscados y se vuelve rojiza cuando
-el texto no está en el documento. Dos botones llevan a las otras búsquedas con el mismo texto: el diálogo
-Buscar y resaltar (o Buscar y censurar) y el panel Resultados de la búsqueda. Las demás búsquedas (Ctrl+F, la
-casilla de búsqueda rápida, «/») quedan como estaban.
+"""Buscar mientras se escribe (Buscar, Alt+Mayús+F): un panel pequeño que baja deslizándose desde el borde de
+arriba de las páginas, en su esquina derecha, sobre ellas, y vuelve a subir al cerrarse (su botón o Esc). Tiene
+la casilla, «Aa» (distinguir mayúsculas), «á» (distinguir acentos), «Todos» (resaltar todos los lugares, o
+solo el actual), dónde está el lugar mostrado («2 de 9»), Anterior y Siguiente, y un menú con «Mientras se
+escribe» y las otras búsquedas con el mismo texto (el diálogo Buscar y resaltar, o Buscar y censurar, y el panel
+Resultados de la búsqueda). Intro y Mayús+Intro van al lugar siguiente y al anterior. La casilla guarda los
+últimos textos buscados y se vuelve rojiza cuando el texto no está en el documento. Las demás búsquedas
+(Ctrl+F, la casilla de búsqueda rápida, «/») quedan como estaban.
 
 Tiene que ser instantánea. Cada búsqueda va hacia adelante desde la página mostrada y se detiene en el primer
 lugar que encuentra, que se muestra enseguida; Siguiente y Anterior buscan igual, desde el lugar actual. Contar
 todos los lugares (para «3 de 41» y para resaltarlos) se hace después, por tramos de unos milisegundos cuando
 el programa está desocupado, así que nunca demora lo que se escribe. Todo se busca en un índice del texto
-(annotate/textindex.py), cuyas páginas se leen una vez, también por tramos, mientras la barra está abierta.
+(annotate/textindex.py), cuyas páginas se leen una vez, también por tramos, mientras el panel está abierto.
 Solo se resaltan las páginas que se ven."""
 
 from __future__ import annotations
 
 import time
 
-from PySide6.QtCore import QEvent, Qt, QTimer
-from PySide6.QtGui import QColor, QIcon, QKeySequence, QPalette
+from PySide6.QtCore import QEasingCurve, QEvent, QPoint, QPropertyAnimation, Qt, QTimer
+from PySide6.QtGui import QAction, QColor, QIcon, QKeySequence, QPalette
 from PySide6.QtWidgets import (
-    QApplication, QCheckBox, QComboBox, QHBoxLayout, QLabel, QSizePolicy, QToolBar, QToolButton, QWidget,
+    QApplication, QComboBox, QFrame, QHBoxLayout, QLabel, QMenu, QSizePolicy, QToolButton,
 )
 
 from ..annotate import annots
 from ..annotate.textindex import Hit, TextIndex
 from ..core.interface import tr
 
-NAME = "findbar"  # (the toolbar's object name: the customizer of the toolbars leaves it alone)
-KEY = "Alt+Shift+F"
+NAME = "findbar"
+KEYS = ("Ctrl+F", "/")  # (Ctrl+Shift+F is the dialog Find and highlight)
 PAUSE = 30  # (ms after a key before searching: only joins keys typed together)
 HISTORY = 15  # (the texts kept in the box's list)
 SLICE = 0.008  # (seconds of work at each turn of the event loop, counting or reading ahead: never felt)
+SLIDE = 160  # (ms the panel takes to come down, or to go up)
+MARGIN = 6  # (pixels between the panel and the top and right edges of the pages)
+WIDTH = 520  # (pixels: the panel's width, if the pages leave room for it)
 
 
-def _button(text: str, icon: str, tip: str, slot) -> QToolButton:
+def _button(text: str, icon: str, tip: str, slot=None, checkable: bool = False) -> QToolButton:
     b = QToolButton()
     b.setText(text)
     if icon:
         b.setIcon(QIcon.fromTheme(icon))
     b.setToolTip(tip)
     b.setAutoRaise(True)
-    b.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon if icon
+    b.setCheckable(checkable)
+    b.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly if icon and not b.icon().isNull()
                          else Qt.ToolButtonStyle.ToolButtonTextOnly)
-    b.clicked.connect(slot)
+    if slot is not None:
+        b.clicked.connect(slot)
     return b
 
 
-class FindBar(QToolBar):
-    """The toolbar Find as you type: its box, Next, Previous, All, As you type, Match case, Match accents, the
-    buttons to the other searches, where the place shown is, the messages of the window, and Close."""
+class FindBar(QFrame):
+    """The panel Find as you type, over the top right of the pages: its box, Aa, á, All, where the place shown
+    is, Previous, Next, its menu, and Close."""
 
     def __init__(self, window):
-        super().__init__(tr("Find as you type"), window)
+        super().__init__(window.canvas)
         self.window = window
         self.setObjectName(NAME)
-        # Sola abajo: ni se arrastra a otro borde ni se saca de la ventana
-        self.setAllowedAreas(Qt.ToolBarArea.BottomToolBarArea)
-        self.setFloatable(False)
-        self.setMovable(False)
         self.index: TextIndex | None = None
         self.q = None  # (the query being searched, prepared: see TextIndex.query)
         self.hit: Hit | None = None  # (the place shown)
@@ -71,25 +71,22 @@ class FindBar(QToolBar):
         self.hits: list[Hit] = []
         self.searching = False
         self.again = False  # (the text changed while a search ran: that one stops, and another starts)
-        self.status_shown = True  # (whether the status bar was shown before the bar opened)
-        self.listening = False  # (whether the messages of the status bar come here)
         self.started = self.told = 0.0  # (when the search began, and when it last said how far it got)
+        self.closing = False  # (going up: when it is out of sight, it is hidden)
 
-        inner = QWidget()
-        inner.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
-        lay = QHBoxLayout(inner)
-        lay.setContentsMargins(2, 0, 2, 0)
-        close = _button("", "window-close", tr("Close this toolbar (Esc)"), self.close_bar)
-        close.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonIconOnly)
-        if close.icon().isNull():
-            close.setIcon(self.style().standardIcon(self.style().StandardPixmap.SP_TitleBarCloseButton))
-        lay.addWidget(close)
-        lay.addWidget(QLabel(tr("Find:")))
+        # Un panel con borde y sombra de la paleta, como las ventanas emergentes: sirve con el tema claro y el oscuro
+        self.setFrameShape(QFrame.Shape.StyledPanel)
+        self.setAutoFillBackground(True)
+        self.setStyleSheet("#findbar { background: palette(window); border: 1px solid palette(mid); "
+                           "border-top: none; border-bottom-left-radius: 4px; border-bottom-right-radius: 4px; }")
+        lay = QHBoxLayout(self)
+        lay.setContentsMargins(6, 4, 4, 4)
+        lay.setSpacing(2)
         # Una casilla con lista: los últimos textos buscados, el más reciente primero
         self.combo = QComboBox()
         self.combo.setEditable(True)
         self.combo.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.combo.setMinimumContentsLength(20)
+        self.combo.setMinimumContentsLength(14)
         self.combo.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
         self.combo.setAccessibleName(tr("Find as you type"))
         self.box = self.combo.lineEdit()
@@ -101,40 +98,40 @@ class FindBar(QToolBar):
         self.box.returnPressed.connect(self._enter)
         self.box.installEventFilter(self)
         lay.addWidget(self.combo, 1)
-        self.b_next = _button(tr("Next"), "go-down", tr("The next place found (Enter)"), lambda: self.step(1))
-        self.b_previous = _button(tr("Previous"), "go-up", tr("The previous place found (Shift+Enter)"),
-                                  lambda: self.step(-1))
+        self.o_case = _button("Aa", "", tr("Match case: find only what has the same capitals"), checkable=True)
+        self.o_accents = _button("á", "", tr("Match accents: find only what has the same accents (otherwise "
+                                            "«cancion» finds «canción»)"), checkable=True)
         self.b_all = _button(tr("All"), "", tr("Highlight every place found on the pages, not only the one shown"),
-                             self._all_toggled)
-        self.b_all.setCheckable(True)
-        for b in (self.b_next, self.b_previous, self.b_all):
+                             self._all_toggled, checkable=True)
+        for b in (self.o_case, self.o_accents, self.b_all):
             lay.addWidget(b)
-        self.o_typing = QCheckBox(tr("As you type"))
-        self.o_typing.setToolTip(tr("Search again at every letter typed or deleted (otherwise, with Enter)"))
-        self.o_case = QCheckBox(tr("Match case"))
-        self.o_case.setToolTip(tr("Find only what has the same capitals"))
-        self.o_accents = QCheckBox(tr("Match accents"))
-        self.o_accents.setToolTip(tr("Find only what has the same accents (otherwise «cancion» finds «canción»)"))
-        for box in (self.o_typing, self.o_case, self.o_accents):
-            lay.addWidget(box)
-        self.b_dialog = _button(tr("Find and highlight…"), "edit-find",
-                                tr("The dialog with every option, with this text (Ctrl+F)"), self.open_dialog)
-        self.b_all_places = _button(tr("Find all…"), "edit-find-replace",
-                                    tr("Every place of this text, listed in the panel Search results"),
-                                    self.open_results)
-        lay.addWidget(self.b_dialog)
-        lay.addWidget(self.b_all_places)
         self.said = QLabel()
-        self.said.setMinimumWidth(90)
+        self.said.setMinimumWidth(70)
+        self.said.setAlignment(Qt.AlignmentFlag.AlignCenter)
         # (gris, como el número de páginas: un dato, no un control)
-        self.said.setStyleSheet("color: palette(placeholder-text); padding-left: 4px;")
+        self.said.setStyleSheet("color: palette(placeholder-text); padding: 0 4px;")
         lay.addWidget(self.said)
-        # Los mensajes de la ventana, que van a la barra de estado: mientras esta barra está abierta, aquí
-        self.message = QLabel()
-        self.message.setStyleSheet("padding-left: 8px;")
-        self.message.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred)
-        lay.addWidget(self.message, 1)
-        self.addWidget(inner)
+        self.b_previous = _button("↑", "go-up", tr("The previous place found (Shift+Enter)"), lambda: self.step(-1))
+        self.b_next = _button("↓", "go-down", tr("The next place found (Enter)"), lambda: self.step(1))
+        lay.addWidget(self.b_previous)
+        lay.addWidget(self.b_next)
+        # El menú del panel: buscar mientras se escribe, y las otras búsquedas con este texto
+        more = _button("⋯", "", tr("More"))
+        more.setPopupMode(QToolButton.ToolButtonPopupMode.InstantPopup)
+        menu = QMenu(more)
+        menu.setToolTipsVisible(True)
+        self.o_typing = QAction(tr("As you type"), self, checkable=True)
+        self.o_typing.setToolTip(tr("Search again at every letter typed or deleted (otherwise, with Enter)"))
+        menu.addAction(self.o_typing)
+        menu.addSeparator()
+        self.b_dialog = menu.addAction(tr("Find and highlight…"), self.open_dialog)
+        self.b_dialog.setToolTip(tr("The dialog with every option, with this text (Ctrl+F)"))
+        self.b_all_places = menu.addAction(tr("Find all…"), self.open_results)
+        self.b_all_places.setToolTip(tr("Every place of this text, listed in the panel Search results"))
+        more.setMenu(menu)
+        lay.addWidget(more)
+        close = _button("✕", "window-close", tr("Close (Esc)"), self.close_bar)
+        lay.addWidget(close)
 
         settings = window.settings
         self.o_typing.setChecked(bool(settings.value("findbar_typing", True, type=bool)))
@@ -157,7 +154,17 @@ class FindBar(QToolBar):
         self.worker = QTimer(self)
         self.worker.setInterval(0)
         self.worker.timeout.connect(self._work)
-        self.visibilityChanged.connect(self._visibility)
+        # Bajar y subir: la posición, animada
+        self.slide = QPropertyAnimation(self, b"pos", self)
+        self.slide.setDuration(SLIDE)
+        self.slide.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self.slide.finished.connect(self._slid)
+        # (el panel sigue la esquina de las páginas cuando la ventana cambia de tamaño, o aparece o se va la barra
+        # de desplazamiento, que cambia el ancho de lo que se ve)
+        # (guardados: al cerrar la ventana, Qt borra las páginas antes que este panel, y no se les pregunta nada)
+        self.watched = (window.canvas, window.canvas.viewport())
+        for widget in self.watched:
+            widget.installEventFilter(self)
         self.hide()
 
     def text(self) -> str:
@@ -168,11 +175,32 @@ class FindBar(QToolBar):
 
     # ----------------------------------------------------------------- opening and closing
 
+    def _place(self) -> tuple[QPoint, QPoint]:
+        """Where the panel is, down (open) and up (out of sight): the top right of the pages, left of the
+        scroll bar; and its size, as the pages allow."""
+        canvas = self.window.canvas
+        view = canvas.viewport().geometry()  # (in the canvas: without its scroll bars)
+        width = max(min(WIDTH, view.width() - 2 * MARGIN), 200)
+        self.setFixedSize(width, self.sizeHint().height())  # (fixed: showing it doesn't give it another size)
+        x = view.right() - self.width() - MARGIN + 1
+        return QPoint(x, view.top()), QPoint(x, view.top() - self.height() - 2)
+
     def open_bar(self):
-        """Show the bar with the cursor in its box (with the words selected on the page, if there are)."""
+        """The panel comes down, with the cursor in its box (with the words selected on the page, if there are)."""
         canvas = self.window.canvas
         chosen = canvas.selected_text().strip() if getattr(canvas, "text_sel", None) else ""
-        self.show()
+        down, up = self._place()
+        if not self.isVisible() or self.closing:
+            self.closing = False
+            self.slide.stop()
+            self.move(up if not self.isVisible() else self.pos())
+            self.show()
+            self.raise_()
+            self.slide.setStartValue(self.pos())
+            self.slide.setEndValue(down)
+            self.slide.start()
+            self._index()
+            self.worker.start()
         if chosen and "\n" not in chosen:
             self.box.setText(chosen)
         self.box.setFocus()
@@ -181,29 +209,25 @@ class FindBar(QToolBar):
             self.run()  # (the highlights again, if it was closed with a text in it)
 
     def close_bar(self):
-        self.hide()
+        """The panel goes up, and the highlights go with it."""
+        if not self.isVisible() or self.closing:
+            return
+        self.closing = True
+        self._closed()
+        _down, up = self._place()
+        self.slide.stop()
+        self.slide.setStartValue(self.pos())
+        self.slide.setEndValue(up)
+        self.slide.start()
         self.window.canvas.setFocus()
 
-    def _visibility(self, shown: bool):
-        status = self.window.statusBar()
-        if shown:
-            # Debajo de todo: Qt pone siempre la barra de estado al final, así que se oculta mientras esta está
-            # abierta, y sus mensajes se leen aquí.
-            self.status_shown = not status.isHidden()
-            status.hide()
-            self.message.setText(status.currentMessage())
-            if not self.listening:
-                status.messageChanged.connect(self.message.setText)
-                self.listening = True
-            self._index()
-            self.worker.start()
-            return
-        if not self.listening:
-            return  # (hidden when it was made: it had changed nothing)
-        status.messageChanged.disconnect(self.message.setText)
-        self.listening = False
-        status.setVisible(self.status_shown)
-        # (cerrada por su botón, por Esc o desde el menú de las barras: ningún resaltado queda en las páginas)
+    def _slid(self):
+        if self.closing:
+            self.closing = False
+            self.hide()
+
+    def _closed(self):
+        # (ningún resaltado queda en las páginas, y nada sigue trabajando)
         self.timer.stop()
         self.worker.stop()
         self.again = self.searching
@@ -211,6 +235,11 @@ class FindBar(QToolBar):
         self.window.canvas.set_found(None, (), None)
 
     def eventFilter(self, obj, event) -> bool:
+        if any(obj is w for w in getattr(self, "watched", ())):  # (la casilla ya filtra antes de que existan)
+            if event.type() == QEvent.Type.Resize and self.isVisible() and not self.closing:
+                self.slide.stop()
+                self.move(self._place()[0])
+            return False
         if event.type() in (QEvent.Type.ShortcutOverride, QEvent.Type.KeyPress) and event.key() == Qt.Key.Key_Escape:
             if event.type() == QEvent.Type.ShortcutOverride:
                 event.accept()  # (the key is the box's: no shortcut of the window takes it first)
@@ -278,7 +307,7 @@ class FindBar(QToolBar):
         index = self._index()
         text = self.text()
         self._forget()
-        if index is None or not text.strip() or not self.isVisible():
+        if index is None or not text.strip() or not self.isVisible() or self.closing:
             self._show(None)
             return
         q = index.query(text, *self.options())
@@ -448,5 +477,5 @@ class FindBar(QToolBar):
                 self.timer.start()
 
 
-def key() -> QKeySequence:
-    return QKeySequence(KEY)
+def keys() -> list[QKeySequence]:
+    return [QKeySequence(k) for k in KEYS]

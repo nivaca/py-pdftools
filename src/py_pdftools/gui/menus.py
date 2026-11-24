@@ -72,7 +72,7 @@ def regroup(window):
     _fill(window, window.m_import, ["m_import_annots"])
     # Find and Tools first: what they take leaves File, Edit, View and the menu Annotate (each in one menu)
     _fill(window, window.m_find, [
-        "a_find", SEP, "quick_find_key", "a_find_next", "a_find_previous", SEP, "a_find_bar", SEP, "a_find_all"])
+        "a_find_bar", "a_find_next", "a_find_previous", SEP, "a_find", SEP, "a_find_all"])
     found = _all(window.m_find)
     # (las búsquedas se hacían en el menú Anotar, que solo se ve en su modo: de ahí salen)
     for act in list(window.m_tools.actions()):

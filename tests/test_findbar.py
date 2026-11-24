@@ -1,5 +1,5 @@
-"""La barra Buscar mientras se escribe (gui/findbar.py): sola al pie de la ventana, debajo de todo; muestra el
-primer lugar en cuanto lo encuentra, sin leer el resto del documento; cuenta los demás después, por tramos;
+"""El panel Buscar mientras se escribe (gui/findbar.py): baja deslizándose sobre la esquina de arriba de las
+páginas y sube al cerrarse; muestra el primer lugar en cuanto lo encuentra, sin leer el resto del documento; cuenta los demás después, por tramos;
 resalta los lugares, va de uno a otro, guarda los textos buscados, se vuelve rojiza si no encuentra nada, y no
 cambia las otras búsquedas."""
 
@@ -59,31 +59,41 @@ def type_in(bar, text):
     count(bar)
 
 
-def test_alone_at_the_bottom(window):
+def finish_slide(bar):
+    """The slide of the panel, at its end (as the animation would leave it)."""
+    bar.slide.setCurrentTime(bar.slide.duration())
+    QApplication.processEvents()
+
+
+def test_comes_down_from_the_top(window):
     w = window
     bar = w.find_bar
-    status = w.statusBar()
-    assert not bar.isVisible() and status.isVisible() and w.toolBarArea(bar) == Qt.ToolBarArea.BottomToolBarArea
-    # (only at the bottom: it can't be dragged to another side, nor out of the window)
-    assert bar.allowedAreas() == Qt.ToolBarArea.BottomToolBarArea and not bar.isFloatable() and not bar.isMovable()
+    view = w.canvas.viewport().geometry()
+    assert not bar.isVisible() and bar.parent() is w.canvas
     w.a_find_bar.trigger()
+    assert bar.isVisible() and bar.slide.state() == bar.slide.State.Running
+    assert bar.slide.startValue().y() < view.top() <= bar.slide.endValue().y()  # (from out of sight, down)
+    finish_slide(bar)
+    # Over the top right of the pages, the status bar where it was
+    view = w.canvas.viewport().geometry()
+    assert bar.y() == view.top() and abs(bar.geometry().right() - (view.right() - 6)) <= 1
+    assert w.statusBar().isVisible()
+    # It follows the corner when the window changes size
+    w.resize(w.width() - 100, w.height())
     QApplication.processEvents()
-    # Below everything: the status bar is hidden while it is open, and its messages are read in the bar
-    assert bar.isVisible() and not status.isVisible()
-    assert bar.geometry().bottom() >= w.height() - 2
-    w.status("Saved")
-    assert bar.message.text() == "Saved"
+    assert abs(bar.geometry().right() - (w.canvas.viewport().geometry().right() - 6)) <= 1
+    # Closing: it goes up, and then it is hidden
     bar.close_bar()
-    assert status.isVisible() and not bar.isVisible()
-    w.status("Opened")
-    assert bar.message.text() == "Saved"  # (closed, it listens no more)
+    assert bar.isVisible() and bar.closing
+    finish_slide(bar)
+    assert not bar.isVisible() and not bar.closing
 
 
 def test_the_first_place_at_once(window):
     w = window
     bar = w.find_bar
     w.a_find_bar.trigger()
-    QApplication.processEvents()
+    finish_slide(bar)
     bar.index.pages.clear()  # (nothing read ahead yet)
     w.show_page(2)
     bar.box.setText("scribe")
@@ -162,6 +172,7 @@ def test_history_close_and_the_rest_unchanged(window):
     assert [bar.combo.itemText(i) for i in range(bar.combo.count())] == ["scribe", "text"]
     # Esc closes it, and the highlights go
     QTest.keyClick(bar.box, Qt.Key.Key_Escape)
+    finish_slide(bar)
     assert not bar.isVisible() and w.canvas._found_current is None and not w.canvas._found_items
     # Without "As you type", only Enter searches
     w.a_find_bar.trigger()
@@ -172,12 +183,11 @@ def test_history_close_and_the_rest_unchanged(window):
     QTest.keyClick(bar.box, Qt.Key.Key_Return)
     count(bar)
     assert len(bar.hits) == 2
-    # The other searches are as they were: Ctrl+F the dialog, the quick find box with Ctrl+Shift+F and /
-    assert w.a_find.shortcut().toString() == "Ctrl+F"
-    assert [k.toString() for k in w.quick_find_key.shortcuts()] == ["Ctrl+Shift+F", "/"]
-    assert w.a_find_bar.shortcut().toString() == "Alt+Shift+F"
+    # The keys: Ctrl+F and / this panel; Ctrl+Shift+F the dialog with every option
+    assert [k.toString() for k in w.a_find_bar.shortcuts()] == ["Ctrl+F", "/"]
+    assert w.a_find.shortcut().toString() == "Ctrl+Shift+F"
     # Find all: the panel with this text
-    bar.b_all_places.click()
+    bar.b_all_places.trigger()  # (in the panel's menu)
     assert w.results_dock.isVisible() and w.results_box.text() == "again" and w.results_list.topLevelItemCount() == 2
     # Another document: what was found is forgotten, and searched again
     w.labels_choice = lambda: arrange.FOLLOW
@@ -185,3 +195,22 @@ def test_history_close_and_the_rest_unchanged(window):
     assert bar.q is None and bar.hit is None
     # (the customizer of the toolbars leaves this one alone)
     assert all(b.objectName() != NAME for b in w.editable_bars())
+
+
+def test_f3_and_the_toolbar(window):
+    w = window
+    bar = w.find_bar
+    # F3 with the panel closed brings it down; with a text, it goes on through its places
+    w.a_find_next.trigger()
+    finish_slide(bar)
+    assert bar.isVisible()
+    type_in(bar, "scribe")
+    first = bar.hit
+    w.a_find_next.trigger()
+    assert bar.hit != first
+    w.a_find_previous.trigger()
+    assert bar.hit == first
+    # On the toolbar Find: the dialog and this panel; no quick find box any more
+    find = next(b for b in w.toolbars() if b.objectName() == "find")
+    assert w.a_find in find.actions() and w.a_find_bar in find.actions()
+    assert not hasattr(w, "a_quick_find") and not hasattr(w, "quick_find_key")

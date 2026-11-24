@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in sixty-eight stages.
+I explain how it was made, in sixty-nine stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1630,10 +1630,27 @@ had no menu at all, only their keys; Find all was in Tools, and Find as
 you type in Edit. They are now together in a menu Find, after Edit, in
 every mode; each is in that menu only, as with Tools.
 
+69. Finding, again: from the top, and two searches only
+-------------------------------------------------------
+
+Used a while, the bar at the bottom was still not right: I wanted it
+to come down from the top when called, as the find box of a code editor
+does. It is now a small panel over the top right corner of the pages, which
+slides down when called and slides up when closed (a QPropertyAnimation of
+its position, of 160 milliseconds), and follows that corner when the window
+changes size or the scroll bar comes or goes. Its options are two buttons,
+Aa and á, and the rest went into a small menu. The status bar stays where
+it was. And there were three searches where two were enough: the quick find
+box on the toolbar did less than the panel. So it went, with its module;
+Ctrl+F, the key every program gives to finding, and the slash, as in
+Okular, now bring down the panel, and F3 and Shift+F3 go through its
+places, while the search with every option, Find and highlight, has
+Ctrl+Shift+F.
+
 Testing
 -------
 
-The program has 744 tests (`uv run pytest`): those of the four programs,
+The program has 739 tests (`uv run pytest`): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

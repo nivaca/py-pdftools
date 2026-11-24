@@ -12649,10 +12649,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>La unidad de las longitudes de todas las órdenes</tr>
   </text>
   <text>
-    <en>Quick find</en>
-    <tr>Búsqueda rápida</tr>
-  </text>
-  <text>
     <en>Find next</en>
     <tr>Buscar siguiente</tr>
   </text>
@@ -12661,24 +12657,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Buscar anterior</tr>
   </text>
   <text>
-    <en>The next place of the text of the quick find</en>
-    <tr>El lugar siguiente del texto de la búsqueda rápida</tr>
-  </text>
-  <text>
-    <en>The previous place of the text of the quick find</en>
-    <tr>El lugar anterior del texto de la búsqueda rápida</tr>
-  </text>
-  <text>
-    <en>Find a text in the document: Enter goes to the next place, Shift+Enter to the previous one (Ctrl+Shift+F)</en>
-    <tr>Buscar un texto en el documento: Intro va al lugar siguiente, Mayús+Intro al anterior (Ctrl+Mayús+F)</tr>
-  </text>
-  <text>
     <en>Find in the text</en>
     <tr>Buscar en el texto</tr>
-  </text>
-  <text>
-    <en>Put the cursor in the quick find box, on the toolbar Find</en>
-    <tr>Poner el cursor en la casilla de búsqueda rápida, en la barra Buscar</tr>
   </text>
   <text>
     <en>Add them in the mode OCR, with Languages…</en>
@@ -13135,10 +13115,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Find all…</en>
     <tr>Buscar todos…</tr>
-  </text>
-  <text>
-    <en>Every place of the text of the quick find, in the panel Search results</en>
-    <tr>Todos los lugares del texto de la búsqueda rápida, en el panel Resultados de la búsqueda</tr>
   </text>
   <text>
     <en>Places found: {count} (pages: {pages})</en>
@@ -13685,20 +13661,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>{path} no se puede leer como imagen: {error}</tr>
   </text>
   <text>
-    <en>A toolbar at the bottom of the window that finds as you type, and highlights every place found</en>
-    <tr>Una barra al pie de la ventana que busca mientras se escribe y resalta todos los lugares encontrados</tr>
-  </text>
-  <text>
     <en>All</en>
     <tr>Todos</tr>
   </text>
   <text>
     <en>As you type</en>
     <tr>Mientras se escribe</tr>
-  </text>
-  <text>
-    <en>Close this toolbar (Esc)</en>
-    <tr>Cerrar esta barra (Esc)</tr>
   </text>
   <text>
     <en>Every place of this text, listed in the panel Search results</en>
@@ -13709,20 +13677,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Buscar mientras se escribe</tr>
   </text>
   <text>
-    <en>Find only what has the same accents (otherwise «cancion» finds «canción»)</en>
-    <tr>Encontrar solo lo que tiene los mismos acentos (si no, «cancion» encuentra «canción»)</tr>
-  </text>
-  <text>
-    <en>Find only what has the same capitals</en>
-    <tr>Encontrar solo lo que tiene las mismas mayúsculas</tr>
-  </text>
-  <text>
     <en>Highlight every place found on the pages, not only the one shown</en>
     <tr>Resaltar en las páginas todos los lugares encontrados, no solo el que se muestra</tr>
-  </text>
-  <text>
-    <en>Match accents</en>
-    <tr>Distinguir acentos</tr>
   </text>
   <text>
     <en>Search again at every letter typed or deleted (otherwise, with Enter)</en>
@@ -13751,5 +13707,37 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>F&amp;ind</en>
     <tr>&amp;Buscar</tr>
+  </text>
+  <text>
+    <en>A small panel that comes down over the top of the pages, finds as you type and highlights every place found</en>
+    <tr>Un panel pequeño que baja sobre lo alto de las páginas, busca mientras se escribe y resalta todos los lugares encontrados</tr>
+  </text>
+  <text>
+    <en>Close (Esc)</en>
+    <tr>Cerrar (Esc)</tr>
+  </text>
+  <text>
+    <en>Match accents: find only what has the same accents (otherwise «cancion» finds «canción»)</en>
+    <tr>Distinguir acentos: encontrar solo lo que tiene los mismos acentos (si no, «cancion» encuentra «canción»)</tr>
+  </text>
+  <text>
+    <en>Match case: find only what has the same capitals</en>
+    <tr>Distinguir mayúsculas: encontrar solo lo que tiene las mismas mayúsculas</tr>
+  </text>
+  <text>
+    <en>More</en>
+    <tr>Más</tr>
+  </text>
+  <text>
+    <en>Every place of the text of Find as you type, in the panel Search results</en>
+    <tr>Todos los lugares del texto de Buscar mientras se escribe, en el panel Resultados de la búsqueda</tr>
+  </text>
+  <text>
+    <en>The next place of the text of Find as you type</en>
+    <tr>El lugar siguiente del texto de Buscar mientras se escribe</tr>
+  </text>
+  <text>
+    <en>The previous place of the text of Find as you type</en>
+    <tr>El lugar anterior del texto de Buscar mientras se escribe</tr>
   </text>
 </interface>

@@ -278,16 +278,15 @@ los gráficos se suavizan (antialiasing) y si las páginas se dibujan con la
 tarjeta gráfica (OpenGL, desactivado al principio, desde el próximo
 inicio), lo que hace más suaves el desplazamiento y el zoom.
 
-Moverse por un documento funciona en todos los modos. La casilla de
-búsqueda rápida, en la barra Buscar (Ctrl+Mayús+F o /), va de un lugar de un
-texto al siguiente con Intro (Mayús+Intro, hacia atrás), o con F3 (Mayús+F3)
-desde cualquier parte de la ventana, sin distinguir mayúsculas ni acentos;
-las miniaturas se muestran u ocultan con F7.
-Buscar > Buscar mientras se escribe (Alt+Mayús+F) abre una barra al pie de la
-ventana que busca con cada letra escrita, resalta todos los lugares
-encontrados y va de uno al siguiente con Intro; las mayúsculas y los acentos
-cuentan solo si se pide. Va sola en la última fila de la ventana, y es
+Moverse por un documento funciona en todos los modos; las miniaturas se
+muestran u ocultan con F7. Buscar > Buscar mientras se escribe (Ctrl+F o /)
+hace bajar un panel pequeño sobre lo alto de las páginas que busca con cada
+letra escrita, resalta todos los lugares encontrados y va de uno al
+siguiente con Intro, o con F3 (Mayús+F3, hacia atrás) desde cualquier parte
+de la ventana; las mayúsculas y los acentos cuentan solo si se pide. Es
 instantánea: se detiene en el primer lugar y cuenta los demás después.
+Buscar > Buscar y resaltar (Ctrl+Mayús+F) es la búsqueda con todas las
+opciones.
 Ver > Paneles > Resultados de la búsqueda (F8) hace la lista de todos los lugares de
 un texto, con su página y las palabras de alrededor, y lleva a cada uno con un clic.
 Ver > Paneles > Archivos adjuntos (F9) hace la lista de los archivos adjuntos al

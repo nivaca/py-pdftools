@@ -296,6 +296,7 @@ def shoot(lang: str, out: Path, work: Path):
     w.show_page(1)
     bar = w.find_bar
     bar.open_bar()
+    bar.slide.setCurrentTime(bar.slide.duration())  # (ya bajado)
     bar.box.setText("copy" if lang == "en" else "copia")
     bar.run()
     while bar.order:  # (los demás lugares, contados como en los ratos libres)

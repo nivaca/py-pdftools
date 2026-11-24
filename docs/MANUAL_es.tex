@@ -459,9 +459,9 @@ Editar, Buscar, Ver y Herramientas están siempre; Archivo, Editar y Ver,
 agrupados en submenús (\menu{Archivo\then Nuevo}, \menu{Exportar},
 \menu{Importar}, \menu{Seguridad}; \menu{Ver\then Paneles}, \menu{Ir a},
 \menu{Zoom}, \menu{Disposición de página}). \menu{Buscar} tiene todas las
-búsquedas: \menu{Buscar y resaltar} (\menu{Buscar y censurar} en el modo
-Censurar), la búsqueda rápida con el lugar siguiente y el anterior,
-\menu{Buscar mientras se escribe} y \menu{Buscar todos}.
+búsquedas: \menu{Buscar mientras se escribe} con su lugar siguiente y el
+anterior, \menu{Buscar y resaltar} (\menu{Buscar y censurar} en el modo
+Censurar) y \menu{Buscar todos}.
 \menu{Herramientas} reúne lo que trabaja sobre el documento entero, o sobre
 varios: el clasificador de páginas, el índice de palabras, la aplicación de
 pasos a varios archivos y la comparación con otra versión (como texto, o a
@@ -681,59 +681,52 @@ Imponer.
 \subsection{Buscar texto}
 
 \index{modos}\index{modos!censurar@Censurar}\index{barras de herramientas}\index{buscar!y censurar}\index{buscar!texto}\index{censura}%
-El botón Buscar de la barra principal (\key{Ctrl+F}) abre \menu{Buscar y
-resaltar}: busca una palabra, una frase o un patrón en el documento,
-muestra los lugares encontrados con su contexto y va a cada uno con
+\index{buscar!mientras se escribe}%
+\menu{Buscar\then Buscar mientras se escribe} (\key{Ctrl+F} o \key{/}, o su
+botón en la barra Buscar; figura~\ref{fig:findbar_es}) hace bajar un panel
+pequeño sobre la esquina de arriba a la derecha de las páginas; \key{Esc} o
+su botón de cerrar lo hacen subir otra vez, y con él se van los resaltados.
+Busca a medida que se escribe: con cada letra escrita o borrada busca hacia
+adelante desde la página visible y se detiene en el primer lugar que
+encuentra, que se muestra enseguida; los demás lugares se cuentan después,
+de a poco, mientras el programa está desocupado, y todos se resaltan en las
+páginas, el que se muestra con más fuerza. \key{Intro} y su flecha hacia
+abajo van al lugar siguiente, \key{Mayús+Intro} y su flecha hacia arriba al
+anterior, y también \key{F3} y \key{Mayús+F3} desde cualquier parte de la
+ventana (con el panel cerrado, lo hacen bajar). Junto a las flechas,
+\texttt{3 de 17} dice qué lugar se muestra (o, mientras aún se cuentan los
+lugares, en qué página está). \menu{Aa} hace que cuenten las mayúsculas, y
+\menu{á} los acentos (sin él, \enquote{cancion} encuentra también
+\enquote{canción}); \menu{Todos} enciende o apaga el resaltado de todos los
+lugares (apagado, solo se resalta el que se muestra). Su menú,
+\menu{\dots}, tiene \menu{Mientras se escribe} (sin él, la búsqueda espera
+a \key{Intro}) y lleva el mismo texto a \menu{Buscar y resaltar} (o
+\menu{Buscar y censurar}) y al panel \menu{Resultados de la búsqueda}. La
+casilla guarda en su lista los últimos textos buscados, y se vuelve rojiza
+cuando el texto no está en el documento. La búsqueda es instantánea aun en
+documentos largos, porque se detiene en el primer lugar que encuentra y el
+texto de cada página se lee una sola vez (por adelantado, mientras el panel
+está abierto); solo un texto que no está en el documento la obliga a leer
+todas las páginas aún no leídas, y entonces dice por dónde va.
+
+\shot{findbar_es}{0.9}{Buscar mientras se escribe, bajado sobre las páginas:
+el lugar que se muestra, en naranja; los demás, en amarillo.}
+
+\index{modos}\index{modos!censurar@Censurar}\index{barras de herramientas}\index{buscar!y censurar}\index{buscar!texto}\index{anotaciones!resaltado}\index{censura}%
+\menu{Buscar\then Buscar y resaltar} (\key{Ctrl+Mayús+F}, o el botón Buscar
+de la barra Buscar) es la búsqueda con todas las opciones: busca una
+palabra, una frase o un patrón en el documento, hace la lista de los
+lugares encontrados con su contexto, y lleva a cada uno con
 \menu{Anterior} y \menu{Siguiente}; también puede marcarlos (véase la
-sección~\ref{sec:findmark}). En el modo Censurar, el mismo botón abre
+sección~\ref{sec:findmark}). En el modo Censurar, la misma orden abre
 \menu{Buscar y censurar}, que pone recuadros sobre ellos (véase la
 sección~\ref{sec:redact}).
-
-\index{buscar!búsqueda rápida}%
-Junto a ese botón está la casilla de búsqueda rápida, \menu{Buscar en el
-texto} (\key{Ctrl+Mayús+F} o \key{/} pone el cursor en ella). Busca lo que se
-escribe en ella sin distinguir mayúsculas ni acentos: \key{Intro} va al
-lugar siguiente, desde la página visible, y \key{Mayús+Intro} al anterior,
-y al final vuelve a empezar; \key{F3} y \key{Mayús+F3} hacen lo mismo
-desde cualquier parte de la ventana; junto a la casilla, \texttt{3/17} dice qué
-lugar se muestra, de cuántos. No marca nada: cada lugar solo se resalta un
-momento. \key{Esc} vuelve a las páginas.
-
-\index{buscar!mientras se escribe}%
-\menu{Buscar\then Buscar mientras se escribe} (\key{Alt+Mayús+F},
-figura~\ref{fig:findbar_es}) abre una
-barra al pie de la ventana, sola en la última fila: mientras está abierta,
-la barra de estado se oculta y sus mensajes se leen en el extremo derecho de
-la barra. Busca a medida que se escribe: con cada letra escrita o borrada
-busca hacia adelante desde la página visible y se detiene en el primer
-lugar que encuentra, que se muestra enseguida; los demás lugares se cuentan
-después, de a poco, mientras el programa está desocupado, y todos se
-resaltan en las páginas, el que se muestra con más fuerza. \menu{Siguiente} (\key{Intro}) y \menu{Anterior}
-(\key{Mayús+Intro}) los recorren, y también \key{F3} y \key{Mayús+F3}
-mientras la barra está abierta; a su lado, \texttt{3 de 17} dice qué lugar
-se muestra (o, mientras aún se cuentan los lugares, en qué página está). \menu{Todos} enciende o apaga el resaltado de todos los lugares
-(apagado, solo se resalta el que se muestra); sin \menu{Mientras se
-escribe}, la búsqueda espera a \key{Intro}; \menu{Distinguir mayúsculas} y
-\menu{Distinguir acentos} hacen que cuenten las mayúsculas y los acentos
-(sin ellos, \enquote{cancion} encuentra también \enquote{canción}). La
-casilla guarda en su lista los últimos textos buscados, y se vuelve rojiza
-cuando el texto no está en el documento. Sus dos últimos botones llevan el
-mismo texto a \menu{Buscar y resaltar} (o \menu{Buscar y censurar}) y al
-panel \menu{Resultados de la búsqueda}. La búsqueda es instantánea aun en
-documentos largos, porque se detiene en el primer lugar que encuentra y el
-texto de cada página se lee una sola vez (por adelantado, mientras la barra
-está abierta); solo un texto que no está en el documento la obliga a leer
-todas las páginas aún no leídas, y entonces dice por dónde va. El botón de cerrar o \key{Esc} cierra la barra, y con ella se van
-los resaltados.
-
-\shot{findbar_es}{0.9}{Buscar mientras se escribe, al pie de la ventana: el
-lugar que se muestra, en naranja; los demás, en amarillo.}
 
 \index{buscar!resultados de la búsqueda}%
 \menu{Ver\then Paneles\then Resultados de la búsqueda} (\key{F8}), o
 \menu{Buscar\then Buscar todos}, hace la lista de todos los lugares
 donde está un texto, cada uno con su página y las palabras de alrededor, con
-lo encontrado en negrita; al abrirse toma el texto de la búsqueda rápida.
+lo encontrado en negrita; al abrirse toma el texto de Buscar mientras se escribe.
 Puede distinguir mayúsculas o buscar palabras enteras. Un clic, \key{Intro}
 o las flechas llevan a cada lugar y lo muestran un momento. La lista se
 vacía cuando el documento cambia.
@@ -989,7 +982,7 @@ todas.
 \label{sec:findmark}
 
 \index{buscar!y resaltar}\index{expresiones regulares}\index{comodines}\index{anotaciones}\index{anotaciones!resaltado}\index{anotaciones!subrayado, tachado}%
-\menu{Buscar\then Buscar y resaltar} (\key{Ctrl+F},
+\menu{Buscar\then Buscar y resaltar} (\key{Ctrl+Mayús+F},
 figura~\ref{fig:find_highlight_es}) busca una palabra, una frase o un
 patrón en las páginas y marca los lugares encontrados con un resaltado, un
 subrayado, un tachado o cualquier otra anotación de texto. Puede distinguir
@@ -2011,11 +2004,9 @@ Tecla & Acción\\
 \key{Supr} & borrar las anotaciones seleccionadas\\
 \key{Ctrl+A}, \key{Esc} & seleccionar todo; no seleccionar nada\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & agrupar; desagrupar\\
-\key{Ctrl+F} & buscar (y resaltar, o censurar)\\
-\key{Ctrl+Shift+F}, \key{/} & búsqueda rápida\\
-\key{F3}, \key{Shift+F3} & lugar siguiente y anterior de la búsqueda rápida (o
-de Buscar mientras se escribe, si está abierta)\\
-\key{Alt+Shift+F} & Buscar mientras se escribe\\
+\key{Ctrl+F}, \key{/} & Buscar mientras se escribe\\
+\key{F3}, \key{Shift+F3} & lugar siguiente y anterior de Buscar mientras se escribe\\
+\key{Ctrl+Shift+F} & buscar (y resaltar, o censurar), con todas las opciones\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Seleccionar, Seleccionar texto, Mano, Ampliar una zona\\
 \key{Shift+Z} & Lupa\\
 \key{F1} & consejos de este modo\\

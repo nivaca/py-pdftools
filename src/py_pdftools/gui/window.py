@@ -629,31 +629,24 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         m.addSeparator()
         self._action(m, tr("Tool properties…"), lambda: self.tool_dialog(self.canvas.mode))
         m.addSeparator()
-        self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(),
-                                   QKeySequence.StandardKey.Find,
+        # La búsqueda avanzada, con todas sus opciones: Ctrl+Mayús+F (Ctrl+F es de Buscar mientras se escribe)
+        self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(), "Ctrl+Shift+F",
                                    tr("Find a word, a phrase or a pattern on the pages, and highlight (or underline, "
                                       "strike out…) the places found"))
-        from .quickfind import QuickFindAction
+        from .findbar import FindBar, keys
 
-        # La búsqueda rápida: una casilla en la barra Buscar; Ctrl+Mayús+F pone el cursor en ella.
-        self.a_quick_find = QuickFindAction(self)
-        # (la barra, «/», como en Okular: la tecla es de la casilla o del editor cuando escriben en ellos)
-        self.quick_find_key = self._action(m, tr("Quick find"), self.quick_find,
-                                           [QKeySequence("Ctrl+Shift+F"), QKeySequence("/")],
-                                           tr("Put the cursor in the quick find box, on the toolbar Find"))
-        # F3 and Shift+F3 go on through the places of the quick find, as in KDE's programs.
-        self.a_find_next = self._action(m, tr("Find next"), lambda: self.find_again(1), "F3",
-                                        tr("The next place of the text of the quick find"))
-        self.a_find_previous = self._action(m, tr("Find previous"), lambda: self.find_again(-1), "Shift+F3",
-                                            tr("The previous place of the text of the quick find"))
-        from .findbar import FindBar, key
-
-        # Buscar mientras se escribe: una barra propia, siempre abajo (gui/findbar.py); las otras búsquedas siguen
+        # Buscar mientras se escribe: un panel que baja sobre la esquina de las páginas (gui/findbar.py); Ctrl+F
+        # y «/», como en Okular (la tecla es de la casilla o del editor cuando escriben en ellos)
         self.find_bar = FindBar(self)
-        self.addToolBar(Qt.ToolBarArea.BottomToolBarArea, self.find_bar)
-        self.a_find_bar = self._action(m, tr("Find as you type"), lambda: self.find_bar.open_bar(), key(),
-                                       tr("A toolbar at the bottom of the window that finds as you type, and "
-                                          "highlights every place found"))
+        self.a_find_bar = self._action(m, tr("Find as you type"), lambda: self.find_bar.open_bar(), keys(),
+                                       tr("A small panel that comes down over the top of the pages, finds as you "
+                                          "type and highlights every place found"))
+        self.a_find_bar.setIcon(icon("pdftools-find-as-you-type"))
+        # F3 and Shift+F3 go on through the places of the panel, as in KDE's programs.
+        self.a_find_next = self._action(m, tr("Find next"), lambda: self.find_again(1), "F3",
+                                        tr("The next place of the text of Find as you type"))
+        self.a_find_previous = self._action(m, tr("Find previous"), lambda: self.find_again(-1), "Shift+F3",
+                                            tr("The previous place of the text of Find as you type"))
         m.addAction(self.a_find_all)
 
         self.m_layers = self.menuBar().addMenu(tr("&Layers"))
@@ -840,7 +833,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.common_bars = [
             self.toolbar_of("file", tr("File"), [self.a_open, self.a_save]),
             self.toolbar_of("edit", tr("Edit"), [self.a_undo, self.a_redo, self.a_delete]),
-            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_quick_find, self.a_word_index]),
+            self.toolbar_of("find", tr("Find"), [self.a_find, self.a_find_bar, self.a_word_index]),
             # (Select text and Hand: in every mode, Read too; the previous and next page are in Page navigation)
             self.toolbar_of("navigation", tr("Navigation"), [self.a_back, self.a_forward,
                                                              self.tool_actions["selecttext"],
@@ -1034,29 +1027,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                     act.setEnabled(False)
 
     def find_again(self, by: int):
-        """The next place (BY 1) or the previous one (BY -1) of the text of the quick find; with no text
-        yet, the cursor in its box. With the bar Find as you type open and a text in it, its places."""
-        if self.find_bar.isVisible() and self.find_bar.text().strip():
-            self.find_bar.step(by)
-            return
-        boxes = self.a_quick_find.boxes()
-        if not boxes or not boxes[0].text().strip():
-            self.quick_find()
-            return
-        self.a_quick_find.step(boxes[0], by)
-
-    def quick_find(self):
-        """The cursor in the quick find box; if no toolbar shows one (it was taken off, or the mode has no
-        Find), the dialog Find."""
-        bar = self.findChild(QToolBar, "find")
-        if not self.a_quick_find.focus():
-            mode = self.modes.get(self.mode)
-            if bar is not None and bar.parent() is self and not bar.isVisible() and \
-                    "find" not in getattr(mode, "without", ()) and self.a_quick_find in bar.actions():
-                bar.show()
-                if self.a_quick_find.focus():
-                    return
-            self.find_in_mode()
+        """The next place (BY 1) or the previous one (BY -1) of the text of Find as you type; with no text
+        yet, or the panel closed, the panel comes down (with its last text, searched again)."""
+        bar = self.find_bar
+        if bar.isVisible() and not bar.closing and bar.text().strip():
+            bar.step(by)
+        else:
+            bar.open_bar()
 
     def find_in_mode(self):
         """Find: and highlight (Annotate), or redact (Redact)."""
@@ -3532,7 +3509,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_sorter, self.a_find, self.a_quick_find, self.quick_find_key, self.a_compare,
+                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_sorter, self.a_find, self.a_find_bar, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:

@@ -442,10 +442,9 @@ in their modes, and the menu Annotate in Annotate. The menus File, Edit,
 Find, View and Tools are always there, File, Edit and View grouped in
 submenus (\menu{File\then New}, \menu{Export}, \menu{Import},
 \menu{Security}; \menu{View\then Panels}, \menu{Go to}, \menu{Zoom},
-\menu{Page layout}). \menu{Find} has every search: \menu{Find and
-highlight} (\menu{Find and redact} in the mode Redact), the quick find
-with the next and previous place, \menu{Find as you type}, and
-\menu{Find all}. \menu{Tools} gathers what works on the document as a
+\menu{Page layout}). \menu{Find} has every search: \menu{Find as you
+type} with its next and previous place, \menu{Find and highlight}
+(\menu{Find and redact} in the mode Redact), and \menu{Find all}. \menu{Tools} gathers what works on the document as a
 whole, or on several documents: the page sorter, the word index, running
 steps on several files, and comparing with another version (as text, or
 visually).
@@ -648,60 +647,50 @@ mode until it is closed, except Impose, which shows no pages (there
 \subsection{Finding text}
 
 \index{modes}\index{modes!redact@Redact}\index{toolbars}\index{finding!and redacting}\index{finding!text}\index{annotations!highlight}\index{redaction}%
-The button Find of the main toolbar (\key{Ctrl+F}) opens \menu{Find and
-highlight}: it finds a word, a phrase or a pattern in the document, lists
-the places found with their context, and goes to each one with
-\menu{Previous} and \menu{Next}; it can also mark them (see
-section~\ref{sec:findmark}). In the mode Redact, the same button opens
-\menu{Find and redact}, which puts boxes over them (see
-section~\ref{sec:redact}).
-
-\index{finding!quick find}%
-Beside that button is the quick find box, \menu{Find in the text}
-(\key{Ctrl+Shift+F} or \key{/} puts the cursor in it). It looks for what is typed in
-it without minding capitals or accents: \key{Enter} goes to the next place
-found, from the page shown, and \key{Shift+Enter} to the previous one,
-going round at the end; \key{F3} and \key{Shift+F3} do the same from
-anywhere in the window; beside the box, \texttt{3/17} says which place is
-shown, of how many. It marks nothing: each place is only shown for a
-moment. \key{Esc} goes back to the pages.
-
 \index{finding!as you type}%
-\menu{Find\then Find as you type} (\key{Alt+Shift+F}, figure~\ref{fig:findbar_en}) opens a toolbar at
-the bottom of the window, alone in the last row: while it is open, the
-status bar is hidden and its messages are shown at the right end of the
-toolbar. It finds as one types: at each letter typed or deleted, it
-searches forward from the page shown and stops at the first place found,
-which is shown at once; the other places are counted afterwards, a little
-at a time while the program is idle, and every place found is highlighted
-on the pages, the one shown more strongly.
-\menu{Next} (\key{Enter}) and \menu{Previous} (\key{Shift+Enter}) go
-through them, and so do \key{F3} and \key{Shift+F3} while the toolbar is
-open; beside it, \texttt{3 of 17} says which place is shown (or, while
-the places are still being counted, the page where it is). \menu{All}
-turns the highlighting of every place on or off (off, only the one shown is
-highlighted); without \menu{As you type}, the search waits for
-\key{Enter}; \menu{Match case} and \menu{Match accents} make capitals and
-accents count (without them, \enquote{cancion} also finds
-\enquote{canción}). The box keeps the last texts searched, in its list,
-and turns reddish when the text isn't in the document. Its last two
-buttons take the same text to \menu{Find and highlight} (or
-\menu{Find and redact}) and to the panel \menu{Search results}. The
-search is instantaneous even in long documents, since it stops at the
-first place found and the text of each page is read only once (ahead,
-while the toolbar is open); only a text that isn't in the document makes
-it read every page not read yet, and then it says how far it has got. The
-close button or \key{Esc} closes
-the toolbar, and the highlights go with it.
+\menu{Find\then Find as you type} (\key{Ctrl+F} or \key{/}, or its button
+on the toolbar Find; figure~\ref{fig:findbar_en}) brings down a small
+panel over the top right corner of the pages; \key{Esc} or its close
+button sends it up again, and the highlights go with it. It finds as one
+types: at each letter typed or deleted, it searches forward from the page
+shown and stops at the first place found, which is shown at once; the
+other places are counted afterwards, a little at a time while the program
+is idle, and every place found is highlighted on the pages, the one shown
+more strongly. \key{Enter} and its arrow down go to the next place,
+\key{Shift+Enter} and its arrow up to the previous one, and so do \key{F3}
+and \key{Shift+F3} from anywhere in the window (with the panel closed, they
+bring it down). Beside the arrows, \texttt{3 of 17} says which place is
+shown (or, while the places are still being counted, the page where it
+is). \menu{Aa} makes capitals count, and \menu{á} accents (without it,
+\enquote{cancion} also finds \enquote{canción}); \menu{All} turns the
+highlighting of every place on or off (off, only the one shown is
+highlighted). Its menu, \menu{\dots}, has \menu{As you type} (without it,
+the search waits for \key{Enter}) and takes the same text to \menu{Find
+and highlight} (or \menu{Find and redact}) and to the panel \menu{Search
+results}. The box keeps the last texts searched, in its list, and turns
+reddish when the text isn't in the document. The search is instantaneous
+even in long documents, since it stops at the first place found and the
+text of each page is read only once (ahead, while the panel is open); only
+a text that isn't in the document makes it read every page not read yet,
+and then it says how far it has got.
 
-\shot{findbar_en}{0.9}{Find as you type, at the bottom of the window: the
+\shot{findbar_en}{0.9}{Find as you type, come down over the pages: the
 place shown in orange, the others in yellow.}
+
+\index{modes}\index{modes!redact@Redact}\index{toolbars}\index{finding!and redacting}\index{finding!text}\index{annotations!highlight}\index{redaction}%
+\menu{Find\then Find and highlight} (\key{Ctrl+Shift+F}, or the button
+Find of the toolbar Find) is the search with every option: it finds a
+word, a phrase or a pattern in the document, lists the places found with
+their context, and goes to each one with \menu{Previous} and \menu{Next};
+it can also mark them (see section~\ref{sec:findmark}). In the mode
+Redact, the same command opens \menu{Find and redact}, which puts boxes
+over them (see section~\ref{sec:redact}).
 
 \index{finding!search results}%
 \menu{View\then Panels\then Search results} (\key{F8}), or
 \menu{Find\then Find all}, lists every place where a text is, each with its
 page and the words around it, the text found in bold; when it opens it
-takes the text of the quick find. It can match case or whole words. A
+takes the text of Find as you type. It can match case or whole words. A
 click, \key{Enter} or the arrows go to each place and show it for a moment.
 The list is emptied when the document changes.
 
@@ -941,7 +930,7 @@ size. \menu{Edit\then Remove annotations} deletes those of the page, or all.
 \label{sec:findmark}
 
 \index{finding!and highlighting}\index{wildcards}\index{annotations}\index{annotations!highlight}\index{annotations!underline, strikeout}%
-\menu{Find\then Find and highlight} (\key{Ctrl+F}, figure~\ref{fig:find_highlight_en})
+\menu{Find\then Find and highlight} (\key{Ctrl+Shift+F}, figure~\ref{fig:find_highlight_en})
 finds a word, a phrase or a pattern on the pages and marks the places
 found, with a highlight, an underline, a strikeout or any other text
 annotation. It can match case and whole words only, use a regular
@@ -1910,11 +1899,9 @@ Key & Action\\
 \key{Del} & delete the annotations selected\\
 \key{Ctrl+A}, \key{Esc} & select all; select none\\
 \key{Ctrl+G}, \key{Ctrl+Shift+G} & group; ungroup\\
-\key{Ctrl+F} & find (and highlight, or redact)\\
-\key{Ctrl+Shift+F}, \key{/} & quick find\\
-\key{F3}, \key{Shift+F3} & next and previous place of the quick find (or of
-Find as you type, when open)\\
-\key{Alt+Shift+F} & Find as you type\\
+\key{Ctrl+F}, \key{/} & Find as you type\\
+\key{F3}, \key{Shift+F3} & next and previous place of Find as you type\\
+\key{Ctrl+Shift+F} & find (and highlight, or redact), with every option\\
 \key{V}, \key{X}, \key{M}, \key{Z} & Select, Select text, Hand, Zoom to area\\
 \key{Shift+Z} & Magnifier\\
 \key{F1} & tips for this mode\\
