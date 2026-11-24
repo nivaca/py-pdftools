@@ -1,4 +1,4 @@
-# py-pdftools 1.12.1: descripción
+# py-pdftools 1.13.0: descripción
 
 ## Análisis
 

@@ -5,6 +5,30 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.13.0 — 2026-11-23
+
+- **A menu Find**, after Edit, in every mode, with every search: Find as
+  you type with its next and previous place, Find and highlight (Find and
+  redact in Redact) and Find all.
+- **Find as you type comes down from the top**: a small panel over the top
+  right corner of the pages that slides down when called and up when
+  closed, with Aa (capitals), á (accents), All, the place shown, the arrows
+  and a menu. **Ctrl+F** and **/** bring it down, F3 and Shift+F3 go
+  through its places, and Find and highlight has **Ctrl+Shift+F**. The
+  status bar stays. The quick find box is gone: the panel does what it did.
+- **The toolbars by kinds of work**: File, Edit, Mouse tools (Select text,
+  Hand, Zoom to area, Magnifier), Navigation (Back, Forward), Page
+  navigation, Zoom, Find (the dialog and the panel) and Tools (Page sorter
+  and Word index). The arrangements kept are put in the new order once; the
+  panels stay where they were.
+- **Settings > Toolbars > Reset the toolbars** (also in the right click on
+  a toolbar): every toolbar as it was at first, in every mode, after asking.
+- **Apply** in Settings, as in KDE Plasma: the changes in effect at once,
+  the window left open.
+- The tests run at once, each file in a process of its own
+  (`uv run python tools/test.py`): some twenty seconds instead of over a
+  minute.
+
 ## 1.12.1 — 2026-11-23
 
 - Find as you type is alone in the last row of the window: while it is
