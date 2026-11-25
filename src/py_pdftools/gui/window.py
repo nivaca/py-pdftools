@@ -616,16 +616,22 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # Grupo exclusivo: marcar una herramienta desmarca la anterior, en el menú y en las barras.
         group = QActionGroup(self)
         self.tool_actions: dict[str, QAction] = {}
-        for tools in TOOLS:
+        # Un submenú por grupo de herramientas, los mismos y con los mismos nombres que sus barras: el menú era
+        # una columna de más de treinta herramientas
+        self.m_tool_groups: dict[str, QMenu] = {}
+        for (name, title), tools in zip(TOOL_BARS, TOOLS, strict=True):
+            sub = m.addMenu(icon(tools[0][1]), tr(title))
+            sub.setToolTipsVisible(True)
+            self.m_tool_groups[name] = sub
             for tool, icon_name, tip in tools:
-                act = self._action(m, tool_name(tool), lambda _=False, t=tool: self.set_tool(t), tip=tr(tip))
+                act = self._action(sub, tool_name(tool), lambda _=False, t=tool: self.set_tool(t), tip=tr(tip))
                 act.setCheckable(True)
                 act.setIcon(icon(icon_name))
                 group.addAction(act)
                 self.tool_actions[tool] = act
-            m.addSeparator()
         self.tool_actions["select"].setChecked(True)
-        self._build_link_tool(self.m_edit, m)  # (la herramienta Enlace, también en este menú)
+        # (la herramienta Enlace, con las notas, como en su barra)
+        self._build_link_tool(self.m_edit, self.m_tool_groups["notes"])
         m.addSeparator()
         self._action(m, tr("Tool properties…"), lambda: self.tool_dialog(self.canvas.mode))
         m.addSeparator()

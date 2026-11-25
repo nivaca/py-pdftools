@@ -114,3 +114,19 @@ def test_the_command_palette(window, monkeypatch):
 
     monkeypatch.setattr(palette.Palette, "exec", choose)
     assert window.command_palette() is window.a_thumbs and window.a_thumbs.isChecked() != before
+
+
+def test_the_menu_annotate_in_submenus(window):
+    w = window
+    titles = [a.text() for a in w.m_tools.actions() if a.menu() is not None]
+    assert titles == ["Selection", "Text markup", "Notes and text", "Shapes", "Drawing"]
+    notes = w.m_tool_groups["notes"]
+    assert w.tool_actions["link"] in notes.actions() and w.tool_actions["stamp"] in notes.actions()
+    assert w.tool_actions["rect"] in w.m_tool_groups["shapes"].actions()
+    # Every tool of the mode Annotate in one submenu (Mark for redaction is the mode Redact's), its key as before
+    from py_pdftools.gui.window import TOOLS
+
+    placed = [a for sub in w.m_tool_groups.values() for a in sub.actions()]
+    annotate = [w.tool_actions[t] for group in TOOLS for t, _, _ in group] + [w.tool_actions["link"]]
+    assert set(annotate) == set(placed) and len(placed) == len(set(placed))
+    assert w.tool_actions["rect"].shortcut().toString() == "R" and w.tool_actions["highlight"].shortcut().toString() == "H"
