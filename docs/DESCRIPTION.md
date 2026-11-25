@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-two stages.
+I explain how it was made, in eighty-three stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1871,10 +1871,25 @@ the balloon went out of them; enlarging the bounds would have made the
 tooltip of the comment appear far from the annotation. So it is an item of
 its own, which ignores the zoom of the view and carries the same tooltip.
 
+83. Annotations on pages larger than paper
+------------------------------------------
+
+On some PDFs the comments came out minuscule. Their pages were much
+larger than paper: a scan put in the PDF at one point to the pixel, so
+that a page scanned at 300 dots per inch measures 2480 by 3508 points,
+over a metre; a text box of 12 points is a speck on it. The program now
+measures each page against a Letter page, and on one at least one and a
+half times as large in both directions (no paper is: A3 and tabloid stay
+as they are) it makes new annotations larger in proportion, about four
+times for that scan: their font, their lines, the size of a text box, a
+callout, a check mark, a stamp or a signature made with a click. The
+sizes kept in the settings stay the same. Notes and insertion marks are
+left as they are: MuPDF gives their icons one size, whatever is asked.
+
 Testing
 -------
 
-The program has 779 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 781 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

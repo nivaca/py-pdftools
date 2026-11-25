@@ -1857,9 +1857,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         if kind == "signature":
             return self._signature(page, rect)
         style = self.prefs.style(kind)
+        # En una página mucho mayor que el papel (un escaneo a 72 puntos por píxel), el texto y los trazos crecen
+        # en proporción: 12 puntos ahí no se leerían (véase annots.page_scale)
+        f = self.canvas.page_scale(page)
         a = Annotation(kind, page, rect, style.color, fill=style.fill if kind in FILLED else "",
-                       opacity=style.opacity, width=style.width, author=self.prefs.author,
-                       font_size=style.font_size, font=style.font, align=style.align, icon=style.icon,
+                       opacity=style.opacity, width=round(style.width * f, 2), author=self.prefs.author,
+                       font_size=round(style.font_size * f, 1), font=style.font, align=style.align, icon=style.icon,
                        ends=(style.start, style.end), dashed=style.dashed, quads=quads, paths=paths,
                        layer=self.layer)
         if kind == "stamp":
@@ -1876,7 +1879,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
         x0, y0 = rect[0], rect[1]
         kept = signature.chosen(self.settings)
-        s = rect[2] - rect[0] if rect[2] - rect[0] > 5 else signature.width(self.settings, kept, self.SIGNATURE_WIDTH)
+        f = self.canvas.page_scale(page)  # (en una página mucho mayor que el papel, en proporción)
+        s = rect[2] - rect[0] if rect[2] - rect[0] > 5 else signature.width(self.settings, kept,
+                                                                             self.SIGNATURE_WIDTH) * f
         if kept is not None and kept.kind == "picture":
             # Una imagen de la firma: un sello de imagen, de ese ancho y con sus proporciones
             found = signature.picture_of(kept)
@@ -1890,7 +1895,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         strokes = kept.strokes if kept is not None and kept.kind == "drawn" else []
         paths = tuple(tuple((round(x0 + u * s, 2), round(y0 + v * s, 2)) for u, v in stroke) for stroke in strokes)
         # Un ancho mínimo, para que la firma no salga demasiado fina con el estilo de la herramienta a mano alzada.
-        width = max(style.width, 1.2)
+        width = max(style.width, 1.2) * f
         return Annotation("ink", page, annots.frame("ink", paths, width) if paths else rect, style.color, width=width,
                           paths=paths, author=self.prefs.author, contents=tr("Signature"), layer=self.layer)
 
@@ -1983,7 +1988,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                               layer=self.layer)
         paths = tuple(tuple((round(x0 + u * (x1 - x0), 2), round(y0 + v * (y1 - y0), 2)) for u, v in stroke)
                       for stroke in strokes)
-        width = max(style.width, 1.5)
+        width = max(style.width, 1.5) * self.canvas.page_scale(page)
         return Annotation("ink", page, annots.frame("ink", paths, width), style.color, width=width, paths=paths,
                           author=self.prefs.author, layer=self.layer)
 
@@ -2016,7 +2021,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         x0, y0, x1, _ = a.rect
         if x1 - x0 > 5:  # (dragged: as wide as that, with its proportions)
             h, w = h * (x1 - x0) / w, x1 - x0
-        else:  # (clicked: centred there)
+        else:  # (clicked: centred there; on a page much larger than paper, larger in proportion)
+            f = self.canvas.page_scale(a.page)
+            w, h = w * f, h * f
             x0, y0 = x0 - w / 2, y0 - h / 2
         # El sello no puede salirse de la página: se empuja hacia dentro.
         if self.doc is not None and 0 <= a.page < self.count:

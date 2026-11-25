@@ -2023,10 +2023,11 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
 
     def _callout_box(self, page: PageItem, tip: QPointF, at: QPointF) -> Rect:
         """The box of a callout that points at TIP, put at AT (a click: above and to the right of TIP)."""
-        w, h = FREETEXT_SIZE
+        f = self.page_scale(page.number)
+        w, h = (v * f for v in FREETEXT_SIZE)
         # Under 6 pixels of drag is a click: the box goes above and to the right, at a fixed distance.
         if math.hypot(at.x() - tip.x(), at.y() - tip.y()) * self.zoom() < 6:
-            at = QPointF(tip.x() + 30, tip.y() - 30 - h)
+            at = QPointF(tip.x() + 30 * f, tip.y() - 30 * f - h)
         r = page.rect()
         x = max(min(at.x(), r.right() - w), r.left())
         y = max(min(at.y(), r.bottom() - h), r.top())
@@ -2351,7 +2352,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             r = qrect(annotation.rect)
             if self.mode in ("freetext", "typewriter") and (r.width() < MIN_SIZE * 4 or r.height() < MIN_SIZE * 4):
                 # A click (or a tiny drag) with a text box tool makes a box of the usual size at the click.
-                w, h = FREETEXT_SIZE
+                w, h = (v * self.page_scale(n) for v in FREETEXT_SIZE)
                 bounds = page.rect()
                 x = max(min(drag["start"].x(), bounds.right() - w), bounds.left())
                 y = max(min(drag["start"].y(), bounds.bottom() - h), bounds.top())
@@ -2423,7 +2424,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self.drawn.emit(self._new("signature", n, (start.x(), start.y(), start.x(), start.y())))
             return
         if self.mode == "mark":  # (a check mark, a cross...: centred where the click was)
-            s = MARK_SIZE / 2
+            s = MARK_SIZE * self.page_scale(n) / 2
             x = max(min(start.x(), bounds.right() - s), bounds.left() + s)
             y = max(min(start.y(), bounds.bottom() - s), bounds.top() + s)
             self.drawn.emit(self._new("mark", n, (round(x - s, 2), round(y - s, 2), round(x + s, 2), round(y + s, 2))))
@@ -2447,6 +2448,13 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         x = max(min(x, bounds.right() - w), bounds.left())
         y = max(min(y, bounds.bottom() - h), bounds.top())
         self.drawn.emit(self._new(self.mode, n, (round(x, 2), round(y, 2), round(x + w, 2), round(y + h, 2))))
+
+    def page_scale(self, number: int) -> float:
+        """How much larger than paper page NUMBER is (annots.page_scale): new annotations are made larger on it."""
+        if self.doc is None or not 0 <= number < self.doc.page_count:
+            return 1.0
+        r = self.doc[number].rect
+        return annots.page_scale(r.width, r.height)
 
     def word_at(self, number: int, point: QPointF) -> str:
         """The word under POINT (on page NUMBER), or ''."""

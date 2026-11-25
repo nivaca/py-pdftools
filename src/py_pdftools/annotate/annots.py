@@ -87,6 +87,18 @@ VERTICES = ("polygon", "cloud", "polyline", "line", "arrow")  # (whose points ca
 RESIZABLE = ("freetext", "callout", "area", "rect", "ellipse", "polygon", "cloud", "line", "arrow", "polyline",
              "ink", "marker", "stamp", "redact")
 NOTE_SIZE = 16.0  # points: the side of a note's icon (MuPDF makes them all of this size)
+# A page this many times a Letter page, or more, in both directions is not paper as printed: a scan or a picture
+# put in the PDF at 72 points to the pixel (a 300 dpi scan of an A4 page comes out over a metre wide). On such a
+# page, new annotations are made larger in proportion (see page_scale), or a 12 point text could not be read.
+LARGE_PAGE = 1.5
+
+
+def page_scale(width: float, height: float) -> float:
+    """How much larger than paper a page of WIDTH × HEIGHT points is (1 for paper as printed: Letter, A4, A3,
+    tabloid...): the starting sizes of new annotations are multiplied by it."""
+    short, long = sorted((abs(width), abs(height)))
+    factor = min(short / 612, long / 792)  # (Letter)
+    return round(factor, 2) if factor >= LARGE_PAGE else 1.0
 CARET_SIZE = (20.0, 14.0)  # points: the size of a caret's mark (MuPDF's)
 
 FONTS = {"helv": N_("Helvetica (sans serif)"), "tiro": N_("Times (serif)"), "cour": N_("Courier (monospaced)")}
