@@ -5,6 +5,13 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.18.1 — 2026-11-25
+
+- Fixed: on Windows, and on Linux without a desktop's settings, Quit had
+  lost Ctrl+Q in 1.18.0 (Qt gives no standard key for it there): Ctrl+Q
+  and Ctrl+W are now named explicitly, besides the platform's keys. 1.18.0
+  reached only GitHub and Codeberg; its RPM did not build.
+
 ## 1.18.0 — 2026-11-25
 
 - Ctrl+W is now File > Close document: it closes this document only, its

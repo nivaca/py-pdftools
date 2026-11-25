@@ -7,6 +7,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: en Windows, y en Linux sin los ajustes de un escritorio, Salir
+  había perdido Ctrl+Q en 1.18.0 (Qt no da allí una tecla estándar para
+  ello): Ctrl+Q y Ctrl+W se nombran ahora de forma explícita, además de las
+  teclas de la plataforma.
 - Ctrl+W es ahora Archivo > Cerrar el documento: cierra solo este
   documento, su pestaña o su ventana, y el programa sigue abierto; tras el
   último documento queda una ventana vacía (era Cerrar la ventana, que con

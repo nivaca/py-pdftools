@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.18.0
+Version:        1.18.1
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Wed Nov 25 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.18.1-1
+- Version 1.18.1: Ctrl+Q and Ctrl+W named explicitly (Quit had lost Ctrl+Q where
+  the platform has no standard key for it).
+
 * Wed Nov 25 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.18.0-1
 - Version 1.18.0: Help > Reset all settings (with a dated copy); Ctrl+W closes
   the document only, Alt+F4 quits; Reduced file size no longer turns white
