@@ -5,22 +5,21 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.17.0 — 2026-11-25
 
 - The part Textual criticism of an annotation's properties is folded: one
   line shows the entry as in an apparatus (`Conjecture: lemma ] reading
   A`), and an arrow unfolds its fields. Ticking the part unfolds them. The
   dialog is about 250 pixels lower.
-
 - File > Save a copy > With pages as pictures: a copy in which the pages
   chosen (all, or a list such as `2-5, 9, last`) are pictures of
   themselves, at the resolution chosen (300 dpi by default), PNG or JPEG,
   in colour or grey. They look the same, but their text, fonts,
   annotations and form fields are gone from them (the last two drawn into
   the picture). Bookmarks, labels, links, the other pages and the
-  protection stay. The copy opens in a new tab. On the command line: `py-pdftools rasterize FILE -o OUT
-  [--pages] [--dpi] [--format] [--quality] [--gray]`.
-
+  protection stay. The copy opens in a new tab. On the command line:
+  `py-pdftools rasterize FILE -o OUT [--pages] [--dpi] [--format]
+  [--quality] [--gray]`.
 - `tools/zenodo.py`: the description of the deposit is now the whole
   README of the tag, in HTML. The draft also gets the contributor (the
   project leader), the languages, the copyright, the repository on GitHub,
@@ -29,7 +28,6 @@ Debian package, the RPM, the wheel and the source, are on
   be kept in the desktop keyring (`secret-tool store --label="Zenodo
   token" service zenodo`) instead of `$ZENODO_TOKEN`; `tools/zenodo.py
   check-token` says whether there is one.
-
 - `tools/zenodo.py` prepares the deposit of a release for Zenodo. `collect`
   puts in `dist/zenodo/` the tree of the tag as
   `py-pdftools-VERSION-source.tar.gz`, with its signature, a signed

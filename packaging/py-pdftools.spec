@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.16.0
+Version:        1.17.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,6 +100,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Wed Nov 25 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.17.0-1
+- Version 1.17.0: File > Save a copy > With pages as pictures, and py-pdftools
+  rasterize (pages made pictures, without text, opened in a new tab); the part
+  Textual criticism of an annotation's properties folded.
+
 * Wed Nov 25 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.16.0-1
 - Version 1.16.0: installers for Windows and macOS; the menu Annotate in
   submenus; a sign for comments; annotations readable on scanned pages and
