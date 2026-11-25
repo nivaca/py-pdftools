@@ -891,6 +891,13 @@ attachment's) keeps in the PDF the size PDF gives it, but on the screen it is
 never smaller than at 100\,\%, so that it can be seen with a whole scanned
 page in view.
 
+\index{annotations!on large pages}%
+Some PDFs of large format measure their pages in units larger than a point
+(their \emph{user unit}: a page may say that each unit is 4 points). The
+program gives the sizes of fonts and the widths of lines of the annotations
+on such a page in points, as on any other, and writes them in the page's
+units, so that a text of 12 points is seen of 12 points.
+
 \index{annotations!stamp!of one's own}%
 Besides the standard stamps and one of a text, the Stamp tool's right
 click has \menu{My stamps}: stamps made of a picture (PNG, JPEG, TIFF) or

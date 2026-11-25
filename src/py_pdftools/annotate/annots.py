@@ -41,6 +41,7 @@ import dataclasses
 import datetime
 import html
 import json
+import math
 import os
 import re
 import tempfile
@@ -650,7 +651,35 @@ def standard_stamp(name: str) -> tuple[bytes, tuple[float, float]]:
     return _STANDARD[name]
 
 
+def user_unit(page: pymupdf.Page) -> float:
+    """The size in points of PAGE's unit (/UserUnit: 1 but on some pages of large format, which say "each unit is
+    N points" instead of writing large numbers)."""
+    kind, value = page.parent.xref_get_key(page.xref, "UserUnit")
+    try:
+        unit = float(value) if kind in ("int", "real") else 1.0
+    except ValueError:
+        return 1.0
+    return unit if math.isfinite(unit) and unit > 0 else 1.0
+
+
+def _in_units(page: pymupdf.Page, a: Annotation, back: bool = False) -> Annotation:
+    """A with its font size and line width in PAGE's units, as the PDF keeps them (BACK: from them to points).
+    MuPDF gives the places and sizes of a page with a /UserUnit in points, but writes and reads the size of a font
+    and the width of a line as they are: in the page's units, 4 times larger on a page whose unit is 4 points."""
+    unit = user_unit(page)
+    if unit == 1:
+        return a
+    f = unit if back else 1 / unit
+    return dataclasses.replace(a, font_size=round(a.font_size * f, 2), width=round(a.width * f, 3))
+
+
 def read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.Annot) -> Annotation | None:
+    a = _read_annotation(doc, page, annot)
+    # (el tamaño de la letra y el ancho de las líneas, en puntos, como los lugares: véase _in_units)
+    return _in_units(page, a, back=True) if a is not None else None
+
+
+def _read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.Annot) -> Annotation | None:
     kind = kind_of(doc, annot)
     if kind is None:
         return None
@@ -1150,6 +1179,7 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
     """Write A on PAGE, as a new annotation, made (if A has no date) and changed WHEN (a PDF
     date; now), with its replies."""
     when = when or now()
+    a = _in_units(page, a)
     stroke = rgb(a.color)
     fill = rgb(a.fill) if a.fill else None
     dashes = DASHES if a.dashed and a.kind in DASHABLE else None
@@ -1311,6 +1341,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
     """Change ANNOT (which was OLD) where it is into A, keeping all else it has. Returns
     whether that could be done (False: it has to be taken out and written again)."""
     doc = page.parent
+    old, a = _in_units(page, old), _in_units(page, a)
     if old.kind != a.kind or old.page != a.page or a.kind in ("callout", "attachment", "redact"):
         return False  # (an attached file: written again, with its file; a redaction box, with its keys)
     look = ("contents", "rich", "border", "color", "font", "font_size", "align")
@@ -1385,7 +1416,7 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
     except (RuntimeError, ValueError):
         return False
     # El cambio se comprueba leyendo otra vez la anotación: si no es A, apply la borra y la escribe de nuevo.
-    after = read_annotation(doc, page, page.load_annot(annot.xref))
+    after = _read_annotation(doc, page, page.load_annot(annot.xref))  # (in the page's units, as A is here)
     return after is not None and same(dataclasses.replace(a, replies=()), after)
 
 

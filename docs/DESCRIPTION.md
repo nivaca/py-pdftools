@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-three stages.
+I explain how it was made, in eighty-four stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1896,10 +1896,24 @@ pixels. So the canvas draws the icons of notes and attachments at no less
 than 16 pixels, from their corner, and a click finds them there; the PDF
 keeps them as they are, as other readers draw them at a fixed size too.
 
+84. Pages measured in larger units
+----------------------------------
+
+Looking at how another free PDF program sizes its comments, I thought of
+the pages of large format that declare a unit larger than a point (a
+`/UserUnit` of 4, say, so that their numbers stay small), and tried one.
+MuPDF gives the places on such a page in points, its real size, so the
+measure of large pages already saw it as it is. But it writes and reads
+the size of a font and the width of a line as they are, in the page's
+units: a text of 48 points came out four times as tall, and a line of 8
+points 32 pixels thick. Now the program converts them where annotations
+are written and read, and inside it every size is in points. The check
+after a change compares in the page's units, as it reads there.
+
 Testing
 -------
 
-The program has 783 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 787 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
