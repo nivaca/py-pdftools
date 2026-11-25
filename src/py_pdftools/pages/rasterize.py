@@ -104,7 +104,7 @@ def rasterize(source: Path, target: Path, options: Options, pages: list[int] | s
             rasterize_page(doc, i, options)
         keep = pdfdoc.kept_encryption(doc)
         # garbage=3: las fuentes, imágenes y flujos que ya nadie usa salen del archivo (con ellas, el texto).
-        doc.save(tmp, garbage=3, deflate=True, clean=True, encryption=keep)
+        doc.save(tmp, garbage=3, deflate=True, encryption=keep)
         doc.close()
         os.replace(tmp, target)
         return len(chosen)

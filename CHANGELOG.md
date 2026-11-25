@@ -7,6 +7,15 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- Fixed: File > Save a copy > Reduced file size (and `py-pdftools
+  reduce`) could turn a white shape black, such as the box behind a logo
+  in a letterhead. MuPDF's function for redrawing pictures passed every
+  page through a filter that lost a fill colour given without a colour
+  space (legal in PDF). The pictures are now redrawn by py-pdftools
+  itself, object by object, and the content of the pages is never
+  rewritten: only compressed again, byte for byte. Pictures in black and
+  white (one bit) are left as they are. Pages as pictures no longer
+  rewrites the content of the pages it leaves either.
 - Help > Reset all settings: after asking, every window closes (each asks
   about its unsaved changes), `config.toml` is moved aside as a dated copy
   (`config-YYYY-MM-DD-HHMMSS.toml`, beside it) and the program ends, to

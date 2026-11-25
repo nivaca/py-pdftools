@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-eight stages.
+I explain how it was made, in eighty-nine stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2011,10 +2011,36 @@ file moved, a message says where the copy is, and the program ends. It
 does not start again by itself: that would need a different command for
 the AppImage, the installers and the source, and starting it is one click.
 
+89. A black box in a smaller copy
+---------------------------------
+
+The user sent a course programme whose smaller copy had a black block
+where the university's logo was, on every page. The logo was not a
+picture at all but paths, drawn over a white box, and the white of the box
+was lost: in the content of the page the box is filled after `1 sc`, a fill
+colour given with no colour space before it, which is legal (the colour
+space at the start is DeviceGray). I looked for the step that lost it,
+taking away the parts of the page one at a time, and found it in MuPDF's
+`rewrite_images`, which I used to draw the pictures again. To find them, it
+passes the content of every page through its filter, and the filter drops
+such an `sc`. The save with `clean=True` used the same filter.
+
+So `pages/reduce.py` now draws the pictures again itself. For each picture
+it takes the highest resolution at which it is shown (a picture shown on
+two pages counts at the sharpest), makes it smaller with MuPDF's scaler,
+and writes it, as JPEG, into the same object, its soft mask made as small
+with it. Pictures in black and white, masks and pictures MuPDF can't read
+are left as they are. The content of the pages is never parsed again: it is
+only compressed again, byte for byte, which gave back most of what
+`clean=True` saved (the copy of the user's file is 588 KB, against 576 KB
+with the fault). Pages as pictures lost `clean=True` too. A test draws the
+same `1 sc` box and checks that it stays white and that the content of the
+page is the same, byte for byte.
+
 Testing
 -------
 
-The program has 818 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 820 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

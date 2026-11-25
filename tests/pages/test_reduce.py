@@ -51,6 +51,55 @@ def test_levels(heavy, tmp_path):
     assert widths(tmp_path / "lossless.pdf") == [1200, 1200]
 
 
+def test_page_content_untouched(tmp_path):
+    """A fill colour set by 'sc' without a 'cs' before it (the starting colour space, DeviceGray: legal) stays.
+    MuPDF's rewrite_images, used before, passed the page through its filter, which dropped it: a white box
+    behind a logo came out black. The content stream is now never rewritten."""
+    path = tmp_path / "sc.pdf"
+    doc = pymupdf.open()
+    page = doc.new_page(width=300, height=300)
+    page.insert_image(pymupdf.Rect(150, 150, 250, 250), pixmap=noisy(900, 900))  # (648 dpi: to be reduced)
+    xref = page.get_contents()[-1]
+    doc.update_stream(xref, b"0.5 g 0 0 300 300 re f q 1 sc 20 20 100 100 re f Q\n" + doc.xref_stream(xref))
+    doc.save(path)
+    content = pymupdf.open(path)[0].read_contents()
+    out = tmp_path / "o.pdf"
+    reduce.reduce(path, out, reduce.options_of("medium"))
+    small = pymupdf.open(out)
+    assert small[0].get_pixmap().pixel(60, 240) == (255, 255, 255)  # (the box, white)
+    assert pymupdf.open(path)[0].read_contents() == content
+    assert small[0].read_contents() == content and widths(out) == [208]  # (100 points: 1.39 in at 150 dpi)
+
+
+def test_soft_masks_and_shared_pictures(tmp_path):
+    """A picture with a soft mask keeps it (made as small as the picture); one shown on two pages is reduced
+    once, at the sharpest of the two."""
+    path = tmp_path / "m.pdf"
+    doc = pymupdf.open()
+    pic = noisy(800, 800)
+    alpha = pymupdf.Pixmap(pymupdf.csGRAY, 800, 800, bytes([255 if (i // 800) < 400 else 0
+                                                              for i in range(800 * 800)]), 0)
+    masked = pymupdf.Pixmap(pic, alpha)
+    first = doc.new_page()
+    first.insert_image(pymupdf.Rect(72, 72, 216, 216), pixmap=masked)  # (2 in: 400 dpi)
+    xref = first.get_images()[0][0]
+    doc.new_page().insert_image(pymupdf.Rect(72, 72, 144, 144), xref=xref)  # (1 in: 800 dpi)
+    doc.save(path)
+    before = [p.get_pixmap(dpi=50) for p in pymupdf.open(path)]
+    out = tmp_path / "o.pdf"
+    reduce.reduce(path, out, reduce.options_of("medium"))
+    small = pymupdf.open(out)
+    images = [img for p in small for img in p.get_images(full=True)]
+    assert {img[0] for img in images} == {images[0][0]} and images[0][2] == 150  # (1 in at 150 dpi)
+    mask = images[0][1]
+    assert mask and small.xref_get_key(mask, "Width")[1] == "150"
+    for page, old in zip(small, before):
+        new = page.get_pixmap(dpi=50)
+        # (the masked half transparent, as before: the page shows white there)
+        assert new.pixel(new.width // 2 - 5, new.height // 2 + 15)[:3] == old.pixel(old.width // 2 - 5,
+                                                                                     old.height // 2 + 15)[:3]
+
+
 def test_pictures_already_small_are_left(tmp_path):
     path = tmp_path / "s.pdf"
     doc = pymupdf.open()

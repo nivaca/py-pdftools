@@ -5,6 +5,8 @@ marcadores y los enlaces se quedan, la protección se mantiene; y la ventana y l
 
 from __future__ import annotations
 
+import re
+
 import pymupdf
 import pytest
 
@@ -63,8 +65,12 @@ def test_text_gone_looks_kept(sample, tmp_path, fmt):
     assert doc.get_toc() == [[1, "Chapter", 1]]
     assert not doc[0].get_fonts() and doc[2].get_fonts()
     data = every_byte(doc)
-    assert b"words 1" not in data and b"words 2" not in data and b"field value" not in data
-    assert b"words 3" in data
+    assert b"field value" not in data
+    # No text is drawn anywhere but on page 3: no stream of the file has a text object (BT) but its content.
+    kept = set(doc[2].get_contents())
+    texts = {x for x in range(1, doc.xref_length()) if doc.xref_is_stream(x)
+             and re.search(rb"\bBT\b", doc.xref_stream(x) or b"")}
+    assert texts and texts <= kept
     for i, page in enumerate(doc):
         assert difference(before[i], page.get_pixmap(dpi=72, annots=True)) < 3
 

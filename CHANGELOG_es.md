@@ -7,6 +7,16 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: Archivo > Guardar una copia > Con tamaño reducido (y
+  `py-pdftools reduce`) podía volver negra una forma blanca, como el
+  recuadro detrás del logo de un membrete. La función de MuPDF que vuelve a
+  dibujar las imágenes pasaba cada página por un filtro que perdía un color
+  de relleno dado sin espacio de color (algo válido en PDF). Ahora
+  py-pdftools vuelve a dibujar las imágenes él mismo, objeto por objeto, y
+  el contenido de las páginas nunca se reescribe: solo se comprime otra
+  vez, byte a byte. Las imágenes en blanco y negro (de un bit) se dejan
+  como están. Las páginas como imágenes tampoco reescriben ya el contenido
+  de las páginas que no convierten.
 - Ayuda > Restablecer todos los ajustes: después de preguntar, se cierran
   todas las ventanas (cada una pregunta por sus cambios sin guardar),
   `config.toml` se aparta como copia fechada
