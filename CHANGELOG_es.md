@@ -7,6 +7,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Ctrl+W es ahora Archivo > Cerrar el documento: cierra solo este
+  documento, su pestaña o su ventana, y el programa sigue abierto; tras el
+  último documento queda una ventana vacía (era Cerrar la ventana, que con
+  la última terminaba el programa). Alt+F4 ahora también sale, como Ctrl+Q.
 - Corregido: Archivo > Guardar una copia > Con tamaño reducido (y
   `py-pdftools reduce`) podía volver negra una forma blanca, como el
   recuadro detrás del logo de un membrete. La función de MuPDF que vuelve a

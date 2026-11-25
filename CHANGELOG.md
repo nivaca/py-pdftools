@@ -7,6 +7,10 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- Ctrl+W is now File > Close document: it closes this document only, its
+  tab or its window, and the program stays open; after the last document
+  an empty window is left (it was Close window, which ended the program
+  with the last window). Alt+F4 now also quits, as Ctrl+Q does.
 - Fixed: File > Save a copy > Reduced file size (and `py-pdftools
   reduce`) could turn a white shape black, such as the box behind a logo
   in a letterhead. MuPDF's function for redrawing pictures passed every

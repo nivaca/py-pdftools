@@ -9917,10 +9917,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>{count} caracteres copiados</tr>
   </text>
   <text>
-    <en>Close window</en>
-    <tr>Cerrar la ventana</tr>
-  </text>
-  <text>
     <en>Keep running in the background, to open documents faster</en>
     <tr>Seguir funcionando en segundo plano, para abrir antes los documentos</tr>
   </text>
@@ -14103,5 +14099,17 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Every window closes (asking about unsaved changes), and py-pdftools ends: start it again.</en>
     <tr>Todas las ventanas se cierran (preguntando por los cambios sin guardar) y py-pdftools termina: vuelva a abrirlo.</tr>
+  </text>
+  <text>
+    <en>Close document</en>
+    <tr>Cerrar el documento</tr>
+  </text>
+  <text>
+    <en>This document (its tab) only; the program stays open, with an empty window after the last one</en>
+    <tr>Solo este documento (su pestaña); el programa sigue abierto, con una ventana vacía después del último</tr>
+  </text>
+  <text>
+    <en>No document is open</en>
+    <tr>No hay ningún documento abierto</tr>
   </text>
 </interface>

@@ -541,7 +541,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                              tip=tr("This document and another PDF page by page, side by side or "
                                                     "one over the other, with what looks different marked"))
         m.addSeparator()
-        self.a_close = self._action(m, tr("Close window"), self.close, QKeySequence.StandardKey.Close)
+        self.a_close = self._action(m, tr("Close document"), self.close_document, QKeySequence.StandardKey.Close,
+                                    tip=tr("This document (its tab) only; the program stays open, with an empty "
+                                           "window after the last one"))
         self.a_open_tab = self._action(
             None, tr("Open in a new tab…"), self.open_tab_dialog, "Ctrl+T",
             tip=tr("Another document in a tab of this window (Settings: open every document so)"))
@@ -560,7 +562,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             self.addAction(act)
             self.tab_actions.append(act)
         # Quit ends the program, also when it keeps running in the background (see instance.py).
-        self.a_quit = self._action(m, tr("Quit"), self.quit_program, QKeySequence.StandardKey.Quit)
+        # (Alt+F4 also ends it all, not only this window; Ctrl+Q stays)
+        quit_keys = QKeySequence.keyBindings(QKeySequence.StandardKey.Quit)
+        quit_keys += [k for k in [QKeySequence("Alt+F4")] if k not in quit_keys]
+        self.a_quit = self._action(m, tr("Quit"), self.quit_program, quit_keys)
 
         m = self.menuBar().addMenu(tr("&Edit"))
         self.a_undo = self._action(m, tr("Undo"), self.undo, QKeySequence.StandardKey.Undo)
@@ -1191,6 +1196,33 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def show_tips(self):
         """Help > Tips for this mode (F1): the hint of the mode on, over the pages, again."""
         self.hint.show_text(self.hints.get(self.mode, ""))
+
+    def close_document(self) -> bool:
+        """File > Close document (Ctrl+W): this document only, the program staying open. Its tab (or its window)
+        goes if there are others; the last one leaves an empty window (or tab) in its place."""
+        from . import open_window
+
+        if any(w is not self and w.is_open() for w in _WINDOWS):
+            return self.close()
+        if self.path is None:  # (ya vacía, y es la única: no hay nada que cerrar)
+            self.status(tr("No document is open"))
+            return False
+        # La ventana vacía se abre antes de cerrar esta: con ninguna abierta, el programa terminaría.
+        if self.host is not None:
+            from .tabs import open_in_tab
+
+            fresh = open_in_tab(None, near=self)
+        else:
+            fresh = open_window(None)
+            if fresh.host is None:
+                fresh.setGeometry(self.geometry())
+        if self.close():
+            if fresh.host is not None:
+                fresh.host.show_window(fresh)
+            return True
+        # (the user kept the document, asked about its changes: the empty one goes)
+        fresh.close()
+        return False
 
     def quit_program(self) -> bool:
         from . import quit_all

@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-nine stages.
+I explain how it was made, in ninety stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2037,10 +2037,25 @@ with the fault). Pages as pictures lost `clean=True` too. A test draws the
 same `1 sc` box and checks that it stays white and that the content of the
 page is the same, byte for byte.
 
+90. Closing a document, not the program
+---------------------------------------
+
+The user asked for Ctrl+W to close the current document (its tab) and
+leave the program open, and for Alt+F4 to close the program. Ctrl+W was
+Close window: with the last window it ended the program. It is now File >
+Close document. With other documents open it closes its tab, or its window
+if it has one of its own; with the last one, an empty window (or tab) is
+opened first and then the document's is closed, since with no window left
+Qt would end the program. If the user keeps the document when asked about
+its unsaved changes, the empty one is closed again. Quit keeps Ctrl+Q and
+takes Alt+F4 as well. On Linux desktops the window manager usually takes
+Alt+F4 before the program sees it, and closes the window in front: with
+one window, which is the usual case, that ends the program as well.
+
 Testing
 -------
 
-The program has 820 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 823 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
