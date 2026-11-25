@@ -142,6 +142,17 @@ _CLIPBOARD: list[Annotation] = []  # (annotations copied, for all the windows)
 _WINDOWS: list = []  # (windows built again in another language must stay referenced)
 
 
+def _keys(standard, *named: str) -> list:
+    """The keys of the platform for STANDARD, and NAMED ones too, each once. Some platforms have none for a
+    standard key (Windows, or Linux without a desktop, for Quit): the named ones are there anyway."""
+    keys = list(QKeySequence.keyBindings(standard))
+    for text in named:
+        key = QKeySequence(text)
+        if key not in keys:
+            keys.append(key)
+    return keys
+
+
 def install_qt_translations():
     """Qt's own texts (file dialogs, standard buttons) in the language in use."""
     from PySide6.QtCore import QLibraryInfo, QLocale, QTranslator
@@ -541,7 +552,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                              tip=tr("This document and another PDF page by page, side by side or "
                                                     "one over the other, with what looks different marked"))
         m.addSeparator()
-        self.a_close = self._action(m, tr("Close document"), self.close_document, QKeySequence.StandardKey.Close,
+        self.a_close = self._action(m, tr("Close document"), self.close_document,
+                                    _keys(QKeySequence.StandardKey.Close, "Ctrl+W"),
                                     tip=tr("This document (its tab) only; the program stays open, with an empty "
                                            "window after the last one"))
         self.a_open_tab = self._action(
@@ -563,9 +575,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             self.tab_actions.append(act)
         # Quit ends the program, also when it keeps running in the background (see instance.py).
         # (Alt+F4 also ends it all, not only this window; Ctrl+Q stays)
-        quit_keys = QKeySequence.keyBindings(QKeySequence.StandardKey.Quit)
-        quit_keys += [k for k in [QKeySequence("Alt+F4")] if k not in quit_keys]
-        self.a_quit = self._action(m, tr("Quit"), self.quit_program, quit_keys)
+        self.a_quit = self._action(m, tr("Quit"), self.quit_program,
+                                   _keys(QKeySequence.StandardKey.Quit, "Ctrl+Q", "Alt+F4"))
 
         m = self.menuBar().addMenu(tr("&Edit"))
         self.a_undo = self._action(m, tr("Undo"), self.undo, QKeySequence.StandardKey.Undo)

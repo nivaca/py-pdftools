@@ -45,10 +45,11 @@ def test_the_keys():
     QApplication.instance() or QApplication([])
     w = MainWindow()
     try:
-        assert QKeySequence(QKeySequence.StandardKey.Close) in w.a_close.shortcuts()
+        # (named, not only the platform's: Windows and Linux without a desktop have no key for Quit)
+        assert QKeySequence("Ctrl+W") in w.a_close.shortcuts()
         assert w.a_close.text() == "Close document"
-        assert QKeySequence("Alt+F4") in w.a_quit.shortcuts()
-        assert QKeySequence(QKeySequence.StandardKey.Quit) in w.a_quit.shortcuts()
+        assert {QKeySequence("Ctrl+Q"), QKeySequence("Alt+F4")} <= set(w.a_quit.shortcuts())
+        assert len(set(w.a_quit.shortcuts())) == len(w.a_quit.shortcuts())  # (each once)
     finally:
         w.close()
 
