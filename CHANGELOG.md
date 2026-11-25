@@ -5,12 +5,37 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## 1.15.1 — 2026-11-24
+## 1.16.0 — 2026-11-25
 
-- **The options in the user manuals have their two hyphens**: in the
-  monospaced font, TeX joined them into a dash, so `--uninstall`, `--user`,
-  `--no-tray`, `--rotate` and the others were printed as `–uninstall`; the
-  font of the manuals now has no TeX ligatures.
+- **Installers for Windows and macOS that need nothing else**:
+  `py-pdftools-VERSION-windows-x64-setup.exe` (Windows 10 and later) and
+  `py-pdftools-VERSION-macos-arm64.dmg` (macOS 15 and later, on Apple
+  Silicon), each with its own Python, Qt and libraries, pyHanko among them.
+  The one for Windows installs for the user or for everyone, with a
+  Start-menu entry and py-pdftools in "Open with" for PDFs; on macOS the
+  Finder offers it for PDFs. There is none for Intel Macs: PyMuPDF and
+  pikepdf no longer publish their libraries for them. They are signed, with
+  their checksums in `SHA256SUMS-installers`.
+- **The menu Annotate in submenus**, grouped as the toolbars are
+  (Selection, Text markup, Notes and text, Shapes, Drawing); every tool
+  keeps its key.
+- **A sign for comments**: a highlight, a box, a line or a drawing with a
+  comment has a small speech balloon in its colour beside its top right
+  corner; pointing at it shows the comment.
+- **Annotations readable on scanned pages**: on a page much larger than
+  paper (a scan put in the PDF at one point to the pixel measures over a
+  metre), new annotations are made larger in proportion: their text, their
+  lines, a text box, a callout, a check mark, a stamp, a signature. The
+  field where a note is written is never smaller on the screen than at
+  100 %.
+- **Note icons of one size**: the icons of notes and attachments are 16
+  pixels on the screen at every zoom, and are saved with the flags of PDF
+  that ask other readers to do the same.
+- **Pages with a unit of their own** (`/UserUnit`, in some PDFs of large
+  format): the text and the lines of their annotations are of the size
+  asked; they came out several times larger.
+- The options in the user manuals have their two hyphens (`--uninstall`
+  was printed with a dash).
 
 ## 1.15.0 — 2026-11-24
 

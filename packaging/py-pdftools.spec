@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.15.1
+Version:        1.16.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -100,8 +100,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
-* Tue Nov 24 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.15.1-1
-- Version 1.15.1: the options in the user manuals print with their two hyphens
+* Wed Nov 25 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.16.0-1
+- Version 1.16.0: installers for Windows and macOS; the menu Annotate in
+  submenus; a sign for comments; annotations readable on scanned pages and
+  on pages with a /UserUnit; note icons of one size at any zoom; the
+  options in the user manuals print with their two hyphens
 
 * Tue Nov 24 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.15.0-1
 - Version 1.15.0: every search fast, Find all without freezing, the OCR mode at
