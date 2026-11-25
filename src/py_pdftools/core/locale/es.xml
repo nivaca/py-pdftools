@@ -14052,4 +14052,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>the resolution of the pictures (default 300)</en>
     <tr>la resolución de las imágenes (por omisión, 300)</tr>
   </text>
+  <text>
+    <en>Hide the fields</en>
+    <tr>Ocultar los campos</tr>
+  </text>
+  <text>
+    <en>Show the fields</en>
+    <tr>Mostrar los campos</tr>
+  </text>
+  <text>
+    <en>Show or hide the fields of the entry</en>
+    <tr>Mostrar u ocultar los campos de la entrada</tr>
+  </text>
 </interface>

@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-six stages.
+I explain how it was made, in eighty-seven stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1975,6 +1975,20 @@ size. A very large page (a map, a poster) would pass a thousand million
 pixels at 600 dpi, so above 120 million it is drawn at the resolution that
 fits. Bookmarks, page labels, links, the pages not chosen and the
 protection of the file stay as they were.
+
+87. A lower properties dialog
+----------------------------
+
+With a single annotation, the properties dialog had grown taller than a
+laptop's screen, and most of its height went to the part Textual
+criticism, which few annotations use. The user asked to make it
+collapsible. Its fields now fold under one line that shows the entry as
+in an apparatus (`Conjecture: lemma ] reading A`), cut at sixty
+characters with the whole of it in the tooltip; an arrow unfolds them, and
+ticking the part unfolds them as well, since then they have to be filled.
+The dialog is about 250 pixels lower. Making it lower again on folding
+needed the layouts to be done anew by hand, after Qt's own pass: before
+that, the minimum height still counted the folded fields.
 
 Testing
 -------

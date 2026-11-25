@@ -7,6 +7,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- La parte Crítica textual de las propiedades de una anotación está
+  plegada: una línea muestra la entrada como en un aparato (`Conjetura:
+  lema ] lectura A`), y una flecha despliega sus campos. Marcar la parte
+  los despliega. El diálogo queda unos 250 píxeles más bajo.
+
 - Archivo > Guardar una copia > Con las páginas como imágenes: una copia en
   la que las páginas elegidas (todas, o una lista como `2-5, 9, last`) son
   imágenes de sí mismas, a la resolución elegida (300 ppp por omisión), en

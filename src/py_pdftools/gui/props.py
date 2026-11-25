@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import dataclasses
 
-from PySide6.QtCore import QSize, Qt
+from PySide6.QtCore import QSize, Qt, QTimer
 from PySide6.QtGui import QColor
 from PySide6.QtWidgets import (
     QCheckBox,
@@ -25,7 +25,9 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QSpinBox,
+    QToolButton,
     QVBoxLayout,
+    QWidget,
 )
 
 from ..annotate import settings
@@ -298,13 +300,24 @@ class PropertiesDialog(QDialog):
         self.resize(460, self.sizeHint().height())
 
     def _critical_box(self, entry: Critical | None) -> QGroupBox:
-        """The entry of textual criticism of the annotation: ticked, it has one."""
+        """The entry of textual criticism of the annotation: ticked, it has one. Its fields fold under a
+        line that sums them up, so that the dialog stays small; ticking the box unfolds them."""
         self.critical = box = QGroupBox(tr("Textual criticism"))
         box.setCheckable(True)
         box.setChecked(entry is not None)
         # An empty entry, so the fields exist even if the box is unticked; critical_entry() checks the box.
         entry = entry or Critical("variant")
-        form = QFormLayout(box)
+        outer = QVBoxLayout(box)
+        self.c_toggle = QToolButton()
+        self.c_toggle.setAutoRaise(True)
+        self.c_toggle.setToolButtonStyle(Qt.ToolButtonStyle.ToolButtonTextBesideIcon)
+        self.c_toggle.setCheckable(True)
+        self.c_toggle.setToolTip(tr("Show or hide the fields of the entry"))
+        outer.addWidget(self.c_toggle)
+        self.c_body = QWidget()
+        form = QFormLayout(self.c_body)
+        form.setContentsMargins(0, 0, 0, 0)
+        outer.addWidget(self.c_body)
         self.c_type = _combo(CRITICAL, entry.type)
         form.addRow(tr("Kind:"), self.c_type)
         self.c_fields = {}
@@ -318,9 +331,46 @@ class PropertiesDialog(QDialog):
             field.setPlaceholderText(hint)
             self.c_fields[name] = field
             form.addRow(label, field)
+            field.textChanged.connect(self._critical_summary)
         self.c_confidence = _combo(CONFIDENCE, entry.confidence)
         form.addRow(tr("Confidence:"), self.c_confidence)
+        self.c_type.currentIndexChanged.connect(self._critical_summary)
+        self.c_toggle.toggled.connect(self._critical_fold)
+        # Tickear la casilla despliega los campos (hay que llenarlos); quitarla los pliega.
+        box.toggled.connect(self.c_toggle.setChecked)
+        self._critical_fold(False)
         return box
+
+    def _critical_fold(self, open_: bool):
+        self.c_body.setVisible(open_)
+        self.c_toggle.setArrowType(Qt.ArrowType.DownArrow if open_ else Qt.ArrowType.RightArrow)
+        self._critical_summary()
+        # El diálogo se ajusta a la altura nueva cuando Qt ha rehecho su disposición (antes, la medida es la vieja).
+        if self.isVisible():
+            QTimer.singleShot(0, self._fit_height)
+
+    def _fit_height(self):
+        # Se rehace a mano la disposición del grupo y la del diálogo: sin eso, el alto mínimo todavía cuenta
+        # los campos plegados, y el diálogo no baja.
+        self.critical.layout().activate()
+        self.layout().activate()
+        # (self.width es la casilla del grosor de la línea: el ancho, por size())
+        self.resize(self.size().width(), self.sizeHint().height())
+
+    def _critical_summary(self, *_):
+        """The line over the fields: when folded, what the entry says ('Variant reading: lemma ] reading')."""
+        if self.c_toggle.isChecked():
+            self.c_toggle.setText(tr("Hide the fields"))
+            return
+        f = {k: " ".join(w.text().split()) for k, w in self.c_fields.items()}
+        # Como en el aparato crítico: 'lema ] lectura testigo' (sin lema, '] lectura'; sin lectura, el lema).
+        other = " ".join(x for x in (f["reading"], f["witness"]) if x)
+        said = f"{f['lemma']} ] {other}" if f["lemma"] and other else f"] {other}" if other else f["lemma"]
+        text = self.c_type.currentText() + (f": {said.strip()}" if said.strip() else "")
+        # (larga, ensancharía el diálogo: se corta, y entera queda en la ayuda emergente)
+        self.c_toggle.setToolTip(text if len(text) > 60 else tr("Show or hide the fields of the entry"))
+        text = text if len(text) <= 60 else text[:59] + "…"
+        self.c_toggle.setText(text if self.critical.isChecked() else tr("Show the fields"))
 
     def critical_entry(self) -> Critical | None:
         if not self.critical.isChecked():

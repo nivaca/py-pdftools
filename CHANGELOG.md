@@ -7,6 +7,11 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- The part Textual criticism of an annotation's properties is folded: one
+  line shows the entry as in an apparatus (`Conjecture: lemma ] reading
+  A`), and an arrow unfolds its fields. Ticking the part unfolds them. The
+  dialog is about 250 pixels lower.
+
 - File > Save a copy > With pages as pictures: a copy in which the pages
   chosen (all, or a list such as `2-5, 9, last`) are pictures of
   themselves, at the resolution chosen (300 dpi by default), PNG or JPEG,

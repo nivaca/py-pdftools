@@ -730,8 +730,20 @@ def test_textual_criticism_in_the_window(window):
     assert window.annotations[0].critical == Critical("conjecture")
     dialog = PropertiesDialog([window.annotations[0]], window)
     assert dialog.critical.isChecked()
+    # Folded at first: one line that sums up the entry, and a lower dialog; unfolded, the fields.
+    assert dialog.c_body.isHidden() and dialog.c_toggle.text() == "Conjecture"
+    dialog.show()
+    QApplication.processEvents()
+    folded = dialog.height()
+    dialog.c_toggle.setChecked(True)
+    QApplication.processEvents()
+    assert not dialog.c_body.isHidden() and dialog.height() > folded
     dialog.c_fields["reading"].setText("  lege   pacem ")
     dialog.c_fields["witness"].setText("A")
+    dialog.c_toggle.setChecked(False)
+    QApplication.processEvents()
+    assert dialog.c_toggle.text() == "Conjecture: ] lege pacem A" and dialog.height() == folded
+    dialog.hide()
     a = dialog.apply(window.annotations[0])
     assert a.critical == Critical("conjecture", reading="lege pacem", witness="A")
     window.replace(0, a)
@@ -740,6 +752,10 @@ def test_textual_criticism_in_the_window(window):
     assert window._rows == [0]
     window.search.clear()
     dialog = PropertiesDialog([window.annotations[0]], window)
+    dialog.critical.setChecked(False)
+    assert dialog.c_body.isHidden()
+    dialog.critical.setChecked(True)  # (ticked: unfolded, to be filled)
+    assert not dialog.c_body.isHidden()
     dialog.critical.setChecked(False)
     assert dialog.apply(window.annotations[0]).critical is None
 
