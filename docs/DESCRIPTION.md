@@ -2046,8 +2046,11 @@ Close window: with the last window it ended the program. It is now File >
 Close document. With other documents open it closes its tab, or its window
 if it has one of its own; with the last one, an empty window (or tab) is
 opened first and then the document's is closed, since with no window left
-Qt would end the program. If the user keeps the document when asked about
-its unsaved changes, the empty one is closed again. Quit keeps Ctrl+Q and
+Qt would end the program. The question about unsaved changes comes before
+that, while the document is still in front: at first it came after, when
+the empty tab had already taken its place, and the user saw the document
+closed before being asked about it. If the user keeps the document, nothing
+else happens. Quit keeps Ctrl+Q and
 takes Alt+F4 as well. On Linux desktops the window manager usually takes
 Alt+F4 before the program sees it, and closes the window in front: with
 one window, which is the usual case, that ends the program as well.
@@ -2085,7 +2088,7 @@ the box being dragged and finds the frame along its edge.
 Testing
 -------
 
-The program has 824 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 826 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

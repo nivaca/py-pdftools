@@ -206,6 +206,8 @@ def tool_name(tool: str) -> str:
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, AttachmentsMixin,
                  HistoryMixin, NavigationMixin, WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
                  ToolbarsMixin, QMainWindow):
+    _asked = False  # (Close document asked about the changes already, before its empty window came: see there)
+
     def __init__(self, state: dict | None = None):
         """STATE (from export_state) carries the document over when the window is
         built again, for instance in another language."""
@@ -1218,6 +1220,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         if self.path is None:  # (ya vacía, y es la única: no hay nada que cerrar)
             self.status(tr("No document is open"))
             return False
+        # Primero la pregunta por los cambios: la ventana (o pestaña) vacía que viene después pasaba al frente,
+        # y el documento parecía cerrado antes de que se preguntara por él
+        self.canvas.commit_text()
+        self.keep_comment()
+        if not self.maybe_discard():
+            return False
+        self._asked = True  # (closeEvent doesn't ask again: Discard leaves it modified)
         # La ventana vacía se abre antes de cerrar esta: con ninguna abierta, el programa terminaría.
         if self.host is not None:
             from .tabs import open_in_tab
@@ -1231,7 +1240,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             if fresh.host is not None:
                 fresh.host.show_window(fresh)
             return True
-        # (the user kept the document, asked about its changes: the empty one goes)
+        # (it didn't close after all: the empty one goes)
+        self._asked = False
         fresh.close()
         return False
 
@@ -1350,7 +1360,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def closeEvent(self, event):
         self.canvas.commit_text()
         self.keep_comment()
-        if not self.maybe_discard():
+        if not self._asked and not self.maybe_discard():
             event.ignore()
             return
         # El usuario ya aceptó cerrar (guardó o descartó): la copia de recuperación sobra.

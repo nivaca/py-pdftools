@@ -86,3 +86,30 @@ def test_a_window_by_itself(pdfs):
     QApplication.processEvents()
     left = open_ones()
     assert len(left) == 1 and left[0] is not win and left[0].path is None and left[0].isVisible()
+
+
+@pytest.mark.parametrize("in_tab", [False, True])
+def test_it_asks_before_the_empty_one_comes(pdfs, in_tab):
+    """The last document with unsaved changes: Close document asks about them while it is still in front, before
+    the empty window (or tab) that takes its place is opened; and only once (Discard leaves it modified)."""
+    from PySide6.QtWidgets import QMessageBox
+
+    from py_pdftools.gui import open_window
+    from py_pdftools.gui.tabs import open_in_tab
+
+    win = open_in_tab(pdfs[0]) if in_tab else open_window(pdfs[0])
+    win.ask_recover = lambda when: False
+    QApplication.processEvents()
+    win.is_modified = lambda: True
+    asked = []
+
+    def ask():
+        asked.append([w for w in open_ones() if w is not win])  # (the others open when it asks)
+        return QMessageBox.StandardButton.Discard
+
+    win.ask_unsaved = ask
+    assert win.close_document()
+    QApplication.processEvents()
+    assert asked == [[]]
+    left = open_ones()
+    assert len(left) == 1 and left[0] is not win and left[0].path is None
