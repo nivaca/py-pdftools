@@ -2050,6 +2050,17 @@ versiones anteriores lo guardaban en un segundo archivo,
 \texttt{.plist} en macOS); el primer arranque de esta versión lo pasa a
 \texttt{config.toml} y borra el archivo viejo.
 
+\index{configuracion@configuración!restablecer}%
+\menu{Ayuda\then Restablecer todos los ajustes} devuelve cada ajuste a su
+valor habitual, después de preguntar. Primero cierra todas las ventanas
+(cada una pregunta por sus cambios sin guardar), luego aparta
+\texttt{config.toml} como copia fechada,
+\texttt{config-AAAA-MM-DD-HHMMSS.toml}, en la misma carpeta, y el programa
+termina; vuelve a arrancar como la primera vez. Para recuperar los ajustes
+anteriores, basta con renombrar esa copia como \texttt{config.toml}. Los
+demás archivos de la carpeta (sellos, firmas, ID digitales, certificados
+de confianza, recetas, perfiles) no se tocan.
+
 \index{idioma de la interfaz}%
 El idioma de la interfaz también se elige con
 \texttt{py-pdftools interface es} (o \texttt{en}).
@@ -2220,7 +2231,8 @@ Tecla & Acción\\
   zona, o use \menu{Buscar texto cubierto}.
 \item[El programa terminó sin guardar] abra de nuevo el documento: ofrece
   recuperar los cambios de su copia de recuperación.
-\item[Un valor de la configuración está mal] borre \texttt{config.toml}
+\item[Un valor de la configuración está mal] use \menu{Ayuda\then
+  Restablecer todos los ajustes}, o borre \texttt{config.toml}
   (sección~\ref{sec:files-kept}); el programa arranca con los valores por
   defecto.
 \item[Se perdieron las barras o los paneles] muéstrelos otra vez con un

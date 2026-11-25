@@ -7,6 +7,14 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Ayuda > Restablecer todos los ajustes: después de preguntar, se cierran
+  todas las ventanas (cada una pregunta por sus cambios sin guardar),
+  `config.toml` se aparta como copia fechada
+  (`config-AAAA-MM-DD-HHMMSS.toml`, a su lado) y el programa termina, para
+  volver a empezar con los valores habituales. Los sellos, las firmas, los
+  ID digitales, los certificados de confianza, las recetas y los perfiles
+  no se tocan.
+
 - La parte Crítica textual de las propiedades de una anotación está
   plegada: una línea muestra la entrada como en un aparato (`Conjetura:
   lema ] lectura A`), y una flecha despliega sus campos. Marcar la parte

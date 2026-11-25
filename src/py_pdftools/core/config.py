@@ -162,6 +162,25 @@ def write(data: dict) -> Path:
     return path
 
 
+def reset() -> Path | None:
+    """All the settings back to their usual values: config.toml moved aside, as a copy dated now
+    (config-YYYY-MM-DD-HHMMSS.toml, beside it). Returns that copy; None if there was no file. The other files
+    of the folder (stamps, signatures, digital IDs, recipes, profiles, recovery copies) are not touched."""
+    import time
+
+    path = config_path()
+    if not path.is_file():
+        return None
+    backup = path.with_name(time.strftime("config-%Y-%m-%d-%H%M%S.toml"))
+    n = 1
+    while backup.exists():  # (dos en el mismo segundo: la segunda lleva un número)
+        n += 1
+        backup = path.with_name(time.strftime(f"config-%Y-%m-%d-%H%M%S-{n}.toml"))
+    # Mover es copiar y borrar a la vez: nunca queda la configuración borrada sin su copia.
+    os.replace(path, backup)
+    return backup
+
+
 def write_table(name: str, values: dict) -> Path:
     """Replace the table NAME with VALUES (none: removed), keeping the others."""
     try:

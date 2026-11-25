@@ -829,6 +829,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_updates = self._action(m, tr("Check for updates…"), self.check_for_updates,
                                       tip=tr("Ask GitHub for the latest version of py-pdftools (only now, never "
                                              "by itself), and say how to install it"))
+        m.addSeparator()
+        self.a_reset_settings = self._action(
+            m, tr("Reset all settings…"), self.reset_settings_dialog,
+            tip=tr("Every setting back to its usual value, after a copy of them is kept; then the program "
+                   "ends"))
+        m.addSeparator()
         self._action(m, tr("About py-pdftools"), self.about)
 
         for act, name in ((self.a_open, "document-open"), (self.a_save, "document-save"),
@@ -886,6 +892,39 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             button.setContextMenuPolicy(Qt.ContextMenuPolicy.CustomContextMenu)
             button.customContextMenuRequested.connect(
                 lambda pos, t=tool, b=button: self.tool_menu(t, b.mapToGlobal(pos)))
+
+    def reset_settings_dialog(self):
+        """Help > Reset all settings: asked first; then every window closes, the settings are moved aside as a
+        dated copy (see core/config.reset) and the program ends, to start again as the first time."""
+        from ..core import config
+
+        path = config.config_path()
+        box = QMessageBox(QMessageBox.Icon.Warning, tr("Reset all settings"),
+                          tr("Put every setting of py-pdftools back to its usual value?"), parent=self)
+        box.setInformativeText(tr(
+            "This covers Settings, the language, the toolbars and the arrangement of each mode, the styles of "
+            "the tools, the recent documents and the size of the windows. A copy of them is kept first, beside "
+            "{path}. Your stamps, signatures, digital IDs, recipes and profiles are not touched.", path=path)
+            + "\n\n" + tr("Every window closes (asking about unsaved changes), and py-pdftools ends: start it "
+                           "again."))
+        reset = box.addButton(tr("Reset and close"), QMessageBox.ButtonRole.DestructiveRole)
+        box.addButton(QMessageBox.StandardButton.Cancel)
+        box.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        box.exec()
+        if box.clickedButton() is not reset:
+            return False
+        from . import end, reset_settings
+
+        backup = reset_settings()
+        if backup is False:  # (a window stayed open: nothing was reset)
+            self.status(tr("The settings were not reset: a window stayed open"), error=True)
+            return False
+        # Las ventanas ya se cerraron: el aviso va sin padre.
+        QMessageBox.information(None, tr("Reset all settings"),
+                                tr("The settings were reset. The old ones are kept in {path}.", path=backup)
+                                if backup else tr("The settings were reset (there were none saved)."))
+        end()
+        return True
 
     def check_for_updates(self):
         """Help > Check for a new version (see updating.py)."""

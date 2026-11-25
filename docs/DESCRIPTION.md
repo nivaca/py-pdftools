@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-seven stages.
+I explain how it was made, in eighty-eight stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1991,10 +1991,30 @@ The dialog is about 250 pixels lower. Making it lower again on folding
 needed the layouts to be done anew by hand, after Qt's own pass: before
 that, the minimum height still counted the folded fields.
 
+88. Resetting all settings
+--------------------------
+
+The user asked for a way to reset all the settings from the Help menu,
+with a confirmation and a backup. All of them are in one file,
+`config.toml`, so the reset is to move that file aside, renamed with the
+date and time (`config.reset` in `core/config.py`); a move is a copy and a
+deletion at once, and the settings can never be lost without their copy.
+The other files of the folder are the user's work, not settings (stamps,
+signatures, digital IDs, recipes, profiles), and stay.
+
+The order mattered. Each window writes what it keeps of itself (its size,
+its toolbars) when it closes, so a file removed while windows were open
+would come back, half written, at the end. Help > Reset all settings
+therefore closes every window first, as Quit does, each asking about its
+unsaved changes; if one stays open, nothing is reset. Only then is the
+file moved, a message says where the copy is, and the program ends. It
+does not start again by itself: that would need a different command for
+the AppImage, the installers and the source, and starting it is one click.
+
 Testing
 -------
 
-The program has 815 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 818 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

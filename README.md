@@ -514,7 +514,11 @@ documents open at the end) goes in the same file, after the settings, in
 the tables `[window]` and `[impose]`; older versions kept it in a second
 file, `py-pdftools.conf`, which is moved into `config.toml` at the first
 start. Each setting is checked when it is read, so a file edited by hand
-can't stop the program.
+can't stop the program. Help > Reset all settings puts them all back to
+their usual values, after asking: every window closes, `config.toml` is
+moved aside as a dated copy (`config-YYYY-MM-DD-HHMMSS.toml`, beside it)
+and the program ends; stamps, signatures, digital IDs, recipes and
+profiles are not touched.
 Help > System check (also a button at the foot of Settings) lists what py-pdftools needs
 and whether it has it (Python and its libraries, pyHanko, tesseract and the
 OCR languages chosen, Ghostscript, the space of the temporary folder),

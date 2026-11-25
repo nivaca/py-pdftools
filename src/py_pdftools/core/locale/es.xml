@@ -14064,4 +14064,44 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Show or hide the fields of the entry</en>
     <tr>Mostrar u ocultar los campos de la entrada</tr>
   </text>
+  <text>
+    <en>Every setting back to its usual value, after a copy of them is kept; then the program ends</en>
+    <tr>Cada ajuste vuelve a su valor habitual, después de guardar una copia de todos; luego el programa se cierra</tr>
+  </text>
+  <text>
+    <en>Put every setting of py-pdftools back to its usual value?</en>
+    <tr>¿Devolver cada ajuste de py-pdftools a su valor habitual?</tr>
+  </text>
+  <text>
+    <en>Reset all settings</en>
+    <tr>Restablecer todos los ajustes</tr>
+  </text>
+  <text>
+    <en>Reset all settings…</en>
+    <tr>Restablecer todos los ajustes…</tr>
+  </text>
+  <text>
+    <en>Reset and close</en>
+    <tr>Restablecer y cerrar</tr>
+  </text>
+  <text>
+    <en>The settings were not reset: a window stayed open</en>
+    <tr>No se restablecieron los ajustes: una ventana quedó abierta</tr>
+  </text>
+  <text>
+    <en>The settings were reset (there were none saved).</en>
+    <tr>Se restablecieron los ajustes (no había ninguno guardado).</tr>
+  </text>
+  <text>
+    <en>The settings were reset. The old ones are kept in {path}.</en>
+    <tr>Se restablecieron los ajustes. Los anteriores se guardaron en {path}.</tr>
+  </text>
+  <text>
+    <en>This covers Settings, the language, the toolbars and the arrangement of each mode, the styles of the tools, the recent documents and the size of the windows. A copy of them is kept first, beside {path}. Your stamps, signatures, digital IDs, recipes and profiles are not touched.</en>
+    <tr>Esto abarca la Configuración, el idioma, las barras de herramientas y la disposición de cada modo, los estilos de las herramientas, los documentos recientes y el tamaño de las ventanas. Antes se guarda una copia de todo ello, junto a {path}. Sus sellos, firmas, ID digitales, recetas y perfiles no se tocan.</tr>
+  </text>
+  <text>
+    <en>Every window closes (asking about unsaved changes), and py-pdftools ends: start it again.</en>
+    <tr>Todas las ventanas se cierran (preguntando por los cambios sin guardar) y py-pdftools termina: vuelva a abrirlo.</tr>
+  </text>
 </interface>

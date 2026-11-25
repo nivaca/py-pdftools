@@ -5,6 +5,14 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- Help > Reset all settings: after asking, every window closes (each asks
+  about its unsaved changes), `config.toml` is moved aside as a dated copy
+  (`config-YYYY-MM-DD-HHMMSS.toml`, beside it) and the program ends, to
+  start again with the usual values. Stamps, signatures, digital IDs,
+  trusted certificates, recipes and profiles are not touched.
+
 ## 1.17.0 — 2026-11-25
 
 - The part Textual criticism of an annotation's properties is folded: one

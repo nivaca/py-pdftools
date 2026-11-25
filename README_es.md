@@ -544,7 +544,11 @@ va en el mismo archivo, después de los ajustes, en las tablas `[window]` e
 `[impose]`; las versiones anteriores lo guardaban en un segundo archivo,
 `py-pdftools.conf`, que se pasa a `config.toml` en el primer arranque. Cada
 ajuste se comprueba al leerlo, de modo que un archivo editado a mano no
-puede detener el programa.
+puede detener el programa. Ayuda > Restablecer todos los ajustes los devuelve
+todos a su valor habitual, después de preguntar: se cierran las ventanas,
+`config.toml` se aparta como copia fechada (`config-AAAA-MM-DD-HHMMSS.toml`,
+a su lado) y el programa termina; los sellos, las firmas, los ID digitales,
+las recetas y los perfiles no se tocan.
 Ayuda > Comprobación del sistema (también un botón al pie de Configuración) muestra lo que
 py-pdftools necesita y si lo tiene (Python y sus bibliotecas, pyHanko,
 tesseract y los idiomas del OCR elegidos, Ghostscript, el espacio de la

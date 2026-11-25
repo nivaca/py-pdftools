@@ -1943,6 +1943,16 @@ file, \texttt{py-pdftools.conf} on Linux (the registry on Windows, a
 \texttt{.plist} on macOS); the first start of this version moves it into
 \texttt{config.toml}, and removes the old file.
 
+\index{settings!resetting}%
+\menu{Help\then Reset all settings} puts every setting back to its usual
+value, after asking. It closes every window first (each asks about its
+unsaved changes), then moves \texttt{config.toml} aside as a dated copy,
+\texttt{config-YYYY-MM-DD-HHMMSS.toml}, in the same folder, and the
+program ends; it starts again as the first time. To have the old settings
+back, rename that copy \texttt{config.toml}. The other files of the
+folder (stamps, signatures, digital IDs, trusted certificates, recipes,
+profiles) are not touched.
+
 \index{language of the interface}%
 The language of the interface can also be chosen with
 \texttt{py-pdftools interface es} (or \texttt{en}).
@@ -2108,8 +2118,9 @@ Key & Action\\
   text only covered}.
 \item[The program ended without saving] open the document again: it
   offers to recover the changes kept in its recovery copy.
-\item[A setting is wrong] delete \texttt{config.toml}
-  (section~\ref{sec:files-kept}); the program starts with its defaults.
+\item[A setting is wrong] use \menu{Help\then Reset all settings}, or
+  delete \texttt{config.toml} (section~\ref{sec:files-kept}); the program
+  starts with its defaults.
 \item[The toolbars or panels are lost] show them again with a right click
   on the toolbars, or put a toolbar back with \menu{As it was at first} in
   \menu{Customize the toolbars}; deleting the table \texttt{[window]} of

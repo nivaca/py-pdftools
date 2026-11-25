@@ -202,6 +202,34 @@ def quit_all() -> bool:
     return True
 
 
+def reset_settings():
+    """Close every window (each asks about what is not saved; they write what they keep of themselves as they
+    close), then move the settings aside (core/config.reset). The copy of the old settings, None if there were
+    none; False if a window stayed open (nothing is reset then). The caller then ends the program (end())."""
+    from ..core import config
+    from .window import _WINDOWS
+
+    global _QUITTING
+    _QUITTING = True
+    try:
+        for win in list(_WINDOWS):
+            if win.is_open() and not win.close():
+                return False
+    finally:
+        _QUITTING = False
+    # Ya con todo cerrado: lo que las ventanas escribieron al cerrarse va también a la copia.
+    return config.reset()
+
+
+def end() -> None:
+    """End the program, also if it was running in the background."""
+    from PySide6.QtWidgets import QApplication
+
+    if _INSTANCE is not None:
+        _INSTANCE.stop()
+    QApplication.instance().quit()
+
+
 def background(on: bool) -> bool:
     """Keep running in the background (ON), or not, from now on. Whether it could. In the background, a
     window is kept ready (see spare)."""
