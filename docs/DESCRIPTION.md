@@ -1910,10 +1910,16 @@ points 32 pixels thick. Now the program converts them where annotations
 are written and read, and inside it every size is in points. The check
 after a change compares in the page's units, as it reads there.
 
+The same reading showed that that program writes notes and attachments
+with two flags of PDF, NoZoom and NoRotate, which ask a reader to draw
+their icon at one size and upright, whatever the zoom or the turn of the
+page. Ours now have them too, so that other readers show their icons as
+the canvas does.
+
 Testing
 -------
 
-The program has 787 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 788 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

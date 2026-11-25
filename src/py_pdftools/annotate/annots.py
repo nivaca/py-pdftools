@@ -1147,6 +1147,10 @@ def _flags(annot: pymupdf.Annot, locked: bool) -> None:
     # The print flag is always set: an annotation is printed as it is seen.
     flags = annot.flags | pymupdf.PDF_ANNOT_IS_PRINT
     flags = flags | pymupdf.PDF_ANNOT_IS_LOCKED if locked else flags & ~pymupdf.PDF_ANNOT_IS_LOCKED
+    # El icono de una nota o de un adjunto: del mismo tamaño y derecho con cualquier zoom y giro, en los lectores
+    # que siguen PDF (NoZoom, NoRotate), como en el lienzo de este programa
+    if annot.type[0] in (pymupdf.PDF_ANNOT_TEXT, pymupdf.PDF_ANNOT_FILE_ATTACHMENT):
+        flags |= pymupdf.PDF_ANNOT_IS_NO_ZOOM | pymupdf.PDF_ANNOT_IS_NO_ROTATE
     if flags != annot.flags:
         annot.set_flags(flags)
 
