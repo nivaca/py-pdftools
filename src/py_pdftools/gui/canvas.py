@@ -150,6 +150,63 @@ def erase_ink(a: Annotation, centres: list[tuple[float, float]], radius: float) 
     return dataclasses.replace(a, paths=tuple(paths), rect=annots.frame(a.kind, paths, a.width))
 
 
+# The kinds whose comment is not seen on the page (a note shows its own sign, a text box its text; a stamp's and a
+# signature's text are the program's): those get a sign when they have one
+COMMENT_SIGN = MARKUP + ("caret", "area", "rect", "ellipse", "polygon", "cloud", "line", "arrow", "polyline", "ink",
+                         "marker")
+
+
+def has_comment(a: Annotation) -> bool:
+    """Whether A has a comment of the user's that nothing on the page shows."""
+    text = (a.contents or "").strip()
+    if not text or a.kind not in COMMENT_SIGN:
+        return False
+    # (una firma dibujada es un trazo a mano con el texto «Firma», que pone el programa)
+    return not (a.kind == "ink" and text in ("Signature", tr("Signature")))
+
+
+class CommentSign(QGraphicsItem):
+    """A small speech balloon with two lines of writing, in the colour of its annotation, beside the annotation's top
+    right corner (after the bubble of its replies, if it has one): the annotation has a comment, which the balloon's
+    tooltip shows, as the annotation's does. An item of its own, which ignores the view's zoom and turn: it keeps its
+    size on the screen, and Qt draws it whole whatever the zoom (drawn by the annotation, it went out of its bounds
+    when the pages were small)."""
+
+    W, H = 12, 9  # (pixels)
+
+    def __init__(self, parent: QGraphicsItem, color: str, beside: bool, tip: str):
+        super().__init__(parent)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIgnoresTransformations)
+        self.setZValue(5)
+        self.beside = beside
+        self.color = QColor(color or "#555555")
+        if self.color.lightness() > 140:  # (un amarillo de resaltado casi no se ve sobre el papel: más oscuro)
+            self.color = self.color.darker(170)
+        self.setToolTip(tip)
+
+    def _left(self) -> float:
+        return 2 + (8 * 1.3 + 3 if self.beside else 0)  # (después de la burbuja de las respuestas)
+
+    def boundingRect(self) -> QRectF:
+        return QRectF(self._left() - 1, -self.H - 3, self.W + 2, self.H + 6)
+
+    def paint(self, painter, option, widget=None):
+        x, y, w, h = self._left(), -self.H - 2, self.W, self.H
+        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+        balloon = QPainterPath()
+        balloon.addRoundedRect(QRectF(x, y, w, h), 2, 2)
+        tail = QPainterPath()
+        tail.moveTo(x + 2.5, y + h - 0.5)
+        tail.lineTo(x + 2.5, y + h + 3)
+        tail.lineTo(x + 6, y + h - 0.5)
+        painter.setPen(QPen(self.color, 1.1))
+        painter.setBrush(QColor(255, 255, 255, 235))
+        painter.drawPath(balloon.united(tail))
+        painter.setPen(QPen(self.color, 1))
+        for k, length in ((1, w - 5), (2, (w - 5) * 0.65)):  # (dos renglones de escritura, el segundo más corto)
+            painter.drawLine(QPointF(x + 2.5, y + h * k / 3), QPointF(x + 2.5 + length, y + h * k / 3))
+
+
 class AnnotItem(QGraphicsItem):
     """An annotation on its page, drawn as it will look; when selected, a blue
     frame around it, with handles where it can be resized or reshaped."""
@@ -172,11 +229,27 @@ class AnnotItem(QGraphicsItem):
             tip += "<br><i>" + "<br>".join(f"{r.author}: {r.contents[:80]}".replace("<", "&lt;")
                                            for r in annotation.replies[-3:]) + "</i>"
         self.setToolTip(tip)
+        self.sign = None
+        self._place_sign()
+
+    def _place_sign(self):
+        """The comment sign (CommentSign), at the top right corner of the annotation, if it has a comment that
+        nothing on the page shows; none if not."""
+        a = self.annot
+        if not has_comment(a):
+            if self.sign is not None and self.sign.scene() is not None:
+                self.sign.scene().removeItem(self.sign)
+            self.sign = None
+            return
+        if self.sign is None:
+            self.sign = CommentSign(self, a.color, bool(a.replies or a.status()), self.toolTip())
+        self.sign.setPos(qrect(a.rect).right(), qrect(a.rect).top())
 
     def set_annotation(self, annotation: Annotation):
         """Show ANNOTATION in its place (while it is dragged)."""
         self.prepareGeometryChange()
         self.annot = annotation
+        self._place_sign()
         self.update()
 
     def frame(self) -> QRectF:
