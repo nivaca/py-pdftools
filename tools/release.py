@@ -11,6 +11,12 @@ checked, against the public key published, before anything is published.
     uv run python tools/release.py [--notes TEXT | --notes-file FILE] [--no-rpm | --no-copr] [--pypi]
                                    [--no-build] [--no-appimage] [--no-tests] [--redo]
                                    [--only github|codeberg] [--dry-run] [--yes]
+    uv run python tools/release.py --installers [--dry-run] [--yes]
+
+The installers for Windows and macOS are made by GitHub, on its own machines, when the tag arrives
+(.github/workflows/installers.yml), and added to the release once this has published it; then --installers
+downloads them, signs them here (FILE.asc, SHA256SUMS-installers and its signature), and attaches the
+signatures to the release on GitHub and the installers and their signatures to the one on Codeberg.
 
 In order, each step only if it is needed:
 
@@ -78,6 +84,13 @@ APPIMAGE = f"dist/py-pdftools-{VERSION}-x86_64.AppImage"
 DEB = f"dist/py-pdftools_{VERSION}-1_amd64.deb"  # (hecho de la AppImage, va con ella)
 # La herramienta del repositorio APT de estos programas: el proyecto apt, junto a este (github.com/nivaca/apt)
 APT_TOOL = Path(__file__).resolve().parent.parent.parent / "apt" / "tools" / "apt_repo.py"
+# Windows y macOS los hace GitHub (.github/workflows/installers.yml), y --installers los baja aquí (de macOS,
+# solo Apple Silicon: pikepdf y PyMuPDF ya no publican nada para los Mac con Intel)
+CI_INSTALLERS = [f"build/installers/{name}" for name in (
+    f"py-pdftools-{VERSION}-windows-x64-setup.exe",
+    f"py-pdftools-{VERSION}-macos-arm64.dmg",
+)]
+CI_SUMS = "build/installers/SHA256SUMS-installers"
 SPEC = "packaging/py-pdftools.spec"
 PUBLIC_KEY = "packaging/RPM-GPG-KEY-py-pdftools"  # (the public key published with every release)
 SUMS = "dist/SHA256SUMS"
@@ -313,6 +326,38 @@ class Release:
         self.plan("PyPI: upload the wheel and the source package", "uv", "publish",
                   "--check-url", "https://pypi.org/simple/", WHEEL, SDIST)
 
+    def installers(self):
+        """--installers: those of Windows and macOS, from the release on GitHub (made by installers.yml) to
+        the one on Codeberg, each signed here, with the signatures attached to both."""
+        self.forges = ["github", "codeberg"]
+        for tool in ("gh", "tea", "gpg"):
+            if not shutil.which(tool):
+                sys.exit(f"release.py: {tool} is not installed")
+        key = signing_key()
+        if not key or subprocess.run(["gpg", "--batch", "--list-secret-keys", key],
+                                     capture_output=True).returncode != 0:
+            sys.exit(f"release.py: the signing key {key or '(none pinned)'} is not in this machine's gpg keyring")
+        repos = self.repos()
+        names = [Path(f).name for f in CI_INSTALLERS]
+        on_github = self.read("gh", "release", "view", TAG, "--repo", repos["github"], "--json", "assets",
+                              "--jq", ".assets[].name", check=False).split("\n")
+        missing = [n for n in names if n not in on_github]
+        if missing:
+            sys.exit(f"release.py: the release {TAG} on GitHub does not have {', '.join(missing)} "
+                     "(has installers.yml finished?)")
+        patterns = [a for n in names for a in ("--pattern", n)]
+        self.plan("Download the installers from GitHub", "gh", "release", "download", TAG, *patterns, "--dir",
+                  "build/installers", "--clobber", "--repo", repos["github"])
+        # Se firman aquí, como los demás archivos de la versión, con sus propias sumas; las firmas van a las dos
+        self.plan("Sign the installers, and check each signature with the published key", sys.executable,
+                  "tools/sign_release.py", "--key", key, "--public", PUBLIC_KEY, "--sums", CI_SUMS, *CI_INSTALLERS)
+        signatures = [f"{f}.asc" for f in CI_INSTALLERS] + [CI_SUMS, f"{CI_SUMS}.asc"]
+        self.plan("GitHub: attach their signatures to the release", "gh", "release", "upload", TAG, *signatures,
+                  "--clobber", "--repo", repos["github"])
+        self.files = CI_INSTALLERS + signatures
+        self.codeberg(repos["codeberg"])
+        self.run_plan()
+
     def apt(self):
         """The Debian package added to the APT repository of these programs (github.com/nivaca/apt), by its own
         tool, which keeps only the newest version, signs the index and checks it before uploading."""
@@ -323,6 +368,8 @@ class Release:
 
     def __call__(self):
         a = self.args
+        if a.installers:
+            return self.installers()
         self.forges = [a.only] if a.only else ["github", "codeberg"]
         a.rpm = not a.no_rpm  # (the signed RPM, always, unless --no-rpm)
         self.files = [WHEEL, SDIST, ZIP] + ([] if a.no_appimage else [APPIMAGE, DEB])
@@ -368,6 +415,9 @@ def main(argv=None):
                         help=f"move {TAG} to HEAD if it is on another commit (here and on the remotes), and "
                              "replace the files of the releases")
     parser.add_argument("--only", choices=("github", "codeberg"), help="publish on one forge only")
+    parser.add_argument("--installers", action="store_true",
+                        help="only sign the installers for Windows and macOS (made on GitHub by installers.yml) "
+                             "and copy them, with their signatures, to the release on Codeberg")
     parser.add_argument("--tea-login", default="codeberg", help="the login of tea for Codeberg (default: codeberg)")
     parser.add_argument("-n", "--dry-run", action="store_true", help="only show the commands")
     parser.add_argument("-y", "--yes", action="store_true", help="don't ask before running them")

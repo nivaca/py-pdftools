@@ -123,6 +123,8 @@ Cada versión está en las [publicaciones](https://github.com/nivaca/py-pdftools
 en GitHub y en [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases),
 con estos archivos:
 
+    py-pdftools-VERSIÓN-windows-x64-setup.exe   el instalador para Windows
+    py-pdftools-VERSIÓN-macos-arm64.dmg     la imagen de disco para macOS (Apple Silicon)
     py-pdftools-VERSIÓN.zip                 el código, con los instaladores
     py-pdftools-VERSIÓN-x86_64.AppImage     la AppImage (Linux)
     py-pdftools_VERSIÓN-1_amd64.deb         el paquete de Debian y Ubuntu
@@ -131,6 +133,7 @@ con estos archivos:
     py_pdftools-VERSIÓN-py3-none-any.whl    la rueda, para Python
     ARCHIVO.asc                             la firma de cada archivo
     SHA256SUMS, SHA256SUMS.asc              las sumas de comprobación, y su firma
+    SHA256SUMS-installers, y su .asc        lo mismo, de los instaladores de Windows y macOS
     RPM-GPG-KEY-py-pdftools                 la clave que los firma todos
 
 Cada archivo, y la etiqueta de la versión, se firman con la misma clave.
@@ -144,6 +147,21 @@ comprueban la firma del archivo y su suma:
 El RPM lleva además su firma dentro: después de `sudo rpm --import
 RPM-GPG-KEY-py-pdftools`, `rpm -K` la comprueba. La etiqueta puede
 comprobarse en un clon con `git tag -v vVERSIÓN`.
+
+**Windows** 10 o posterior (64 bits): `py-pdftools-VERSIÓN-windows-x64-setup.exe`
+instala el programa con su propio Python, Qt y bibliotecas (pyHanko entre
+ellas), para el usuario (o para todos, si se elige), con una entrada en el
+menú Inicio y py-pdftools en «Abrir con» de los documentos PDF; no le quita
+a nadie su programa predeterminado. Se desinstala desde Configuración >
+Aplicaciones. El instalador no está firmado por Microsoft: si SmartScreen
+lo detiene, se elige *Más información > Ejecutar de todas formas*.
+
+**macOS** 15 o posterior, en un Mac con Apple Silicon:
+`py-pdftools-VERSIÓN-macos-arm64.dmg`. Se arrastra py-pdftools a
+Aplicaciones. Apple no lo ha notarizado: la primera vez, se elige *Abrir de
+todos modos* en Ajustes del Sistema > Privacidad y seguridad. No hay uno
+para los Mac con Intel: PyMuPDF y pikepdf ya no publican sus bibliotecas
+para ellos.
 
 **Fedora.** Desde [Copr](https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/),
 para Fedora 45 y posteriores, con el Python, el PyMuPDF, el pikepdf, el

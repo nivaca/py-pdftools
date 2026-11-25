@@ -120,6 +120,8 @@ Every version is in the [releases](https://github.com/nivaca/py-pdftools/release
 on GitHub and on [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases),
 with these files:
 
+    py-pdftools-VERSION-windows-x64-setup.exe   the installer for Windows
+    py-pdftools-VERSION-macos-arm64.dmg     the disk image for macOS (Apple Silicon)
     py-pdftools-VERSION.zip                 the source, with the installers
     py-pdftools-VERSION-x86_64.AppImage     the AppImage (Linux)
     py-pdftools_VERSION-1_amd64.deb         the Debian and Ubuntu package
@@ -128,6 +130,7 @@ with these files:
     py_pdftools-VERSION-py3-none-any.whl    the wheel, for Python
     FILE.asc                                the signature of each file
     SHA256SUMS, SHA256SUMS.asc              the checksums, and their signature
+    SHA256SUMS-installers, and its .asc     the same, of the installers for Windows and macOS
     RPM-GPG-KEY-py-pdftools                 the key that signs them all
 
 Every file, and the tag of the version, is signed with the same key. To
@@ -141,6 +144,20 @@ its checksum:
 The RPM carries its signature inside too: after `sudo rpm --import
 RPM-GPG-KEY-py-pdftools`, `rpm -K` checks it. The tag can be checked in a
 clone with `git tag -v vVERSION`.
+
+**Windows** 10 or later (64 bits): `py-pdftools-VERSION-windows-x64-setup.exe`
+installs the program with its own Python, Qt and libraries (pyHanko among
+them), for the user (or for everyone, if you choose so), with a Start-menu
+entry and py-pdftools in "Open with" for PDF documents; it takes no one's
+default program. It is uninstalled from Settings > Apps. The installer is
+not signed by Microsoft: if SmartScreen stops it, choose *More info > Run
+anyway*.
+
+**macOS** 15 or later, on a Mac with Apple Silicon:
+`py-pdftools-VERSION-macos-arm64.dmg`. Drag py-pdftools to Applications.
+It is not notarized by Apple: the first time, choose *Open Anyway* in
+System Settings > Privacy & Security. There is none for Macs with Intel:
+PyMuPDF and pikepdf no longer publish their libraries for them.
 
 **Fedora.** From [Copr](https://copr.fedorainfracloud.org/coprs/nivaca/py-pdftools/),
 for Fedora 45 and later, with Fedora's own Python, PyMuPDF, pikepdf,

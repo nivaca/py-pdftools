@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-four stages.
+I explain how it was made, in eighty-five stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1919,10 +1919,38 @@ below 16 pixels, now draws them at 16 pixels at every zoom, as the flag
 asks, so that zooming in on a page no longer makes a note's icon cover
 the text under it.
 
+85. Installers for Windows and macOS
+------------------------------------
+
+Until now, on Windows and macOS py-pdftools was installed from its source,
+by `install.bat` or `install.sh`, which need a Python 3.14 and the
+internet. py-slowdown already had installers that need nothing, and I
+made the same here. `tools/bundle-installer.py` takes a Python 3.14 of
+python-build-standalone, pinned with its SHA-256, installs py-pdftools
+into it with its libraries and pyHanko, trims Qt as the AppImage does,
+and runs `packaging/installer/check.py` with it: an annotation and page
+labels written and read, a PDF made with reportlab, a document opened in
+the window. On Windows, Inno Setup makes of that folder an installer for
+the user or for everyone, with a Start-menu entry and py-pdftools in
+"Open with" of PDF documents (a type of its own, so that it takes no one's
+default program); on macOS, an application in a disk image, which the
+Finder offers for PDFs. GitHub makes both, each on its own system, with
+every tag, installs each, runs the check again, uninstalls it and adds
+them to the release; `tools/release.py --installers` then signs them
+here and copies them to Codeberg.
+
+The first try for macOS failed: no build of pikepdf for the Mac. Since
+version 10.14 pikepdf publishes its Mac builds only for Apple Silicon and
+macOS 15, and PyMuPDF only for Apple Silicon too. So there is one image,
+for Apple Silicon, which asks for macOS 15, and none for Intel, where
+py-slowdown has two. The packages are never compiled on the way
+(`--only-binary`): without a build for the system, the installer is not
+made.
+
 Testing
 -------
 
-The program has 788 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 791 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

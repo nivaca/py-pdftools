@@ -203,6 +203,10 @@ la primera página), con estos archivos:
 
 \index{appimage@AppImage}\index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{instaladores}\index{macos y windows@macOS y Windows}%
 \begin{itemize}
+\item \texttt{py-pdftools-VERSIÓN-windows-x64-setup.exe}: el instalador
+  para Windows;
+\item \texttt{py-pdftools-VERSIÓN-macos-arm64.dmg}: la imagen de disco
+  para macOS, en los Mac con Apple Silicon;
 \item \texttt{py-pdftools-VERSIÓN-x86\_64.AppImage}: la AppImage, para
   cualquier Linux;
 \item \texttt{py-pdftools\_VERSIÓN-1\_amd64.deb}: el paquete para Debian y
@@ -216,6 +220,41 @@ la primera página), con estos archivos:
   \texttt{py\_pdftools-VERSIÓN.tar.gz}: la rueda y el paquete fuente, para
   Python.
 \end{itemize}
+
+\noindent Cada archivo tiene su firma al lado (\texttt{ARCHIVO.asc}), y
+\texttt{SHA256SUMS} lista sus sumas de comprobación;
+\texttt{SHA256SUMS-installers} hace lo mismo con los instaladores de
+Windows y macOS, que se hacen aparte.
+
+\subsection{Windows}
+
+\index{macos y windows@macOS y Windows}\index{smartscreen@SmartScreen}%
+\texttt{py-pdftools-VERSIÓN-windows-x64-setup.exe} instala el programa en
+Windows 10 o posterior (64 bits), con su propio Python, Qt y bibliotecas,
+pyHanko entre ellas: no hace falta nada más. Lo instala para el usuario,
+sin permisos de administrador, o para todos, si así se elige en su primera
+página. Pone py-pdftools en el menú Inicio (y en el escritorio, si se
+pide), y en \menu{Abrir con} de los documentos PDF, sin quitarle a nadie
+su programa predeterminado. Se desinstala desde \menu{Configuración\then
+Aplicaciones}, y una versión nueva se instala sobre la que hay; la
+configuración se conserva. El instalador no está firmado con un
+certificado que Windows conozca, así que la primera vez Windows puede
+decir que protegió el equipo (SmartScreen): \menu{Más información\then
+Ejecutar de todas formas} sigue adelante. La firma del archivo
+(\texttt{.asc}) es lo que prueba que es el publicado.
+
+\subsection{macOS}
+
+\index{macos y windows@macOS y Windows}\index{gatekeeper}%
+\texttt{py-pdftools-VERSIÓN-macos-arm64.dmg} es para los Mac con Apple
+Silicon (M1 y posteriores), con macOS 15 (Sequoia) o posterior. Se abre la
+imagen y se arrastra py-pdftools a Aplicaciones; lleva su propio Python,
+Qt y bibliotecas. El Finder lo ofrece entonces en \menu{Abrir con} de los
+documentos PDF. Apple no lo ha notarizado, así que la primera vez macOS se
+niega a abrirlo: \menu{Ajustes del Sistema\then Privacidad y
+seguridad\then Abrir de todos modos} lo deja abrirse desde entonces. No
+hay imagen para los Mac con Intel: PyMuPDF y pikepdf, las bibliotecas que
+leen y escriben los PDF, ya no publican lo suyo para ellos.
 
 \subsection{Fedora}
 

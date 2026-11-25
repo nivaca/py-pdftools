@@ -3,6 +3,18 @@
 # tests of the program (not those of the packaging, which are Fedora's) against
 # the program installed, and uninstalls it. macOS (whose minutes count ten
 # times) only for tags, on Mondays and when started by hand.
+#
+# For tags and when started by hand, it also makes the installers of
+# tools/bundle-installer.py, each on its own system, installs each one, tries
+# it and removes it:
+#
+#   Windows   py-pdftools-VERSION-windows-x64-setup.exe   (Inno Setup)
+#   macOS     py-pdftools-VERSION-macos-arm64.dmg          (Apple Silicon)
+#
+# With a tag, they are added to the release of the tag once tools/release.py
+# has published it (it is waited for, never made here); then tools/release.py
+# --installers signs them and copies them to Codeberg. Started by hand, they
+# are only kept as artifacts of the run.
 
 name: installers
 
@@ -132,3 +144,127 @@ jobs:
         run: |
           if (Test-Path $env:VENV) { throw "the environment is still there" }
           if (Test-Path (Join-Path ([Environment]::GetFolderPath("Programs")) "py-pdftools.lnk")) { throw "the shortcut is still there" }
+
+  installer-windows:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    runs-on: windows-latest
+    env:
+      PYTHONUTF8: "1"
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - name: Inno Setup
+        shell: pwsh
+        run: |
+          $found = Get-ChildItem "${env:ProgramFiles(x86)}\Inno Setup *\ISCC.exe", "$env:ProgramFiles\Inno Setup *\ISCC.exe" -ErrorAction SilentlyContinue
+          if (-not $found) { choco install innosetup -y --no-progress }
+      - name: Build the installer
+        run: python tools/bundle-installer.py --system windows
+      - name: Install it, try it and remove it
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $setup = (Get-ChildItem dist\*-windows-x64-setup.exe).FullName
+          Start-Process -Wait -FilePath $setup -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART', '/CURRENTUSER', '/TASKS=openwith', '/LOG=install.log'
+          $app = "$env:LOCALAPPDATA\Programs\py-pdftools"
+          & "$app\python\python.exe" -s packaging\installer\check.py
+          if ($LASTEXITCODE) { throw 'check.py failed' }
+          $out = & "$app\python\python.exe" -s -m py_pdftools --version | Out-String
+          if ($out -notmatch 'py-pdftools') { throw "--version said: $out" }
+          $menu = "$env:APPDATA\Microsoft\Windows\Start Menu\Programs\py-pdftools.lnk"
+          if (-not (Test-Path $menu)) { throw 'no Start menu shortcut' }
+          $shortcut = (New-Object -ComObject WScript.Shell).CreateShortcut($menu)
+          if ($shortcut.TargetPath -notlike '*\python\pythonw.exe') { throw "the shortcut runs $($shortcut.TargetPath)" }
+          if ($shortcut.Arguments -notlike '*-m py_pdftools.gui*') { throw "the shortcut runs $($shortcut.Arguments)" }
+          $open = (Get-Item 'HKCU:\Software\Classes\.pdf\OpenWithProgids').GetValueNames()
+          if ($open -notcontains 'py-pdftools.pdf') { throw 'not in Open with for .pdf' }
+          $command = (Get-ItemProperty 'HKCU:\Software\Classes\py-pdftools.pdf\shell\open\command').'(default)'
+          if ($command -notlike '*pythonw.exe*-m py_pdftools.gui*') { throw "Open with runs $command" }
+          Start-Process -Wait -FilePath "$app\unins000.exe" -ArgumentList '/VERYSILENT', '/SUPPRESSMSGBOXES', '/NORESTART'
+          # (the uninstaller goes on in a copy of itself)
+          for ($i = 0; $i -lt 60 -and (Test-Path "$app\python"); $i++) { Start-Sleep 1 }
+          if (Test-Path "$app\python") { throw 'not uninstalled' }
+          if (Test-Path $menu) { throw 'the shortcut is still there' }
+          if (Test-Path 'HKCU:\Software\Classes\py-pdftools.pdf') { throw 'Open with is still there' }
+          $left = (Get-Item 'HKCU:\Software\Classes\.pdf\OpenWithProgids' -ErrorAction SilentlyContinue)
+          if ($left -and ($left.GetValueNames() -contains 'py-pdftools.pdf')) { throw '.pdf still offers it' }
+      - name: The log of the installation
+        if: always()
+        shell: pwsh
+        run: if (Test-Path install.log) { Get-Content install.log -Tail 60 }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-windows
+          path: dist/*.exe
+
+  installer-macos:
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/')
+    runs-on: macos-15
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - uses: astral-sh/setup-uv@v6
+      - name: Build the installer
+        run: python3 tools/bundle-installer.py --system macos --arch arm64
+      - name: Install it, try it and remove it
+        run: |
+          set -ex
+          dmg=$(ls dist/*-macos-arm64.dmg)
+          hdiutil verify "$dmg"
+          mount=$(mktemp -d)
+          hdiutil attach "$dmg" -nobrowse -readonly -mountpoint "$mount"
+          test -L "$mount/Applications"
+          cp -R "$mount/py-pdftools.app" /Applications/
+          hdiutil detach "$mount"
+          app=/Applications/py-pdftools.app
+          codesign --verify --deep --strict "$app"
+          plutil -lint "$app/Contents/Info.plist"
+          test "$(plutil -extract LSMinimumSystemVersion raw "$app/Contents/Info.plist")" = 15.0
+          test -s "$app/Contents/Resources/py-pdftools.icns"
+          "$app/Contents/Resources/python/bin/python3" -s packaging/installer/check.py
+          "$app/Contents/Resources/python/bin/python3" -s -m py_pdftools --version | grep -q py-pdftools
+          rm -rf "$app"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: installer-macos-arm64
+          path: dist/*.dmg
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: [installer-windows, installer-macos]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write             # (to add them to the release)
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: installer-*
+          path: installers
+          merge-multiple: true
+      - name: Add them to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          # tools/release.py hace la versión (con los archivos firmados) después de subir la etiqueta:
+          # aquí se la espera, publicada, y nunca se hace, o las dos se harían a la vez
+          draft=""
+          for i in $(seq 1 120); do
+            draft="$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null || true)"
+            [ "$draft" = false ] && break
+            sleep 30
+          done
+          if [ "$draft" != false ]; then
+            echo "There is no release of $TAG after an hour: make it with tools/release.py, then run this again."
+            exit 1
+          fi
+          gh release upload "$TAG" installers/* --clobber
