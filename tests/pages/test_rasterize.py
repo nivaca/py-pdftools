@@ -156,9 +156,12 @@ def test_in_the_window(sample, tmp_path, monkeypatch):
         out = tmp_path / "o.pdf"
         w.ask_rasterize = lambda: (Options(72), [0])
         w.ask_new_pdf = lambda title, name: out
+        opened = []
+        monkeypatch.setattr("py_pdftools.gui.tabs.open_in_tab", lambda path, near=None: opened.append((path, near)))
         assert w.save_rasterized_dialog()
         assert pymupdf.open(out)[0].get_text() == "" and "1 page as a picture" in w.statusBar().currentMessage()
+        assert opened == [(out, w)]  # (the copy, in a new tab beside the document)
         w.ask_new_pdf = lambda title, name: sample
-        assert not w.save_rasterized_dialog()  # (not over the document open)
+        assert not w.save_rasterized_dialog() and len(opened) == 1  # (not over the document open)
     finally:
         w.close()

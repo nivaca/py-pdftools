@@ -318,7 +318,7 @@ class FilesMixin:
 
     def save_rasterized_dialog(self) -> bool:
         """File > Save a copy > With pages as pictures: the pages chosen, of the document as saved, made
-        pictures without text (see pages/rasterize.py)."""
+        pictures without text (see pages/rasterize.py); the copy is then opened in a new tab."""
         from ..pages import rasterize
         from .redact import background
 
@@ -346,6 +346,10 @@ class FilesMixin:
             return False
         self.status(ntr("Saved {path}, with {count} page as a picture",
                         "Saved {path}, with {count} pages as pictures", count, path=target))
+        # La copia se abre enseguida, en una pestaña junto a este documento.
+        from .tabs import open_in_tab
+
+        open_in_tab(target, near=self)
         return True
 
     # ----------------------------------------------------------------- passwords

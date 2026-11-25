@@ -18,7 +18,7 @@ Debian package, the RPM, the wheel and the source, are on
   in colour or grey. They look the same, but their text, fonts,
   annotations and form fields are gone from them (the last two drawn into
   the picture). Bookmarks, labels, links, the other pages and the
-  protection stay. On the command line: `py-pdftools rasterize FILE -o OUT
+  protection stay. The copy opens in a new tab. On the command line: `py-pdftools rasterize FILE -o OUT
   [--pages] [--dpi] [--format] [--quality] [--gray]`.
 
 - `tools/zenodo.py`: the description of the deposit is now the whole

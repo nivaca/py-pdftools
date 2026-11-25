@@ -18,7 +18,7 @@ AppImage, el RPM, la rueda y el código fuente, están en
   PNG o JPEG, en color o en gris. Se ven igual, pero ya no tienen texto,
   fuentes, anotaciones ni campos de formulario (estos dos, dibujados en la
   imagen). Los marcadores, las etiquetas, los enlaces, las demás páginas y
-  la protección se mantienen. En la línea de órdenes: `py-pdftools
+  la protección se mantienen. La copia se abre en una pestaña nueva. En la línea de órdenes: `py-pdftools
   rasterize ARCHIVO -o SALIDA [--pages] [--dpi] [--format] [--quality]
   [--gray]`.
 

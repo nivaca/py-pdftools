@@ -1954,7 +1954,8 @@ The user asked for a tool that takes the text out of a document by making
 its pages pictures, all of them or some. It is in File > Save a copy > With
 pages as pictures, and on the command line as `py-pdftools rasterize`
 (`pages/rasterize.py`). Like a smaller copy, it is made from the file as
-saved, and never over the document open.
+saved, and never over the document open; once written, it opens in a
+new tab beside the document, as the user asked.
 
 Each page chosen is drawn by MuPDF, with its annotations and fields, at the
 resolution asked (300 dpi by default). Then the page receives a new, empty
