@@ -86,10 +86,12 @@ class ScrollingMixin:
         self.fit = ""
         self.render_timer.start()  # (the sharp rendering, once the zoom stands still)
         self.zoom_changed.emit(z)
+        self._rezoom_icons()
 
     def _zoom_done(self):
         self.render_timer.start()
         self.zoom_changed.emit(self.zoom())
+        self._rezoom_icons()
 
     def stop_animations(self):
         """End the animations at once, where they were going (before a zoom or a jump of the program)."""

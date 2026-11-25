@@ -207,6 +207,10 @@ class CommentSign(QGraphicsItem):
             painter.drawLine(QPointF(x + 2.5, y + h * k / 3), QPointF(x + 2.5 + length, y + h * k / 3))
 
 
+# Kinds drawn as an icon of a fixed size in the PDF: on the screen, never smaller than NOTE_SIZE pixels
+SCREEN_ICONS = ("note", "attachment")
+
+
 class AnnotItem(QGraphicsItem):
     """An annotation on its page, drawn as it will look; when selected, a blue
     frame around it, with handles where it can be resized or reshaped."""
@@ -252,8 +256,24 @@ class AnnotItem(QGraphicsItem):
         self._place_sign()
         self.update()
 
+    def _view_zoom(self) -> float:
+        scene = self.scene()
+        views = scene.views() if scene is not None else []
+        return (views[0].transform().m11() or 1) if views else 1
+
+    def rezoom(self):
+        """The zoom changed: an icon's frame (see frame) changes with it."""
+        if self.annot.kind in SCREEN_ICONS:
+            self.prepareGeometryChange()
+            self.update()
+
     def frame(self) -> QRectF:
         a = self.annot
+        # El icono de una nota o de un adjunto se ve al menos de NOTE_SIZE píxeles, desde su esquina de arriba a la
+        # izquierda: en una página escaneada, 16 puntos son dos píxeles con la página entera a la vista
+        if a.kind in SCREEN_ICONS:
+            r, side = qrect(a.rect), NOTE_SIZE / self._view_zoom()
+            return QRectF(r.left(), r.top(), max(r.width(), side), max(r.height(), side))
         # Las anotaciones de marcado (resaltado, subrayado...) se miden por sus cuadriláteros, no por su rect.
         if a.kind in MARKUP:
             return qrect(annots.union(a.quads)) if a.quads else qrect(a.rect)
@@ -304,7 +324,7 @@ class AnnotItem(QGraphicsItem):
         if a.kind == "callout" and a.paths and _near_path(point, (annots.anchor(a.rect, a.paths[0][0]),
                                                                   a.paths[0][0]), grip + 1):
             return ""
-        r = qrect(a.rect)
+        r = self.frame() if a.kind in SCREEN_ICONS else qrect(a.rect)
         if a.kind in DRAWN and not self.chosen:  # (only on its lines; once selected, its frame too)
             return "" if any(_near_path(point, path, grip + a.width / 2) for path in a.paths) else None
         if not r.adjusted(-grip, -grip, grip, grip).contains(point):
@@ -325,8 +345,11 @@ class AnnotItem(QGraphicsItem):
         return edges
 
     def paint(self, painter, option, widget=None):
-        paint(painter, self.annot)
         a = self.annot
+        if a.kind in SCREEN_ICONS:  # (at least NOTE_SIZE pixels: see frame)
+            f = self.frame()
+            a = dataclasses.replace(a, rect=(f.left(), f.top(), f.right(), f.bottom()))
+        paint(painter, a)
         # m11 es el zoom de la vista: dividir por él da tamaños fijos en píxeles (burbuja, asas, candado)
         # sea cual sea el zoom.
         scale = painter.worldTransform().m11() or 1
@@ -1024,6 +1047,10 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def zoom(self) -> float:
         return self.transform().m11()
 
+    def _rezoom_icons(self, *_):
+        for item in self.items_:
+            item.rezoom()
+
     def _full_scale(self) -> float:
         """The scale of the zoom on this screen (on HiDPI screens, in physical pixels)."""
         return round(self.zoom() * self.devicePixelRatioF(), 3)
@@ -1268,6 +1295,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self.centerOn(anchor)
         self.render_timer.start()
         self.zoom_changed.emit(factor)
+        self._rezoom_icons()
 
     def apply_fit(self):
         if self.doc is None or not self.fit or self.page not in self.pages:
@@ -1668,12 +1696,16 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             frame_rect = box
             fill = QColor(annotation.fill) if annotation.fill else QColor(255, 255, 255, 230)
         else:  # (a note, a caret: a field beside its icon)
-            w, h = NOTE_EDITOR
+            # En una página mucho mayor que el papel (un escaneo), el campo y su letra crecen en proporción: 10
+            # puntos ahí no se leerían (véase annots.page_scale). Y nunca menores en la pantalla que con el zoom
+            # al 100 %: el texto de una nota no se dibuja en la página, el campo es solo para escribirlo
+            f = max(self.page_scale(annotation.page), 1 / (self.zoom() or 1))
+            w, h = NOTE_EDITOR[0] * f, NOTE_EDITOR[1] * f
             r = page.rect()
-            x = min(annotation.rect[2] + 4, r.right() - w)
+            x = min(annotation.rect[2] + 4 * f, r.right() - w)
             y = min(max(annotation.rect[1], r.top()), r.bottom() - h)
-            frame_rect, pad = QRectF(x, y, w, h), 4
-            editor.setFont(_font_for(self, dataclasses.replace(annotation, font_size=10)))
+            frame_rect, pad = QRectF(x, y, w, h), 4 * f
+            editor.setFont(_font_for(self, dataclasses.replace(annotation, font_size=10 * f)))
             editor.setDefaultTextColor(QColor("black"))
             fill = QColor("#fffde7")
         frame = QGraphicsRectItem(frame_rect, page)

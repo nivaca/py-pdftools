@@ -6,9 +6,10 @@ from __future__ import annotations
 
 import pymupdf
 import pytest
+from PySide6.QtCore import QPointF
 from PySide6.QtWidgets import QApplication
 
-from py_pdftools.annotate.annots import page_scale
+from py_pdftools.annotate.annots import Annotation, page_scale
 
 
 def test_the_scale():
@@ -53,3 +54,41 @@ def test_new_annotations_follow_the_page(window):
     assert (big.rect[0] + big.rect[2]) / 2 == pytest.approx(1200, abs=0.5)
     # The text box and the check mark made by a click, in the canvas
     assert w.canvas.page_scale(0) == 1.0 and w.canvas.page_scale(1) == pytest.approx(4.05, abs=0.01)
+
+
+def test_a_note_is_written_in_letters_that_can_be_read(window):
+    w = window
+
+    def field(page):
+        w.canvas.edit_text(Annotation("note", page, (100, 100, 116, 116), "#ffd54f"))
+        editor = w.canvas._editor
+        size = editor["item"].font().pointSizeF(), editor["frame"].rect().width()
+        w.canvas.commit_text("")
+        return size
+
+    w.canvas.go_to(0)
+    w.canvas.set_zoom(1)
+    base, width = field(0)  # (paper at 100 %: as it always was; the font in the screen's units)
+    assert width == pytest.approx(220, rel=0.01)
+    w.canvas.set_zoom(0.5)  # (zoomed out: never smaller on the screen than at 100 %)
+    font, width = field(0)
+    assert font * 0.5 == pytest.approx(base, rel=0.01) and width * 0.5 == pytest.approx(220, rel=0.01)
+    w.canvas.go_to(1)
+    w.canvas.set_zoom(1)  # (a scan: in proportion to the page, larger than at 100 %)
+    assert field(1)[0] == pytest.approx(base * 4.05, rel=0.02)
+
+
+def test_a_note_icon_can_be_seen_at_any_zoom(window):
+    w = window
+    w.canvas.go_to(1)
+    w.add(Annotation("note", 1, (500, 500, 516, 516), "#ffd54f", contents="hi"))
+    item = next(i for i in w.canvas.items_ if i.annot.kind == "note")
+    w.canvas.set_zoom(0.13)  # (the scan whole on the screen: 16 points are 2 pixels)
+    QApplication.processEvents()
+    assert item.frame().width() * w.canvas.zoom() == pytest.approx(16, abs=0.01)
+    # A click where the icon is seen finds it, though it is outside its 16 points
+    assert item.hit(QPointF(500 + 100, 500 + 100), 1) is not None
+    w.canvas.set_zoom(2)  # (above 100 %, as before: its size in the page)
+    QApplication.processEvents()
+    assert item.frame().width() == 16
+    assert item.hit(QPointF(500 + 100, 500 + 100), 1) is None

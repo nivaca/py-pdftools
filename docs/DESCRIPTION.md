@@ -1883,13 +1883,23 @@ half times as large in both directions (no paper is: A3 and tabloid stay
 as they are) it makes new annotations larger in proportion, about four
 times for that scan: their font, their lines, the size of a text box, a
 callout, a check mark, a stamp or a signature made with a click. The
-sizes kept in the settings stay the same. Notes and insertion marks are
-left as they are: MuPDF gives their icons one size, whatever is asked.
+sizes kept in the settings stay the same.
+
+That was not enough for notes, the first thing tried on such a page. The
+text of a note is not drawn on the page; it is written in a field beside
+its icon, and that field had a fixed size and a font of 10 points of the
+page. Now it grows with the page as the rest, and is never smaller on the
+screen than at a zoom of 100 %, on any page. The icon was a worse problem:
+MuPDF gives a note's icon 16 points, whatever is asked (changing its
+rectangle crashed it), and with a whole scan in view 16 points are two
+pixels. So the canvas draws the icons of notes and attachments at no less
+than 16 pixels, from their corner, and a click finds them there; the PDF
+keeps them as they are, as other readers draw them at a fixed size too.
 
 Testing
 -------
 
-The program has 781 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 783 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
