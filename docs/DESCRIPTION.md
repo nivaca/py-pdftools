@@ -2085,10 +2085,23 @@ dragged, the same as Select's, and the other tools that drag a box
 (rectangle, ellipse, cloud, area, redaction) have it too. A test paints
 the box being dragged and finds the frame along its edge.
 
+93. The line of a strikeout, lower
+----------------------------------
+
+The user found the red line of a strikeout some points higher than the
+text it crossed. The window drew it at the middle of the words' box, and
+that box goes further down under the baseline (for g, p, q) than the
+small letters go up above it, so its middle falls near the top of the x.
+MuPDF, when it writes the annotation in the file, draws the line at 3/7
+of the box's height from its foot; the window now draws it there too, so
+what is seen while working is what is saved. At 24 points the two were
+2.3 points apart. A test draws the same strikeout both ways and compares
+the height of the red line.
+
 Testing
 -------
 
-The program has 826 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 827 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

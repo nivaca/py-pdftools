@@ -198,7 +198,10 @@ def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
             width = max(r.height() / 14, 0.6)
             p.setPen(_pen(a.color, width))
             if a.kind == "strikeout":
-                p.drawLine(QLineF(r.left(), r.center().y(), r.right(), r.center().y()))
+                # A 3/7 de la altura desde abajo, como la dibuja MuPDF al guardar: la mitad quedaba alta, pues
+                # la caja de una palabra baja más allá de la línea de base (la g, la p) de lo que sube la x
+                y = r.bottom() - r.height() * 3 / 7
+                p.drawLine(QLineF(r.left(), y, r.right(), y))
             elif a.kind == "underline":
                 y = r.bottom() - width
                 p.drawLine(QLineF(r.left(), y, r.right(), y))

@@ -1242,3 +1242,43 @@ def test_find_dialog_steps_and_history(window):
     assert dialog.history[0] == "line"
     again = FindDialog(window)
     assert again.history[0] == "line" and again.accents.isChecked()
+
+
+def test_a_strikeout_where_the_saved_one_is(app):
+    """The line of a strikeout is drawn on the screen where MuPDF draws it in the file saved (3/7 of the line's
+    height from its foot), across the small letters: the middle of the words' box was some points too high."""
+    from PySide6.QtGui import QImage, QPainter
+
+    import pymupdf
+
+    from py_pdftools.annotate.annots import Annotation
+    from py_pdftools.gui.paint import paint
+
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((72, 100), "example strike text", fontname="helv", fontsize=24)
+    words = page.get_text("words")
+    box = tuple(pymupdf.Rect(words[0][:4]) | pymupdf.Rect(words[-1][:4]))
+    clip = pymupdf.Rect(70, 70, 120, 110)
+
+    def red_rows(image) -> float:  # (the middle of the red line, in points of the page)
+        rows = [y for y in range(image.height()) if sum(
+            1 for x in range(image.width()) if (lambda c: c.red() > 200 and c.green() < 80)(image.pixelColor(x, y)))
+            > image.width() // 3]
+        return clip.y0 + (min(rows) + max(rows)) / 2 / 10
+
+    image = QImage(500, 400, QImage.Format.Format_RGB32)
+    image.fill(0xFFFFFF)
+    painter = QPainter(image)
+    painter.scale(10, 10)
+    painter.translate(-clip.x0, -clip.y0)
+    paint(painter, Annotation("strikeout", 0, box, "#ff0000", quads=(box,)))
+    painter.end()
+    on_screen = red_rows(image)
+    annot = page.add_strikeout_annot(pymupdf.Rect(box).quad)
+    annot.set_colors(stroke=(1, 0, 0))
+    annot.update()
+    pix = page.get_pixmap(matrix=pymupdf.Matrix(10, 10), clip=clip)
+    saved = red_rows(QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888))
+    assert abs(on_screen - saved) < 0.3
+    assert 100 - 0.4 * 24 < on_screen < 100 - 0.2 * 24  # (across the small letters, above the baseline at 100)
