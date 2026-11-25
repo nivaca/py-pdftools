@@ -207,7 +207,7 @@ class CommentSign(QGraphicsItem):
             painter.drawLine(QPointF(x + 2.5, y + h * k / 3), QPointF(x + 2.5 + length, y + h * k / 3))
 
 
-# Kinds drawn as an icon of a fixed size in the PDF: on the screen, never smaller than NOTE_SIZE pixels
+# Kinds drawn as an icon of a fixed size in the PDF: on the screen, always NOTE_SIZE pixels
 SCREEN_ICONS = ("note", "attachment")
 
 
@@ -269,11 +269,12 @@ class AnnotItem(QGraphicsItem):
 
     def frame(self) -> QRectF:
         a = self.annot
-        # El icono de una nota o de un adjunto se ve al menos de NOTE_SIZE píxeles, desde su esquina de arriba a la
-        # izquierda: en una página escaneada, 16 puntos son dos píxeles con la página entera a la vista
+        # El icono de una nota o de un adjunto se ve siempre de NOTE_SIZE píxeles, desde su esquina de arriba a la
+        # izquierda, sea cual sea el zoom (como pide su marca NoZoom): en una página escaneada, 16 puntos son dos
+        # píxeles con la página entera a la vista
         if a.kind in SCREEN_ICONS:
             r, side = qrect(a.rect), NOTE_SIZE / self._view_zoom()
-            return QRectF(r.left(), r.top(), max(r.width(), side), max(r.height(), side))
+            return QRectF(r.left(), r.top(), side, side)
         # Las anotaciones de marcado (resaltado, subrayado...) se miden por sus cuadriláteros, no por su rect.
         if a.kind in MARKUP:
             return qrect(annots.union(a.quads)) if a.quads else qrect(a.rect)

@@ -88,7 +88,7 @@ def test_a_note_icon_can_be_seen_at_any_zoom(window):
     assert item.frame().width() * w.canvas.zoom() == pytest.approx(16, abs=0.01)
     # A click where the icon is seen finds it, though it is outside its 16 points
     assert item.hit(QPointF(500 + 100, 500 + 100), 1) is not None
-    w.canvas.set_zoom(2)  # (above 100 %, as before: its size in the page)
+    w.canvas.set_zoom(2)  # (above 100 %, the same 16 pixels: 8 points of the page)
     QApplication.processEvents()
-    assert item.frame().width() == 16
-    assert item.hit(QPointF(500 + 100, 500 + 100), 1) is None
+    assert item.frame().width() * w.canvas.zoom() == pytest.approx(16, abs=0.01)
+    assert item.hit(QPointF(500 + 12, 500 + 12), 1) is None

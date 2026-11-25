@@ -1914,7 +1914,10 @@ The same reading showed that that program writes notes and attachments
 with two flags of PDF, NoZoom and NoRotate, which ask a reader to draw
 their icon at one size and upright, whatever the zoom or the turn of the
 page. Ours now have them too, so that other readers show their icons as
-the canvas does.
+the canvas does; and the canvas, which had only kept them from shrinking
+below 16 pixels, now draws them at 16 pixels at every zoom, as the flag
+asks, so that zooming in on a page no longer makes a note's icon cover
+the text under it.
 
 Testing
 -------
