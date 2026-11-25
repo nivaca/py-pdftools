@@ -26,6 +26,9 @@ class SignError(Exception):
     pass
 
 
+PICTURE_SIZE = 75  # (percent of the height of a visible signature taken by the picture, by default)
+
+
 @dataclasses.dataclass(frozen=True)
 class Options:
     id_path: Path
@@ -40,6 +43,7 @@ class Options:
     lock: bool = False  # the fields of the form locked once signed
     timestamp_url: str = ""  # un servidor de sellos de tiempo (RFC 3161); '' si ninguno
     picture: bytes = b""  # a PNG of the handwritten signature, shown in a visible signature (b'': only text)
+    picture_size: int = PICTURE_SIZE  # el porcentaje del alto de la firma que ocupa la imagen (el texto, debajo)
 
 
 def empty_fields(doc: pymupdf.Document) -> list[str]:
@@ -75,10 +79,11 @@ def _new_name(path: Path, password: str) -> str:
     return f"Signature{n}"
 
 
-def _style(text: str, picture: bytes, lines: int):
+def _style(text: str, picture: bytes, lines: int, height: float = 0.0, share: int = PICTURE_SIZE):
     """How a visible signature looks: its TEXT (who, when, why) alone, framed, as pyHanko draws it; or, with a
-    PICTURE of the handwritten signature, the picture filling the box, on no background and with no frame, and
-    the text small under it."""
+    PICTURE of the handwritten signature, the picture at the top, as large as fits in SHARE percent of the box's
+    HEIGHT (points; 0 if unknown: above the text), on no background and with no frame, and the text small at the
+    bottom, over the picture's lower part if they don't both fit."""
     from pyhanko import stamp
 
     if not picture:
@@ -90,16 +95,35 @@ def _style(text: str, picture: bytes, lines: int):
     from pyhanko.pdf_utils import text as texts
 
     size = 6
-    under = lines * (size + 1.5) + 4  # (el alto de las líneas de texto, más un respiro: la imagen va encima)
+    under = lines * (size + 1.5) + 2  # (el alto de las líneas de texto, más un respiro: la imagen va encima)
+    if height > 0:
+        # El resto del alto, bajo la imagen; si el texto necesita más, la imagen lo pisa (se dibuja debajo).
+        under = height * (100 - max(10, min(share, 100))) / 100
     return stamp.TextStampStyle(
         stamp_text=text, border_width=0, background=images.PdfImage(Image.open(io.BytesIO(picture))),
         background_opacity=1,
         background_layout=layout.SimpleBoxLayoutRule(x_align=layout.AxisAlignment.ALIGN_MID,
                                                      y_align=layout.AxisAlignment.ALIGN_MAX,
-                                                     margins=layout.Margins(bottom=under)),
-        text_box_style=texts.TextBoxStyle(font_size=size),
+                                                     margins=layout.Margins(bottom=under),
+                                                     inner_content_scaling=layout.InnerScaling.STRETCH_TO_FIT),
+        # (pyHanko deja 10 puntos alrededor del texto; 2 bastan, y le dejan más sitio a la imagen)
+        text_box_style=texts.TextBoxStyle(font_size=size, box_layout_rule=layout.SimpleBoxLayoutRule(
+            x_align=layout.AxisAlignment.ALIGN_MIN, y_align=layout.AxisAlignment.ALIGN_MIN,
+            margins=layout.Margins.uniform(2))),
         inner_content_layout=layout.SimpleBoxLayoutRule(x_align=layout.AxisAlignment.ALIGN_MIN,
                                                         y_align=layout.AxisAlignment.ALIGN_MIN))
+
+
+def _field_height(path: Path, password: str, name: str) -> float:
+    """The height, in points, of the signature field NAME of the PDF at PATH (0 if it isn't there)."""
+    with pymupdf.open(path) as doc:
+        if doc.needs_pass:
+            doc.authenticate(password)
+        for page in doc:
+            for w in page.widgets() or []:
+                if w.field_name == name:
+                    return abs(w.rect.height)
+    return 0.0
 
 
 def sign(source: Path, target: Path, options: Options, password: str = "") -> str:
@@ -127,8 +151,15 @@ def sign(source: Path, target: Path, options: Options, password: str = "") -> st
         MDPPerm.FILL_FORMS)
     timestamper = timestamps.HTTPTimeStamper(options.timestamp_url) if options.timestamp_url else None
     lines = ["%(signer)s", "%(ts)s"] + ([options.reason] if options.reason else [])
+    height = 0.0
+    if options.picture:
+        if options.field:
+            height = _field_height(source, password, options.field)
+        elif options.page is not None and options.rect is not None:
+            box = _box(source, password, options.page, options.rect)
+            height = box[3] - box[1]
     style = _style("\n".join(line.replace("%", "%%") if i > 1 else line for i, line in enumerate(lines)),
-                   options.picture, len(lines))
+                   options.picture, len(lines), height, options.picture_size)
     fd, tmp = tempfile.mkstemp(suffix=".pdf", dir=target.parent)
     os.close(fd)
     try:

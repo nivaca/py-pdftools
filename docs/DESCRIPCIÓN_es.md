@@ -32,7 +32,7 @@ Los marcadores son un panel común a todos los modos, y allí se editan; Ctrl+B 
 
 ### Seguridad, formularios y archivos nuevos
 
-Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Seguridad > Proteger con contraseñas cifra con AES-256; Firmar digitalmente usa un ID digital (pyHanko), lo crea, puede mostrar una de las firmas a mano y valida. El panel Campos de formulario rellena los campos, con las funciones estándar de formato y cálculo hechas en Python, sin JavaScript, y lleva sus datos dentro y fuera. Archivo combina PDF, hace uno de imágenes, lo compara con otro PDF, guarda copias más pequeñas, con otra versión de PDF o con páginas hechas imágenes sin texto, y exporta páginas, imágenes y texto; Foliar divide también por marcadores y por tamaño; la herramienta Enlace dibuja enlaces.
+Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Seguridad > Proteger con contraseñas cifra con AES-256; Firmar digitalmente usa un ID digital (pyHanko), lo crea, puede mostrar una firma a mano, del alto elegido, y valida. El panel Campos de formulario rellena los campos, con las funciones estándar de formato y cálculo hechas en Python, sin JavaScript, y lleva sus datos dentro y fuera. Archivo combina PDF, hace uno de imágenes, lo compara con otro PDF, guarda copias más pequeñas, con otra versión de PDF o con páginas hechas imágenes sin texto, y exporta páginas, imágenes y texto; Foliar divide también por marcadores y por tamaño; la herramienta Enlace dibuja enlaces.
 
 ## Implementación
 

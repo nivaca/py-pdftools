@@ -170,9 +170,26 @@ class SignDialog(QDialog):
         self.b_signature_picture = QPushButton(tr("Choose a picture…"))
         self.b_signature_picture.setToolTip(tr("A scan or a photo of your signature (PNG, JPEG…)"))
         self.b_signature_picture.clicked.connect(self._choose_signature_picture)
+        # El tamaño de la imagen: qué parte del alto de la firma ocupa; el texto va debajo (o encima de su pie)
+        from ..signatures.sign import PICTURE_SIZE
+
+        self.picture_size = QSpinBox()
+        self.picture_size.setRange(30, 100)
+        self.picture_size.setSingleStep(5)
+        self.picture_size.setSuffix(" %")
+        self.picture_size.setToolTip(tr("How much of the height of the signature the picture takes; your name and "
+                                        "the time go under it, or over its foot if they don't fit"))
+        try:
+            self.picture_size.setValue(int(r.get("picture_size", "") or PICTURE_SIZE))
+        except ValueError:
+            self.picture_size.setValue(PICTURE_SIZE)
+        self.picture_size_label = QLabel(tr("Size:"))
+        self.picture_size_label.setBuddy(self.picture_size)
         pic_row = QHBoxLayout()
         pic_row.addWidget(self.with_picture)
         pic_row.addWidget(self.which_picture)
+        pic_row.addWidget(self.picture_size_label)
+        pic_row.addWidget(self.picture_size)
         pic_row.addWidget(self.b_signature_picture)
         pic_row.addStretch(1)
         box2.addLayout(pic_row)
@@ -352,6 +369,9 @@ class SignDialog(QDialog):
         self.with_picture.setEnabled(visible and have)
         self.which_picture.setVisible(have)
         self.which_picture.setEnabled(visible and self.with_picture.isChecked())
+        for w in (self.picture_size_label, self.picture_size):
+            w.setVisible(have)
+            w.setEnabled(visible and self.with_picture.isChecked())
         self.b_signature_picture.setVisible(not have)
         self.b_signature_picture.setEnabled(visible)
         if not have:
@@ -399,7 +419,8 @@ class SignDialog(QDialog):
                        self.location.text().strip(), self.contact.text().strip(),
                        field=where[6:] if where.startswith("field:") else "",
                        certify=self.certify.currentData(), lock=self.lock.isChecked(),
-                       timestamp_url=self.timestamp.text().strip(), picture=picture), where
+                       timestamp_url=self.timestamp.text().strip(), picture=picture,
+                       picture_size=self.picture_size.value()), where
 
 
 class SignaturesDialog(QDialog):
@@ -556,7 +577,7 @@ class SignMixin:
     def ask_sign(self, empty: list[str], signed: bool):
         """(sign.Options, place) chosen; None if cancelled."""
         r = {k: str(self.settings.value(f"sign_{k}", "")) for k in ("reason", "location", "contact", "timestamp",
-                                                                    "picture")}
+                                                                    "picture", "picture_size")}
         dialog = SignDialog(self, str(self.settings.value("sign_id", "")), empty, signed, r,
                             on_create=self.make_id_dialog)
         if dialog.exec() != QDialog.DialogCode.Accepted:
@@ -565,6 +586,7 @@ class SignMixin:
         for key, value in (("id", str(options.id_path)), ("reason", options.reason), ("location",
                            options.location), ("contact", options.contact), ("timestamp", options.timestamp_url),
                            ("picture", "true" if dialog.with_picture.isChecked() else "false"),
+                           ("picture_size", str(options.picture_size)),
                            ("signature", str(dialog.which_picture.currentData() or ""))):
             self.settings.setValue(f"sign_{key}", value)
         return options, where

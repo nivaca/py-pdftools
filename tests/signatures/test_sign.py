@@ -189,3 +189,25 @@ def test_with_the_picture_of_the_handwritten_signature(doc, digital_id, tmp_path
     assert "Image" in pdf.xref_object(int(ap.split()[0])) or "/XObject" in pdf.xref_object(int(ap.split()[0]))
     report = verify.check(target)[0]
     assert report.intact and report.valid
+    # The size of the picture: its share of the height of the signature (75 % unless changed), kept for the
+    # next time; the picture is drawn that high (when its width allows it)
+    assert d.picture_size.value() == sign.PICTURE_SIZE and options.picture_size == sign.PICTURE_SIZE
+    d._place_buttons[0].setChecked(True)
+    d.picture_size.setValue(100)
+    assert d.chosen()[0].picture_size == 100
+    for share in (50, 75, 100):
+        out = tmp_path / f"size{share}.pdf"
+        sign.sign(doc, out, dataclasses.replace(options, page=0, rect=(100, 100, 550, 140), picture_size=share))
+        assert abs(picture_height(out) - 0.4 * share) < 1
+
+
+def picture_height(path) -> float:
+    """The height (in points) of the picture drawn in the first signature of the PDF at PATH."""
+    import re
+
+    with pymupdf.open(path) as pdf:
+        widget = next(w for w in pdf[0].widgets() if w.field_type == pymupdf.PDF_WIDGET_TYPE_SIGNATURE)
+        stream = pdf.xref_stream(int(pdf.xref_get_key(widget.xref, "AP/N")[1].split()[0])).decode("latin-1")
+    # (pyHanko: "s 0 0 s x y cm q w 0 0 h 0 0 cm /Img… Do": the picture, H high, scaled by S)
+    found = re.search(r"([\d.]+) 0 0 [\d.]+ [\d.-]+ [\d.-]+ cm q\s+([\d.]+) 0 0 ([\d.]+) 0 0 cm /Img", stream)
+    return float(found.group(1)) * float(found.group(3))

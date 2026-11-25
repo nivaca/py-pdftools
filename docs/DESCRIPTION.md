@@ -2052,6 +2052,24 @@ takes Alt+F4 as well. On Linux desktops the window manager usually takes
 Alt+F4 before the program sees it, and closes the window in front: with
 one window, which is the usual case, that ends the program as well.
 
+91. A larger picture in a digital signature
+-------------------------------------------
+
+The user found the picture of the handwritten signature too small in a
+digital signature, next to the text under it. The text took a fixed
+height under the picture, its lines and a margin, and pyHanko adds ten
+points of its own around a text box, so in a box some 47 points high,
+as the user drew it, the picture had only 28. Those ten points are now
+two, the text sits at the foot of the box, and the picture takes a share
+of the height chosen in the dialog to sign (Size, 75 % at first, from 30
+to 100): the rest goes to the text, and if the text needs more, it is
+written over the foot of the picture, which pyHanko draws first. The
+picture is also scaled up to that height when it is smaller, not only
+down. The height of the box is known before signing: the area dragged,
+or the empty field of the form that is signed. A test reads the
+signature's look in the file and checks that the picture is drawn as
+high as asked.
+
 Testing
 -------
 

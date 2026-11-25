@@ -14112,4 +14112,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>No document is open</en>
     <tr>No hay ningún documento abierto</tr>
   </text>
+  <text>
+    <en>How much of the height of the signature the picture takes; your name and the time go under it, or over its foot if they don't fit</en>
+    <tr>Qué parte del alto de la firma ocupa la imagen; su nombre y la hora van debajo, o sobre el pie de la imagen si no caben</tr>
+  </text>
 </interface>
