@@ -234,6 +234,7 @@ class AnnotItem(QGraphicsItem):
                                            for r in annotation.replies[-3:]) + "</i>"
         self.setToolTip(tip)
         self.sign = None
+        self.outlined = False  # (a box being dragged: a frame of dashes around it, as the one that selects)
         self._place_sign()
 
     def _place_sign(self):
@@ -361,6 +362,13 @@ class AnnotItem(QGraphicsItem):
             painter.setBrush(QColor({"Accepted": "#a5d6a7", "Rejected": "#ef9a9a", "Completed": "#90caf9",
                                      "Cancelled": "#e0e0e0"}.get(a.status(), "#fff59d")))
             painter.drawRoundedRect(QRectF(x, y, s * 1.3, s), s / 4, s / 4)
+        if self.outlined and not self.chosen:
+            # Mientras se arrastra: un cuadro de texto sin borde (o una figura sin color) no se vería
+            pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
+            pen.setCosmetic(True)
+            painter.setPen(pen)
+            painter.setBrush(Qt.BrushStyle.NoBrush)
+            painter.drawRect(qrect(a.rect))
         if not self.chosen:
             return
         frame = qrect(a.rect) if a.kind not in MARKUP else self.frame()
@@ -2033,6 +2041,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._drag = {"kind": "draw", "page": page, "start": start,
                           "item": self._preview(page, self._new(self.mode, n, (*here, *here),
                                                                 self._box_paths(here, here)))}
+            self._drag["item"].outlined = True
         elif self.mode in LINES or self.mode in DRAWN:
             paths = ((here, here),)
             self._drag = {"kind": "line" if self.mode in LINES else "ink", "page": page, "start": start,

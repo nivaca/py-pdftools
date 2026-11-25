@@ -2070,10 +2070,22 @@ or the empty field of the form that is signed. A test reads the
 signature's look in the file and checks that the picture is drawn as
 high as asked.
 
+92. A frame while a box is dragged
+----------------------------------
+
+The user could not see the box while dragging a text box. The tools that
+drag a box showed, while the mouse moved, the annotation itself as it
+would be: a text box with no border and no fill, or a typewriter text,
+is nothing on the page until it has text, so nothing showed where it was
+going. Such a box now has a frame of dashes around it while it is
+dragged, the same as Select's, and the other tools that drag a box
+(rectangle, ellipse, cloud, area, redaction) have it too. A test paints
+the box being dragged and finds the frame along its edge.
+
 Testing
 -------
 
-The program has 823 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 824 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

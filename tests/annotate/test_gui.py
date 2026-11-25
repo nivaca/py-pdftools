@@ -138,6 +138,33 @@ def test_note_and_text_box(window):
     assert len(window.annotations) == 2
 
 
+def test_a_box_dragged_shows_a_frame_of_dashes(window):
+    """While a box is dragged (a text box, which may have no border, and the other tools that drag a box), a
+    frame of dashes shows where it goes, as the one that selects; it is gone on release."""
+    from PySide6.QtGui import QImage, QPainter
+
+    from py_pdftools.gui.canvas import SELECTED
+
+    for tool, y in (("freetext", 100), ("typewriter", 300), ("rect", 500)):
+        window.set_tool(tool)
+        mouse(window, QEvent.Type.MouseButtonPress, (100, y))
+        mouse(window, QEvent.Type.MouseMove, (250, y + 80))
+        item = window.canvas._drag["item"]
+        assert item.outlined
+        # (painted alone, the frame's colour is on its edges)
+        image = QImage(400, 300, QImage.Format.Format_ARGB32)
+        image.fill(0)
+        p = QPainter(image)
+        p.translate(-50, 50 - y)  # (the page's point (100, Y) at (50, 50))
+        item.paint(p, None)
+        p.end()
+        top = [x for x in range(400) for y in range(48, 52)
+               if image.pixelColor(x, y).rgb() == SELECTED.rgb()]  # (its top edge)
+        assert len(top) > 50 and 45 <= min(top) and max(top) <= 205, tool
+        mouse(window, QEvent.Type.MouseButtonRelease, (250, y + 80))
+        assert item.scene() is None
+
+
 def test_comment_in_the_panel(window):
     window.set_tool("ellipse")
     drag(window, (100, 300), (250, 400))
