@@ -10,6 +10,7 @@
     py-pdftools combine                            several PDFs made one
     py-pdftools from-images                        a PDF made of pictures
     py-pdftools reduce                             a PDF made smaller
+    py-pdftools rasterize                          pages made pictures, without text
     py-pdftools form show | fill | table | flatten the data of forms
     py-pdftools export pages | images | text       pages as pictures, the pictures, the text
     py-pdftools pdf-version                        the version of PDFs, shown or changed
@@ -123,6 +124,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub._name_parser_map["reduce"] = combine_cli.build_reduce_parser(f"{PROG} reduce")
     sub._choices_actions.append(sub._ChoicesPseudoAction(
         "reduce", (), tr("make a smaller copy of a PDF")))
+    sub._name_parser_map["rasterize"] = combine_cli.build_rasterize_parser(f"{PROG} rasterize")
+    sub._choices_actions.append(sub._ChoicesPseudoAction(
+        "rasterize", (), tr("make a copy of a PDF with pages as pictures, without text")))
     from . import findwords as findwords_cli
 
     sub._name_parser_map["find-words"] = findwords_cli.build_parser(f"{PROG} find-words")
@@ -172,6 +176,10 @@ def main(argv: list[str] | None = None) -> int:
         from . import combine as combine_cli
 
         return combine_cli.main_reduce(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} reduce")
+    if first and first[1] == "rasterize":
+        from . import combine as combine_cli
+
+        return combine_cli.main_rasterize(argv[:first[0]] + argv[first[0] + 1:], prog=f"{PROG} rasterize")
     if first and first[1] == "find-words":
         from . import findwords as findwords_cli
 

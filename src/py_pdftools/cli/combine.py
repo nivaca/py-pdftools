@@ -1,5 +1,6 @@
-"""py-pdftools combine, from-images and reduce: several PDFs made one, a PDF made of pictures (see
-pages/combine.py), and a PDF made smaller (pages/reduce.py)."""
+"""py-pdftools combine, from-images, reduce y rasterize: varios PDF hechos uno, un PDF hecho de imágenes (ver
+pages/combine.py), un PDF más pequeño (pages/reduce.py) y uno con páginas convertidas en imágenes, sin texto
+(pages/rasterize.py)."""
 
 from __future__ import annotations
 
@@ -8,7 +9,7 @@ import sys
 from pathlib import Path
 
 from ..core.interface import tr
-from ..pages import combine, reduce
+from ..pages import combine, rasterize, reduce
 from ..pages.combine import CombineError
 
 
@@ -103,4 +104,37 @@ def main_reduce(argv: list[str] | None = None, prog: str = "py-pdftools reduce")
         return 1
     print(tr("Wrote {path}: {before} → {after}", path=a.output, before=reduce.size_text(before),
              after=reduce.size_text(after)))
+    return 0
+
+
+def build_rasterize_parser(prog: str = "py-pdftools rasterize") -> argparse.ArgumentParser:
+    p = argparse.ArgumentParser(
+        prog=prog, description=tr("Make a copy of a PDF with some or all of its pages as pictures: they look "
+                                  "the same, but their text (and their annotations and form fields, drawn into "
+                                  "the picture) can no longer be found, copied or extracted."))
+    p.add_argument("input", type=Path, metavar=tr("FILE"), help=tr("source PDF"))
+    p.add_argument("-o", "--output", required=True, type=Path, metavar=tr("FILE"), help=tr("the PDF made"))
+    p.add_argument("--pages", default="", metavar=tr("PAGES"),
+                   help=tr("the pages, e.g. 1-3,7,LAST; odd, even (default: all)"))
+    p.add_argument("--dpi", type=int, default=300, help=tr("the resolution of the pictures (default 300)"))
+    p.add_argument("--format", choices=("png", "jpg"), default="png",
+                   help=tr("png (default): lossless, sharper text; jpg: smaller, for photographs"))
+    p.add_argument("--quality", type=int, default=85, help=tr("the JPEG quality of the pictures, 1-100"))
+    p.add_argument("--gray", action="store_true", help=tr("pictures in grey"))
+    p.add_argument("--password", default="", help=tr("the password of the PDFs, if they have one"))
+    return p
+
+
+def main_rasterize(argv: list[str] | None = None, prog: str = "py-pdftools rasterize") -> int:
+    a = build_rasterize_parser(prog).parse_args(argv)
+    if not 1 <= a.dpi <= 2400:
+        print(f"{prog}: " + tr("the resolution must be between 1 and 2400 dpi"), file=sys.stderr)
+        return 1
+    options = rasterize.Options(a.dpi, a.format, max(1, min(100, a.quality)), a.gray)
+    try:
+        count = rasterize.rasterize(a.input, a.output, options, a.pages if a.pages.strip() else None, a.password)
+    except rasterize.RasterizeError as e:
+        print(f"{prog}: {e}", file=sys.stderr)
+        return 1
+    print(tr("Wrote {path} ({count} pages as pictures)", path=a.output, count=count))
     return 0

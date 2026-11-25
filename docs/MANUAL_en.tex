@@ -1655,6 +1655,23 @@ latter, and nothing changes in how the document looks.
 
 \shot{reduce_en}{0.4}{A smaller copy.}
 
+\subsection{Pages as pictures}
+
+\index{pages!as pictures}\index{text!removing}%
+\menu{File\then Save a copy\then With pages as pictures}
+(figure~\ref{fig:rasterize_en}) makes a copy in which some pages, or all,
+are pictures of themselves. They look the same, but their text is gone: it
+can no longer be found, selected, copied or extracted, and their fonts
+leave the file. The annotations and form fields of those pages are drawn
+into the picture. \menu{Pages} takes a list such as \texttt{2-5, 9, last}
+(empty: all). At 300\,dpi the text stays sharp on paper; PNG keeps it
+without loss, JPEG makes a smaller file and suits scanned pages and
+photographs. Bookmarks, page labels, links and the other pages stay as
+they were. As with a smaller copy, the copy is made from the file as
+saved. On the command line it is \texttt{py-pdftools rasterize}.
+
+\shot{rasterize_en}{0.4}{Pages 2 and 3 as pictures.}
+
 \subsection{Exporting}
 
 \index{exporting}%
@@ -1959,6 +1976,7 @@ Command & What it does\\
 \texttt{pdf-version} & shows the PDF version of files, or saves a copy with another\\
 \texttt{form} & shows, fills, tabulates and flattens forms\\
 \texttt{reduce} & makes a smaller copy\\
+\texttt{rasterize} & makes a copy with pages as pictures, without text\\
 \texttt{find-words} & the (labelled) pages of words, phrases or patterns: an index\\
 \texttt{completion} & prints the completion script of a shell\\
 \texttt{interface} & shows or chooses the language of the interface\\

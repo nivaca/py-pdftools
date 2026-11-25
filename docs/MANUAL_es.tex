@@ -1748,6 +1748,24 @@ documento.
 
 \shot{reduce_es}{0.4}{Una copia más pequeña.}
 
+\subsection{Páginas como imágenes}
+
+\index{paginas@páginas!como imagenes@como imágenes}\index{texto!quitar el}%
+\menu{Archivo\then Guardar una copia\then Con las páginas como imágenes}
+(figura~\ref{fig:rasterize_es}) hace una copia en la que algunas páginas, o
+todas, son imágenes de sí mismas. Se ven igual, pero ya no tienen texto: no
+se puede buscar, seleccionar, copiar ni extraer, y sus fuentes salen del
+archivo. Las anotaciones y los campos de formulario de esas páginas quedan
+dibujados en la imagen. En \menu{Páginas} va una lista como
+\texttt{2-5, 9, last} (vacía: todas). A 300\,ppp el texto sigue nítido en
+papel; PNG lo guarda sin pérdida, y JPEG da un archivo más pequeño y sirve
+para páginas escaneadas y fotografías. Los marcadores, las etiquetas de
+página, los enlaces y las demás páginas quedan como estaban. Como la copia
+más pequeña, se hace del archivo tal como está guardado. En la línea de
+órdenes es \texttt{py-pdftools rasterize}.
+
+\shot{rasterize_es}{0.4}{Las páginas 2 y 3 como imágenes.}
+
 \subsection{Exportar}
 
 \index{exportar}%
@@ -2065,6 +2083,7 @@ Orden & Qué hace\\
 \texttt{pdf-version} & muestra la versión de PDF de los archivos, o guarda una copia con otra\\
 \texttt{form} & muestra, llena, tabula y aplana formularios\\
 \texttt{reduce} & hace una copia más pequeña\\
+\texttt{rasterize} & hace una copia con páginas como imágenes, sin texto\\
 \texttt{find-words} & las páginas (rotuladas) de palabras, frases o patrones: un índice\\
 \texttt{completion} & escribe el script de autocompletado de un intérprete de órdenes\\
 \texttt{interface} & muestra o elige el idioma de la interfaz\\

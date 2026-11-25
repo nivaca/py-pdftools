@@ -409,7 +409,10 @@ never over the originals, and the steps can be kept as recipes.
 File > Save a copy > Reduced file size makes a copy that takes less space: its
 pictures drawn again at a lower resolution (only those shown above it),
 its fonts reduced to the characters used, what nothing uses taken out;
-the dialog shows where the bytes go. The tool Link (J, in Annotate) draws
+the dialog shows where the bytes go. File > Save a copy > With pages as
+pictures turns some pages, or all, into pictures of themselves: they look
+the same, but their text can no longer be found, copied or extracted
+(`py-pdftools rasterize` does it from the command line). The tool Link (J, in Annotate) draws
 a link to a page, an address or another PDF, and a click on a link changes
 or removes it; Edit > Links makes links of the addresses in the text.
 

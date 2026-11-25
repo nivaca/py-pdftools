@@ -7,6 +7,16 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Archivo > Guardar una copia > Con las páginas como imágenes: una copia en
+  la que las páginas elegidas (todas, o una lista como `2-5, 9, last`) son
+  imágenes de sí mismas, a la resolución elegida (300 ppp por omisión), en
+  PNG o JPEG, en color o en gris. Se ven igual, pero ya no tienen texto,
+  fuentes, anotaciones ni campos de formulario (estos dos, dibujados en la
+  imagen). Los marcadores, las etiquetas, los enlaces, las demás páginas y
+  la protección se mantienen. En la línea de órdenes: `py-pdftools
+  rasterize ARCHIVO -o SALIDA [--pages] [--dpi] [--format] [--quality]
+  [--gray]`.
+
 - `tools/zenodo.py`: la descripción del depósito es ahora el README entero
   de la etiqueta, en HTML. El borrador recibe además el colaborador (el
   director del proyecto), los idiomas, el copyright, el repositorio en

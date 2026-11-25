@@ -7,6 +7,15 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- File > Save a copy > With pages as pictures: a copy in which the pages
+  chosen (all, or a list such as `2-5, 9, last`) are pictures of
+  themselves, at the resolution chosen (300 dpi by default), PNG or JPEG,
+  in colour or grey. They look the same, but their text, fonts,
+  annotations and form fields are gone from them (the last two drawn into
+  the picture). Bookmarks, labels, links, the other pages and the
+  protection stay. On the command line: `py-pdftools rasterize FILE -o OUT
+  [--pages] [--dpi] [--format] [--quality] [--gray]`.
+
 - `tools/zenodo.py`: the description of the deposit is now the whole
   README of the tag, in HTML. The draft also gets the contributor (the
   project leader), the languages, the copyright, the repository on GitHub,

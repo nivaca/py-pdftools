@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in eighty-five stages.
+I explain how it was made, in eighty-six stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -1947,10 +1947,39 @@ py-slowdown has two. The packages are never compiled on the way
 (`--only-binary`): without a build for the system, the installer is not
 made.
 
+86. Pages as pictures
+--------------------
+
+The user asked for a tool that takes the text out of a document by making
+its pages pictures, all of them or some. It is in File > Save a copy > With
+pages as pictures, and on the command line as `py-pdftools rasterize`
+(`pages/rasterize.py`). Like a smaller copy, it is made from the file as
+saved, and never over the document open.
+
+Each page chosen is drawn by MuPDF, with its annotations and fields, at the
+resolution asked (300 dpi by default). Then the page receives a new, empty
+content stream and empty resources, and the picture is put on it as PNG or
+JPEG. I did not empty the old streams: in a PDF two pages may share their
+content or their resources, and emptying them would have blanked a page
+that was not chosen. The objects nobody uses any longer, the fonts among
+them, go when the copy is saved; a test looks in every object and stream
+of the file to see that the words of those pages are not there. The
+annotations and the fields of a page are deleted once they are in its
+picture, or they would show twice, and a field would keep its value as
+text.
+
+Two cases needed care. A turned page is drawn unturned and turned again
+afterwards, so that the picture fills the page as stored and `/Rotate`
+still shows it as before; and a page with a crop box keeps its visible
+size. A very large page (a map, a poster) would pass a thousand million
+pixels at 600 dpi, so above 120 million it is drawn at the resolution that
+fits. Bookmarks, page labels, links, the pages not chosen and the
+protection of the file stay as they were.
+
 Testing
 -------
 
-The program has 791 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 815 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -1959,7 +1988,7 @@ undo and redo, the page labels written by PyMuPDF as pikepdf writes them,
 the moving through a document (bookmarks, links, the history, the views,
 tabs, reloading), the security of documents (text only covered, hidden
 layers, passwords), the toolbars, combining files and PDFs of pictures,
-smaller copies, links, forms and signatures, the menus and toolbars, the
+smaller copies, pages made pictures, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
 PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
@@ -1971,5 +2000,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 165 files of Python, around 44,500 lines (about a tenth of them
-comments), and 3,197 texts of the interface in Spanish.
+program has 180 files of Python, around 49,900 lines (about a tenth of them
+comments), and 3,471 texts of the interface in Spanish.

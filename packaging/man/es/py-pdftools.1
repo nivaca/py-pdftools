@@ -38,6 +38,8 @@ argumentos posicionales:
     form               los datos de los formularios PDF: mostrar, rellenar,
                        tabla, aplanar
     reduce             hacer una copia más pequeña de un PDF
+    rasterize          hacer una copia de un PDF con páginas como imágenes,
+                       sin texto
     find-words         en qué páginas (rotuladas) aparece cada palabra,
                        frase o patrón: un índice
     completion         imprimir el script de completado de un shell
@@ -3131,6 +3133,33 @@ opciones:
                         imágenes intactas
   --dpi DPI             la resolución de las imágenes (en lugar de la del
                         nivel)
+  --quality QUALITY     la calidad JPEG de las imágenes, 1-100
+  --gray                imágenes en gris
+  --password PASSWORD   la contraseña de los PDF, si la tienen
+.fi
+.SS rasterize
+.nf
+uso: py-pdftools rasterize [-h] -o ARCHIVO [--pages PÁGINAS] [--dpi DPI]
+                           [--format {png,jpg}] [--quality QUALITY] [--gray]
+                           [--password PASSWORD]
+                           ARCHIVO
+
+Hacer una copia de un PDF con algunas de sus páginas, o todas, como
+imágenes: se ven igual, pero su texto (y sus anotaciones y campos de
+formulario, dibujados en la imagen) ya no se puede buscar, copiar ni
+extraer.
+
+argumentos posicionales:
+  ARCHIVO               PDF de origen
+
+opciones:
+  -h, --help            mostrar esta ayuda y terminar
+  -o, --output ARCHIVO  el PDF hecho
+  --pages PÁGINAS       las páginas, p. ej. 1-3,7,LAST; odd, even (por
+                        omisión: todas)
+  --dpi DPI             la resolución de las imágenes (por omisión, 300)
+  --format {png,jpg}    png (por omisión): sin pérdida, texto más nítido;
+                        jpg: más pequeño, para fotografías
   --quality QUALITY     la calidad JPEG de las imágenes, 1-100
   --gray                imágenes en gris
   --password PASSWORD   la contraseña de los PDF, si la tienen

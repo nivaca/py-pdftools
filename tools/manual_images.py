@@ -337,6 +337,11 @@ def shoot(lang: str, out: Path, work: Path):
     from py_pdftools.pages import reduce
 
     dialog(ReduceDialog(reduce.where(scan), w), "reduce")
+    from py_pdftools.gui.rasterize_dialog import RasterizeDialog
+
+    rd = RasterizeDialog(w.count, 1, w)
+    rd.choice.setText("2-3")
+    dialog(rd, "rasterize")
     from py_pdftools.gui.export_dialog import ExportDialog
 
     dialog(ExportDialog("pages", w.count, 1, w), "export")

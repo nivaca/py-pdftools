@@ -305,6 +305,49 @@ class FilesMixin:
                            percent=round(100 * (before - after) / before)))
         return True
 
+    # ----------------------------------------------------------------- pages as pictures
+
+    def ask_rasterize(self):
+        """(options, pages) chosen in the dialog; None if cancelled."""
+        from PySide6.QtWidgets import QDialog
+
+        from .rasterize_dialog import RasterizeDialog
+
+        dialog = RasterizeDialog(self.count, self.page, self)
+        return dialog.values() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def save_rasterized_dialog(self) -> bool:
+        """File > Save a copy > With pages as pictures: the pages chosen, of the document as saved, made
+        pictures without text (see pages/rasterize.py)."""
+        from ..pages import rasterize
+        from .redact import background
+
+        if self.path is None:
+            return False
+        if self.is_modified():
+            # Las imágenes se hacen del archivo tal como está guardado: lo que no se guardó, antes.
+            answer = ask_save(self, tr("Unsaved changes"),
+                              tr("The copy is made from the file as it is saved. Save the changes first?"))
+            if answer == QMessageBox.StandardButton.Cancel or \
+                    answer == QMessageBox.StandardButton.Save and not self.save():
+                return False
+        chosen = self.ask_rasterize()
+        if chosen is None:
+            return False
+        options, pages = chosen
+        target = self.ask_new_pdf(tr("Save a copy with pages as pictures"), f"{self.path.stem}-pictures.pdf")
+        if target is None or self._same_file(target):
+            return False
+        try:
+            count = background.run(self, tr("Drawing the pages…"), rasterize.rasterize, self.path, target,
+                                   options, pages, self.password)
+        except rasterize.RasterizeError as e:
+            self.status(str(e), error=True)
+            return False
+        self.status(ntr("Saved {path}, with {count} page as a picture",
+                        "Saved {path}, with {count} pages as pictures", count, path=target))
+        return True
+
     # ----------------------------------------------------------------- passwords
 
     def protection_dialog(self) -> bool:

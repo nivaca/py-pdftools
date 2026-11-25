@@ -13988,4 +13988,68 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Looking… page {page} of {count}: {found} found</en>
     <tr>Buscando… página {page} de {count}: encontrados, {found}</tr>
   </text>
+  <text>
+    <en>Each page chosen becomes a picture of itself: it looks the same, but its text can no longer be found, selected or copied. Annotations and form fields become part of the picture.</en>
+    <tr>Cada página elegida se convierte en una imagen de sí misma: se ve igual, pero su texto ya no se puede buscar, seleccionar ni copiar. Las anotaciones y los campos de formulario pasan a formar parte de la imagen.</tr>
+  </text>
+  <text>
+    <en>JPEG (smaller, for photographs)</en>
+    <tr>JPEG (más pequeño, para fotografías)</tr>
+  </text>
+  <text>
+    <en>Make a copy of a PDF with some or all of its pages as pictures: they look the same, but their text (and their annotations and form fields, drawn into the picture) can no longer be found, copied or extracted.</en>
+    <tr>Hacer una copia de un PDF con algunas de sus páginas, o todas, como imágenes: se ven igual, pero su texto (y sus anotaciones y campos de formulario, dibujados en la imagen) ya no se puede buscar, copiar ni extraer.</tr>
+  </text>
+  <text>
+    <en>PNG (lossless, sharper text)</en>
+    <tr>PNG (sin pérdida, texto más nítido)</tr>
+  </text>
+  <text>
+    <en>Save a copy with pages as pictures</en>
+    <tr>Guardar una copia con las páginas como imágenes</tr>
+  </text>
+  <text>
+    <en>Saved {path}, with {count} page as a picture</en>
+    <tr>Se guardó {path}, con {count} página como imagen</tr>
+  </text>
+  <text>
+    <en>Saved {path}, with {count} pages as pictures</en>
+    <tr>Se guardó {path}, con {count} páginas como imágenes</tr>
+  </text>
+  <text>
+    <en>Some or all pages become pictures of themselves: they look the same, but their text is gone (it can't be found, copied or extracted)</en>
+    <tr>Algunas páginas, o todas, se convierten en imágenes de sí mismas: se ven igual, pero ya no tienen texto (no se puede buscar, copiar ni extraer)</tr>
+  </text>
+  <text>
+    <en>The document has only {count} pages</en>
+    <tr>El documento tiene solo {count} páginas</tr>
+  </text>
+  <text>
+    <en>With pages as pictures…</en>
+    <tr>Con las páginas como imágenes…</tr>
+  </text>
+  <text>
+    <en>Wrote {path} ({count} pages as pictures)</en>
+    <tr>Se escribió {path} ({count} páginas como imágenes)</tr>
+  </text>
+  <text>
+    <en>make a copy of a PDF with pages as pictures, without text</en>
+    <tr>hacer una copia de un PDF con páginas como imágenes, sin texto</tr>
+  </text>
+  <text>
+    <en>png (default): lossless, sharper text; jpg: smaller, for photographs</en>
+    <tr>png (por omisión): sin pérdida, texto más nítido; jpg: más pequeño, para fotografías</tr>
+  </text>
+  <text>
+    <en>the pages, e.g. 1-3,7,LAST; odd, even (default: all)</en>
+    <tr>las páginas, p. ej. 1-3,7,LAST; odd, even (por omisión: todas)</tr>
+  </text>
+  <text>
+    <en>the resolution must be between 1 and 2400 dpi</en>
+    <tr>la resolución debe estar entre 1 y 2400 ppp</tr>
+  </text>
+  <text>
+    <en>the resolution of the pictures (default 300)</en>
+    <tr>la resolución de las imágenes (por omisión, 300)</tr>
+  </text>
 </interface>

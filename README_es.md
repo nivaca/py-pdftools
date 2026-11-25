@@ -429,7 +429,11 @@ recetas.
 Archivo > Guardar una copia > Con tamaño reducido hace una copia que ocupa menos:
 sus imágenes dibujadas de nuevo a menor resolución (solo las que se ven por
 encima de ella), sus fuentes reducidas a los caracteres usados, sin lo que
-nada usa; el diálogo muestra adónde van los bytes. La herramienta Enlace
+nada usa; el diálogo muestra adónde van los bytes. Archivo > Guardar una
+copia > Con las páginas como imágenes convierte algunas páginas, o todas, en
+imágenes de sí mismas: se ven igual, pero su texto ya no se puede buscar,
+copiar ni extraer (`py-pdftools rasterize` lo hace desde la línea de
+órdenes). La herramienta Enlace
 (J, en Anotar) dibuja un enlace a una página, una dirección u otro PDF, y
 un clic sobre un enlace lo cambia o lo quita; Editar > Enlaces hace enlaces
 de las direcciones del texto.

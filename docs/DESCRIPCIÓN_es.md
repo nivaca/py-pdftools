@@ -18,7 +18,7 @@ El código de los cuatro programas se copió en un paquete nuevo, que no depende
 
 Se conservaron las dos bibliotecas. PyMuPDF dibuja las páginas, lee y escribe las anotaciones y censura; pikepdf cambia las etiquetas, los encabezados y pies (como capas que pueden quitarse), el orden de las páginas y la imposición.
 
-La ventana es la de py-annotate, con las páginas una debajo de otra y una barra de modos: Leer, Censurar, Anotar, Foliar e Imponer. Cada modo guarda su disposición de la ventana (barras, paneles, miniaturas), que vuelve al elegirlo, también en la sesión siguiente. Cada modo trae sus barras de herramientas, sus paneles y sus menús, y dice qué anotaciones son suyas: las de los otros modos se ven, pero el ratón las atraviesa. En el modo Imponer, el espacio de trabajo de py-imposition ocupa el lugar de las páginas.
+La ventana es la de py-annotate, con las páginas una debajo de otra y una barra de modos: Leer, Censurar, Anotar, Foliar e Imponer. Cada modo guarda su disposición de la ventana, que vuelve al elegirlo, aun en la sesión siguiente. Cada modo trae sus barras de herramientas, sus paneles y sus menús, y dice qué anotaciones son suyas: las de los otros modos se ven, pero el ratón las atraviesa. En el modo Imponer, el espacio de trabajo de py-imposition ocupa el lugar de las páginas.
 
 Los recuadros de censura son anotaciones de redacción del propio PDF (`/Redact`), que marcan lo que debe quitarse sin quitarlo: se dibujan, se mueven y se deshacen como cualquier anotación, se guardan en el documento sin aplicar, y solo la copia censurada elimina lo que hay debajo. Los cambios del documento mismo (etiquetas, orden de las páginas, capas, el resultado de una imposición) se hacen en el acto sobre una copia de trabajo, y Guardar la escribe como el documento.
 
@@ -32,11 +32,11 @@ Los marcadores son un panel común a todos los modos, y allí se editan; Ctrl+B 
 
 ### Seguridad, formularios y archivos nuevos
 
-Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Seguridad > Proteger con contraseñas cifra con AES-256; Firmar digitalmente usa un ID digital (pyHanko), lo crea, puede mostrar una de las firmas a mano y valida. El panel Campos de formulario rellena los campos, con las funciones estándar de formato y cálculo hechas en Python, sin JavaScript, y lleva sus datos dentro y fuera. Archivo combina PDF, hace uno de imágenes, lo compara a la vista con otro PDF, guarda copias más pequeñas o con otra versión de PDF, y exporta páginas, imágenes y texto; Foliar divide también por marcadores y por tamaño; la herramienta Enlace dibuja enlaces.
+Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotación) y quita también las capas apagadas. Archivo > Seguridad > Proteger con contraseñas cifra con AES-256; Firmar digitalmente usa un ID digital (pyHanko), lo crea, puede mostrar una de las firmas a mano y valida. El panel Campos de formulario rellena los campos, con las funciones estándar de formato y cálculo hechas en Python, sin JavaScript, y lleva sus datos dentro y fuera. Archivo combina PDF, hace uno de imágenes, lo compara con otro PDF, guarda copias más pequeñas, con otra versión de PDF o con páginas hechas imágenes sin texto, y exporta páginas, imágenes y texto; Foliar divide también por marcadores y por tamaño; la herramienta Enlace dibuja enlaces.
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 158 archivos de Python, unas 43 500 líneas (una décima parte, comentarios), y 3197 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 180 archivos de Python, unas 49 900 líneas (una décima parte, comentarios), y 3471 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -78,7 +78,7 @@ El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios 
 
 ## Validación
 
-Hay 791 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 815 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

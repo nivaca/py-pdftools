@@ -470,6 +470,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_smaller = self._action(sub, tr("Reduced file size…"), lambda: self.save_smaller_dialog(),
                                       tip=tr("A copy that takes less space: its pictures at a lower resolution, "
                                              "its fonts reduced, what nothing uses taken out"))
+        self.a_rasterize = self._action(sub, tr("With pages as pictures…"), lambda: self.save_rasterized_dialog(),
+                                        tip=tr("Some or all pages become pictures of themselves: they look the "
+                                               "same, but their text is gone (it can't be found, copied or "
+                                               "extracted)"))
         self.a_ocr = self._action(sub, tr("Searchable (OCR)…"), self.save_searchable_dialog,
                                   tip=tr("The text of the scanned pages is read (with Tesseract) and written under "
                                          "their images, invisible: it can be found, copied and marked"))

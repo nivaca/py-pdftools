@@ -33,6 +33,8 @@ positional arguments:
                        another
     form               the data of PDF forms: show, fill, table, flatten
     reduce             make a smaller copy of a PDF
+    rasterize          make a copy of a PDF with pages as pictures, without
+                       text
     find-words         on which (labelled) pages each word, phrase or
                        pattern appears: an index
     completion         print the completion script of a shell
@@ -2963,6 +2965,31 @@ options:
   --quality QUALITY     the JPEG quality of the pictures, 1-100
   --gray                pictures in grey
   --password PASSWORD   the password of the PDFs, if they have one
+.fi
+.SS rasterize
+.nf
+usage: py-pdftools rasterize [-h] -o FILE [--pages PAGES] [--dpi DPI]
+                             [--format {png,jpg}] [--quality QUALITY]
+                             [--gray] [--password PASSWORD]
+                             FILE
+
+Make a copy of a PDF with some or all of its pages as pictures: they look
+the same, but their text (and their annotations and form fields, drawn into
+the picture) can no longer be found, copied or extracted.
+
+positional arguments:
+  FILE                 source PDF
+
+options:
+  -h, --help           show this help message and exit
+  -o, --output FILE    the PDF made
+  --pages PAGES        the pages, e.g. 1-3,7,LAST; odd, even (default: all)
+  --dpi DPI            the resolution of the pictures (default 300)
+  --format {png,jpg}   png (default): lossless, sharper text; jpg: smaller,
+                       for photographs
+  --quality QUALITY    the JPEG quality of the pictures, 1-100
+  --gray               pictures in grey
+  --password PASSWORD  the password of the PDFs, if they have one
 .fi
 .SS find-words
 .nf
