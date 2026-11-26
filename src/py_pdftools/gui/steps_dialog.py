@@ -150,7 +150,22 @@ class StepsDialog(QDialog):
         page = QWidget()
         form = QFormLayout(page)
         fields: dict[str, QWidget] = {}
-        if kind == "ocr":
+        if kind == "rasterize":
+            fields["pages"] = QLineEdit()
+            fields["pages"].setPlaceholderText(tr("All"))
+            fields["pages"].setToolTip(tr("e.g. 1-3,7,LAST; odd, even; empty: all"))
+            form.addRow(tr("Pages:"), fields["pages"])
+            fields["dpi"] = QSpinBox()
+            fields["dpi"].setRange(72, 1200)
+            fields["dpi"].setSuffix(" " + tr("dpi"))
+            form.addRow(tr("Resolution:"), fields["dpi"])
+            fields["format"] = QComboBox()
+            fields["format"].addItem(tr("PNG (lossless, sharper text)"), "png")
+            fields["format"].addItem(tr("JPEG (smaller, for photographs)"), "jpg")
+            form.addRow(tr("Format:"), fields["format"])
+            fields["gray"] = QCheckBox(tr("In grey"))
+            form.addRow("", fields["gray"])
+        elif kind == "ocr":
             fields["languages"] = QLineEdit()
             fields["languages"].setToolTip(tr("As tesseract names them; several with +: lat+eng"))
             form.addRow(tr("Languages:"), fields["languages"])

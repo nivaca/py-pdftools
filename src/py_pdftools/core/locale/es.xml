@@ -14220,4 +14220,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>The voice stopped: {error}</en>
     <tr>La voz se detuvo: {error}</tr>
   </text>
+  <text>
+    <en>Pages as pictures</en>
+    <tr>Páginas como imágenes</tr>
+  </text>
+  <text>
+    <en>e.g. 1-3,7,LAST; odd, even; empty: all</en>
+    <tr>p. ej. 1-3,7,LAST; odd, even; vacío: todas</tr>
+  </text>
 </interface>

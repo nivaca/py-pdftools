@@ -1,7 +1,7 @@
-"""Una serie de pasos sobre muchos archivos (Herramientas > Aplicar pasos a varios archivos): por ejemplo, leer el
-texto (OCR), poner un pie de página, una marca de agua, reducir el tamaño y pasar a PDF/A, en ese orden, a
-cada PDF de una lista. Cada paso es una orden de la línea de órdenes (py-pdftools ocr, header-footer,
-watermark, reduce, pdf2iso), ya probada por sí misma, que lee un archivo temporal y escribe el siguiente; el
+"""Una serie de pasos sobre muchos archivos (Herramientas > Aplicar pasos a varios archivos): por ejemplo, hacer
+imágenes de las páginas, leer el texto (OCR), poner un pie de página, una marca de agua, reducir el tamaño y pasar a PDF/A, en ese orden, a
+cada PDF de una lista. Cada paso es una orden de la línea de órdenes (py-pdftools rasterize, ocr,
+header-footer, watermark, reduce, pdf2iso), ya probada por sí misma, que lee un archivo temporal y escribe el siguiente; el
 último se guarda en la carpeta elegida, con un sufijo, sin escribir nunca sobre los originales ni sobre un
 archivo que ya exista. Un archivo que falla en un paso no detiene los demás: se dice al final.
 
@@ -24,6 +24,8 @@ from ..core.interface import N_, tr
 
 # Each kind of step: its name, and the settings it has, with their defaults
 KINDS = {
+    # (first: an OCR after it gives the pictures a text that can be found again)
+    "rasterize": (N_("Pages as pictures"), {"pages": "", "dpi": 300, "format": "png", "gray": False}),
     "ocr": (N_("Recognise text (OCR)"), {"languages": "eng", "rotate": False}),
     "headfoot": (N_("Header and footer"), {"header": "", "footer": "$pagelabel"}),
     "watermark": (N_("Watermark"), {"text": "DRAFT", "opacity": 30}),
@@ -53,6 +55,12 @@ class Step:
     def argv(self, source: Path, target: Path) -> list[str]:
         """The command line of this step, reading SOURCE and writing TARGET."""
         src, out = str(source), str(target)
+        if self.kind == "rasterize":
+            if self.value("format") not in ("png", "jpg"):
+                raise StepsError(tr("Unknown format: {format}", format=self.value("format")))
+            argv = ["rasterize", src, "-o", out, "--dpi", str(int(self.value("dpi"))), "--format", self.value("format")]
+            pages = str(self.value("pages")).strip()
+            return argv + (["--pages", pages] if pages else []) + (["--gray"] if self.value("gray") else [])
         if self.kind == "ocr":
             argv = ["ocr", src, "-o", out, "-l", str(self.value("languages")).strip() or "eng"]
             return argv + (["--rotate"] if self.value("rotate") else [])

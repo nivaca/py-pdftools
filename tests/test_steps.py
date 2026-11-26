@@ -129,3 +129,23 @@ def test_the_dialog(tmp_path, monkeypatch):
         d.reject()
         w.drop_work()
         w.close()
+
+
+def test_pages_as_pictures(tmp_path):
+    """Pages as pictures, a step (py-pdftools rasterize): the pages chosen become pictures, with no text; an OCR
+    after it gives them a text again."""
+    source = pdf(tmp_path / "a.pdf", "Alpha")
+    doc = pymupdf.open(source)
+    doc.new_page().insert_text((72, 72), "Second", fontname="helv")
+    doc.saveIncr()
+    step = steps.Step("rasterize", {"pages": "1", "dpi": 100, "gray": True})
+    assert step.argv(source, tmp_path / "o.pdf")[-3:] == ["--pages", "1", "--gray"]
+    out = steps.run([source], [step], tmp_path / "out", "-pictures")
+    assert out[0].error == "", out[0].error
+    made = pymupdf.open(out[0].target)
+    assert made[0].get_text().strip() == "" and made[0].get_images() and made[1].get_text().split() == ["Second"]
+    assert list(steps.KINDS)[0] == "rasterize"  # (first, before an OCR)
+    import pytest
+
+    with pytest.raises(steps.StepsError):
+        steps.Step("rasterize", {"format": "gif"}).argv(source, tmp_path / "x.pdf")

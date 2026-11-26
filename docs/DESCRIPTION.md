@@ -2343,10 +2343,23 @@ an extra (py-pdftools[speech]), and where it is missing the command says
 so instead of reading. The tests use a voice of their own, which says
 nothing and sends the signals a real one would.
 
+107. Pages as pictures, a step
+------------------------------
+
+Pages as pictures (stage of version 1.17.0) was a command of the window
+and of the command line; Run steps on several files didn't have it. It
+is now a step there, the first of the list: which pages, the resolution,
+PNG or JPEG, grey or not, as the dialog of the window has them. First,
+because a step of OCR after it gives the pictures a text that can be
+found again, which is how a scanned look with searchable text is made of
+a whole folder. The step is the command py-pdftools rasterize, as the
+other steps are commands, already tested by themselves; a test runs it
+on a file of two pages, the first made a picture.
+
 Testing
 -------
 
-The program has 856 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 857 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
