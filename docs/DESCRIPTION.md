@@ -2356,10 +2356,28 @@ a whole folder. The step is the command py-pdftools rasterize, as the
 other steps are commands, already tested by themselves; a test runs it
 on a file of two pages, the first made a picture.
 
+108. The redacted copy: only the redacted pages rewritten
+---------------------------------------------------------
+
+The redacted copy was saved with clean=True, which passes the content of
+every page through MuPDF's filter, the pages with nothing redacted too.
+That filter once turned a white fill black (a letterhead's logo, in a
+reduced copy, at the stage of version 1.18.0), and since then reduce.py
+and rasterize save without it; redaction still did. I tried to make the
+fault happen again with this MuPDF (1.28.6), with colours given by sc and
+scn with no colour space before them, as PDF allows: it didn't, and only
+an invalid file came out changed. But the filter still rewrites every
+page, which a redaction has no need of: the pages redacted are rewritten
+by apply_redactions itself, and garbage=4 still drops the fonts and
+pictures that only the redacted parts used. So the copy is now saved
+without it, and every page without a redaction keeps its content exactly
+as it was. A test redacts one page of two and compares the other's
+content, byte for byte, and checks that the redacted text is gone.
+
 Testing
 -------
 
-The program has 857 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 858 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

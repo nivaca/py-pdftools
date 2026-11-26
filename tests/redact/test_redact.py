@@ -441,3 +441,26 @@ def test_search_keeps_the_text_and_turned_pages(monkeypatch):
     assert find_all(doc, [("name", False)], texts=texts) and sorted(texts) == [0, 1, 2, 3]
     monkeypatch.setattr(redact, "page_chars", lambda page: pytest.fail("the page was read again"))
     assert len(find_all(doc, [("secret", False)], texts=texts)) == 4
+
+
+def test_the_pages_not_redacted_stay_as_they_were(tmp_path):
+    """The copy redacted rewrites only the pages redacted: the others keep their content as it was (MuPDF's filter,
+    which save(clean=True) ran on every page, has changed colours), and what was redacted is gone."""
+    import pymupdf
+
+    from py_pdftools.redact import redact as r
+
+    source = tmp_path / "two.pdf"
+    doc = pymupdf.open()
+    for _ in range(2):
+        page = doc.new_page()
+        page.insert_text((72, 700), "secret words here", fontname="helv")
+        xref = page.get_contents()[0]
+        doc.update_stream(xref, b"q 0.5 sc 100 100 200 200 re f Q\n" + doc.xref_stream(xref))
+    doc.save(source)
+    before = [doc.xref_stream(x) for x in doc[0].get_contents()]
+    r.write_redacted(source, [r.Box(1, (60, 680, 300, 710))], tmp_path / "out.pdf")
+    out = pymupdf.open(tmp_path / "out.pdf")
+    assert [out.xref_stream(x) for x in out[0].get_contents()] == before
+    assert "secret" in out[0].get_text() and "secret" not in out[1].get_text()
+    assert out[1].get_pixmap(dpi=36).pixel(100, 296) == (127, 127, 127)  # (its grey square, still grey)

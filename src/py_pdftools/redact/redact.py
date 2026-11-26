@@ -224,8 +224,10 @@ def write_redacted(source: Path, boxes: list[Box], target: Path, password: str =
             metadata.write(doc, meta)
         # (garbage=4 drops the objects nothing uses any more: the fonts and images
         # that only the redacted parts used, which would otherwise stay in the file)
-        doc.save(tmp, garbage=4, deflate=True, clean=True,
-                 encryption=pdfdoc.kept_encryption(doc))
+        # Sin clean: clean pasa el contenido de todas las páginas por el filtro de MuPDF, también las que no tienen
+        # nada censurado, y ese filtro ha cambiado colores (un relleno blanco vuelto negro: véase reduce.py); las
+        # páginas censuradas ya las reescribe apply_redactions, y las demás quedan como estaban
+        doc.save(tmp, garbage=4, deflate=True, encryption=pdfdoc.kept_encryption(doc))
         doc.close()
         os.replace(tmp, target)
     except BaseException as e:
