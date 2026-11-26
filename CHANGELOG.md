@@ -7,6 +7,8 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- The messages of KDE's libraries (`kf.*`, from Plasma's file dialog)
+  no longer fill the terminal; `QT_LOGGING_RULES` still overrides this.
 - Fixed: saving moved the view to the top of the page shown; it now stays
   exactly where it was.
 - The Annotations panel no longer opens by itself with the mode Annotate;

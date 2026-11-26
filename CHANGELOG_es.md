@@ -7,6 +7,8 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Los mensajes de las bibliotecas de KDE (`kf.*`, del diálogo de archivos
+  de Plasma) ya no llenan la terminal; `QT_LOGGING_RULES` sigue mandando.
 - Corregido: guardar llevaba la vista al principio de la página visible;
   ahora se queda exactamente donde estaba.
 - El panel de anotaciones ya no se abre solo con el modo Anotar; F4 lo

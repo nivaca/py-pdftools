@@ -61,9 +61,14 @@ def main(argv: list[str] | None = None) -> int:
     from ..core import interface
 
     interface.use_configured()
+    from PySide6.QtCore import QLoggingCategory
     from PySide6.QtWidgets import QApplication
 
     from .window import _WINDOWS, MainWindow, install_qt_translations
+
+    # Los mensajes de las bibliotecas de KDE (kf.*: el diálogo de archivos de Plasma, sus traducciones) no dicen
+    # nada del programa y llenaban la terminal; QT_LOGGING_RULES, si el usuario la pone, manda sobre esto.
+    QLoggingCategory.setFilterRules("kf.*=false")
 
     # An application may exist already (the tests make one): it is reused.
     app = QApplication.instance() or QApplication([sys.argv[0]] + argv)
