@@ -16,6 +16,9 @@ AppImage, el RPM, la rueda y el código fuente, están en
 - Los procesos que dibujan las páginas arrancan con el programa, mientras
   se construye su ventana, así que la primera página llega una décima de
   segundo antes; el que muere con una página se reemplaza enseguida.
+- Las miniaturas se dibujan con menos prioridad que las páginas a la vista
+  y la ventana, que reciben primero el procesador cuando el equipo está
+  ocupado.
 - Corregido: en Windows, y en Linux sin los ajustes de un escritorio, Salir
   había perdido Ctrl+Q en 1.18.0 (Qt no da allí una tecla estándar para
   ello): Ctrl+Q y Ctrl+W se nombran ahora de forma explícita, además de las

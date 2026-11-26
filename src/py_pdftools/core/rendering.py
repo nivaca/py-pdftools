@@ -12,6 +12,7 @@ Nothing here uses Qt: the process imports only this, annotate/annots.py and PyMu
 
 from __future__ import annotations
 
+import os
 import sys
 
 import pymupdf
@@ -57,6 +58,25 @@ def ready() -> bool:
     """Nothing: a new process runs this first, so that the time it takes to start (and to import
     PyMuPDF) is not counted against the first page it renders (see renderer.py, LIMIT)."""
     return True
+
+
+LOW_NICE = 10  # (how much lower the processes of the thumbnails run, on Linux and macOS)
+
+
+def lower_priority() -> None:
+    """Run this process below the others (the thumbnails' processes): when the computer is busy, the pages
+    in view and the window get the processor first. On an idle computer it changes nothing."""
+    try:
+        if sys.platform == "win32":
+            import ctypes
+
+            # BELOW_NORMAL_PRIORITY_CLASS, no IDLE: con IDLE, un equipo ocupado podría no hacer nunca las miniaturas.
+            kernel = ctypes.windll.kernel32
+            kernel.SetPriorityClass(kernel.GetCurrentProcess(), 0x00004000)
+        else:
+            os.nice(LOW_NICE)
+    except (OSError, AttributeError):  # (a system that doesn't allow it: the process runs as it is)
+        pass
 
 
 AS_DRAWN = (1.0, 0.0, 0)  # (gamma, radius and percent of the unsharp mask): the text as MuPDF draws it

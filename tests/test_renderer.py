@@ -123,6 +123,18 @@ def test_a_dead_process_is_replaced_at_once(app, renderer, slow_pdf):
     wait(app, lambda: slot.ready)
 
 
+@pytest.mark.skipif(not hasattr(os, "getpriority"), reason="(Windows: no nice values)")
+def test_thumbnails_are_drawn_at_a_lower_priority(app, renderer):
+    """The thumbnails' processes run below the window and the pages in view (see rendering.lower_priority)."""
+    renderer.warm("view")
+    renderer.warm("thumbs")
+    view, thumbs = renderer.lanes["view"].slots[0].pool, renderer.lanes["thumbs"].slots[0].pool
+    wait(app, lambda: all(s.ready for ln in renderer.lanes.values() for s in ln.slots))
+    mine = os.getpriority(os.PRIO_PROCESS, 0)
+    assert view.submit(os.getpriority, os.PRIO_PROCESS, 0).result(timeout=30) == mine
+    assert thumbs.submit(os.getpriority, os.PRIO_PROCESS, 0).result(timeout=30) == min(mine + 10, 19)
+
+
 def test_the_canvas_shows_a_skipped_page(app, slow_pdf, tmp_path, monkeypatch):
     from py_pdftools.gui.window import MainWindow
 

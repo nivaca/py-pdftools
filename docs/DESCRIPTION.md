@@ -2450,6 +2450,13 @@ page is asked for, which came after 310 ms instead of 410 in a test that
 opens a scanned dictionary. A process that dies with a page is replaced at
 once, not when the next page is asked for.
 
+Calibre starts its background workers, those that index the text of the
+books, at a lower priority. The processes of the thumbnails now do the
+same: a nice value ten higher on Linux and macOS, and "below normal" on
+Windows (not "idle", which a busy computer might never give the time to
+finish them). On an idle computer nothing changes; on a busy one, the pages
+in view and the window come first.
+
 Testing
 -------
 

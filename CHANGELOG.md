@@ -15,6 +15,8 @@ Debian package, the RPM, the wheel and the source, are on
 - The processes that draw the pages start with the program, while its
   window is built, so the first page comes about a tenth of a second
   sooner; one that dies with a page is replaced at once.
+- The thumbnails are drawn at a lower priority than the pages in view and
+  the window, which get the processor first when the computer is busy.
 
 ## 1.19.0 — 2026-11-25
 

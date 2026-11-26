@@ -175,7 +175,9 @@ class Renderer(QObject):
         try:
             if slot.pool is None:
                 # Spawn, not fork: a forked child would inherit Qt's state and threads, which is not safe.
-                slot.pool = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+                # (the thumbnails' processes run below the others: see rendering.lower_priority)
+                slot.pool = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"),
+                                                initializer=rendering.lower_priority if lane == "thumbs" else None)
                 slot.ready, slot.killed = False, False
             slot.busy = ("ready",)
             future = slot.pool.submit(rendering.ready)
