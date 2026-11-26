@@ -7,6 +7,12 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: con «Dibujar las páginas con la tarjeta gráfica (OpenGL)»
+  activado (Configuración > Rendimiento), el texto de las páginas se veía
+  borroso a cualquier zoom. La página cae a menudo entre dos píxeles de la
+  pantalla, y OpenGL suavizaba allí su imagen; ahora una página mostrada a
+  su propio tamaño se dibuja sobre píxeles enteros, tan nítida como sin la
+  tarjeta gráfica.
 - Corregido: en Windows, y en Linux sin los ajustes de un escritorio, Salir
   había perdido Ctrl+Q en 1.18.0 (Qt no da allí una tecla estándar para
   ello): Ctrl+Q y Ctrl+W se nombran ahora de forma explícita, además de las

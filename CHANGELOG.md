@@ -5,6 +5,14 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## Unreleased
+
+- Fixed: with "Draw the pages with the graphics card (OpenGL)" on
+  (Settings > Performance), the text of the pages looked blurred at every
+  zoom. The page often falls between two pixels of the screen, and OpenGL
+  smoothed its picture there; a page shown at its own size is now drawn on
+  whole pixels, as sharp as without the graphics card.
+
 ## 1.19.0 — 2026-11-25
 
 - View > Theme and View > Icons, also in Settings > Appearance, change

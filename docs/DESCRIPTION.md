@@ -2396,10 +2396,39 @@ and the automatic preview does nothing when it is off or when a run is
 awaited. A test fires the preview in the middle of a save's run, and
 four runs of every test at once, with 28 processes, passed.
 
+110. Sharp pages with the graphics card
+---------------------------------------
+
+The user found the text blurred at every zoom, even at 180 %. The pictures
+of the pages are rendered at the zoom of the view, a pixel of the picture
+for a pixel of the screen, so nothing should have been scaled; and
+offscreen, where the tests draw, a capture of the view was identical,
+pixel by pixel, to MuPDF's own rendering. But the user draws the pages with
+the graphics card (stage 35), which the offscreen display doesn't have. In
+Xvfb, whose OpenGL is done in software, I captured the screen with
+ImageMagick's `import` (a capture of the OpenGL surface itself comes out
+white), and the text had twice as many grey pixels between black and white
+as MuPDF's. The cause was where the page falls: centred in a window, it
+began at 63.5 pixels, and its top at 21.6. Qt's painter for the processor
+moves a picture that is only moved, not scaled, to a whole pixel; OpenGL
+samples it where it falls, between two pixels, and smooths every letter.
+The pictures of the pages, and the tiles of a deep zoom, now draw
+themselves: when one is shown at its own size (within a pixel over its
+width, as the zoom and the scale of the rendering are rounded to three
+decimals) it is put on whole pixels and copied as it is, without
+smoothing. Both edges of the picture are rounded, not only its corner: the
+tiles of a deep zoom, each rounded alone, could otherwise leave a column
+of white between them. A stand-in, a thumbnail or a rendering of another zoom shown
+until the right one comes, is still scaled smoothly by Qt. With the
+graphics card the captures are now identical to MuPDF's at 73, 100, 180
+and 237 %. A test paints a page's picture at 63.5 and 21.6 pixels and
+checks that it is drawn at 64 and 22, without smoothing; another lays
+three tiles side by side, a little stretched, and finds no seam.
+
 Testing
 -------
 
-The program has 859 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 862 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

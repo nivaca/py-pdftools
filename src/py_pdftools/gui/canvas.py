@@ -21,10 +21,10 @@ from collections import OrderedDict
 from collections.abc import Callable
 
 import pymupdf
-from PySide6.QtCore import QEvent, QPointF, QRectF, Qt, QTimer, Signal
+from PySide6.QtCore import QEvent, QPointF, QRect, QRectF, QSizeF, Qt, QTimer, Signal
 from PySide6.QtGui import (
     QBrush, QColor, QCursor, QImage, QKeySequence, QPainter, QPainterPath, QPen, QPixmap, QPointingDevice,
-    QTextOption,
+    QTextOption, QTransform,
 )
 from PySide6.QtWidgets import (
     QToolTip,
@@ -403,6 +403,34 @@ class AnnotItem(QGraphicsItem):
             painter.drawEllipse(h, side / 2, side / 2)
 
 
+class SharpPixmapItem(QGraphicsPixmapItem):
+    """A rendering of a page (or a tile of one) that, shown at its own size (a pixel of it on a pixel of
+    the screen), is drawn on whole pixels of the screen, as it is: never blurred."""
+
+    def paint(self, painter: QPainter, option, widget=None):
+        pixmap = self.pixmap()
+        t = painter.deviceTransform()  # (in pixels of the screen, HiDPI included)
+        # El zoom y la escala del render se redondean a tres decimales: se admite a lo sumo un píxel de diferencia
+        # en todo el ancho de la imagen.
+        side = max(pixmap.width(), pixmap.height(), 1)
+        if pixmap.isNull() or t.type().value > QTransform.TransformationType.TxScale.value or \
+                abs(t.m11() - 1) * side > 1 or abs(t.m22() - 1) * side > 1:
+            super().paint(painter, option, widget)
+            return
+        # La página cae a menudo entre dos píxeles (63.5, por ejemplo); OpenGL la muestrea entonces entre ellos y
+        # suaviza cada letra. Se lleva a píxeles enteros y se copia tal cual, sin interpolar.
+        ratio = painter.device().devicePixelRatioF() or 1.0
+        box = t.mapRect(QRectF(self.offset(), QSizeF(pixmap.size())))
+        # Both edges are rounded, not the corner alone: two tiles side by side then meet on the same pixel.
+        left, top = round(box.left()), round(box.top())
+        target = QRect(left, top, round(box.right()) - left, round(box.bottom()) - top)
+        painter.save()
+        painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform, False)
+        painter.setWorldTransform(QTransform.fromScale(1 / ratio, 1 / ratio))
+        painter.drawPixmap(target, pixmap)
+        painter.restore()
+
+
 class PageItem(QGraphicsRectItem):
     """A page: white, with its rendering on it (once it is in view), and its annotations as children."""
 
@@ -429,7 +457,7 @@ class PageItem(QGraphicsRectItem):
     def pixmap(self) -> QGraphicsPixmapItem:
         """The rendering of the page, a child of the white rectangle (white while it hasn't come)."""
         if self._pixmap is None:
-            self._pixmap = QGraphicsPixmapItem(self)
+            self._pixmap = SharpPixmapItem(self)
             self._pixmap.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
             # (under the tiles and the annotations, whichever is made first)
             self._pixmap.setZValue(0.1)
@@ -452,7 +480,7 @@ class PageItem(QGraphicsRectItem):
         """Show the tile KEY ((scale, column, row)): PIXMAP, of the part CLIP of the page at SCALE."""
         tile = self.tiles.get(key)
         if tile is None:
-            tile = self.tiles[key] = QGraphicsPixmapItem(self.tiles_layer)
+            tile = self.tiles[key] = SharpPixmapItem(self.tiles_layer)
             tile.setTransformationMode(Qt.TransformationMode.SmoothTransformation)
         tile.setPixmap(pixmap)
         tile.setPos(clip[0], clip[1])
