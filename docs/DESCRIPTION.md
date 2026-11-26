@@ -2284,10 +2284,25 @@ stay where they were. "don't" finds "don’t", and a phrase is still found
 across a line break. The test needed a font of its own: Helvetica, the
 PDF's, has no curly quotes, and the first page I wrote for it had none.
 
+104. The screen kept on in a presentation
+-----------------------------------------
+
+During a talk nobody touches the keyboard, and after some minutes the
+system dimmed the screen. Calibre's viewer keeps it on, on Windows and
+macOS; here a presentation now does it on the three: on Linux by the
+freedesktop service org.freedesktop.ScreenSaver, over D-Bus (its Inhibit
+gives a number that UnInhibit takes back at the end), which KDE, GNOME
+and the others offer; on Windows by SetThreadExecutionState; on macOS by
+caffeinate, a program of the system, bound to the program's process so
+that it ends with it. Where none of them answers, the presentation goes
+on as before. The tests replace the functions of the system, so that
+running them doesn't hold the screen of whoever runs them; one checks
+that a presentation asks at the start and gives back at the end.
+
 Testing
 -------
 
-The program has 848 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 851 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

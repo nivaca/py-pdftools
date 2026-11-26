@@ -67,6 +67,21 @@ def pages_here(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def screen_left_alone(monkeypatch):
+    """A presentation in a test doesn't keep the screen of whoever runs the tests awake (see gui/awake.py: its
+    own test calls the system's functions through stand-ins)."""
+    from py_pdftools.gui import awake
+
+    monkeypatch.setattr(awake, "_screensaver", lambda method, *args: None)
+    monkeypatch.setattr(awake, "_windows_state", lambda on: False)
+    monkeypatch.setattr(awake, "_caffeinate", _no_caffeinate)
+
+
+def _no_caffeinate():
+    raise OSError("not in the tests")
+
+
+@pytest.fixture(autouse=True)
 def annotating_first(monkeypatch):
     """The window starts in the mode Annotate (its tests come from py-annotate's), not in Read, as it does
     the first time a user opens it (a test may set the mode itself)."""

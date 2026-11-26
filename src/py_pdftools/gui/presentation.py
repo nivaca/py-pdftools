@@ -45,6 +45,11 @@ class Presentation(QWidget):
         self.fader.timeout.connect(self._fade_step)
 
     def start(self):
+        from .awake import Awake
+
+        # (la pantalla despierta mientras dura: véase awake.py)
+        self.awake = Awake()
+        self.awake.start()
         self.showFullScreen()
         self.show_page(self.page, fade=False)
         self.idle.start()
@@ -205,5 +210,7 @@ class Presentation(QWidget):
     def closeEvent(self, event):
         self.timed.stop()
         self.fader.stop()
+        if getattr(self, "awake", None) is not None:  # (the screen left to the system again)
+            self.awake.stop()
         self.ended.emit(self.page)
         super().closeEvent(event)

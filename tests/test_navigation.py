@@ -506,13 +506,19 @@ def test_reading_colours(window, monkeypatch):
     assert reading.TINT is None and corner().lightness() > 240
 
 
-def test_full_screen_presentation(window, book):
+def test_full_screen_presentation(window, book, monkeypatch):
     from PySide6.QtCore import QEvent, Qt
     from PySide6.QtGui import QKeyEvent
 
+    from py_pdftools.gui import awake
+
+    asked = []  # (the screen kept awake while it lasts: see gui/awake.py)
+    monkeypatch.setattr(awake.sys, "platform", "linux")
+    monkeypatch.setattr(awake, "_screensaver", lambda method, *args: asked.append(method) or 7)
     window.show_page(1)
     show = window.present()
     assert show.isFullScreen() and show.page == 1 and show.image is not None
+    assert asked == ["Inhibit"]
 
     def key(k):
         show.keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, k, Qt.KeyboardModifier.NoModifier))
@@ -532,6 +538,7 @@ def test_full_screen_presentation(window, book):
     key(Qt.Key.Key_Down)
     key(Qt.Key.Key_Escape)
     assert not show.isVisible() and window.page == 1  # (the window, at the page reached)
+    assert asked == ["Inhibit", "UnInhibit"]
     assert [k.toString() for k in window.a_present.shortcuts()] == ["F11"]  # (Ctrl+Shift+P: Find a command)
 
 
