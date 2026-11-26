@@ -167,7 +167,8 @@ def test_a_box_dragged_shows_a_frame_of_dashes(window):
 
 def test_a_note_shows_where_it_goes(window):
     """While the mouse is pressed with Note, a frame of dashes shows where its icon goes, as large as it is seen;
-    it doesn't follow a drag (the note goes where the mouse was pressed), and the note takes its place."""
+    it doesn't follow a drag (the note goes where the mouse was pressed; a drag gives its pop-up, see below), and
+    the note takes its place."""
     from PySide6.QtWidgets import QGraphicsRectItem
 
     from py_pdftools.annotate.annots import NOTE_SIZE
@@ -183,6 +184,24 @@ def test_a_note_shows_where_it_goes(window):
     mouse(window, QEvent.Type.MouseButtonRelease, (180, 200))
     assert frame.scene() is None
     assert window.annotations[-1].kind == "note" and close(window.annotations[-1].rect[:2], (100, 120), 0.5)
+
+
+def test_a_note_dragged_has_its_popup_there(window):
+    """Dragging with Note: a frame of dashes follows the mouse, the size of the note's pop-up window (where readers
+    show its text); the note goes where the mouse was pressed, with that pop-up. A click: no pop-up of its own."""
+    window.set_tool("note")
+    mouse(window, QEvent.Type.MouseButtonPress, (100, 120))
+    mouse(window, QEvent.Type.MouseMove, (300, 260))
+    box = window.canvas._drag["box"]
+    assert box.scene() is not None and close((box.rect().left(), box.rect().top(), box.rect().right(),
+                                              box.rect().bottom()), (100, 120, 300, 260), 1.5)  # (pixels)
+    mouse(window, QEvent.Type.MouseButtonRelease, (300, 260))
+    assert box.scene() is None
+    note = window.annotations[-1]
+    assert note.kind == "note" and close(note.rect[:2], (100, 120), 0.5)
+    assert note.popup is not None and close(note.popup, (100, 120, 300, 260), 1.5)
+    click(window, (400, 500))
+    assert window.annotations[-1].kind == "note" and window.annotations[-1].popup is None
 
 
 def test_a_tool_buttons_tip_has_its_name(window):

@@ -861,7 +861,11 @@ handles of a selected annotation move and resize it. While a box is
 dragged, with Select or with a tool that draws one (a text box, a
 rectangle\dots), a frame of dashes shows where it goes, even when what
 is drawn has no border; with Note and Attach file, a frame the size of the
-icon shows where it goes while the mouse button is held.
+icon shows where it goes while the mouse button is held. Dragging with
+Note gives the note's pop-up window, where readers show its text, the
+place and size of the box dragged; the icon stays where the drag began.
+(The icon itself can't be made larger: readers draw it at a size of
+their own.)
 
 \index{tools!hand@Hand}\index{links}\index{annotations}\index{annotations!highlight}\index{annotations!underline, strikeout}\index{annotations!note}\index{annotations!text box}\index{annotations!callout}\index{annotations!typewriter}\index{annotations!stamp}\index{annotations!check mark}\index{signature, handwritten}\index{annotations!attached file}\index{annotations!shapes}\index{annotations!freehand}\index{tools!eraser@Eraser}\index{tablet pen}\index{links!making}\index{forms}%
 \begin{longtable}{@{}p{0.33\textwidth}lp{0.5\textwidth}@{}}
@@ -878,7 +882,7 @@ Strikethrough & \key{S} & Strikes out the text dragged over.\\
 Squiggly underline & \key{Q} & Underlines it with a wavy line.\\
 Insert text & \key{I} & Marks where text should be inserted, and writes it.\\
 Replace text & \key{Shift+I} & Strikes out the text dragged over and writes the new one at its end.\\
-Note & \key{N} & A note, shown as an icon, with its text in the panel.\\
+Note & \key{N} & A note, shown as an icon, with its text in the panel; dragged, the box is its pop-up window.\\
 Text box & \key{T} & A box with text, dragged or clicked.\\
 Callout & \key{Shift+T} & A text with a line that points at a place.\\
 Typewriter & \key{Y} & Text written straight on the page, without box or border.\\

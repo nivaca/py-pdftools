@@ -80,6 +80,10 @@ def from_data(data: dict, keep_xref: bool = False) -> Annotation | None:
                 value = tuple(float(v) for v in value)
                 if len(value) != 4:
                     return None
+            elif name == "popup":  # (a note's pop-up window: none, or a rectangle)
+                value = tuple(float(v) for v in value) if value else None
+                if value is not None and len(value) != 4:
+                    return None
             elif name == "quads":
                 value = tuple(tuple(float(v) for v in q) for q in value)
             elif name == "paths":

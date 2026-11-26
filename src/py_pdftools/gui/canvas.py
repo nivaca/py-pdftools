@@ -1534,6 +1534,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             return
         for mark in self._drag.get("marks", []):
             self.scene().removeItem(mark)
+        if "box" in self._drag:  # (a note's pop-up, being dragged)
+            self.scene().removeItem(self._drag["box"])
         # An edit drag's item is the real annotation, not a preview: it must stay in the scene.
         if "item" in self._drag and self._drag["kind"] != "edit":
             self.scene().removeItem(self._drag["item"])
@@ -2173,8 +2175,15 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._erase_at(point)
         elif kind in ("band", "zoomarea", "linkarea", "signarea"):
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
-        elif kind == "click" and drag.get("fixed"):  # (the frame of a note: it stays)
-            pass
+        elif kind == "click" and drag.get("fixed"):  # (the frame of a note's icon stays where it was pressed)
+            end = self._clamp(page, point)
+            if self.mode == "note" and (end - drag["start"]).manhattanLength() * self.zoom() > 6:
+                # Arrastrando: un recuadro de trazos, el de la ventana emergente que tendrá la nota
+                box = QRectF(drag["start"], end).normalized()
+                if "box" in drag:
+                    drag["box"].setRect(box)
+                else:
+                    drag["box"] = self._dashed_frame(page, box)
         elif kind == "click" and isinstance(drag.get("item"), QGraphicsRectItem):  # (the frame of a signature)
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
@@ -2295,6 +2304,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             dx = max(bounds.left() - r.left(), 0) + min(bounds.right() - r.right(), 0)
             dy = max(bounds.top() - r.top(), 0) + min(bounds.bottom() - r.bottom(), 0)
             r.translate(dx, dy)
+            if a.popup:  # (a note: its pop-up window goes with it, see annots.moved)
+                return annots.moved(a, r.left() - a.rect[0], r.top() - a.rect[1])
         else:
             p = self._clamp(page, point)
             # Redimensionar: solo se mueven los bordes agarrados, sin salir de la página.
@@ -2463,6 +2474,12 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         bounds = page.rect()
         if drag.get("fixed"):  # (the frame of a note: the note takes its place)
             self.scene().removeItem(drag["item"])
+        popup = None
+        if "box" in drag:  # (dragged with Note: its pop-up window, where the box was)
+            r = drag["box"].rect()
+            self.scene().removeItem(drag["box"])
+            if r.width() >= MIN_SIZE and r.height() >= MIN_SIZE:
+                popup = tuple(round(v, 2) for v in (r.left(), r.top(), r.right(), r.bottom()))
         if self.mode == "callout":
             self.scene().removeItem(drag["item"])
             box = self._callout_box(page, start, self._clamp(page, point))
@@ -2502,7 +2519,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             x, y = start.x(), start.y()
         x = max(min(x, bounds.right() - w), bounds.left())
         y = max(min(y, bounds.bottom() - h), bounds.top())
-        self.drawn.emit(self._new(self.mode, n, (round(x, 2), round(y, 2), round(x + w, 2), round(y + h, 2))))
+        made = self._new(self.mode, n, (round(x, 2), round(y, 2), round(x + w, 2), round(y + h, 2)))
+        self.drawn.emit(dataclasses.replace(made, popup=popup) if popup else made)
 
     def page_scale(self, number: int) -> float:
         """How much larger than paper page NUMBER is (annots.page_scale): new annotations are made larger on it."""

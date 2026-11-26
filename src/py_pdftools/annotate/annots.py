@@ -211,6 +211,9 @@ class Annotation:
     font: str = "helv"  # of a text box: see FONTS
     align: str = "left"  # of the text of a text box
     icon: str = "Note"  # of a note: see ICONS
+    # De una nota: el lugar y el tamaño de su ventana emergente (donde los lectores muestran su texto), si se le dio
+    # uno (una nota hecha arrastrando un recuadro); None: el que MuPDF le da
+    popup: Rect | None = None
     ends: tuple[str, str] = ("None", "None")  # of a line (or callout: its second, at the place pointed): see ENDS
     dashed: bool = False
     locked: bool = False  # (the PDF's flag: neither moved, resized nor deleted)
@@ -375,7 +378,11 @@ def fitted(a: Annotation, rect: Rect) -> Annotation:
 
 def moved(a: Annotation, dx: float, dy: float) -> Annotation:
     x0, y0, x1, y1 = a.rect
-    return fitted(a, (x0 + dx, y0 + dy, x1 + dx, y1 + dy))
+    out = fitted(a, (x0 + dx, y0 + dy, x1 + dx, y1 + dy))
+    if a.popup:  # (a note's pop-up window goes with it)
+        px0, py0, px1, py1 = a.popup
+        out = dataclasses.replace(out, popup=(_r(px0 + dx), _r(py0 + dy), _r(px1 + dx), _r(py1 + dy)))
+    return out
 
 
 def with_vertex(a: Annotation, index: int, point: Point) -> Annotation:
@@ -520,6 +527,29 @@ def _pdf_rect(page: pymupdf.Page, rect: pymupdf.Rect) -> str:
     """RECT (of the page as MuPDF sees it, not turned) as a PDF array."""
     r = (pymupdf.Rect(rect) * ~page.transformation_matrix).normalize()
     return f"[{r.x0:.3f} {r.y0:.3f} {r.x1:.3f} {r.y1:.3f}]"
+
+
+def _read_popup(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.Annot) -> Rect | None:
+    """The place of the pop-up window of ANNOT (a note), as the page is shown; None if it has none."""
+    # Su /Rect, leído tal cual y llevado como los demás rectángulos: popup_rect de PyMuPDF no tiene en cuenta el
+    # giro de la página, y en una página girada la daba en otro lugar
+    xref = annot.popup_xref if annot.has_popup else 0
+    kind, value = doc.xref_get_key(xref, "Rect") if xref else ("null", "")
+    try:
+        numbers = [float(v) for v in value.strip("[]").split()] if kind == "array" else []
+    except ValueError:
+        numbers = []
+    if len(numbers) != 4:
+        return None
+    where = (pymupdf.Rect(numbers) * page.transformation_matrix).normalize()
+    return None if where.is_empty else _shown_rect(page, where)
+
+
+def _write_popup(page: pymupdf.Page, annot: pymupdf.Annot, popup: Rect) -> None:
+    """The pop-up window of ANNOT (a note) at POPUP (as the page is shown): see _read_popup."""
+    if not annot.has_popup:
+        annot.set_popup(_real_rect(page, popup))  # (made; its place is then written as the others are)
+    page.parent.xref_set_key(annot.popup_xref, "Rect", _pdf_rect(page, _real_rect(page, popup)))
 
 
 def _pdf_text(doc: pymupdf.Document, xref: int, key: str) -> str:
@@ -801,8 +831,9 @@ def _read_annotation(doc: pymupdf.Document, page: pymupdf.Page, annot: pymupdf.A
                           **fields)
     # (a note, or a caret)
     icon = info.get("name", "") or "Note"
+    popup = _read_popup(doc, page, annot) if kind == "note" else None
     return Annotation(rect=_shown_rect(page, annot.rect), color=stroke or ("#ffd54f" if kind == "note" else "#1e88e5"),
-                      icon=icon if icon in ICONS else "Note", **fields)
+                      icon=icon if icon in ICONS else "Note", popup=popup, **fields)
 
 
 def _reply_roots(doc: pymupdf.Document, page: pymupdf.Page) -> dict[int, int]:
@@ -1239,6 +1270,8 @@ def add(page: pymupdf.Page, a: Annotation, when: str | None = None) -> pymupdf.A
         annot = _placed(page, lambda p: page.add_text_annot(p, a.contents, icon=a.icon), a.rect,
                         (NOTE_SIZE, NOTE_SIZE))
         annot.set_colors(stroke=stroke)
+        if a.popup:  # (its pop-up window where the box was dragged, not MuPDF's above the icon)
+            _write_popup(page, annot, a.popup)
     elif a.kind == "attachment":
         annot = _placed(page, lambda p: page.add_file_annot(p, a.data, a.filename or "file",
                                                             icon=a.icon if a.icon in ATTACH_ICONS else "Paperclip"),
@@ -1323,12 +1356,15 @@ def same(a: Annotation, b: Annotation, tolerance: float = 1.0) -> bool:
         return [v for item in items for p in item for v in (p if isinstance(p, tuple) else (p,))]
 
     # Campos que cambian solos al escribir, o que se comparan aparte, con tolerancia.
-    ignore = {"xref", "created", "modified", "image", "rect", "quads", "paths", "replies", "width"}
+    ignore = {"xref", "created", "modified", "image", "rect", "quads", "paths", "replies", "width", "popup"}
     fields = [f.name for f in dataclasses.fields(Annotation) if f.name not in ignore]
     # The colour of a stamp is not compared: MuPDF draws the standard stamps in colours of their own.
     if any(getattr(a, f) != getattr(b, f) for f in fields if not (f == "color" and a.kind == "stamp")):
         return False
     if a.kind in STROKED and abs(a.width - b.width) > 0.01:
+        return False
+    # (a note's pop-up, only if both have one: without one, MuPDF gives it its own when it is written)
+    if a.popup and b.popup and not close(a.popup, b.popup):
         return False
     if a.kind in MARKUP:
         return close(flat(a.quads), flat(b.quads))
@@ -1403,6 +1439,8 @@ def change(page: pymupdf.Page, annot: pymupdf.Annot, old: Annotation, a: Annotat
             annot.set_line_ends(*(_END_CODES.get(e, 0) for e in ends))
         if a.kind == "note" and a.icon != old.icon:
             annot.set_name(a.icon)
+        if a.kind == "note" and a.popup and a.popup != old.popup:
+            _write_popup(page, annot, a.popup)
         # Después de la geometría, lo común, como en add: la información, la opacidad, las banderas y las claves.
         _info(annot, a, when)
         annot.set_opacity(a.opacity)

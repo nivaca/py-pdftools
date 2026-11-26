@@ -470,3 +470,28 @@ def test_drawings_are_curves(sample, tmp_path):
     assert again.xref == got.xref and appearance(doc, again).count(" c\n") == 4
     pix = doc[0].get_pixmap(dpi=72)  # (the dot is drawn)
     assert any(pix.pixel(160 + dx, 300 + dy) != (255, 255, 255) for dx in range(-2, 3) for dy in range(-2, 3))
+
+
+@pytest.mark.parametrize("rotation", [0, 90])
+def test_a_notes_popup(sample, tmp_path, rotation):
+    """A note made by dragging a box keeps that box as its pop-up window (where readers show its text), also on a
+    turned page; it goes with the note when the note moves; a note without one gets MuPDF's, which is the same."""
+    doc = annots.open_pdf(sample)
+    doc[0].set_rotation(rotation)
+    doc.save(tmp_path / "turned.pdf")
+    path = tmp_path / "turned.pdf"
+    made = [Annotation("note", 0, (100, 100, 116, 116), "#ffd54f", contents="Read me", popup=(120, 100, 320, 220)),
+            Annotation("note", 0, (300, 400, 316, 416), "#ffd54f", contents="plain")]
+    annots.write(path, made, path)
+    got = annots.read(annots.open_pdf(path))
+    assert annots.same(made[0], got[0], tolerance=1) and annots.same(made[1], got[1])
+    assert got[0].popup is not None and max(abs(u - v) for u, v in zip(got[0].popup, made[0].popup)) < 1
+    assert got[1].popup is not None  # (MuPDF's own)
+    away = annots.moved(got[0], 50, 20)
+    assert max(abs(u - v) for u, v in zip(away.popup, (170, 120, 370, 240))) < 1
+    annots.write(path, [away, got[1]], path)
+    again = next(a for a in annots.read(annots.open_pdf(path)) if a.contents == "Read me")  # (the order may change)
+    assert max(abs(u - v) for u, v in zip(again.popup, away.popup)) < 1
+    # (kept in the exchange as JSON, and in the recovery copies, which use it; none stays none)
+    assert exchange.from_data(exchange.to_data(away)) == dataclasses.replace(away, xref=0)
+    assert exchange.from_data(exchange.to_data(made[1])).popup is None

@@ -2168,10 +2168,32 @@ and in View > Theme and View > Icons, which change them at once in every
 window and keep them. Tooltips get the palette too: Calibre notes that
 they keep the old colours otherwise.
 
+97. A note dragged: its pop-up window
+-------------------------------------
+
+The user wanted the Note tool to take the size of a box dragged, as the
+Text box does. It can't: a note is an icon, and readers draw it at a
+size of their own. MuPDF keeps it at 16 points; a larger rectangle,
+asked of PyMuPDF or written in the file, came back as 16 by 16. (In an
+earlier stage I had written that changing it made MuPDF crash: with
+this version it doesn't, it only ignores it.) What a note has of a size
+is its pop-up window, an annotation of its own, linked to the note, where
+readers show its text. So dragging with Note now draws a frame of dashes
+that follows the mouse, and the note made, its icon where the drag
+began, has its pop-up where the box was. The annotation keeps the
+pop-up's place, read and written with the file, and moving the note
+moves it too. PyMuPDF's own popup_rect and set_popup ignore the turning
+of the page, and on a page turned 90 degrees they put it elsewhere: the
+pop-up's /Rect is read and written directly, as the other rectangles. A
+note without a box keeps the pop-up MuPDF gives it, and two notes are
+the same whatever pop-up one of them lacks. Tests drag with Note, and
+write, move and read again a note with its pop-up on a page turned and
+not.
+
 Testing
 -------
 
-The program has 835 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 838 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
