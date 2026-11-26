@@ -2586,7 +2586,7 @@ so, with a new picture of the page of settings.
 Testing
 -------
 
-The program has 862 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 879 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2607,5 +2607,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 180 files of Python, around 49,900 lines (about a tenth of them
-comments), and 3,471 texts of the interface in Spanish.
+program has 187 files of Python, around 52,000 lines (about a tenth of them
+comments), and 3,517 texts of the interface in Spanish.

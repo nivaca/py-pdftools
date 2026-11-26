@@ -36,7 +36,7 @@ Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotació
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 180 archivos de Python, unas 49 900 líneas (una décima parte, comentarios), y 3471 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 187 archivos de Python, unas 52 000 líneas (una décima parte, comentarios), y 3517 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
@@ -44,33 +44,33 @@ Un script copió los módulos de cada programa y reescribió sus importaciones. 
 
 ### La línea de órdenes
 
-Los dos analizadores de argumentos no se reescribieron: sus órdenes se injertaron en un árbol, que da la ayuda, el manual y los scripts de completado de bash, fish y zsh, ahora de dos niveles, y cada orden sigue ejecutándose donde lo hacía.
+Los dos analizadores de argumentos no se reescribieron: sus órdenes se injertaron en un árbol, que da la ayuda, el manual y los scripts de completado de bash, fish y zsh, y cada orden sigue ejecutándose donde lo hacía.
 
 ### Las copias de trabajo
 
-Cada cambio del documento escribe primero el documento con sus anotaciones, hace el cambio con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página, de modo que Deshacer recorre por igual los cambios de las anotaciones y los del documento.
+Cada cambio del documento lo escribe primero con sus anotaciones, lo cambia con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página: Deshacer recorre por igual los cambios de las anotaciones y los del documento.
 
 Las copias están en el disco (`~/.cache/py-pdftools/work`), no en /tmp, que en Fedora está en la memoria; el historial guarda los diez últimos cambios del documento.
 
 ### Documentos con miles de anotaciones
 
-Con 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos: las anotaciones se leían dos veces. Ahora la ventana recuerda las del archivo que muestra, y PyMuPDF escribe las etiquetas al escribir las anotaciones, sin renumerar los objetos: el cambio tarda 0,3 segundos.
+Con 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi dos segundos, porque las anotaciones se leían dos veces. La ventana recuerda ahora las del archivo que muestra, y PyMuPDF escribe las etiquetas con ellas, sin renumerar los objetos: 0,3 segundos.
 
 ### pdf2iso, incluido
 
-pdf2iso, el programa del autor que hace las copias PDF/A y PDF/X, era un programa aparte, que había que instalar y que se buscaba en el PATH. Ahora es un módulo del paquete (`core/pdf2iso.py`), que se ejecuta con el mismo Python en un proceso propio, y también una orden, `py-pdftools pdf2iso`. Solo Ghostscript sigue siendo un programa externo.
+pdf2iso, el programa del autor que hace las copias PDF/A y PDF/X, se instalaba aparte y se buscaba en el PATH. Ahora es un módulo del paquete (`core/pdf2iso.py`), que corre con el mismo Python en un proceso propio, y una orden, `py-pdftools pdf2iso`. Solo Ghostscript sigue fuera.
 
 ### Las etiquetas de página
 
-El PyMuPDF de Fedora (1.28) lee el `/Type /PageLabel` de un intervalo como su prefijo, y mostraba «ageLabeli». La ventana y las exportaciones leen ahora las etiquetas con el motor de py-foliation.
+Como el PyMuPDF de Fedora (1.28) leía el `/Type /PageLabel` de un intervalo como su prefijo («ageLabeli»), la ventana y las exportaciones leen las etiquetas con el motor de py-foliation.
 
 ### Documentos grandes
 
-Del código de PDFCraft, un editor escrito en Rust, se tomaron cuatro ideas. Hay varios procesos de dibujo por carril, y una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Solo se hacen las miniaturas cercanas a las que se ven, después de las páginas a la vista. Con mucho zoom (hasta 10000 %), la página se dibuja entera a 2048 píxeles a lo más, y la parte que se ve, en teselas de 1024 píxeles a escala completa.
+Varias ideas vienen de PDFCraft, un editor en Rust, y de Calibre. Cada carril tiene varios procesos de dibujo, que arrancan con el programa; una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Las miniaturas cercanas a la vista se hacen después de las páginas, con menos prioridad. Con mucho zoom, la página se dibuja entera a 2048 píxeles a lo sumo, y la parte que se ve, en teselas de 1024. Cada página tiene una huella (`core/pageprint.py`): un resumen de lo que la dibuja, ajeno a la numeración de los objetos. Tras un cambio, al deshacer o al guardar, las páginas con la misma huella no se dibujan otra vez; con ella se pueden guardar las miniaturas en el disco, y una copia censurada las borra.
 
 ### Una sola copia de cada cosa
 
-Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y colores, las palabras bajo el ratón, las matrices de PDF (tres veces), la orden `interface`, los campos comunes de encabezados y marcas de agua, el campo de pdf2iso en tres diálogos de ajustes, un botón y un menú de colores. Se buscaron con pylint y comparando la sintaxis de cada función, y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`, `stamps.StampSettings`, `gui/conform_field.py`, entre otros).
+Los cuatro programas traían copias de lo mismo: abrir un PDF, rectángulos y colores, las palabras bajo el ratón, las matrices de PDF (tres veces), los campos de encabezados y marcas de agua, un menú de colores. Se buscaron con pylint y comparando la sintaxis de cada función, y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`, entre otros).
 
 ### OCR
 
@@ -78,13 +78,13 @@ El OCR, el mismo de py-pdfocr, usa el programa tesseract del sistema, en varios 
 
 ## Validación
 
-Hay 862 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 879 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 
-Otras pruebas abren un documento de 600 páginas y comprueban que lo que se hace a cada paso (ajustar el zoom al cambiar el tamaño de la ventana, hallar la página a la vista al desplazarse) no recorra todas las páginas, y que el atajo dé lo mismo que el cálculo largo; también que el zoom animado deje bajo el puntero lo que estaba bajo él. Los tiempos se midieron antes y después en un documento de 2000 páginas: ajustar el zoom bajó de 300 ms a 7.
+Otras pruebas abren un documento de 600 páginas y comprueban que lo que se hace a cada paso (ajustar el zoom al cambiar el tamaño de la ventana, hallar la página a la vista al desplazarse) no recorra todas las páginas, y que el atajo dé lo mismo que el cálculo largo; también que el zoom animado deje bajo el puntero lo que estaba bajo él. Otra cuenta lo que se dibuja al recorrer documentos de 50 y 500 páginas: el largo no puede pedir más. Los tiempos se midieron antes y después en un documento de 2000 páginas: ajustar el zoom bajó de 300 ms a 7.
 
-El arranque se midió por partes, sin documento, y pasó de unos 330 a 240 ms, porque lo que no hace falta al principio (Imponer, Tesseract, Ghostscript) espera a que se pida o se busca en otro hilo. La nueva lectura de los enlaces se comparó con la anterior en los 21 PDF del equipo, con más de doce mil enlaces: dieron lo mismo, salvo unos pocos con direcciones que PyMuPDF no reconoce, que antes no mostraban nada. En el manual, con 590 enlaces, leer las anotaciones pasó de 55 a 18 ms.
+El arranque se midió por partes, sin documento, y pasó de unos 330 a 240 ms, porque lo que no hace falta al principio (Imponer, Tesseract, Ghostscript) espera a que se pida o se busca en otro hilo. La nueva lectura de los enlaces dio lo mismo que la anterior en los 21 PDF del equipo, con más de doce mil enlaces, salvo unos pocos con direcciones que PyMuPDF no reconoce y que antes no se mostraban.
 
 Los nombres de menús y herramientas se cotejaron con los de PDFCraft; unos noventa cambiaron. Las ventanas se revisaron además a ojo, con capturas de cada modo en los dos idiomas, y el manual de usuario se cotejó frase por frase con los menús, las teclas y los diálogos del programa; así apareció un error viejo de los README sobre el clic derecho en las barras. Con la tarjeta gráfica, el texto salía borroso en Xvfb (OpenGL suavizaba la página, caída entre dos píxeles); ahora coincide píxel a píxel con el de MuPDF. El RPM vuelve a correr todas las pruebas con los paquetes de Fedora; así apareció el fallo de las etiquetas de PyMuPDF 1.28. El instalador de Linux se probó en una carpeta personal hecha para la prueba.
 
