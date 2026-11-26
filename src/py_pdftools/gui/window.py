@@ -1733,21 +1733,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     # ----------------------------------------------------------------- the toolbar
 
     def _toolbar_tips(self):
-        """The tooltip of each button of the toolbars: what it does, and its shortcut."""
+        """The tooltip of each button of the toolbars: its name, its shortcut and what it does (see
+        button_tip)."""
+        if not hasattr(self, "_button_tips"):
+            from .toolbars import ButtonTips
+
+            self._button_tips = ButtonTips(self)
         for bar in self.toolbars():
-            for act in bar.actions():
-                if act.isSeparator():
-                    continue
-                # En los textos de las acciones, & marca la tecla de acceso y && es un & literal;
-                # aquí se quiere el texto limpio.
-                text = act.text().replace("&&", "\0").replace("&", "").replace("\0", "&")
-                keys = act.shortcut().toString(QKeySequence.SequenceFormat.NativeText)
-                tip = f"<b>{text}</b>" + (f" &nbsp;<span style='color:gray'>{keys}</span>" if keys else "")
-                if act.statusTip():
-                    tip += f"<br>{act.statusTip()}"
-                for button in bar.findChildren(QToolButton):
-                    if button.defaultAction() is act:
-                        button.setToolTip(tip)
+            for button in bar.findChildren(QToolButton):
+                if button.defaultAction() is not None:
+                    # (made when it is shown: Qt gives the button the action's tooltip again each time the
+                    # action changes, as when its tool is chosen, and the name and the key were lost)
+                    button.removeEventFilter(self._button_tips)
+                    button.installEventFilter(self._button_tips)
+
 
     def tool_menu(self, tool: str, where):
         """The menu of a tool (right-click on its button): its colour, its stamp, its properties."""

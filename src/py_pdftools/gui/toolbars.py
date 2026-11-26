@@ -13,11 +13,11 @@ from __future__ import annotations
 import json
 
 from PySide6.QtCore import QByteArray, QEvent, QObject, QSize, Qt, QTimer
-from PySide6.QtGui import QAction, QIcon, QPixmap
+from PySide6.QtGui import QAction, QIcon, QKeySequence, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QComboBox, QDialog, QDialogButtonBox, QGridLayout, QHBoxLayout, QInputDialog, QLabel,
     QLineEdit, QListWidget, QListWidgetItem, QMenu, QMessageBox, QProxyStyle, QPushButton, QSizePolicy, QStyle,
-    QToolBar, QVBoxLayout, QWidget,
+    QToolBar, QToolButton, QToolTip, QVBoxLayout, QWidget,
 )
 
 from ..core.interface import N_, tr
@@ -70,6 +70,29 @@ class _DragEnd(QObject):
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.MouseButtonRelease:
             self.win.schedule_pack()
+        return False
+
+
+def button_tip(act: QAction) -> str:
+    """The tooltip of the button of ACT on a toolbar: its name in bold, its shortcut, and what it does."""
+    # En los textos de las acciones, & marca la tecla de acceso y && es un & literal; aquí se quiere el texto limpio.
+    text = act.text().replace("&&", "\0").replace("&", "").replace("\0", "&")
+    keys = act.shortcut().toString(QKeySequence.SequenceFormat.NativeText)
+    tip = f"<b>{text}</b>" + (f" &nbsp;<span style='color:gray'>{keys}</span>" if keys else "")
+    if act.statusTip():
+        tip += f"<br>{act.statusTip()}"
+    return tip
+
+
+class ButtonTips(QObject):
+    """The tooltip of a toolbar's button, made when it is shown (button_tip), with the action's name and key as
+    they are then: one set on the button was lost the next time its action changed, since Qt gives the button
+    the action's own tooltip again."""
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.ToolTip and isinstance(obj, QToolButton) and obj.defaultAction() is not None:
+            QToolTip.showText(event.globalPos(), button_tip(obj.defaultAction()), obj)
+            return True
         return False
 
 

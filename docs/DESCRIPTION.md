@@ -2109,10 +2109,24 @@ what is seen while working is what is saved. At 24 points the two were
 2.3 points apart. A test draws the same strikeout both ways and compares
 the height of the red line.
 
+94. The name of a tool in its tooltip
+-------------------------------------
+
+The user asked for the name of each tool (Note, Text box...) in the
+tooltip of its button, which showed only what the tool does. The
+program already wrote, on every button of the toolbars, a tooltip with
+the name in bold, the key and what it does, but Qt gives a button the
+tooltip of its action again each time the action changes, and choosing
+a tool changes it (it becomes checked): after the first click, every
+tool button was back to the plain description. The tooltip is now made
+when it is about to show, by a filter of events on each button, so it
+also follows a key changed in Settings. A test chooses a tool and asks
+its button for its tooltip.
+
 Testing
 -------
 
-The program has 828 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 829 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

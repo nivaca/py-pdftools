@@ -185,6 +185,24 @@ def test_a_note_shows_where_it_goes(window):
     assert window.annotations[-1].kind == "note" and close(window.annotations[-1].rect[:2], (100, 120), 0.5)
 
 
+def test_a_tool_buttons_tip_has_its_name(window):
+    """The tooltip of a tool's button on its toolbar: its name, its key and what it does, also after the tool is
+    chosen (Qt then gave the button the action's tooltip again: only what it does)."""
+    from PySide6.QtCore import QPoint
+    from PySide6.QtGui import QHelpEvent
+    from PySide6.QtWidgets import QToolButton, QToolTip
+
+    window.show()
+    act = window.tool_actions["note"]
+    window.set_tool("note")
+    window.set_tool("select")
+    button = next(b for b in window.findChildren(QToolButton) if b.defaultAction() is act)
+    QApplication.sendEvent(button, QHelpEvent(QEvent.Type.ToolTip, QPoint(2, 2), button.mapToGlobal(QPoint(2, 2))))
+    tip = QToolTip.text()
+    QToolTip.hideText()
+    assert "<b>Note</b>" in tip and act.shortcut().toString() in tip and "Click on the page to add a note" in tip
+
+
 def test_comment_in_the_panel(window):
     window.set_tool("ellipse")
     drag(window, (100, 300), (250, 400))
