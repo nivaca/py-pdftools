@@ -261,13 +261,21 @@ def export_csv(doc: pymupdf.Document, annotations: list[Annotation], target: Pat
 
 
 def report(doc: pymupdf.Document, path: Path, annotations: list[Annotation],
-           color_name: Callable[[str], str] = lambda color: color) -> str:
-    """A report of ANNOTATIONS, in Markdown: how many there are of each kind,
-    colour and author, then each of them, page by page, with the text it
-    marks and its comment."""
+           color_name: Callable[[str], str] = lambda color: color, plain: bool = False) -> str:
+    """A report of ANNOTATIONS, in Markdown (or PLAIN text, without marks): how
+    many there are of each kind, colour and author, then each of them, page by
+    page, with the text it marks and its comment."""
     info = _document_info(doc, path)
+
+    def heading(text: str, level: int) -> list[str]:
+        # In plain text, headings are underlined (= for the title, - for the sections), as Markdown also reads them.
+        if plain:
+            return [text, ("=" if level == 1 else "-") * len(text), ""]
+        return ["#" * level + " " + text, ""]
+
+    bullet = "- " if plain else "* "
     # Primero los recuentos por tipo, color y autor; después cada anotación, agrupada por página.
-    lines = ["# " + tr("Annotations of {name}", name=info["title"] or path.name), ""]
+    lines = heading(tr("Annotations of {name}", name=info["title"] or path.name), 1)
     pages = len({a.page for a in annotations})
     lines += [ntr("{count} annotation", "{count} annotations", len(annotations)) + ", "
               + ntr("on {count} page", "on {count} pages", pages) + ".", ""]
@@ -276,18 +284,19 @@ def report(doc: pymupdf.Document, path: Path, annotations: list[Annotation],
                            (tr("By author"), Counter(a.author or tr("(no author)") for a in annotations))):
         if not counter:
             continue
-        lines += [f"## {title}", ""]
-        lines += [f"* {name}: {count}" for name, count in counter.most_common()]
+        lines += heading(title, 2)
+        lines += [f"{bullet}{name}: {count}" for name, count in counter.most_common()]
         lines.append("")
     page = None
+    # (en texto plano, lo que va bajo cada anotación se sangra un poco más, para que se lea sin las marcas)
+    indent = "    " if plain else "  "
     for a in sorted(annotations, key=lambda a: (a.page, a.rect[1], a.rect[0])):
         if a.page != page:
             page = a.page
             # La etiqueta de la página se muestra solo cuando difiere de su número.
             label = page_label(doc, page)
-            heading = tr("Page {page}", page=page + 1) + (f" ({label})" if label != str(page + 1) else "")
-            lines += [f"## {heading}", ""]
-        head = f"* **{a.name()}** ({color_name(a.color)})"
+            lines += heading(tr("Page {page}", page=page + 1) + (f" ({label})" if label != str(page + 1) else ""), 2)
+        head = bullet + (a.name() if plain else f"**{a.name()}**") + f" ({color_name(a.color)})"
         if a.author:
             head += ", " + tr("by {author}", author=a.author)
         when = annots.date_text(a.modified or a.created)
@@ -296,22 +305,23 @@ def report(doc: pymupdf.Document, path: Path, annotations: list[Annotation],
         lines.append(head)
         text = marked_text(doc, a)
         if text:
-            lines += ["", f"  > {text}"]
+            lines += ["", f"{indent}“{text}”" if plain else f"  > {text}"]
         if a.contents.strip():
-            lines += [""] + ["  " + line for line in a.contents.strip().splitlines()]
+            lines += [""] + [indent + line for line in a.contents.strip().splitlines()]
         if a.critical:
-            lines += ["", "  " + apparatus_entry(doc, a)]
+            lines += ["", indent + apparatus_entry(doc, a, plain=plain)]
         lines.append("")
     return "\n".join(lines).rstrip() + "\n"
 
 
-def apparatus_entry(doc: pymupdf.Document, a: Annotation, with_page: bool = False) -> str:
+def apparatus_entry(doc: pymupdf.Document, a: Annotation, with_page: bool = False, plain: bool = False) -> str:
     """The entry of textual criticism of A, as a line of an apparatus: 'lemma ] reading W
-    (Variant reading; probable). Source. Rationale.'"""
+    (Variant reading; probable). Source. Rationale.' In Markdown, or PLAIN text (no italics, no bold)."""
     c = a.critical
     # Sin lema escrito, se usa el texto que marca la anotación.
     lemma = c.lemma or marked_text(doc, a)
-    head = (f"*{lemma}* ]" if lemma else "]") + (f" {c.reading}" if c.reading else "") \
+    mark = "" if plain else "*"
+    head = (f"{mark}{lemma}{mark} ]" if lemma else "]") + (f" {c.reading}" if c.reading else "") \
         + (f" {c.witness}" if c.witness else "") + (f" ({c.location})" if c.location else "")
     # A confidence not given ('') is left out of the entry.
     kind = c.name() + (f"; {tr(annots.CONFIDENCE[c.confidence]).lower()}" if c.confidence in annots.CONFIDENCE
@@ -319,7 +329,7 @@ def apparatus_entry(doc: pymupdf.Document, a: Annotation, with_page: bool = Fals
     text = f"{head} — {kind}." + "".join(f" {part.rstrip('.')}." for part in (c.source, c.rationale) if part)
     if with_page:
         label = page_label(doc, a.page)
-        text = f"**{tr('p. {page}', page=label)}** " + text
+        text = f"{mark * 2}{tr('p. {page}', page=label)}{mark * 2} " + text
     return text
 
 
@@ -341,8 +351,9 @@ def export_apparatus(doc: pymupdf.Document, path: Path, annotations: list[Annota
 
 
 def export_markdown(doc: pymupdf.Document, path: Path, annotations: list[Annotation], target: Path,
-                    color_name: Callable[[str], str] = lambda color: color) -> None:
-    _write_text(target, report(doc, path, annotations, color_name))
+                    color_name: Callable[[str], str] = lambda color: color, plain: bool = False) -> None:
+    """Write the report of ANNOTATIONS (see report) as TARGET, in Markdown or PLAIN text (UTF-8, as all)."""
+    _write_text(target, report(doc, path, annotations, color_name, plain))
 
 
 # --------------------------------------------------------------------- copies of the document

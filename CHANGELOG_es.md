@@ -7,6 +7,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Archivo > Exportar tiene Texto (Markdown)… y Texto (simple, UTF-8)…,
+  cada diálogo con su tipo elegido al principio (HTML sigue en los dos), y
+  Archivo > Exportar > Anotaciones tiene Como informe (texto simple,
+  UTF-8)…, el informe sin las marcas de Markdown (títulos subrayados, el
+  texto marcado entre comillas).
 - El instalador para Windows se puede firmar con Authenticode por SignPath
   (firma de código gratuita para proyectos de código abierto, con el
   certificado de SignPath Foundation), desde

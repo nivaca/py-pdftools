@@ -97,7 +97,11 @@ def test_in_the_window(doc, tmp_path, monkeypatch):
                                      if kind == "pages" else {"pages": None, "smallest": 32}, tmp_path / "x")
         assert len(w.export_pages_dialog()) == 2
         assert len(w.export_images_dialog()) == 1
-        w.ask_text_target = lambda: tmp_path / "x" / "t.html"
+        w.ask_text_target = lambda fmt: tmp_path / "x" / "t.html"
         assert w.export_text_dialog() == tmp_path / "x" / "t.html"
+        asked = []
+        w.ask_text_target = lambda fmt: asked.append(fmt) or tmp_path / "x" / "t.txt"
+        w.a_export_text_txt.trigger()  # (File > Export > Text (plain, UTF-8): .txt at first)
+        assert asked == ["txt"] and "\f" in (tmp_path / "x" / "t.txt").read_text(encoding="utf-8")
     finally:
         w.close()

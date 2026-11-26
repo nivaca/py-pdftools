@@ -391,7 +391,8 @@ command line: `py-pdftools combine a.pdf b.pdf:2-5 -o all.pdf` and
 
 File > Export saves the pages as pictures (PNG, JPEG or TIFF, at a
 resolution, in grey if wished), the pictures of the document, or its text
-(Markdown, with its headings guessed, HTML or plain text); File > Save a
+(Text (Markdown), with its headings guessed, or Text (plain, UTF-8); HTML
+too), and the annotations as a report in Markdown or in plain text; File > Save a
 copy > As another PDF version makes a copy that says it is PDF 1.3 to
 2.0, naming what the document uses that the version chosen doesn't have.
 Pages > Arrange pages > Split cuts a document every so many pages (one per

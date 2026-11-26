@@ -409,7 +409,9 @@ b.pdf:2-5 -o todo.pdf` y `py-pdftools from-images *.jpg -o escaneos.pdf
 
 Archivo > Exportar guarda las páginas como imágenes (PNG, JPEG o TIFF, a
 una resolución, en gris si se quiere), las imágenes del documento o su
-texto (Markdown, con sus títulos deducidos, HTML o texto simple); Archivo >
+texto (Texto (Markdown), con sus títulos deducidos, o Texto (simple, UTF-8);
+también HTML), y las anotaciones como informe en Markdown o en texto
+simple; Archivo >
 Guardar una copia > Como otra versión de PDF hace una copia que dice ser PDF
 1.3 a 2.0, y nombra lo que el documento usa que la versión elegida no
 tiene. Páginas > Ordenar páginas > Dividir corta un documento cada tantas

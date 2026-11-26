@@ -226,10 +226,14 @@ class FilesMixin:
                         folder=folder) if made else tr("The document has no pictures (of that size)"))
         return made
 
-    def ask_text_target(self) -> Path | None:
+    def ask_text_target(self, fmt: str = "md") -> Path | None:
+        """Where to export the text, as FMT ('md' or 'txt') at first; the dialog lists the other types too."""
+        filters = {"md": tr("Markdown (*.md)"), "txt": tr("Plain text (*.txt)"), "html": tr("HTML (*.html)")}
+        # (el tipo pedido va primero: es el que el diálogo muestra elegido)
+        order = [fmt] + [f for f in filters if f != fmt]
         name, chosen = QFileDialog.getSaveFileName(
-            self, tr("Export the text"), str(Path(self.last_dir()) / f"{self.path.stem}.md"),
-            ";;".join((tr("Markdown (*.md)"), tr("HTML (*.html)"), tr("Plain text (*.txt)"))))
+            self, tr("Export the text"), str(Path(self.last_dir()) / f"{self.path.stem}.{fmt}"),
+            ";;".join(filters[f] for f in order))
         if not name:
             return None
         target = Path(name)
@@ -238,13 +242,13 @@ class FilesMixin:
             target = target.with_suffix(ext)
         return target
 
-    def export_text_dialog(self) -> Path | None:
-        """File > Export > The text (Markdown, HTML or plain, by the type chosen)."""
+    def export_text_dialog(self, fmt: str = "md") -> Path | None:
+        """File > Export > Text (Markdown or plain, UTF-8, FMT at first; HTML too, by the type chosen)."""
         from ..pages import export
 
         if self.path is None:
             return None
-        target = self.ask_text_target()
+        target = self.ask_text_target(fmt)
         if target is None:
             return None
         try:
@@ -767,8 +771,8 @@ class FilesMixin:
                 exchange.export_apparatus(self.doc, self.file, chosen, target)
             elif kind == "pdf":
                 exchange.save_summary(self.file, chosen, target, self.password, color_name)
-            else:
-                exchange.export_markdown(self.doc, self.file, chosen, target, color_name)
+            else:  # (el informe: en Markdown, o en texto plano con KIND 'txt')
+                exchange.export_markdown(self.doc, self.file, chosen, target, color_name, plain=kind == "txt")
         except (OSError, AnnotateError) as e:
             self.status(tr("{path} cannot be written: {error}", path=target, error=e), error=True)
             return False

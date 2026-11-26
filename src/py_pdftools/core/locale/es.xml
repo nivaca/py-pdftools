@@ -11813,10 +11813,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>El texto de las páginas como Markdown (títulos y listas deducidos), HTML o texto simple</tr>
   </text>
   <text>
-    <en>Text…</en>
-    <tr>Texto…</tr>
-  </text>
-  <text>
     <en>Wrote {count} pictures in {folder}</en>
     <tr>Se escribieron {count} imágenes en {folder}</tr>
   </text>
@@ -14235,5 +14231,21 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>A scanned document opened again shows its thumbnails at once, instead of drawing them again. They are kept in the cache folder, at most 200 MB, and all removed when a redacted copy is written or this is turned off: they would still show what the redaction covers.</en>
     <tr>Un documento escaneado que se abre de nuevo muestra sus miniaturas enseguida, sin dibujarlas otra vez. Se guardan en la carpeta de caché, hasta 200 MB, y se borran todas al escribir una copia censurada o al desactivar esto: seguirían mostrando lo que la censura tapa.</tr>
+  </text>
+  <text>
+    <en>As a report (plain text, UTF-8)…</en>
+    <tr>Como informe (texto simple, UTF-8)…</tr>
+  </text>
+  <text>
+    <en>Text (Markdown)…</en>
+    <tr>Texto (Markdown)…</tr>
+  </text>
+  <text>
+    <en>Text (plain, UTF-8)…</en>
+    <tr>Texto (simple, UTF-8)…</tr>
+  </text>
+  <text>
+    <en>The text of the pages as plain text in UTF-8, the pages apart by a form feed</en>
+    <tr>El texto de las páginas como texto simple en UTF-8, cada página separada por un salto de página</tr>
   </text>
 </interface>

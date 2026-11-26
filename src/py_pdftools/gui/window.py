@@ -551,12 +551,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                             lambda: self.export_images_dialog(),
                                             tip=tr("The pictures the pages show, each in a file, as they are "
                                                    "stored"))
-        self.a_export_text = self._action(None, tr("Text…"), lambda: self.export_text_dialog(),
+        self.a_export_text = self._action(None, tr("Text (Markdown)…"), lambda: self.export_text_dialog("md"),
                                           tip=tr("The text of the pages as Markdown (headings and lists "
                                                  "guessed), HTML or plain text"))
+        self.a_export_text_txt = self._action(None, tr("Text (plain, UTF-8)…"),
+                                              lambda: self.export_text_dialog("txt"),
+                                              tip=tr("The text of the pages as plain text in UTF-8, the pages "
+                                                     "apart by a form feed"))
         sub = self.m_export_annots = m.addMenu(tr("Export the annotations"))
         sub.setToolTipsVisible(True)
         self.a_export_md = self._action(sub, tr("As a report (Markdown)…"), lambda: self.export_dialog("md"))
+        self.a_export_report_txt = self._action(sub, tr("As a report (plain text, UTF-8)…"),
+                                                lambda: self.export_dialog("txt"))
         self.a_export_csv = self._action(sub, tr("As a table (CSV)…"), lambda: self.export_dialog("csv"))
         self.a_export_apparatus = self._action(
             sub, tr("The critical apparatus (Markdown)…"), lambda: self.export_dialog("apparatus"),
@@ -1760,7 +1766,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def _ask_target(self, title: str, suffix: str, ext: str = "pdf") -> Path | None:
         default = Path(self.last_dir()) / f"{self.path.stem}{suffix}.{ext}"
         filters = {"pdf": tr("PDF files (*.pdf)"), "json": tr("Annotations (*.json)"),
-                   "md": tr("Markdown (*.md)"), "csv": tr("Tables (*.csv)"), "xfdf": tr("XFDF files (*.xfdf)")}
+                   "md": tr("Markdown (*.md)"), "txt": tr("Plain text (*.txt)"), "csv": tr("Tables (*.csv)"), "xfdf": tr("XFDF files (*.xfdf)")}
         name, _ = QFileDialog.getSaveFileName(self, title, str(default), filters[ext])
         if not name:
             return None
@@ -4010,7 +4016,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_ocr.setToolTip(self.a_ocr.toolTip() if ocr.available() else tr("Needs Tesseract: install it"))
         if self._have_conform is not None:
             self._enable_standards()
-        for w in (self.a_export_md, self.a_export_csv, self.a_export_apparatus, self.a_export_json, self.a_export_xfdf, self.a_summary,
+        for w in (self.a_export_md, self.a_export_report_txt, self.a_export_csv, self.a_export_apparatus, self.a_export_json, self.a_export_xfdf, self.a_summary,
                   self.a_next_annot, self.a_prev_annot):
             w.setEnabled(has and bool(self._rows))
         # Save is enabled only with something to save; Save as, with any document.

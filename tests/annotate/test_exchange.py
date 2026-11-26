@@ -38,6 +38,10 @@ def test_report_and_csv(sample, tmp_path):
     text = exchange.report(doc, sample, wanted)
     assert text.startswith("# Annotations of sample.pdf") and "> First line of page 1" in text
     assert "* Highlight: 1" in text
+    plain = exchange.report(doc, sample, wanted, plain=True)  # (plain text: no marks of Markdown)
+    assert plain.startswith("Annotations of sample.pdf\n=========================\n")
+    assert "    “First line of page 1”" in plain and "- Highlight: 1" in plain
+    assert "**" not in plain and "\n# " not in plain and "> " not in plain
     exchange.export_csv(doc, wanted, tmp_path / "out.csv")
     rows = list(csv.reader((tmp_path / "out.csv").open(encoding="utf-8")))
     assert rows[0][0] == "page" and len(rows) == len(wanted) + 1

@@ -454,9 +454,10 @@ def test_export_import(window, tmp_path):
     window.set_tool("highlight")
     drag(window, (75, 95), (200, 100))
     window._ask_target = lambda title, suffix, ext="pdf": tmp_path / f"out.{ext}"
-    for kind in ("json", "md", "csv"):
+    for kind in ("json", "md", "txt", "csv"):
         assert window.export_dialog(kind)
     assert "First line" in (tmp_path / "out.md").read_text(encoding="utf-8")
+    assert "“First line" in (tmp_path / "out.txt").read_text(encoding="utf-8")
     window.annotations = []
     window.refresh()
     assert window.import_from(tmp_path / "out.json", "json")

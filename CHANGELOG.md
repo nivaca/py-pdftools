@@ -7,6 +7,11 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- File > Export has Text (Markdown)… and Text (plain, UTF-8)…, each
+  dialog starting with its own type (HTML is still in both), and File >
+  Export > Annotations has As a report (plain text, UTF-8)…, the report
+  without the marks of Markdown (headings underlined, the marked text in
+  quotation marks).
 - The installer for Windows can be signed with Authenticode by SignPath
   (free code signing for open-source projects, with SignPath Foundation's
   certificate), from `.github/workflows/installers.yml` at each release tag,
