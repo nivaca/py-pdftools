@@ -2256,10 +2256,24 @@ program's icons again and takes the matching variant of the icon theme
 (styleHints().colorSchemeChanged). A test sets a palette from outside,
 with a theme of the program and with the system's.
 
+102. The window back on a screen
+--------------------------------
+
+The window opens where it was left, by Qt's saveGeometry and
+restoreGeometry. Calibre keeps, besides, which monitor it was on, because
+Qt brings back a window from a screen that is gone but not always from
+one whose size or arrangement changed: a window left on a large monitor,
+opened on a laptop, may come out larger than the screen, or with its
+title bar out of reach. After restoring, the window is now made no larger
+than its screen, and if no screen shows the top of it, where it is
+grabbed to be moved, it is centred on the nearest one. A window that
+fits is left exactly where it was. A test puts one on a monitor that
+isn't there, one larger than the screen, and one that fits.
+
 Testing
 -------
 
-The program has 845 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 846 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

@@ -199,6 +199,29 @@ MODE_ICONS = {"read": "pdftools-mode-read", "ocr": "pdftools-mode-ocr", "annotat
               "redact": "pdftools-mode-redact", "pages": "pdftools-mode-foliate", "impose": "pdftools-mode-impose"}
 
 
+def fit_on_screen(window: QWidget) -> None:
+    """WINDOW (its place and size restored from another session) made to fit a screen there is now: no larger
+    than its screen, and with its top (the title bar, by which it is moved) on a screen; else centred on the
+    screen nearest, or the main one. Qt's restoreGeometry does this for a screen that is gone, but not always
+    for one whose size or arrangement changed (as Calibre found: see its gui2/geometry.py)."""
+    from PySide6.QtCore import QRect
+
+    screens = QApplication.screens()
+    if not screens or window.isMaximized() or window.isFullScreen():
+        return
+    frame = window.geometry()
+    top = QRect(frame.left(), frame.top(), frame.width(), 30)  # (the strip where the title bar is)
+    screen = QApplication.screenAt(frame.center()) or window.screen() or QApplication.primaryScreen()
+    room = screen.availableGeometry()
+    width, height = min(frame.width(), room.width()), min(frame.height(), room.height())
+    on_a_screen = any(s.availableGeometry().intersected(top).width() >= min(100, top.width()) for s in screens)
+    if (width, height) == (frame.width(), frame.height()) and on_a_screen:
+        return
+    window.resize(width, height)
+    if not on_a_screen or not room.contains(QRect(frame.topLeft(), window.size())):
+        window.move(room.left() + (room.width() - width) // 2, room.top() + (room.height() - height) // 2)
+
+
 def tool_name(tool: str) -> str:
     # annots.OTHER is not a tool: it names the annotations the program only shows (links, form fields...).
     if tool == annots.OTHER:
@@ -1385,6 +1408,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         geo = self.settings.value("geometry")
         if isinstance(geo, QByteArray):
             self.restoreGeometry(geo)
+            fit_on_screen(self)  # (kept on another monitor, or larger than this one: brought back)
         else:
             self.resize(1360, 900)
         split = self.settings.value("splitter2")
