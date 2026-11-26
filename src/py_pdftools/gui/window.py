@@ -1799,6 +1799,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         replacing = target.resolve() == self.path.resolve()
         # (what the file has is what was read when it was shown, unless it changed since: then it is read again)
         known = self.known_in_file()
+        # Where the view is, exactly (not only the page): the same file comes back, with its pages as they were.
+        view = (self.canvas.horizontalScrollBar().value(), self.canvas.verticalScrollBar().value(),
+                self.canvas.zoom())
         if replacing:  # (the file is about to change under the open document)
             self._close_doc(carry=True)
         kept: set[int] = set()
@@ -1837,6 +1840,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.add_recent(target)
         self.refresh()
         self.show_page(page)
+        # (show_page put the top of the page at the top of the view: back to where the view was, at the same zoom)
+        if abs(self.canvas.zoom() - view[2]) < 1e-6:
+            self.canvas.horizontalScrollBar().setValue(view[0])
+            self.canvas.verticalScrollBar().setValue(view[1])
         self.status(tr("Saved {path}", path=target) + " — "
                     + ntr("{count} annotation written", "{count} annotations written", written))
         return True

@@ -2623,10 +2623,17 @@ back. Now, after the arrangement is restored, the panel is shown or hidden
 by a setting of its own (Settings > Appearance, off at first), as was
 already done for the bookmarks; F4 still shows it at any time.
 
+The user also saw the view jump at every save, to the top of the page in
+view. Saving reads the document again from the file just written, and the
+window then went to the page it was on, which means its top. Now the
+position of both scroll bars is kept before saving and given back after,
+when the zoom is the same; a test scrolls into a page, saves, and checks
+that nothing moved (it fails without the fix).
+
 Testing
 -------
 
-The program has 887 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 888 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

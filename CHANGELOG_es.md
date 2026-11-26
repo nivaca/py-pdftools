@@ -7,6 +7,8 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: guardar llevaba la vista al principio de la página visible;
+  ahora se queda exactamente donde estaba.
 - El panel de anotaciones ya no se abre solo con el modo Anotar; F4 lo
   muestra. Configuración > Aspecto > Mostrar el panel de anotaciones al
   elegir el modo Anotar (desactivado al principio) devuelve lo de antes.

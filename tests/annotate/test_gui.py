@@ -1359,3 +1359,19 @@ def test_panel_when_the_mode_is_chosen(window):
     window.set_mode("read")
     window.set_mode("annotate")
     assert window.panel.isVisible()
+
+
+def test_save_keeps_the_view(window):
+    """Saving shows the document again from its file: the view stays where it was, not at the top of the page."""
+    window.canvas.set_zoom(2.0)  # (wider than the view: both scroll bars move)
+    QApplication.processEvents()
+    window.show_page(1)
+    bar = window.canvas.verticalScrollBar()
+    bar.setValue(bar.value() + 150)  # (down into page 2)
+    QApplication.processEvents()
+    where = (window.canvas.horizontalScrollBar().value(), bar.value(), window.page)
+    window.set_tool("note")
+    click(window, (100, 100))
+    assert window.save()
+    QApplication.processEvents()
+    assert (window.canvas.horizontalScrollBar().value(), bar.value(), window.page) == where

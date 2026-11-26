@@ -7,6 +7,8 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- Fixed: saving moved the view to the top of the page shown; it now stays
+  exactly where it was.
 - The Annotations panel no longer opens by itself with the mode Annotate;
   F4 shows it. Settings > Appearance > Show the Annotations panel when the
   mode Annotate is chosen (off at first) brings back the old way.
