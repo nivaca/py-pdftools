@@ -7,6 +7,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Con las páginas dibujadas por la tarjeta gráfica, los resaltados, las
+  áreas y el marcador se dibujan translúcidos en vez de multiplicados, lo
+  que el pintor de OpenGL no sabe hacer: escribía «Unsupported composition
+  mode» por cada uno.
 - Los mensajes de las bibliotecas de KDE (`kf.*`, del diálogo de archivos
   de Plasma) ya no llenan la terminal; `QT_LOGGING_RULES` sigue mandando.
 - Corregido: guardar llevaba la vista al principio de la página visible;

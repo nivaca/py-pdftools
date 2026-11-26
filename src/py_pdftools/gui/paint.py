@@ -6,7 +6,8 @@ from __future__ import annotations
 import math
 
 from PySide6.QtCore import QLineF, QPointF, QRectF, Qt
-from PySide6.QtGui import QBrush, QColor, QFont, QImage, QPainter, QPainterPath, QPen, QPolygonF, QTextDocument
+from PySide6.QtGui import (QBrush, QColor, QFont, QImage, QPainter, QPainterPath, QPaintEngine, QPen, QPolygonF,
+                           QTextDocument)
 
 from ..annotate.annots import STAMPS, Annotation, anchor, smooth_segments
 from ..core.interface import tr
@@ -178,6 +179,20 @@ def _note(p: QPainter, r: QRectF, color: QColor, icon: str) -> None:
         p.drawLine(QLineF(r.left() + r.width() * 0.25, y, r.right() - r.width() * 0.25, y))
 
 
+GL_SEE_THROUGH = 0.4  # (the opacity of a highlight drawn by OpenGL, which can't multiply: see _multiply)
+
+
+def _multiply(p: QPainter) -> None:
+    """Draw what follows multiplied, as a highlighter does (the dark text under it stays dark). OpenGL's
+    painter (Settings > Performance > graphics card) has no such mode, and warned at every page drawn
+    ("Unsupported composition mode"): there it is drawn see-through instead, which shows the text too."""
+    engine = p.paintEngine()
+    if engine is not None and engine.type() == QPaintEngine.Type.OpenGL2:
+        p.setOpacity(p.opacity() * GL_SEE_THROUGH)
+    else:
+        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+
+
 def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
     """Draw A with P. THUMBNAIL: small, so lines are kept visible and texts left out."""
     if a.kind == "other":  # (a link, an attached file...: the page shows it, as it is)
@@ -188,7 +203,7 @@ def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
     color = QColor(a.color)
     if a.kind == "highlight":
         # Multiply, as a highlighter does: the dark text under the highlight stays dark.
-        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+        _multiply(p)
         for q in a.quads:
             p.fillRect(qrect(q), color)
     elif a.kind in ("underline", "strikeout", "squiggly"):
@@ -283,7 +298,7 @@ def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
                                                              | Qt.TextFlag.TextWordWrap), a.contents)
     elif a.kind == "area":
         # Un área se pinta como un resaltado: multiplicada, para que se vea el texto debajo.
-        p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+        _multiply(p)
         p.fillRect(qrect(a.rect), QColor(a.fill or a.color))
     elif a.kind in ("rect", "ellipse"):
         p.setPen(_pen(a.color, a.width, a.dashed) if a.width > 0 else Qt.PenStyle.NoPen)
@@ -314,7 +329,7 @@ def paint(p: QPainter, a: Annotation, thumbnail: bool = False) -> None:
         line_end(p, points[-1], points[-2], ends[1], a.width, color)
     elif a.kind in ("ink", "marker"):
         if a.kind == "marker":  # (a highlight, drawn by hand: the text shows through it)
-            p.setCompositionMode(QPainter.CompositionMode.CompositionMode_Multiply)
+            _multiply(p)
         p.setPen(_pen(a.color, a.width))
         for path in a.paths:
             if len(path) == 1 or len(set(path)) == 1:  # (a dot)

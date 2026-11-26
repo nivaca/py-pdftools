@@ -7,6 +7,9 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- With the pages drawn by the graphics card, highlights, areas and the
+  marker are drawn see-through instead of multiplied, which OpenGL's
+  painter can't do: it printed "Unsupported composition mode" for each.
 - The messages of KDE's libraries (`kf.*`, from Plasma's file dialog)
   no longer fill the terminal; `QT_LOGGING_RULES` still overrides this.
 - Fixed: saving moved the view to the top of the page shown; it now stays
