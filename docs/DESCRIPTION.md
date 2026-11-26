@@ -2465,6 +2465,17 @@ alone. The window now does the same: 64, 256 or 768 MB by the memory
 setting (Low, Normal, High), or half of the free memory with All, and the
 last page drawn always stays. At a low zoom it keeps more pages than before.
 
+PDFCraft's tests of speed time nothing: they run the same steps on a
+document of 50 pages and on one of 500, and require that the long one ask
+for no more work. A test of that kind now opens both, goes to the middle,
+scrolls two screens and zooms in, counting the pages drawn and the
+thumbnails made; it asks for the same, ten pages and 27 thumbnails, and
+fails if the window ever draws in proportion to the document (with the
+pages drawn ahead made a thousand screens long, it counted 100 against
+1,000). Being counts, not times, a busy computer can't make it fail. My
+first version did, on its own: its second run wrapped the counter of the
+first, which then counted both.
+
 Testing
 -------
 
