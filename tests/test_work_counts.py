@@ -53,16 +53,20 @@ def _work(path, monkeypatch, tmp_path) -> dict[str, int]:
     monkeypatch.setenv("HOME", str(tmp_path))
     counts = {"pages": 0, "thumbnails": 0}
     page_image = PAGE_IMAGE  # (not the module's: a run before may have left its own counter there)
+    mine = []  # (this run's window, once it is made)
 
     def counted(kind):
-        def draw(*args, **kwargs):
-            counts[kind] += 1
-            return page_image(*args, **kwargs)
+        def draw(page, *args, **kwargs):
+            # (only its own pages: the window of the run before may still have timers that draw)
+            if mine and page.parent is mine[0].doc:
+                counts[kind] += 1
+            return page_image(page, *args, **kwargs)
         return draw
 
     monkeypatch.setattr(canvas_module, "page_image", counted("pages"))
     monkeypatch.setattr(window_module, "page_image", counted("thumbnails"))
     w = window_module.MainWindow()
+    mine.append(w)
     w.ask_recover = lambda when: False
     w.resize(1100, 800)
     w.show()

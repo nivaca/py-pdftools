@@ -2538,6 +2538,18 @@ when all ran at once under that load: my helper that waits for the
 window gave up while the first pictures were still coming. It now waits
 until the pages in view and the thumbnails near them are there.
 
+The test of saving still failed now and then when all the files ran at
+once, never alone, not even twelve copies of it at the same time. What
+it logged showed nothing wrong at the moment of saving: the same
+fingerprints, all found among the pictures kept, the same zoom. Yet four
+pages were drawn a moment later, by a timer, with nothing cleared and
+nothing opened again. They were not this window's pages. The counter of
+the test replaces the function that draws a page for the whole module,
+and the window of the test before, closed but not yet destroyed, still
+had timers that fired on a busy computer and drew its own pages into the
+count. The tests now count only the pages of their own window, and so
+does the test that counts the work of long documents.
+
 Testing
 -------
 

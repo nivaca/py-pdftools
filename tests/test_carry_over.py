@@ -5,6 +5,7 @@ otra vez; las que cambió, sí se dibujan."""
 from __future__ import annotations
 
 import time
+import traceback
 
 import pikepdf
 import pymupdf
@@ -73,22 +74,29 @@ def test_an_annotation_changes_the_print_of_its_page(pdf, tmp_path):
 def window(pdf, tmp_path, monkeypatch):
     app = QApplication.instance() or QApplication([])
     monkeypatch.setenv("HOME", str(tmp_path))
-    drawn = []
+    drawn, why, mine = [], [], []  # (mine: this test's window, once it is made)
 
     def counted(page, scale, *args, **kwargs):
+        # Solo las páginas de esta ventana: una ventana de una prueba anterior, cerrada pero aún no destruida,
+        # puede tener temporizadores pendientes que dibujan las suyas (en un equipo ocupado, durante esta).
+        if not mine or page.parent is not mine[0].doc:
+            return PAGE_IMAGE(page, scale, *args, **kwargs)
         drawn.append(page.number)
+        # (who drew it, for the message of a test that fails)
+        why.append(" < ".join(f.name for f in traceback.extract_stack()[-6:-1]))
         return PAGE_IMAGE(page, scale, *args, **kwargs)
 
     monkeypatch.setattr(canvas_module, "page_image", counted)
     monkeypatch.setattr(window_module, "page_image", counted)
     w = window_module.MainWindow()
+    mine.append(w)
     w.ask_recover = lambda when: False
     w.labels_choice = lambda: arrange.FOLLOW
     w.resize(1100, 900)
     w.show()
     assert w.open_path(pdf)
     w.canvas.set_zoom(0.5)  # (the four pages in view)
-    w.drawn = drawn
+    w.drawn, w.why = drawn, why
     w.idle = lambda: _idle(app, w)
     w.idle()
     yield w
@@ -139,9 +147,10 @@ def test_saving_draws_nothing_again(window, pdf):
     assert w.edit_document(lambda doc: doc.set_toc([[1, "Start", 1]]))
     w.idle()
     w.drawn.clear()
+    w.why.clear()
     assert w.save()
     w.idle()
-    assert w.drawn == []
+    assert w.drawn == [], w.why
 
 
 def test_other_settings_of_drawing_draw_again(window):
