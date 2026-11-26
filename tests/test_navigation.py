@@ -995,3 +995,32 @@ def test_trimmed_margins(tmp_path, monkeypatch):
     finally:
         w.drop_work()
         w.close()
+
+
+def test_a_change_of_the_document_stays_at_the_page(tmp_path, monkeypatch):
+    """After a change of the document itself, the page shown is the same: the list of thumbnails, made again,
+    no longer takes the window to another page (from the 40th to the 19th, before)."""
+    QApplication.instance() or QApplication([])
+    monkeypatch.setenv("HOME", str(tmp_path))
+    path = tmp_path / "long.pdf"
+    doc = pymupdf.open()
+    for i in range(80):
+        doc.new_page(width=460, height=700).insert_text((50, 50), f"P{i + 1}")
+    doc.save(path)
+    w = MainWindow()
+    w.ask_recover = lambda when: False
+    w.resize(1400, 1000)
+    w.show()
+    try:
+        assert w.open_path(path)
+        w.canvas.set_zoom(0.6)
+        w.show_page(40)
+        QApplication.processEvents()
+        assert w.edit_document(lambda d: d.set_page_labels([{"startpage": 0, "prefix": "A-", "style": "D"}]))
+        for _ in range(20):
+            QApplication.processEvents()
+        assert w.page == 40 and w.canvas.page == 40 and 40 in w.canvas.visible_pages(0)
+        assert w.pages.currentRow() == 40
+    finally:
+        w.drop_work()
+        w.close()

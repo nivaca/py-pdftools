@@ -2476,6 +2476,16 @@ pages drawn ahead made a thousand screens long, it counted 100 against
 first version did, on its own: its second run wrapped the counter of the
 first, which then counted both.
 
+Measuring the next item, I found an old fault. After any change of the
+document itself, made in a long document at page 40, the window came back
+at page 19. It opens the changed file and shows it at the page it was at,
+and then fills the list of thumbnails again; while the list empties and
+fills, its current row changes, and the window took that for a click on a
+thumbnail and went there. The list is now filled with its signals held,
+and its current row set to the page shown, as the box of the page number
+already did. A test makes a change at page 40 and finds the window still
+there.
+
 Testing
 -------
 

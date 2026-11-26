@@ -19,6 +19,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
 - Las miniaturas se dibujan con menos prioridad que las páginas a la vista
   y la ventana, que reciben primero el procesador cuando el equipo está
   ocupado.
+- Corregido: tras un cambio del documento mismo (etiquetas, páginas giradas
+  o movidas, OCR, enlaces, marcadores...), la vista podía saltar a otra
+  página, de la 40 a la 19: la lista de miniaturas, hecha de nuevo, se
+  tomaba por un clic en una de ellas.
 - Las páginas que se guardan dibujadas se limitan por la memoria que
   ocupan (64, 256 o 768 MB, según el ajuste de memoria), no por su número:
   a un zoom bajo se guardan más, y a uno alto dieciséis páginas grandes ya

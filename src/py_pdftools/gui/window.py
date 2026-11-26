@@ -3591,15 +3591,24 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.canvas.apply_fit()
 
     def _fill_pages(self):
-        self.pages.clear()
-        # Iconos transparentes del tamaño final, para que la lista no cambie de alto cuando lleguen las miniaturas.
-        blank = QPixmap(self.thumb)
-        blank.fill(QColor(0, 0, 0, 0))
-        self._blank_icon = QIcon(blank)  # (also for a thumbnail forgotten: see _forget_far_thumbnails)
-        for n in range(self.count):
-            item = QListWidgetItem(self._blank_icon, str(n + 1))
-            item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
-            self.pages.addItem(item)
+        # Sin señales mientras se rehace la lista: su fila actual cambia al vaciarla y llenarla, y la ventana lo
+        # tomaría por un clic en una miniatura, yendo a otra página (tras un cambio del documento, de la página 40
+        # a la 19). Al final, la fila actual es la página mostrada, como la deja show_page.
+        self.pages.blockSignals(True)
+        try:
+            self.pages.clear()
+            # Iconos transparentes del tamaño final, para que la lista no cambie de alto cuando lleguen las miniaturas.
+            blank = QPixmap(self.thumb)
+            blank.fill(QColor(0, 0, 0, 0))
+            self._blank_icon = QIcon(blank)  # (also for a thumbnail forgotten: see _forget_far_thumbnails)
+            for n in range(self.count):
+                item = QListWidgetItem(self._blank_icon, str(n + 1))
+                item.setTextAlignment(Qt.AlignmentFlag.AlignHCenter)
+                self.pages.addItem(item)
+            if 0 <= self.page < self.count:
+                self.pages.setCurrentRow(self.page)
+        finally:
+            self.pages.blockSignals(False)
         self.thumb_timer.start()
 
     def refresh_captions(self):
