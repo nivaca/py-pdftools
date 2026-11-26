@@ -157,7 +157,7 @@ def apply_theme(name: str | None = None):
     whole palette of its own, and the matching variant of the icon theme: asking Qt for a scheme of
     colours alone isn't enough, since the desktop's own theme (the portal of KDE, for one) may keep its
     colours over it. 'system' gives the desktop its colours and icons back."""
-    global _SYSTEM_ICONS, _SYSTEM_STYLE
+    global _SYSTEM_ICONS, _SYSTEM_STYLE, _APPLIED
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QGuiApplication, QIcon, QPalette
     from PySide6.QtWidgets import QApplication, QToolTip
@@ -166,6 +166,7 @@ def apply_theme(name: str | None = None):
     if app is None:
         return
     name = name or value("theme")
+    _APPLIED = name
     if _SYSTEM_ICONS is None:
         _SYSTEM_ICONS = QIcon.themeName()
     if _SYSTEM_STYLE is None:
@@ -179,6 +180,7 @@ def apply_theme(name: str | None = None):
         # (el estilo antes que la paleta: setStyle puede poner la del estilo)
         if _SYSTEM_STYLE.lower() in NATIVE_STYLES:  # (Windows, macOS: their style would ignore the palette)
             _use_style("Fusion")
+        _watch(app)
         app.setPalette(palette(name))
         QToolTip.setPalette(app.palette())  # (los globos de ayuda guardan la suya: quedaban del tema anterior)
         app.setStyleSheet(CONTRAST_STYLE if name == "contrast" else "")
@@ -186,6 +188,7 @@ def apply_theme(name: str | None = None):
         return
     if hasattr(hints, "unsetColorScheme"):
         hints.unsetColorScheme()
+    _watch(app)
     if _SYSTEM_STYLE:
         _use_style(_SYSTEM_STYLE)  # (the system's style again, if a theme of the program had changed it)
     # Una paleta vacía (sin ningún papel fijado) devuelve la de la plataforma
@@ -193,6 +196,49 @@ def apply_theme(name: str | None = None):
     QToolTip.setPalette(app.palette())
     app.setStyleSheet("")
     apply_icons(None)
+
+
+_WATCH = None  # (see _watch)
+_APPLIED = "system"  # (the theme apply_theme set last: the one _watch keeps)
+
+
+def _watch(app) -> None:
+    """Once: the theme chosen is kept, and followed. If the desktop changes the palette of the program while it
+    runs (KDE does, when its colour scheme is changed), a theme of the program is set again, as Calibre does;
+    with 'system', a switch of the system between light and dark draws the icons again, and takes the matching
+    variant of the icon theme."""
+    global _WATCH
+    if _WATCH is not None:
+        return
+    from PySide6.QtCore import QEvent, QObject, QTimer
+    from PySide6.QtGui import QGuiApplication, QPalette
+
+    class Watch(QObject):
+        pending = False
+
+        def eventFilter(self, obj, event):
+            if obj is app and event.type() == QEvent.Type.ApplicationPaletteChange and not self.pending:
+                wanted = PALETTES.get(_APPLIED, {}).get("Window")
+                if wanted and app.palette().color(QPalette.ColorRole.Window).name() != wanted:
+                    self.pending = True  # (set again once, after the change that came from outside)
+                    QTimer.singleShot(0, self.again)
+            return False
+
+        def again(self):
+            self.pending = False
+            if _APPLIED in PALETTES and app.palette().color(QPalette.ColorRole.Window).name() != \
+                    PALETTES[_APPLIED]["Window"]:
+                apply_theme(_APPLIED)
+
+        def scheme_changed(self, _scheme=None):
+            if _APPLIED not in PALETTES:
+                apply_icons(None)
+
+    _WATCH = Watch(app)
+    app.installEventFilter(_WATCH)
+    hints = QGuiApplication.styleHints()
+    if hasattr(hints, "colorSchemeChanged"):  # (Qt 6.5 or later)
+        hints.colorSchemeChanged.connect(_WATCH.scheme_changed)
 
 
 ICON_CHOICES = {"system": N_("As the desktop"), "own": N_("The program's own")}  # (and each theme installed)

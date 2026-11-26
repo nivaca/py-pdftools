@@ -146,3 +146,24 @@ def test_fusion_where_the_native_style_ignores_the_palette(monkeypatch):
         assert used == []  # (Breeze follows the palette: it stays)
     finally:
         appearance.apply_theme("system")
+
+
+def test_kept_when_the_desktop_changes_the_palette():
+    """A theme of the program stays when something outside (the desktop's colour scheme, changed while the program
+    runs) sets another palette: it is set again."""
+    from PySide6.QtGui import QPalette
+
+    app = QApplication.instance() or QApplication([])
+    try:
+        appearance.apply_theme("nord")
+        app.setPalette(QPalette(QColor("#ffffff")))  # (as the desktop would)
+        for _ in range(5):
+            QApplication.processEvents()
+        assert app.palette().color(QPalette.ColorRole.Window).name() == "#2e3440"
+        appearance.apply_theme("system")
+        app.setPalette(QPalette(QColor("#ffffff")))  # (with 'system': whatever the desktop says)
+        for _ in range(5):
+            QApplication.processEvents()
+        assert app.palette().color(QPalette.ColorRole.Window).name() != "#2e3440"
+    finally:
+        appearance.apply_theme("system")

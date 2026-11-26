@@ -2239,10 +2239,27 @@ its place, before the palette (setting a style may set its own palette),
 and "As the system" gives the native style back. On Linux nothing
 changes. A test pretends to start on Windows 11's style and on Breeze.
 
+101. The theme kept, and followed
+---------------------------------
+
+Two more things from Calibre. When KDE's colour scheme is changed while
+a program runs, KDE's own layer in Qt gives the program the new palette,
+over the one the program had set: a theme of the program, Nord say,
+would have been lost until the next start. An event filter on the
+application now notices the change of palette and, if the colour of the
+windows is no longer the theme's, sets the theme again, once, a moment
+later. It compares with the theme applied last, not with the one in the
+settings: the first version did the latter, and a test caught it
+undoing a theme just applied but not yet saved. And with the system's
+colours, a switch of the system between light and dark now draws the
+program's icons again and takes the matching variant of the icon theme
+(styleHints().colorSchemeChanged). A test sets a palette from outside,
+with a theme of the program and with the system's.
+
 Testing
 -------
 
-The program has 844 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 845 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
