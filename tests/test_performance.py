@@ -34,13 +34,14 @@ def text_pdf(tmp_path):
 
 def test_the_profiles(monkeypatch):
     performance.apply({**NORMAL, "memory": "low"})
-    assert (canvas.CACHED_PAGES, canvas.MAX_TILES, window_module.MAX_THUMBS, renderer.WORKERS["view"]) == \
-        (4, 12, 100, 1)
+    assert (canvas.CACHE_BYTES, canvas.MAX_TILES, window_module.MAX_THUMBS, renderer.WORKERS["view"]) == \
+        (64 << 20, 12, 100, 1)
     performance.apply(dict(NORMAL))
-    assert (canvas.CACHED_PAGES, canvas.MAX_TILES, window_module.MAX_THUMBS, canvas.AHEAD) == (16, 48, 400, 0.5)
+    assert (canvas.CACHE_BYTES, canvas.MAX_TILES, window_module.MAX_THUMBS, canvas.AHEAD) == \
+        (256 << 20, 48, 400, 0.5)
     monkeypatch.setattr(performance, "available_memory", lambda: 8 << 30)
     performance.apply({**NORMAL, "memory": "all"})
-    assert canvas.CACHED_PAGES == (4 << 30) // performance.PAGE_BYTES and window_module.ALL_THUMBS
+    assert canvas.CACHE_BYTES == 4 << 30 and window_module.ALL_THUMBS
     assert window_module.MAX_THUMBS >= 400 and canvas.AHEAD > 1
 
 
@@ -96,9 +97,25 @@ def test_the_dialog_and_transparency(tmp_path, monkeypatch, text_pdf):
     dialog.transparency.setChecked(False)
     dialog.accept()
     assert config.get("memory") == "high" and config.get("transparency") is False
-    assert canvas.CACHED_PAGES == 48 and not canvas.TRANSPARENT
+    assert canvas.CACHE_BYTES == 768 << 20 and not canvas.TRANSPARENT
     w.set_tool("selecttext")
     w.canvas.select_all_text(0)
     marks = w.canvas._sel_marks
     assert marks and all(m.brush().style().name == "NoBrush" for m in marks)  # (outlined, not shaded)
     w.close()
+
+
+def test_the_pages_kept_are_counted_in_bytes(monkeypatch):
+    """The renderings kept are limited by the memory they take, not by their number: small ones, many; a
+    large one alone may pass the limit, as the last one drawn."""
+    from PySide6.QtGui import QImage
+    from PySide6.QtWidgets import QApplication
+
+    QApplication.instance() or QApplication([])
+    view = canvas.PageCanvas()
+    monkeypatch.setattr(canvas, "CACHE_BYTES", 10 * 100 * 100 * 4)  # (ten pictures of 100 × 100)
+    for n in range(30):
+        view._keep((1, n, 1.0), QImage(100, 100, QImage.Format.Format_RGB32))
+    assert list(view._cache) == [(1, n, 1.0) for n in range(20, 30)]
+    view._keep((1, 99, 9.0), QImage(1000, 1000, QImage.Format.Format_RGB32))
+    assert list(view._cache) == [(1, 99, 9.0)]

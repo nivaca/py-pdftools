@@ -19,6 +19,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
 - Las miniaturas se dibujan con menos prioridad que las páginas a la vista
   y la ventana, que reciben primero el procesador cuando el equipo está
   ocupado.
+- Las páginas que se guardan dibujadas se limitan por la memoria que
+  ocupan (64, 256 o 768 MB, según el ajuste de memoria), no por su número:
+  a un zoom bajo se guardan más, y a uno alto dieciséis páginas grandes ya
+  no ocupan un gigabyte.
 - Corregido: en Windows, y en Linux sin los ajustes de un escritorio, Salir
   había perdido Ctrl+Q en 1.18.0 (Qt no da allí una tecla estándar para
   ello): Ctrl+Q y Ctrl+W se nombran ahora de forma explícita, además de las

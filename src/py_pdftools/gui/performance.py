@@ -23,15 +23,14 @@ PROFILES = [
     ("high", N_("High"), N_("More pages and thumbnails kept, drawn further ahead, by more processes")),
     ("all", N_("All pages"), N_("Every page and thumbnail kept once drawn, within half of the free memory")),
 ]
-# the caches of each profile: pages kept, tiles kept, thumbnails kept, screens of pages drawn ahead (and
-# behind), processes for the pages in view and for the thumbnails
+# the caches of each profile: megabytes of pages kept, tiles kept, thumbnails kept, screens of pages drawn ahead
+# (and behind), processes for the pages in view and for the thumbnails
 LIMITS = {
-    "low": dict(pages=4, tiles=12, thumbs=100, ahead=0.25, view=1, thumbs_workers=1),
-    "normal": dict(pages=16, tiles=48, thumbs=400, ahead=0.5, view=2, thumbs_workers=None),
-    "high": dict(pages=48, tiles=128, thumbs=1500, ahead=1.5, view=3, thumbs_workers=None),
-    "all": dict(pages=None, tiles=256, thumbs=None, ahead=3.0, view=3, thumbs_workers=None),
+    "low": dict(page_mb=64, tiles=12, thumbs=100, ahead=0.25, view=1, thumbs_workers=1),
+    "normal": dict(page_mb=256, tiles=48, thumbs=400, ahead=0.5, view=2, thumbs_workers=None),
+    "high": dict(page_mb=768, tiles=128, thumbs=1500, ahead=1.5, view=3, thumbs_workers=None),
+    "all": dict(page_mb=None, tiles=256, thumbs=None, ahead=3.0, view=3, thumbs_workers=None),
 }
-PAGE_BYTES = 4_000_000  # (about what one page drawn at a usual zoom takes)
 THUMB_BYTES = 40_000  # (and one thumbnail)
 # The antialiasing of text and graphics: MuPDF's levels (8: the smoothest, 0: none).
 AA_ON, AA_OFF = 8, 0
@@ -76,7 +75,9 @@ def apply(values: dict | None = None) -> dict:
     values = values or settings()
     limits = LIMITS[values["memory"]]
     budget = available_memory() // 2
-    canvas.CACHED_PAGES = limits["pages"] or max(16, budget // PAGE_BYTES)
+    # Las páginas se guardan hasta un tamaño, no un número: a un zoom bajo caben más, y a uno alto (una página de
+    # 40 megapíxeles ocupa 160 MB) no se va la memoria.
+    canvas.CACHE_BYTES = (limits["page_mb"] << 20) if limits["page_mb"] else max(256 << 20, budget)
     canvas.MAX_TILES = limits["tiles"]
     canvas.AHEAD = limits["ahead"]
     window.MAX_THUMBS = limits["thumbs"] or max(400, budget // 4 // THUMB_BYTES)

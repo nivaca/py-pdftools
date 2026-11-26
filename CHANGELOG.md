@@ -17,6 +17,10 @@ Debian package, the RPM, the wheel and the source, are on
   sooner; one that dies with a page is replaced at once.
 - The thumbnails are drawn at a lower priority than the pages in view and
   the window, which get the processor first when the computer is busy.
+- The pages kept drawn are limited by the memory they take (64, 256 or
+  768 MB, by the memory setting), not by their number: at a low zoom more
+  are kept, and at a high one sixteen large pages no longer take a
+  gigabyte.
 
 ## 1.19.0 — 2026-11-25
 

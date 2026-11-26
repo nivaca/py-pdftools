@@ -56,10 +56,10 @@ TILE_ABOVE = 4096
 BACKDROP_SIDE = 2048
 TILE = 1024
 MAX_TILES = 48  # tiles kept (about 150 MB): those of the pages in view, and a few of before
-# (these, and CACHED_PAGES and MAX_TILES, are those of the memory profile: see performance.py)
+# (these, and CACHE_BYTES and MAX_TILES, are those of the memory profile: see performance.py)
 AHEAD = 0.5  # pages drawn ahead of the view (and behind it), in heights of the window
 TRANSPARENT = True  # selections drawn with transparency (else outlines)
-CACHED_PAGES = 16  # renderings kept, so that a page scrolled back to needn't render again
+CACHE_BYTES = 256 << 20  # renderings kept, so that a page scrolled back to needn't render again (bytes of them)
 SELECTED = QColor(42, 127, 255)
 NEAR_TEXT = 3.0  # points: a drag that starts this close to a word selects text
 FREETEXT_SIZE = (180.0, 40.0)  # points: a text box made by a click
@@ -102,6 +102,11 @@ def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint
     if tint is not None:
         data, stride = rendering.tinted(pix.width, pix.height, stride, data, tint), pix.width * 3
     return rgb_image(data, pix.width, pix.height, stride, screen)
+
+
+def cache_bytes(pixmap: QPixmap) -> int:
+    """The memory PIXMAP takes (32 bits a pixel, as the screen's)."""
+    return pixmap.width() * pixmap.height() * 4
 
 
 def _distance(p: QPointF, a: QPointF, b: QPointF) -> float:
@@ -1122,9 +1127,11 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def _keep(self, key: tuple, image: QImage) -> QPixmap:
         pixmap = QPixmap.fromImage(image)
         self._cache[key] = pixmap
-        # Caché LRU sencilla: move_to_end al usar una entrada, popitem(last=False) para expulsar la más vieja.
-        while len(self._cache) > CACHED_PAGES:
-            self._cache.popitem(last=False)
+        # Caché LRU sencilla: move_to_end al usar una entrada, popitem(last=False) para expulsar la más vieja. Se
+        # cuentan los bytes, no las páginas; la última siempre se queda, aunque sola pase del límite.
+        total = sum(cache_bytes(p) for p in self._cache.values())
+        while total > CACHE_BYTES and len(self._cache) > 1:
+            total -= cache_bytes(self._cache.popitem(last=False)[1])
         return pixmap
 
     def _remote(self):

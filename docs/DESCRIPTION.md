@@ -2457,6 +2457,14 @@ Windows (not "idle", which a busy computer might never give the time to
 finish them). On an idle computer nothing changes; on a busy one, the pages
 in view and the window come first.
 
+The window kept the last sixteen pages it drew, whatever their size. A
+page at a usual zoom takes some 4 MB, but on a dense screen at a high zoom
+one can take 60, and sixteen of them a gigabyte. PDFCraft limits its
+finished pictures by their bytes, letting one larger than the limit stay
+alone. The window now does the same: 64, 256 or 768 MB by the memory
+setting (Low, Normal, High), or half of the free memory with All, and the
+last page drawn always stays. At a low zoom it keeps more pages than before.
+
 Testing
 -------
 
