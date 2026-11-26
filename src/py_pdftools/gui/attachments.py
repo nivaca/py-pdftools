@@ -18,6 +18,51 @@ from PySide6.QtWidgets import (
 
 from ..core.interface import ntr, tr
 
+KEEP_OPENED_DAYS = 2  # (the copies of attached files opened: deleted at a start this many days later)
+
+
+def opened_folder() -> Path:
+    """A new folder for the copy of an attached file being opened, inside the program's own folder of them
+    (see forget_opened): one for each, so that two files of the same name don't meet."""
+    parent = Path(tempfile.gettempdir()) / f"py-pdftools-opened-{_user()}"
+    parent.mkdir(mode=0o700, exist_ok=True)
+    return Path(tempfile.mkdtemp(dir=parent))
+
+
+def forget_opened(days: float = KEEP_OPENED_DAYS) -> int:
+    """The copies of attached files opened more than DAYS ago, deleted (at the start); how many folders went.
+    Not when the window closes: the program that opened one may still have it, and its user may have
+    changed and saved it there."""
+    import shutil
+    import time
+
+    parent = Path(tempfile.gettempdir()) / f"py-pdftools-opened-{_user()}"
+    gone = 0
+    try:
+        folders = list(parent.iterdir())
+    except OSError:  # (none yet)
+        return 0
+    for folder in folders:
+        try:
+            # (lo más reciente de la carpeta: un archivo cambiado y guardado después cuenta desde entonces)
+            newest = max([folder.stat().st_mtime] + [p.stat().st_mtime for p in folder.rglob("*")])
+            if time.time() - newest > days * 86400:
+                shutil.rmtree(folder)
+                gone += 1
+        except OSError:
+            continue
+    return gone
+
+
+def _user() -> str:
+    import getpass
+
+    try:
+        return getpass.getuser()
+    except (OSError, KeyError):
+        return "user"
+
+
 WHAT = Qt.ItemDataRole.UserRole  # (("doc", its name in the document) or ("page", the index of its annotation))
 
 
@@ -185,7 +230,7 @@ class AttachmentsMixin:
                 item.setSelected(True)
                 self.save_attached()
             return None
-        path = Path(tempfile.mkdtemp(prefix="py-pdftools-")) / (Path(name).name or "file")
+        path = opened_folder() / (Path(name).name or "file")
         try:
             path.write_bytes(data)
         except OSError as e:

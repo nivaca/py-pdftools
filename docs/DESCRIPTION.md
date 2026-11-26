@@ -2299,10 +2299,25 @@ on as before. The tests replace the functions of the system, so that
 running them doesn't hold the screen of whoever runs them; one checks
 that a presentation asks at the start and gives back at the end.
 
+105. The copies of opened attachments, deleted
+----------------------------------------------
+
+To open an attached file, the program writes a copy of it in a temporary
+folder and gives it to the desktop; those folders were never deleted
+(a TODO in the code said so). Deleting them when the window closes, as
+the TODO proposed, could lose work: the program that opened the copy
+may still have it open, and its user may have changed it and saved it
+there. So the copies now go into one folder of the program's own, a
+folder for each, and at each start the program deletes those untouched
+for two days, counting from the newest file in them, so that a copy
+changed yesterday stays. On Linux /tmp is emptied at each start of the
+system anyway; on Windows the temporary folder isn't. A test makes an
+old copy, a new one and an old one changed today.
+
 Testing
 -------
 
-The program has 851 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 852 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

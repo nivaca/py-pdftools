@@ -2161,20 +2161,18 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def open_attachment(self, a: Annotation):
         """Open the file attached in A with the program the desktop opens such files with (a copy of it,
         in a folder of its own)."""
-        import tempfile
-
         from PySide6.QtCore import QUrl
         from PySide6.QtGui import QDesktopServices
 
-        # TODO: estas carpetas de mkdtemp no se borran nunca; podrían borrarse al cerrar la ventana (el programa
-        # externo puede seguir leyendo el archivo mientras tanto).
+        from .attachments import opened_folder
+
         refused = self.refused_to_run(a.filename or "file")
         if refused is not None:
             if refused:  # (the user asked to save it: where they say)
                 self.save_attachment(a)
             return
-        folder = Path(tempfile.mkdtemp(prefix="py-pdftools-"))
-        path = self.save_attachment(a, folder / Path(a.filename or "file").name)
+        # (in a folder of the program's own, deleted some days later: see attachments.forget_opened)
+        path = self.save_attachment(a, opened_folder() / Path(a.filename or "file").name)
         if path is not None:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
 

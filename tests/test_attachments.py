@@ -82,3 +82,23 @@ def test_sizes():
     assert attachments.size_text(512) == "512 B"
     assert attachments.size_text(3500) == "3.4 KB"
     assert attachments.size_text(5 * 1024 * 1024) == "5.0 MB"
+
+
+def test_old_opened_copies_are_deleted(tmp_path, monkeypatch):
+    """The copies of attached files opened go in a folder of the program's own; at a start, those of more than
+    two days ago are deleted (not when the window closes: another program may have one open, or changed); a file
+    changed since counts from then."""
+    import os
+    import time
+
+    monkeypatch.setattr(attachments.tempfile, "tempdir", str(tmp_path))
+    old, recent, touched = (attachments.opened_folder() for _ in range(3))
+    assert old.parent == recent.parent and old.parent.parent == tmp_path and old != recent
+    for folder in (old, recent, touched):
+        (folder / "data.csv").write_text("a,b\n")
+    then = time.time() - 3 * 86400
+    for path in (old / "data.csv", old, touched / "data.csv", touched):
+        os.utime(path, (then, then))
+    (touched / "data.csv").write_text("changed today\n")  # (saved there by the program that opened it)
+    assert attachments.forget_opened() == 1
+    assert not old.exists() and recent.exists() and touched.exists()

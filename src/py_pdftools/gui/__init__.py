@@ -74,6 +74,9 @@ def main(argv: list[str] | None = None) -> int:
     from . import errors
 
     errors.install(app)  # (an error nothing caught: shown in a dialog, not only in the terminal)
+    from .attachments import forget_opened
+
+    forget_opened()  # (the copies of attached files opened some days ago)
     install_qt_translations()
     from . import performance
 
