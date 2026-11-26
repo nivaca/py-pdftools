@@ -59,6 +59,7 @@ MAX_TILES = 48  # tiles kept (about 150 MB): those of the pages in view, and a f
 # (these, and CACHE_BYTES and MAX_TILES, are those of the memory profile: see performance.py)
 AHEAD = 0.5  # pages drawn ahead of the view (and behind it), in heights of the window
 TRANSPARENT = True  # selections drawn with transparency (else outlines)
+PRINT_SLICE = 0.006  # seconds of fingerprints worked out at each turn of the event loop (see want_print)
 CACHE_BYTES = 256 << 20  # renderings kept, so that a page scrolled back to needn't render again (bytes of them)
 SELECTED = QColor(42, 127, 255)
 NEAR_TEXT = 3.0  # points: a drag that starts this close to a word selects text
@@ -767,6 +768,15 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._tile_cache: OrderedDict = OrderedDict()  # (document, page, scale, clip, column, row) -> QPixmap
         self._tiles_asked: set[tuple] = set()  # (the tiles asked for and not yet arrived)
         self._cache: OrderedDict = OrderedDict()  # (document, page number, scale) -> QPixmap
+        # Los dibujos del documento de antes, por la huella de su página (ver carry_over): los de las páginas que un
+        # cambio no tocó se muestran sin dibujarlas otra vez.
+        self._carried: OrderedDict = OrderedDict()  # (fingerprint, scale) -> QPixmap
+        self._prints = None  # (pageprint.Prints of the document shown, made when first asked for)
+        # Las huellas de las páginas dibujadas se calculan en los ratos libres, unas pocas a la vez, para que un
+        # cambio del documento las encuentre hechas (ver carry_over).
+        self._print_queue: list[int] = []
+        self.print_timer = QTimer(self, singleShot=True, interval=0)
+        self.print_timer.timeout.connect(self._print_some)
         # (path, password, stamp) of the document on disk, if the pages can be rendered in
         # another process (see renderer.py)
         self.source = None
@@ -795,8 +805,74 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._tile_cache.clear()
         self._tiles_asked.clear()
         self._shown_items, self._selected = [], []
+        self._prints = None
+        self._print_queue = []
         self.layout()
         self.go_to(page)
+        # Con dibujos traídos del documento de antes, las páginas que siguen iguales se muestran ya, sin esperar
+        # al temporizador (que dejaría ver la página en blanco un momento).
+        if doc is not None and self._carried:
+            self._render_visible()
+
+    def page_print(self, number: int) -> bytes | None:
+        """The fingerprint of page NUMBER of the document shown (see core/pageprint.py); None if it can't be
+        worked out."""
+        from ..core.pageprint import Prints
+
+        if self.doc is None:
+            return None
+        if self._prints is None or self._prints.doc is not self.doc:
+            self._prints = Prints(self.doc)
+        try:
+            return self._prints.page(number)
+        except (RuntimeError, ValueError, IndexError):
+            return None
+
+    def want_print(self, number: int):
+        """Work out the fingerprint of page NUMBER (drawn: its picture may be carried over) when there is time."""
+        if self._prints is not None and number in self._prints._pages:
+            return
+        self._print_queue.append(number)
+        if not self.print_timer.isActive():
+            self.print_timer.start()
+
+    def _print_some(self):
+        """Some of the fingerprints waiting, for at most PRINT_SLICE seconds: the window answers between them."""
+        end = time.monotonic() + PRINT_SLICE
+        while self._print_queue and time.monotonic() < end:
+            n = self._print_queue.pop(0)
+            if self.doc is not None and n < self.doc.page_count:
+                self.page_print(n)
+        if self._print_queue:
+            self.print_timer.start()
+
+    def carry_over(self, images: dict[int, QImage] | None = None) -> dict[bytes, QImage]:
+        """Before the document shown is closed for another state of itself (a change, undo, saving): keep its
+        renderings by the fingerprints of their pages, so that those a change didn't touch, wherever they went,
+        are shown again at once (see _render_visible). IMAGES: other pictures of its pages (the thumbnails), given
+        back by fingerprint."""
+        if self.doc is None:
+            return {}
+        mine = id(self.doc)
+        carried = self._carried  # (the older ones first, as the cache: the oldest go first)
+        for (doc_id, n, scale), pixmap in self._cache.items():
+            fingerprint = self.page_print(n) if doc_id == mine else None
+            if fingerprint is not None:
+                carried[(fingerprint, scale)] = pixmap
+                carried.move_to_end((fingerprint, scale))
+        total = sum(cache_bytes(p) for p in carried.values())
+        while total > CACHE_BYTES and len(carried) > 1:
+            total -= cache_bytes(carried.popitem(last=False)[1])
+        out = {}
+        for n, image in (images or {}).items():
+            fingerprint = self.page_print(n)
+            if fingerprint is not None:
+                out[fingerprint] = image
+        return out
+
+    def forget_carried(self):
+        """Forget what carry_over kept (another document, or other settings of drawing)."""
+        self._carried.clear()
 
     def page_rect(self, number: int) -> QRectF:
         r = self.doc[number].rect
@@ -1118,15 +1194,18 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def clear_cache(self):
         """Forget the renderings (another document was opened, or this one changed on disk)."""
         self._cache.clear()
+        self._carried.clear()
         self._tile_cache.clear()
         self._tiles_asked.clear()
         for item in self.pages.values():
             item.scale_shown = 0.0
             item.clear_tiles()
 
-    def _keep(self, key: tuple, image: QImage) -> QPixmap:
-        pixmap = QPixmap.fromImage(image)
+    def _keep(self, key: tuple, image: QImage | QPixmap) -> QPixmap:
+        pixmap = image if isinstance(image, QPixmap) else QPixmap.fromImage(image)
         self._cache[key] = pixmap
+        if self.doc is not None and key[0] == id(self.doc):
+            self.want_print(key[1])
         # Caché LRU sencilla: move_to_end al usar una entrada, popitem(last=False) para expulsar la más vieja. Se
         # cuentan los bytes, no las páginas; la última siempre se queda, aunque sola pase del límite.
         total = sum(cache_bytes(p) for p in self._cache.values())
@@ -1183,10 +1262,19 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self._cache.move_to_end(key)
                 item.show(self._cache[key], scale)
                 continue
+            # La misma página, dibujada antes de un cambio que no la tocó (la misma huella): no se dibuja otra vez.
+            fingerprint = self.page_print(n) if self._carried else None
+            if fingerprint is not None and (fingerprint, scale) in self._carried:
+                item.show(self._keep(key, self._carried[(fingerprint, scale)]), scale)
+                continue
             if item.shows_nothing():  # (meanwhile, an older rendering, or the thumbnail)
                 old = next((k for k in reversed(self._cache) if k[:2] == key[:2]), None)
+                carried = next((k for k in reversed(self._carried) if k[0] == fingerprint), None) \
+                    if fingerprint is not None else None
                 if old is not None:
                     item.show(self._cache[old], old[2], final=False)
+                elif carried is not None:  # (of another zoom, from before the change)
+                    item.show(self._carried[carried], carried[1], final=False)
                 else:
                     image = self.placeholder_for(n)
                     if image is not None and not image.isNull():

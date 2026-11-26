@@ -38,7 +38,10 @@ def _idle(app, w, seconds: float = 20.0):
     quiet = 0
     while time.time() < deadline and quiet < 20:
         app.processEvents()
-        busy = w.canvas._here or w.canvas.local_timer.isActive() or w.thumb_timer.isActive()
+        busy = w.canvas._here or w.canvas.local_timer.isActive() or w.thumb_timer.isActive() or \
+            w.canvas.render_timer.isActive() or \
+            any(w.canvas.pages[n].scale_shown == 0 for n in w.canvas.visible_pages(0)) or \
+            any(n not in w._thumbs for n in w._thumb_rows())
         quiet = 0 if busy else quiet + 1
         time.sleep(0.005)
 

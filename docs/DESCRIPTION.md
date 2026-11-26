@@ -2486,6 +2486,58 @@ and its current row set to the page shown, as the box of the page number
 already did. A test makes a change at page 40 and finds the window still
 there.
 
+The main thing PDFCraft had was this: after an edit it draws again only
+the pages the edit changed. In py-pdftools every change of the document
+itself (labels, bookmarks, links, pages turned or moved, OCR) opens the
+changed file anew, and the window threw away every page it had drawn and
+every thumbnail, so after relabelling one page the whole screen was drawn
+again, with a moment of white pages. PDFCraft keeps a revision number for
+each page, and each edit says which pages it touched. Doing that here
+would have meant teaching eighteen kinds of change to say so, and undo and
+redo as well.
+
+I gave each page a fingerprint instead (core/pageprint.py): a digest of
+everything its drawing depends on, its content, its fonts, pictures and
+forms, its annotations, its size and its turn, and the layers of the
+document. Each reference to another object is replaced by that object's
+own digest, so the fingerprint doesn't depend on how the file numbers its
+objects, which pikepdf numbers anew at every save; what isn't drawn (the
+destination of a link, the parent in the tree of pages) is left out,
+which also keeps a page's fingerprint from changing when another page
+changes. Before the document is closed for its next state, the pictures
+are kept by fingerprint, and the new document shows a page's old picture
+when its fingerprint is the same. Pages moved, undone or saved need no
+more: they are found wherever they are. The rule is that a doubt means
+drawing again: two pages that draw differently can't share a fingerprint,
+which matters after a redaction.
+
+The first tries showed what a fingerprint must not see. pikepdf writes
+the keys of a dictionary in another order, so values written inline are
+read and their keys sorted. It compresses the streams that weren't, and
+qpdf turns hexadecimal and ASCII85 streams into Flate, so a stream of a
+megabyte or less with only such filters is fingerprinted decompressed;
+larger ones, and pictures (JPEG, JPEG 2000, JBIG2), as they are, with
+their filter. Decoding JPEGs to compare them made it thirty times slower.
+On six documents of mine the fingerprints now survive a save by pikepdf
+and a reversal of the pages, and change for the page given a word more,
+a turn, a smaller crop box or an annotation. A page takes one to four
+milliseconds, nearly all of it reading and hashing its pictures, which
+can't be shortened without the risk of an old picture after a redaction;
+so the fingerprints of the pages drawn and the thumbnails made are worked
+out in the idle moments of the window, a few milliseconds at a time, and
+a change finds them done.
+
+On the scanned dictionary, at page 40, a change of the labels then showed
+the pages in view after about 90 ms instead of 480 to 810 (the machine was
+busy at the time, so the times swing; the change itself cost the same).
+The tests count what is drawn: nothing for labels, a move of pages, two
+undos and a save; one page and its thumbnail for a page turned. Settings
+that change how pages are drawn (reading colours, sharpness, the
+antialiasing) forget the pictures kept. Two of the new tests failed once
+when all ran at once under that load: my helper that waits for the
+window gave up while the first pictures were still coming. It now waits
+until the pages in view and the thumbnails near them are there.
+
 Testing
 -------
 

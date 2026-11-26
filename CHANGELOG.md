@@ -21,6 +21,11 @@ Debian package, the RPM, the wheel and the source, are on
   moved, OCR, links, bookmarks...), the view could jump to another page,
   from the 40th to the 19th: the list of thumbnails, made again, was taken
   for a click on one of them.
+- After a change of the document itself, undoing it, or saving, the pages
+  and thumbnails the change didn't touch are shown at once as they were
+  drawn, wherever they went, instead of being drawn again; only the pages
+  changed are. On a scanned dictionary the pages in view came back after
+  about 0.1 s instead of 0.5 to 0.8.
 - The pages kept drawn are limited by the memory they take (64, 256 or
   768 MB, by the memory setting), not by their number: at a low zoom more
   are kept, and at a high one sixteen large pages no longer take a

@@ -139,7 +139,7 @@ class WorkingMixin:
         annotations, if they are known (they are not read again)."""
         # _load cambia self.path al archivo que abre; aquí se restituye, porque la copia de trabajo no es el documento.
         path = self.path
-        found = self._load(file, self.password, page, known=known)
+        found = self._load(file, self.password, page, known=known, carry=True)
         self.path = path
         if found is not None:
             # Loading the document's own file (undo back to the start) means there is no working copy any more.

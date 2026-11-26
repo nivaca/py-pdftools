@@ -264,6 +264,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # finding Ghostscript runs it, which would slow every start)
         self._have_conform: bool | None = None
         self._thumbs: dict[int, QImage] = {}  # page -> its picture, without the annotations
+        # (the thumbnails of the state of the document before a change, by the fingerprints of their pages)
+        self._carried_thumbs: dict[bytes, QImage] = {}
         self._thumb_shown: dict[int, tuple] = {}  # page -> the annotations its thumbnail shows
         self._thumb_asked: set[int] = set()  # pages whose thumbnail is being made in the other processes
         self._by_page: list[list[Annotation]] = []
@@ -1685,10 +1687,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         return password if ok and password else None
 
     def _load(self, path: Path, password: str, page: int = 0,
-              known: list[Annotation] | None = None) -> list[Annotation] | None:
+              known: list[Annotation] | None = None, carry: bool = False) -> list[Annotation] | None:
         """Open PATH: its pages are shown without the annotations that can be
         edited, which are returned (None if it can't be opened). KNOWN: those annotations, if
-        they are known already (just written): they are not read again."""
+        they are known already (just written): they are not read again. CARRY: PATH is another state of the
+        document shown (a change, undo, saving): the pictures of the pages it didn't change are kept."""
         try:
             doc = annots.open_pdf(path, password)
             # Las anotaciones editables se quitan del documento en memoria: la ventana las dibuja por su cuenta, encima.
@@ -1698,7 +1701,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             self.status(str(e), error=True)
             return None
         # The old document is closed only once the new one has opened: on an error, the window keeps showing it.
-        self._close_doc()
+        self._close_doc(carry=carry)
         self.doc, self.path, self.password, self.count = doc, path, password, doc.page_count
         self.file_annotations = list(found)  # (as the file has them: see working.py)
         self.page = min(page, self.count - 1)
@@ -1730,8 +1733,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # El tercer elemento (fecha y tamaño) es la marca con que working.py sabe si otro programa cambió el archivo.
         return str(path.resolve()), password, (st.st_mtime_ns, st.st_size), bare
 
-    def _close_doc(self):
-        """Close the document shown (its pages are no longer shown)."""
+    def _close_doc(self, carry: bool = False):
+        """Close the document shown (its pages are no longer shown). CARRY: another state of it comes next,
+        which may show again the pictures of the pages that stay as they are (see PageCanvas.carry_over)."""
+        if carry and self.doc is not None:
+            # (only the thumbnails near those in view: fingerprinting hundreds of pages would slow every change)
+            near = set(self._thumb_rows())
+            carried = self.canvas.carry_over({n: image for n, image in self._thumbs.items() if n in near})
+            # Los de antes se quedan también (dos cambios seguidos, antes de que lleguen las miniaturas), hasta
+            # MAX_THUMBS, los más viejos fuera primero.
+            merged = {**{k: v for k, v in self._carried_thumbs.items() if k not in carried}, **carried}
+            self._carried_thumbs = dict(list(merged.items())[-MAX_THUMBS:])
+        elif not carry:
+            self.canvas.forget_carried()
+            self._carried_thumbs = {}
         self.thumb_timer.stop()
         self.canvas.set_document(None)
         if self.doc is not None:
@@ -1771,7 +1786,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # (what the file has is what was read when it was shown, unless it changed since: then it is read again)
         known = self.known_in_file()
         if replacing:  # (the file is about to change under the open document)
-            self._close_doc()
+            self._close_doc(carry=True)
         kept: set[int] = set()
         try:
             result: list[Annotation] = []
@@ -1789,7 +1804,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # the file: those steps are of other files, and are dropped, as drop_work does)
         working = self.work is not None or any(isinstance(s, DocState) for s in self.undo_stack + self.redo_stack)
         # Las anotaciones escritas vienen en result: el archivo recién guardado no se vuelve a leer.
-        found = self._load(target, self.password, page, known=result)
+        found = self._load(target, self.password, page, known=result, carry=True)
         if found is None:
             return False
         if working:  # (it is in the file now; and the history's steps are of files that are gone)
@@ -2720,7 +2735,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         if dialog.performance_changed:
             # (drawn anew: with the antialiasing chosen, and caches of the new size)
             self.canvas.clear_cache()
-            self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+            self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
             self.canvas.render_timer.start()
             self.thumb_timer.start()
         self.refresh()
@@ -2764,7 +2779,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             return
         page = self.page
         self.canvas.clear_cache()
-        self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+        self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
         self.canvas.layout()
         self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
         self.show_page(page)
@@ -2896,7 +2911,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.settings.setValue("thumb_height", height)
         self._size_thumbnails()
         # Las miniaturas hechas tienen el tamaño anterior: se descartan y se dibujan otra vez.
-        self._thumbs, self._thumb_shown, self._thumb_asked = {}, {}, set()
+        self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
         if self.doc is not None:
             self._fill_pages()
             self._label_pages()
@@ -3666,6 +3681,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         rows = self._thumb_rows()
         self._forget_far_thumbnails(rows)
         missing = [n for n in rows if n not in self._thumbs]
+        if self._carried_thumbs:  # (those of pages a change didn't touch, from before it: see _close_doc)
+            for n in list(missing):
+                image = self._carried_thumbs.get(self.canvas.page_print(n))
+                if image is not None:
+                    self._thumbs[n] = image
+                    self._thumb(n)
+                    missing.remove(n)
         if remote is not None:
             wanted = set(rows)
             # Las que ya no se ven dejan la cola; las que se están haciendo llegan igual.
@@ -3712,6 +3734,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         image = self._thumbs.get(n)
         if image is None or n >= self.pages.count():
             return
+        self.canvas.want_print(n)  # (so that a change finds it worked out: see _close_doc)
         shown = tuple(self._by_page[n]) if n < len(self._by_page) else ()
         # The annotations shown on it are those of last time: no need to paint it again.
         if self._thumb_shown.get(n) == shown:

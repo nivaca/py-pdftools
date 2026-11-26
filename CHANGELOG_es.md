@@ -23,6 +23,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
   o movidas, OCR, enlaces, marcadores...), la vista podía saltar a otra
   página, de la 40 a la 19: la lista de miniaturas, hecha de nuevo, se
   tomaba por un clic en una de ellas.
+- Tras un cambio del documento mismo, al deshacerlo o al guardar, las
+  páginas y miniaturas que el cambio no tocó se muestran enseguida tal como
+  estaban dibujadas, vayan donde vayan, en lugar de dibujarse otra vez;
+  solo se dibujan las que cambiaron. En un diccionario escaneado, las
+  páginas a la vista volvieron en 0,1 s en lugar de 0,5 a 0,8.
 - Las páginas que se guardan dibujadas se limitan por la memoria que
   ocupan (64, 256 o 768 MB, según el ajuste de memoria), no por su número:
   a un zoom bajo se guardan más, y a uno alto dieciséis páginas grandes ya
