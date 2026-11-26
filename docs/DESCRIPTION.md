@@ -2140,10 +2140,38 @@ the same icon follows a change of theme while the program runs, which a
 second set of files, loaded once, would not. A test draws the Signature
 icon in the light and in the dark theme and measures its darkest pixel.
 
+96. More themes, and a choice of icons
+--------------------------------------
+
+The user asked for a way to choose among several themes and icon sets,
+as Calibre has (I read its source for this: its palettes, its icon
+themes and its viewer). Four colour themes joined the four there were:
+Nord, a dark blue-grey; Solarized, light and dark; and Sepia, warm paper
+with brown ink. Each is a whole palette, as the others, and a test
+checks that the text on its fields and the text of what is selected
+reach a contrast of 4.5 to 1. That test caught the old light theme, whose
+selection gave 4.0; its blue is a little darker now, and so are those of
+Nord and Solarized, which were near 3.5. Solarized's own grey text is
+faint on its cream, so the light one has a darker grey.
+
+The icons are a new setting: those of the desktop's icon theme, as
+before (the program's own where the theme has none), the program's own
+everywhere, or any icon theme installed, found by reading the
+index.theme of each folder where Qt looks for themes (themes of cursors,
+which have no icons, and hicolor, which every theme falls back to, are
+left out). The icons the program has a file for are now chosen when they
+are drawn, by the same engine as before: the theme's while the theme
+has one, the program's own otherwise. When the theme was asked once,
+at the start, an icon taken from one theme stayed empty after a change
+to another theme without it. Both choices are in Settings > Appearance
+and in View > Theme and View > Icons, which change them at once in every
+window and keep them. Tooltips get the palette too: Calibre notes that
+they keep the old colours otherwise.
+
 Testing
 -------
 
-The program has 830 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 835 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

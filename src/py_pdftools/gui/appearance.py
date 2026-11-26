@@ -9,8 +9,14 @@ import os
 import pathlib
 
 from ..core import config
+from ..core.interface import N_
 
-THEMES = ("system", "light", "dark", "contrast")
+THEMES = ("system", "light", "dark", "contrast", "nord", "solarized-light", "solarized-dark", "sepia")
+# (their names, in the View menu and in Settings, in this order)
+THEME_NAMES = {"system": N_("As the system"), "light": N_("Light"), "dark": N_("Dark"), "contrast": N_("High contrast"),
+               "nord": N_("Nord"), "solarized-light": N_("Solarized light"), "solarized-dark": N_("Solarized dark"),
+               "sepia": N_("Sepia")}
+DARK_THEMES = {"dark", "contrast", "nord", "solarized-dark"}  # (with the dark variant of the icons)
 SCALES = (90, 100, 110, 125, 150)
 OPENINGS = ("document", "page", "width", "actual")  # (how a document opens, without a place remembered)
 _BASE_POINTS: float | None = None  # (the size of the letters before any scale: that of the system)
@@ -28,7 +34,7 @@ _SYSTEM_ICONS: str | None = None  # (the icon theme of the desktop, before any t
 PALETTES = {
     "light": {"Window": "#efefef", "WindowText": "#1e1e1e", "Base": "#ffffff", "AlternateBase": "#f5f5f5",
               "Text": "#1e1e1e", "Button": "#e6e6e6", "ButtonText": "#1e1e1e", "BrightText": "#ffffff",
-              "Highlight": "#3d7fd6", "HighlightedText": "#ffffff", "ToolTipBase": "#ffffdc",
+              "Highlight": "#3374c9", "HighlightedText": "#ffffff", "ToolTipBase": "#ffffdc",
               "ToolTipText": "#1e1e1e", "Link": "#0b57d0", "LinkVisited": "#7b3fb0", "PlaceholderText": "#7a7a7a",
               "Light": "#ffffff", "Midlight": "#f5f5f5", "Mid": "#b8b8b8", "Dark": "#9f9f9f", "Shadow": "#767676"},
     "dark": {"Window": "#2b2d30", "WindowText": "#e6e6e6", "Base": "#1e1f22", "AlternateBase": "#2b2d30",
@@ -43,8 +49,35 @@ PALETTES = {
                  "Highlight": "#ffff00", "HighlightedText": "#000000", "ToolTipBase": "#000000",
                  "ToolTipText": "#ffffff", "Link": "#00ffff", "LinkVisited": "#ff80ff", "PlaceholderText": "#c8c8c8",
                  "Light": "#ffffff", "Midlight": "#c8c8c8", "Mid": "#ffffff", "Dark": "#ffffff", "Shadow": "#ffffff"},
+    # Nord: gris azulado oscuro, con el azul y el cian de su paleta (nordtheme.com)
+    "nord": {"Window": "#2e3440", "WindowText": "#e5e9f0", "Base": "#272b33", "AlternateBase": "#2e3440",
+             "Text": "#e5e9f0", "Button": "#3b4252", "ButtonText": "#e5e9f0", "BrightText": "#bf616a",
+             "Highlight": "#4c6a91", "HighlightedText": "#eceff4", "ToolTipBase": "#3b4252",
+             "ToolTipText": "#e5e9f0", "Link": "#88c0d0", "LinkVisited": "#b48ead", "PlaceholderText": "#7b88a1",
+             "Light": "#4c566a", "Midlight": "#434c5e", "Mid": "#3b4252", "Dark": "#1f232b", "Shadow": "#000000"},
+    # Solarized (ethanschoonover.com/solarized): its text, a little darker on the light one than the original
+    # grey, which is faint on its cream.
+    "solarized-light": {"Window": "#eee8d5", "WindowText": "#3c4f56", "Base": "#fdf6e3", "AlternateBase": "#f5efdc",
+                        "Text": "#3c4f56", "Button": "#e6dfcb", "ButtonText": "#3c4f56", "BrightText": "#fdf6e3",
+                        "Highlight": "#1f6fa8", "HighlightedText": "#fdf6e3", "ToolTipBase": "#fdf6e3",
+                        "ToolTipText": "#3c4f56", "Link": "#1f6fa8", "LinkVisited": "#6c71c4",
+                        "PlaceholderText": "#8a9696", "Light": "#fdf6e3", "Midlight": "#f5efdc", "Mid": "#c9c2ad",
+                        "Dark": "#a8a290", "Shadow": "#7a7564"},
+    "solarized-dark": {"Window": "#073642", "WindowText": "#a7b4b4", "Base": "#002b36", "AlternateBase": "#073642",
+                       "Text": "#a7b4b4", "Button": "#0b4352", "ButtonText": "#a7b4b4", "BrightText": "#dc322f",
+                       "Highlight": "#1f6fa8", "HighlightedText": "#fdf6e3", "ToolTipBase": "#073642",
+                       "ToolTipText": "#a7b4b4", "Link": "#2aa198", "LinkVisited": "#6c71c4",
+                       "PlaceholderText": "#657b83", "Light": "#2c5a66", "Midlight": "#1b4a55", "Mid": "#073642",
+                       "Dark": "#001e26", "Shadow": "#000000"},
+    # Sepia: papel cálido y tinta parda, para leer largo rato con poca luz
+    "sepia": {"Window": "#f1e7d0", "WindowText": "#3b2f20", "Base": "#fbf4e4", "AlternateBase": "#f4ead4",
+              "Text": "#3b2f20", "Button": "#e8dcc0", "ButtonText": "#3b2f20", "BrightText": "#ffffff",
+              "Highlight": "#9c6b30", "HighlightedText": "#ffffff", "ToolTipBase": "#fbf4e4",
+              "ToolTipText": "#3b2f20", "Link": "#8a4b0f", "LinkVisited": "#6b3e75", "PlaceholderText": "#8c7b62",
+              "Light": "#fffaf0", "Midlight": "#f4ead4", "Mid": "#c4b496", "Dark": "#a39274", "Shadow": "#6f604a"},
 }
-DISABLED = {"light": "#a0a0a0", "dark": "#7a7d80", "contrast": "#9a9a9a"}  # (the text of what can't be used)
+DISABLED = {"light": "#a0a0a0", "dark": "#7a7d80", "contrast": "#9a9a9a",  # (the text of what can't be used)
+            "nord": "#6c7790", "solarized-light": "#a8a89c", "solarized-dark": "#4f6a72", "sepia": "#ab9c80"}
 # Con alto contraste, cada casilla, lista y desplegable lleva un borde blanco, y el que tiene el foco uno amarillo
 # más grueso: la paleta sola no basta, porque algunos estilos dibujan esos bordes con colores casi del fondo.
 CONTRAST_STYLE = (
@@ -105,14 +138,14 @@ def icon_theme(name: str, dark: bool) -> str:
 
 
 def apply_theme(name: str | None = None):
-    """The colours of the interface: as the system has them, light or dark. Light and dark set a whole
-    palette of the program's own, and the matching variant of the icon theme: asking Qt for a scheme of
+    """The colours of the interface: as the system has them, or one of the program's themes (THEMES), each a
+    whole palette of its own, and the matching variant of the icon theme: asking Qt for a scheme of
     colours alone isn't enough, since the desktop's own theme (the portal of KDE, for one) may keep its
     colours over it. 'system' gives the desktop its colours and icons back."""
     global _SYSTEM_ICONS
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QGuiApplication, QIcon, QPalette
-    from PySide6.QtWidgets import QApplication
+    from PySide6.QtWidgets import QApplication, QToolTip
 
     app = QApplication.instance()
     if app is None:
@@ -122,22 +155,85 @@ def apply_theme(name: str | None = None):
         _SYSTEM_ICONS = QIcon.themeName()
     hints = QGuiApplication.styleHints()
     if name in PALETTES:
-        dark = name != "light"  # (high contrast is white on black: the icons of a dark theme)
+        dark = name in DARK_THEMES  # (high contrast is white on black: the icons of a dark theme)
         # (also the scheme, for what reads it: the style, the dialogs of the system, where they follow it)
         if hasattr(hints, "setColorScheme"):  # (Qt 6.8 or later)
             hints.setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
         app.setPalette(palette(name))
+        QToolTip.setPalette(app.palette())  # (los globos de ayuda guardan la suya: quedaban del tema anterior)
         app.setStyleSheet(CONTRAST_STYLE if name == "contrast" else "")
-        if _SYSTEM_ICONS:
-            QIcon.setThemeName(icon_theme(_SYSTEM_ICONS, dark))
+        apply_icons(dark)
         return
     if hasattr(hints, "unsetColorScheme"):
         hints.unsetColorScheme()
     # Una paleta vacía (sin ningún papel fijado) devuelve la de la plataforma
     app.setPalette(QPalette())
+    QToolTip.setPalette(app.palette())
     app.setStyleSheet("")
-    if _SYSTEM_ICONS:
-        QIcon.setThemeName(_SYSTEM_ICONS)
+    apply_icons(None)
+
+
+ICON_CHOICES = {"system": N_("As the desktop"), "own": N_("The program's own")}  # (and each theme installed)
+
+
+def installed_icon_themes() -> list[tuple[str, str]]:
+    """The icon themes installed, that have icons of actions (not those of cursors, nor hicolor, which every
+    theme falls back to): (their folder's name, the name they give themselves), in the order of the names."""
+    import configparser
+
+    from PySide6.QtGui import QIcon
+
+    found: dict[str, str] = {}
+    for folder in QIcon.themeSearchPaths():
+        if folder.startswith(":"):  # (Qt's resources: no theme of the system)
+            continue
+        try:
+            names = sorted(os.listdir(folder))
+        except OSError:
+            continue
+        for theme in names:
+            index = pathlib.Path(folder, theme, "index.theme")
+            if theme in found or theme.lower() in ("hicolor", "locolor", "default") or not index.is_file():
+                continue
+            parser = configparser.ConfigParser(interpolation=None, strict=False)
+            try:
+                parser.read_string(index.read_text(encoding="utf-8", errors="replace"))
+                about = parser["Icon Theme"]
+            except (configparser.Error, KeyError, OSError):
+                continue
+            # (un tema de cursores no tiene carpetas de iconos; uno oculto no se ofrece)
+            if "actions" not in about.get("Directories", "").lower() or about.get("Hidden", "").lower() == "true":
+                continue
+            found[theme] = about.get("Name", theme) or theme
+    return sorted(found.items(), key=lambda item: (item[1].casefold(), item[0]))
+
+
+def apply_icons(dark: bool | None = ...):
+    """The icons, as the setting 'icons' says: 'system', the desktop's theme (in its light or dark variant,
+    with a theme of the program: DARK, whether it is dark; None, as the desktop has it); 'own', the
+    program's own SVGs wherever it has one; or the name of an icon theme installed. Every widget is drawn
+    again: the icons of the program follow the theme when they are drawn (see own_icons.py)."""
+    global _SYSTEM_ICONS
+    from PySide6.QtGui import QIcon
+    from PySide6.QtWidgets import QApplication
+
+    from . import own_icons
+
+    if _SYSTEM_ICONS is None:
+        _SYSTEM_ICONS = QIcon.themeName()
+    if dark is ...:  # (asked by itself: the dark of the theme in use)
+        theme = value("theme")
+        dark = (theme in DARK_THEMES) if theme in PALETTES else None
+    choice = value("icons") or "system"
+    own_icons.OWN_ONLY = choice == "own"
+    if choice not in ICON_CHOICES and _icon_theme_exists(choice):
+        QIcon.setThemeName(choice)
+    elif _SYSTEM_ICONS:
+        QIcon.setThemeName(icon_theme(_SYSTEM_ICONS, dark) if dark is not None else _SYSTEM_ICONS)
+    app = QApplication.instance()
+    if app is not None:
+        for widget in app.allWidgets():
+            widget.update()
 
 
 def apply_scale(percent: int | None = None):

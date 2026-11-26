@@ -19,6 +19,7 @@ DARK = {"#6b7280": "#b4bac5", "#9ca3af": "#7d8593", "#1d1f24": "#eceff4", "#3741
         "#4b5563": "#c9ced6", "#1a237e": "#a5b4fc", "#2e7d32": "#5cb860", "#c62828": "#ef5350"}
 # (dark marks on a light fill of the icon itself stay as they are: the letters on Highlight's yellow)
 ON_FILL = {"draw-highlight": {"#1d1f24"}, "highlight-area": {"#4b5563"}}
+OWN_ONLY = False  # (the setting icons is 'own': the program's icons, even where the theme has one: see appearance)
 _COLOUR = re.compile("|".join(re.escape(c) for c in DARK), re.IGNORECASE)
 
 
@@ -79,6 +80,46 @@ class OwnIconEngine(QIconEngine):
 
     def key(self) -> str:
         return "py-pdftools-own"
+
+
+class NamedIconEngine(OwnIconEngine):
+    """The icon NAME (a freedesktop name) of the icon theme in use, if it has one and the program's own aren't
+    asked for; else the program's own (PATH). Chosen each time it is drawn, so that a change of theme (or of
+    the setting icons) shows at once: an icon taken from the theme when the window was built stayed empty in
+    a theme without it, and the program's own was never used again."""
+
+    def __init__(self, name: str, path: Path):
+        super().__init__(path)
+        self.name = name
+        self._theme_icon: QIcon | None = None
+
+    def _themed(self) -> QIcon | None:
+        if OWN_ONLY or not QIcon.hasThemeIcon(self.name):
+            return None
+        if self._theme_icon is None:
+            self._theme_icon = QIcon.fromTheme(self.name)  # (it follows the theme by itself)
+        return self._theme_icon
+
+    def paint(self, painter: QPainter, rect: QRect, mode: QIcon.Mode, state: QIcon.State):
+        themed = self._themed()
+        if themed is None:
+            super().paint(painter, rect, mode, state)
+        else:
+            themed.paint(painter, rect, Qt.AlignmentFlag.AlignCenter, mode, state)
+
+    def scaledPixmap(self, size: QSize, mode: QIcon.Mode, state: QIcon.State, scale: float) -> QPixmap:
+        themed = self._themed()
+        if themed is None:
+            return super().scaledPixmap(size, mode, state, scale)
+        return themed.pixmap(size, scale, mode, state)
+
+    def clone(self) -> QIconEngine:
+        return NamedIconEngine(self.name, self.path)
+
+
+def named_icon(name: str, path: Path) -> QIcon:
+    """The icon NAME of the theme in use, or the program's own at PATH: see NamedIconEngine."""
+    return QIcon(NamedIconEngine(name, path))
 
 
 def own_icon(path: Path) -> QIcon:

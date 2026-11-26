@@ -14116,4 +14116,44 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>How much of the height of the signature the picture takes; your name and the time go under it, or over its foot if they don't fit</en>
     <tr>Qué parte del alto de la firma ocupa la imagen; su nombre y la hora van debajo, o sobre el pie de la imagen si no caben</tr>
   </text>
+  <text>
+    <en>As the desktop</en>
+    <tr>Como el escritorio</tr>
+  </text>
+  <text>
+    <en>Icons</en>
+    <tr>Iconos</tr>
+  </text>
+  <text>
+    <en>Icons:</en>
+    <tr>Iconos:</tr>
+  </text>
+  <text>
+    <en>Nord</en>
+    <tr>Nord</tr>
+  </text>
+  <text>
+    <en>Sepia</en>
+    <tr>Sepia</tr>
+  </text>
+  <text>
+    <en>Solarized dark</en>
+    <tr>Solarized oscuro</tr>
+  </text>
+  <text>
+    <en>Solarized light</en>
+    <tr>Solarized claro</tr>
+  </text>
+  <text>
+    <en>The icons of the buttons and menus: the desktop's icon theme, the program's own everywhere, or another icon theme installed</en>
+    <tr>Los iconos de los botones y los menús: el tema de iconos del escritorio, los propios del programa en todas partes u otro tema de iconos instalado</tr>
+  </text>
+  <text>
+    <en>The program's own</en>
+    <tr>Los propios del programa</tr>
+  </text>
+  <text>
+    <en>Theme</en>
+    <tr>Tema</tr>
+  </text>
 </interface>

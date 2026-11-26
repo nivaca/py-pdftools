@@ -184,14 +184,14 @@ ACTIONS = Path(__file__).resolve().parent.parent / "icons" / "actions"
 PAGE_ZOOM = "pagezoom"  # (the object name of the toolbar Page and zoom: see MainWindow.page_zoom_bar)
 
 def icon(name: str) -> QIcon:
-    """The icon NAME (a freedesktop name: document-open...) of the desktop's icon
-    theme, so that it looks like the rest of the desktop; or else the program's own."""
-    # Primero el tema del escritorio; el SVG propio de icons/actions solo cuenta si el tema no trae ese icono.
-    # (drawn in the colours of the interface when it shows: its dark lines are made light on a dark one)
-    from .own_icons import own_icon
+    """The icon NAME (a freedesktop name: document-open...) of the icon theme in use, so that it looks like the
+    rest of the desktop; or else (or if the setting icons asks for them) the program's own."""
+    # Se elige al dibujarse, según el tema de iconos de ese momento y el ajuste icons; el SVG propio, con los
+    # colores de la interfaz de entonces (sus trazos oscuros, claros sobre un fondo oscuro): véase own_icons.py.
+    from .own_icons import named_icon
 
     own = ACTIONS / f"{name}.svg"
-    return QIcon.fromTheme(name, own_icon(own) if own.is_file() else QIcon())
+    return named_icon(name, own) if own.is_file() else QIcon.fromTheme(name)
 
 
 # los iconos de los modos (icons/actions; 'pages' es Foliar), con nombres que ningún tema tiene
@@ -685,6 +685,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.m_layers.aboutToShow.connect(self.layers_menu)
         m = self.m_view = self.menuBar().addMenu(tr("&View"))
         m.setToolTipsVisible(True)
+        # Tema e iconos: los mismos que en Configuración > Apariencia, para cambiarlos al instante; sus casillas
+        # se rehacen cada vez que se abren (otra ventana, o la Configuración, pudo cambiarlos)
+        self.m_theme = m.addMenu(tr("Theme"))
+        self.m_theme.setObjectName("theme")
+        self.m_theme.aboutToShow.connect(self._fill_theme_menu)
+        self.m_icons = m.addMenu(tr("Icons"))
+        self.m_icons.setObjectName("icons")
+        self.m_icons.aboutToShow.connect(self._fill_icons_menu)
         self.a_show = QAction(tr("Show annotations"), self, checkable=True, checked=True)
         self.a_show.setShortcut(QKeySequence("Ctrl+Shift+A"))
         self.a_show.setToolTip(tr("Hide them to see the document as it is without them"))
@@ -1247,6 +1255,74 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._asked = False
         fresh.close()
         return False
+
+    def _choice_menu(self, menu: QMenu, choices: list, now: str):
+        """MENU emptied and filled with CHOICES ((key, name), or None for a separator), one of them ticked (NOW);
+        see _choice_made."""
+        menu.clear()
+        group = QActionGroup(menu)
+        for item in choices:
+            if item is None:
+                menu.addSeparator()
+                continue
+            key, name = item
+            act = menu.addAction(name)
+            act.setCheckable(True)
+            act.setChecked(key == now)
+            act.setData(key)
+            group.addAction(act)
+        # (the group of the last time goes, with its actions, which clear() deleted)
+        groups = self.__dict__.setdefault("_choice_groups", {})
+        if menu.objectName() in groups:
+            groups[menu.objectName()].deleteLater()
+        groups[menu.objectName()] = group
+        group.triggered.connect(self._choice_made)
+
+    def _choice_made(self, act: QAction):
+        if act.parent() is self.m_theme:
+            self.set_theme(act.data())
+        elif act.parent() is self.m_icons:
+            self.set_icons(act.data())
+
+    def _fill_theme_menu(self):
+        from . import appearance
+
+        self._choice_menu(self.m_theme, [(k, tr(appearance.THEME_NAMES[k])) for k in appearance.THEMES],
+                          appearance.value("theme"))
+
+    def _fill_icons_menu(self):
+        from . import appearance
+
+        installed = appearance.installed_icon_themes()
+        now = appearance.value("icons")
+        if now not in appearance.ICON_CHOICES and now not in dict(installed):  # (a theme no longer installed)
+            now = "system"
+        choices = [(k, tr(name)) for k, name in appearance.ICON_CHOICES.items()]
+        self._choice_menu(self.m_icons, choices + ([None] + installed if installed else []), now)
+
+    def set_theme(self, key: str):
+        """View > Theme: the colours of every window, at once, and kept (as in Settings > Appearance)."""
+        from ..core import config
+        from . import appearance
+
+        try:
+            config.set("theme", key)
+        except OSError as e:
+            self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+            return
+        appearance.apply_theme()
+
+    def set_icons(self, key: str):
+        """View > Icons: the icon theme of every window, at once, and kept (as in Settings > Appearance)."""
+        from ..core import config
+        from . import appearance
+
+        try:
+            config.set("icons", key)
+        except OSError as e:
+            self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+            return
+        appearance.apply_icons()
 
     def quit_program(self) -> bool:
         from . import quit_all

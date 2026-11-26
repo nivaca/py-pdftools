@@ -349,11 +349,23 @@ class SettingsDialog(QDialog):
         page = QWidget()
         form = QFormLayout(page)
         self.theme = QComboBox()
-        for key, name in (("system", N_("As the system")), ("light", N_("Light")), ("dark", N_("Dark")),
-                          ("contrast", N_("High contrast"))):
-            self.theme.addItem(tr(name), key)
+        for key in appearance.THEMES:
+            self.theme.addItem(tr(appearance.THEME_NAMES[key]), key)
         self.theme.setCurrentIndex(max(0, self.theme.findData(appearance.value("theme"))))
         form.addRow(tr("Theme:"), self.theme)
+        # (the icon themes installed, after the desktop's and the program's own; a theme no longer there: the desktop's)
+        self.icons = QComboBox()
+        for key, name in appearance.ICON_CHOICES.items():
+            self.icons.addItem(tr(name), key)
+        installed = appearance.installed_icon_themes()
+        if installed:
+            self.icons.insertSeparator(self.icons.count())
+        for key, name in installed:
+            self.icons.addItem(name, key)
+        self.icons.setCurrentIndex(max(0, self.icons.findData(appearance.value("icons"))))
+        self.icons.setToolTip(tr("The icons of the buttons and menus: the desktop's icon theme, the program's own "
+                                 "everywhere, or another icon theme installed"))
+        form.addRow(tr("Icons:"), self.icons)
         self.scale = QComboBox()
         for percent in appearance.SCALES:
             self.scale.addItem(f"{percent} %", percent)
@@ -444,7 +456,8 @@ class SettingsDialog(QDialog):
         from . import appearance
         from .window import _WINDOWS
 
-        values = {"theme": self.theme.currentData(), "scale": self.scale.currentData(),
+        values = {"theme": self.theme.currentData(), "icons": self.icons.currentData(),
+                  "scale": self.scale.currentData(),
                   "sharpness": self.sharpness.currentData(),
                   "hints": self.hints.isChecked(), "tooltips": self.tooltips.isChecked(),
                   "opening": self.opening.currentData(),
@@ -457,7 +470,9 @@ class SettingsDialog(QDialog):
             except OSError as e:
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
         if "theme" in changed:
-            appearance.apply_theme()
+            appearance.apply_theme()  # (and the icons: see apply_icons)
+        elif "icons" in changed:
+            appearance.apply_icons()
         if "scale" in changed:
             appearance.apply_scale()
         if "tooltips" in changed:
