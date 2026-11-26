@@ -404,6 +404,11 @@ class SettingsDialog(QDialog):
         self.hints.setChecked(bool(appearance.value("hints")))
         self.hints.setToolTip(tr("Over the pages, for a few seconds; Help > Tips for this mode (F1) shows it always"))
         form.addRow("", self.hints)
+        self.annot_panel = QCheckBox(tr("Show the Annotations panel when the mode Annotate is chosen"))
+        self.annot_panel.setChecked(bool(appearance.value("annot_panel")))
+        self.annot_panel.setToolTip(tr("Off, the panel stays hidden until View > Panels > Annotations panel (F4) "
+                                       "shows it"))
+        form.addRow("", self.annot_panel)
         self.tooltips = QCheckBox(tr("Show tooltips: what a button, menu or field does, when the mouse rests on it"))
         self.tooltips.setChecked(bool(appearance.value("tooltips")))
         form.addRow("", self.tooltips)
@@ -475,6 +480,7 @@ class SettingsDialog(QDialog):
                   "scale": self.scale.currentData(),
                   "sharpness": self.sharpness.currentData(),
                   "hints": self.hints.isChecked(), "tooltips": self.tooltips.isChecked(),
+                  "annot_panel": self.annot_panel.isChecked(),
                   "opening": self.opening.currentData(),
                   "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
                   "recent": self.recent.value(), "dialogs": self.dialogs.currentData()}

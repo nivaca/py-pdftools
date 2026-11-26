@@ -2583,8 +2583,8 @@ redacted copy is written (in the function that writes it, before anything
 else) and whenever the setting is off, also at the start. The manuals say
 so, with a new picture of the page of settings.
 
-112. Plain text, a question before closing, and recent documents in tabs
-------------------------------------------------------------------------
+112. Plain text, a question before closing, recent documents, a hidden panel
+----------------------------------------------------------------------------
 
 The text of a document could already be saved as plain text, but only by
 choosing "Plain text (*.txt)" in the list of types of the dialog, which
@@ -2615,10 +2615,18 @@ a window without a document it opens there, and a document already open
 somewhere is only brought to the front. A file that can no longer be
 opened leaves no empty tab behind.
 
+Then the user asked that the Annotations panel not open by itself with the
+mode Annotate. It took half the window on a small screen, and was not
+needed to draw or comment. The panel was part of each mode's kept
+arrangement, so hiding it once was not enough: the arrangement brought it
+back. Now, after the arrangement is restored, the panel is shown or hidden
+by a setting of its own (Settings > Appearance, off at first), as was
+already done for the bookmarks; F4 still shows it at any time.
+
 Testing
 -------
 
-The program has 886 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 887 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

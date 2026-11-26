@@ -256,8 +256,8 @@ and how it is arranged:
   with Ctrl, it draws a box), Find and redact, redaction codes, and the
   panel of the boxes;
 * **Annotate**: the tools of py-annotate, in the second toolbar and the
-  menu Annotate; the panel of the annotations on the right, which can be
-  searched, filtered and sorted; stamps of one's own, made of a picture or
+  menu Annotate; the panel of the annotations on the right (F4; hidden at
+  first, unless Settings > Appearance asks for it), which can be searched, filtered and sorted; stamps of one's own, made of a picture or
   of a page of a PDF (a seal, a logo), in the Stamp tool's right-click
   menu, with the standard ones;
 * **Foliate**: the ranges of labels and the list of the pages with their

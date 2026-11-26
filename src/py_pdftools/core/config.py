@@ -40,6 +40,7 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             # (Settings > Appearance and Documents: see gui/appearance.py)
             "theme": "system", "icons": "system", "scale": 100, "hints": False, "tooltips": False, "sharpness": "sharper",
             "opening": "document", "places": True, "ask_links": True, "recent": 10, "dialogs": "last",
+            "annot_panel": False,  # (annot_panel: the panel Annotations shown on entering Annotate: gui/window.py)
             "speech_rate": 0.0}  # (speech_rate: of reading aloud, from -1 to 1: see gui/readaloud.py)
 
 

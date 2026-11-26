@@ -263,7 +263,8 @@ cómo se dispone:
   en otra parte, o con Ctrl, dibuja un recuadro), Buscar y censurar, los
   códigos de censura y el panel de los recuadros;
 * **Anotar**: las herramientas de py-annotate, en la segunda barra y en el
-  menú Anotar; el panel de las anotaciones a la derecha, que se puede
+  menú Anotar; el panel de las anotaciones a la derecha (F4; oculto al
+  principio, salvo que Configuración > Aspecto lo pida), que se puede
   buscar, filtrar y ordenar; sellos propios, hechos de una imagen o de una
   página de un PDF (un sello oficial, un logotipo), en el menú del botón
   derecho de la herramienta Sello, junto a los estándar;

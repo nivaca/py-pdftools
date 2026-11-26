@@ -7,6 +7,9 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- The Annotations panel no longer opens by itself with the mode Annotate;
+  F4 shows it. Settings > Appearance > Show the Annotations panel when the
+  mode Annotate is chosen (off at first) brings back the old way.
 - File > Open recent opens the document in a new tab beside the one
   shown, instead of replacing it; in a window without a document it opens
   there, and a document already open is only brought to the front.

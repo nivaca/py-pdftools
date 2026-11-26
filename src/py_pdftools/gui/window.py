@@ -1239,6 +1239,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                 dock.setVisible(on)
         # La disposición propia del modo, si ya tiene una: dónde están sus barras y paneles, cuáles se ven.
         self.arrange(key)
+        if key == "annotate":
+            # El panel de las anotaciones se abre solo si la configuración lo pide (Configuración > Aspecto),
+            # diga lo que diga la disposición guardada; View > Panels > Annotations panel (F4) lo muestra igual.
+            self.panel.setVisible(bool(appearance.value("annot_panel")))
         self.mode_actions[key].setChecked(True)
         if appearance.value("hints"):  # (Settings > Appearance; F1 shows it all the same)
             self.hint.show_text(self.hints.get(key, ""))

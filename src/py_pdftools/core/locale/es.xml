@@ -14280,4 +14280,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{count} documents are open. Quit py-pdftools and close them all?</en>
     <tr>Hay {count} documentos abiertos. ¿Salir de py-pdftools y cerrarlos todos?</tr>
   </text>
+  <text>
+    <en>Show the Annotations panel when the mode Annotate is chosen</en>
+    <tr>Mostrar el panel de anotaciones al elegir el modo Anotar</tr>
+  </text>
+  <text>
+    <en>Off, the panel stays hidden until View &gt; Panels &gt; Annotations panel (F4) shows it</en>
+    <tr>Desactivado, el panel queda oculto hasta que Ver &gt; Paneles &gt; Panel de anotaciones (F4) lo muestre</tr>
+  </text>
 </interface>

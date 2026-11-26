@@ -7,6 +7,9 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- El panel de anotaciones ya no se abre solo con el modo Anotar; F4 lo
+  muestra. Configuración > Aspecto > Mostrar el panel de anotaciones al
+  elegir el modo Anotar (desactivado al principio) devuelve lo de antes.
 - Archivo > Abrir reciente abre el documento en una pestaña nueva junto a
   la visible, en vez de reemplazarlo; en una ventana sin documento se abre
   ahí, y uno ya abierto solo pasa al frente.

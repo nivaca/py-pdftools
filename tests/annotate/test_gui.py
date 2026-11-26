@@ -541,6 +541,8 @@ def test_save_as_pdfa(window, tmp_path):
 
 
 def test_panel_can_be_hidden(window):
+    assert not window.panel.isVisible()  # (hidden at first in the mode Annotate: Settings > Appearance)
+    window.a_panel.trigger()
     assert window.panel.isVisible()
     window.a_panel.trigger()
     assert not window.panel.isVisible()
@@ -1342,3 +1344,18 @@ def test_a_strikeout_where_the_saved_one_is(app):
     saved = red_rows(QImage(pix.samples, pix.width, pix.height, pix.stride, QImage.Format.Format_RGB888))
     assert abs(on_screen - saved) < 0.3
     assert 100 - 0.4 * 24 < on_screen < 100 - 0.2 * 24  # (across the small letters, above the baseline at 100)
+
+
+def test_panel_when_the_mode_is_chosen(window):
+    """The Annotations panel opens with the mode Annotate only if the setting annot_panel says so, whatever the
+    arrangement kept for the mode."""
+    from py_pdftools.core import config
+
+    window.a_panel.trigger()
+    window.set_mode("read")
+    window.set_mode("annotate")
+    assert not window.panel.isVisible()  # (shown the last time: hidden again)
+    config.set("annot_panel", True)
+    window.set_mode("read")
+    window.set_mode("annotate")
+    assert window.panel.isVisible()
