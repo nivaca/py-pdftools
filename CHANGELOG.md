@@ -5,6 +5,48 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.19.0 — 2026-11-25
+
+- View > Theme and View > Icons, also in Settings > Appearance, change
+  at once in every window: four more colour themes (Nord, Solarized light
+  and dark, Sepia), and the icons of the desktop's theme, the program's
+  own everywhere, or any icon theme installed. The program's own icons
+  are drawn with light lines on a dark interface (Signature's was
+  unreadable there). On Windows and macOS the program's themes use Qt's
+  Fusion style, whose colours they control; a theme is set again if the
+  desktop changes the colours while the program runs. The light theme's
+  selection is a little darker, for contrast.
+- View > Read aloud (F12) reads the text with the system's voice, from
+  the page in view on, a sentence at a time, the sentence highlighted
+  (and the word, where the voice tells it); Shift+F12 pauses, and the
+  speed is kept. It needs Qt's QtTextToSpeech: in the PySide6 of the
+  distributions, or `pip install 'py-pdftools[speech]'`.
+- The tooltip of each toolbar button shows the tool's name and key
+  again: they were lost after the first click.
+- Note: dragging a box gives the note's pop-up window that place and
+  size; the icon stays where the drag began. While the button is held,
+  Note and Attach file show a frame where the icon goes, and the tools
+  that drag a box show a frame of dashes while dragging.
+- The picture in a digital signature is larger, and its size is chosen
+  in the dialog to sign.
+- Every search finds quotes as typed or as printed: `"` finds `“ ”` and
+  `« »`, and `don't` finds `don’t`.
+- Run steps on several files has the step Pages as pictures.
+- An attached file that would run instead of opening (`.exe`, `.js`,
+  `.sh`, `.app`…) is not opened; it can be saved. A link to such a file is
+  refused too.
+- An error the program didn't expect shows a dialog with its details,
+  which a button copies for a report.
+- A presentation keeps the screen on.
+- Fixed: Close document (Ctrl+W) asked about unsaved changes after the
+  document had already left the screen; it asks first now.
+- Fixed: the line of a strikeout was drawn some points too high on the
+  screen; it is where the saved file has it.
+- The window is brought back onto a screen if it was left on one that
+  is gone, or is larger than this one. The copies of opened attachments
+  are deleted two days later. A redacted copy leaves the pages without
+  redactions exactly as they were.
+
 ## 1.18.1 — 2026-11-25
 
 - Fixed: on Windows, and on Linux without a desktop's settings, Quit had
