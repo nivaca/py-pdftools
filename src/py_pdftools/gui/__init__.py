@@ -81,6 +81,11 @@ def main(argv: list[str] | None = None) -> int:
     from . import performance
 
     performance.apply()  # (the memory profile, the transparency, the antialiasing: Settings > Performance)
+    from .renderer import renderer
+
+    # Los procesos que dibujan las páginas arrancan ya, mientras se construye la ventana: la primera página no
+    # espera a que arranquen (con el número de procesos que acaba de fijar el perfil de memoria).
+    renderer().warm("view")
     from . import appearance
 
     appearance.apply()  # (the colours and the size of the interface: Settings > Appearance)

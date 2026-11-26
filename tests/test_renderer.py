@@ -92,6 +92,37 @@ def test_a_page_that_stops_its_process(app, renderer, slow_pdf):
     assert not isinstance(other[0], Skipped)
 
 
+def test_the_processes_start_before_a_page_is_asked_for(app, renderer, slow_pdf):
+    """warm() starts the processes of a lane at once; a page asked for then goes straight to one."""
+    renderer.warm("view")
+    slots = renderer.lanes["view"].slots
+    assert slots and all(s.pool is not None for s in slots)
+    wait(app, lambda: all(s.ready for s in slots))
+    got = []
+    renderer.request("view", source(slow_pdf), 0, 1.0, got.append)
+    assert any(s.busy and s.busy[2:3] == (0,) for s in slots)  # (taken at once, no process to start)
+    wait(app, lambda: got)
+    assert not isinstance(got[0], Skipped)
+
+
+def test_a_dead_process_is_replaced_at_once(app, renderer, slow_pdf):
+    """The process that died with a page is started again at once, not when the next page is asked for."""
+    got = []
+    renderer.request("view", source(slow_pdf), 1, 1.0, got.append)
+
+    def drawing():
+        return next((s for s in renderer.lanes["view"].slots if s.busy and s.busy[2:3] == (1,)), None)
+
+    wait(app, lambda: drawing() is not None)
+    slot = drawing()
+    for process in list(slot.pool._processes.values()):
+        process.kill()
+    wait(app, lambda: got)
+    assert isinstance(got[0], Skipped)
+    assert slot.pool is not None  # (a new one, already starting)
+    wait(app, lambda: slot.ready)
+
+
 def test_the_canvas_shows_a_skipped_page(app, slow_pdf, tmp_path, monkeypatch):
     from py_pdftools.gui.window import MainWindow
 

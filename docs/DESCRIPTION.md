@@ -2425,6 +2425,31 @@ and 237 %. A test paints a page's picture at 63.5 and 21.6 pixels and
 checks that it is drawn at 64 and 22, without smoothing; another lays
 three tiles side by side, a little stretched, and finds no seam.
 
+111. What Calibre and PDFCraft had left for speed
+--------------------------------------------------
+
+The user asked me to read both again, PDFCraft updated, for anything that
+would make py-pdftools faster. Two readers went through them, each told what
+py-pdftools did already, and I checked their claims against the code and
+measured what I could. Neither has a trick that would make it several times
+faster; they had seven smaller things, and I did them one by one.
+
+One idea I measured and dropped. PDFCraft plans, and its reader suggested,
+recording each page once as a display list and replaying it for every zoom
+and every tile of a deep zoom. On six documents of mine (scans, two
+dictionaries, a brochure, the manual) it saved almost nothing, and was
+sometimes slower: what costs is decoding the pictures, and MuPDF keeps them
+decoded between renderings in each process already.
+
+The processes that draw the pages started when the first page was asked
+for, and starting one, a Python that imports PyMuPDF, takes 0.3 to 0.4
+seconds here. Calibre's viewer keeps a worker started in advance. Those of
+the pages in view now start with the program, before its window is built;
+the window takes long enough that they are nearly ready when the first
+page is asked for, which came after 310 ms instead of 410 in a test that
+opens a scanned dictionary. A process that dies with a page is replaced at
+once, not when the next page is asked for.
+
 Testing
 -------
 

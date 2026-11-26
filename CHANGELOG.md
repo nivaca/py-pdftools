@@ -12,6 +12,9 @@ Debian package, the RPM, the wheel and the source, are on
   zoom. The page often falls between two pixels of the screen, and OpenGL
   smoothed its picture there; a page shown at its own size is now drawn on
   whole pixels, as sharp as without the graphics card.
+- The processes that draw the pages start with the program, while its
+  window is built, so the first page comes about a tenth of a second
+  sooner; one that dies with a page is replaced at once.
 
 ## 1.19.0 — 2026-11-25
 

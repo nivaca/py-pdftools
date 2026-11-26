@@ -154,27 +154,53 @@ class Renderer(QObject):
                 return
             if slot.busy is not None:
                 continue
+            if not slot.ready:
+                if not self._start(lane, slot):
+                    return
+                continue
             try:
-                if slot.pool is None:
-                    # Spawn, not fork: a forked child would inherit Qt's state and threads, which is not safe.
-                    slot.pool = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
-                    slot.ready, slot.killed = False, False
-                if not slot.ready:
-                    # (the process starts: its first page waits until it is ready, so the time it takes to
-                    # start is not counted against that page)
-                    slot.busy = ("ready",)
-                    future = slot.pool.submit(rendering.ready)
-                else:
-                    key, args = ln.waiting.pop(0)
-                    slot.busy, slot.started = key, time.monotonic()
-                    # Una vez enviada al proceso, la petición ya no se puede cancelar: drop() solo toca la cola.
-                    future = slot.pool.submit(rendering.render, *args)
+                key, args = ln.waiting.pop(0)
+                slot.busy, slot.started = key, time.monotonic()
+                # Una vez enviada al proceso, la petición ya no se puede cancelar: drop() solo toca la cola.
+                future = slot.pool.submit(rendering.render, *args)
             except Exception:  # (no process could be started: render in the window's)
                 self._fail()
                 return
-            future.add_done_callback(lambda f, slot=slot, key=slot.busy: self._arrived.emit((lane, slot, key, f)))
-            if not self.watchdog.isActive():
-                self.watchdog.start()
+            self._watch_future(lane, slot, future)
+
+    def _start(self, lane: str, slot: Slot) -> bool:
+        """Start the process of SLOT (in LANE), if it has none, and have it get ready (rendering.ready): its
+        first page waits until then, so the time it takes to start is not counted against that page. Whether
+        it could be started (else the processes can't render: see _fail)."""
+        try:
+            if slot.pool is None:
+                # Spawn, not fork: a forked child would inherit Qt's state and threads, which is not safe.
+                slot.pool = ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+                slot.ready, slot.killed = False, False
+            slot.busy = ("ready",)
+            future = slot.pool.submit(rendering.ready)
+        except Exception:  # (no process could be started: render in the window's)
+            self._fail()
+            return False
+        self._watch_future(lane, slot, future)
+        return True
+
+    def _watch_future(self, lane: str, slot: Slot, future) -> None:
+        future.add_done_callback(lambda f, slot=slot, key=slot.busy: self._arrived.emit((lane, slot, key, f)))
+        if not self.watchdog.isActive():
+            self.watchdog.start()
+
+    def warm(self, lane: str = "view") -> None:
+        """Start the processes of LANE now, before any page is asked for: starting one (Python, and importing
+        PyMuPDF) takes some 0.3 to 0.4 seconds, which the first page would otherwise wait."""
+        if not self.available():
+            return
+        ln = self.lanes.get(lane)
+        if ln is None:
+            ln = self.lanes[lane] = Lane(WORKERS.get(lane, 1))
+        for slot in ln.slots:
+            if slot.pool is None and slot.busy is None and not self._start(lane, slot):
+                return
 
     def _deliver(self, item: tuple) -> None:
         lane, slot, key, future = item
@@ -210,6 +236,8 @@ class Renderer(QObject):
                 slot.pool.shutdown(wait=False, cancel_futures=True)
                 slot.pool, slot.ready, slot.killed = None, False, False
                 result = Skipped(why)
+                # Its replacement starts at once, not when the next page is asked for.
+                self._start(lane, slot)
                 # Lo que esperaba de esa misma página en este carril tampoco se intenta.
                 for other in [e for e in ln.waiting if e[0][:3] == key[:3]]:
                     ln.waiting.remove(other)
