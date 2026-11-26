@@ -18,7 +18,7 @@ from typing import NamedTuple
 
 import pymupdf
 
-from .search import HYPHENS, LIGATURES, Match
+from .search import HYPHENS, LIGATURES, QUOTES, Match
 from .search import fold as _fold_text
 
 FLAGS = pymupdf.TEXTFLAGS_SEARCH & ~pymupdf.TEXT_PRESERVE_IMAGES
@@ -39,7 +39,8 @@ def _fold(text: str) -> tuple[str, list[int]]:
     for i, c in enumerate(text):
         f = _FOLDED.get(c)
         if f is None:
-            f = _FOLDED[c] = LIGATURES.get(c) or _fold_text(c)[0]
+            # (y las comillas tipográficas, rectas: "x" halla “x”, don't halla don’t)
+            f = _FOLDED[c] = (LIGATURES.get(c) or _fold_text(c)[0]).translate(QUOTES)
         out.append(f)
         if len(f) == 1:
             index.append(i)
@@ -82,7 +83,7 @@ def read_page(page: pymupdf.Page) -> tuple[str, list]:
 
 
 class _Page:
-    __slots__ = ("text", "where", "folded", "index", "lower", "matrix", "_text_lower")
+    __slots__ = ("text", "where", "folded", "index", "lower", "matrix", "_text_lower", "_quoted")
 
     def __init__(self, page: pymupdf.Page):
         self.text, self.where = read_page(page)
@@ -92,11 +93,19 @@ class _Page:
         self.lower = lower if len(lower) == len(self.folded) else None
         self.matrix = page.rotation_matrix if page.rotation else None
         self._text_lower: str | None = ""  # (hecho la primera vez que se buscan acentos sin mayúsculas)
+        self._quoted = ""  # (the same: see quoted)
+
+    def quoted(self) -> str:
+        """The text with its accents, its typographic quotes made straight (one character for one: the places
+        don't change)."""
+        if not self._quoted and self.text:
+            self._quoted = self.text.translate(QUOTES)
+        return self._quoted
 
     def text_lower(self) -> str | None:
-        """The text with its accents, in lower case (None if that changes its length)."""
+        """The text with its accents (its quotes straight), in lower case (None if that changes its length)."""
         if self._text_lower == "":
-            lower = self.text.lower()
+            lower = self.quoted().lower()
             self._text_lower = lower if len(lower) == len(self.text) else None
         return self._text_lower
 
@@ -104,7 +113,7 @@ class _Page:
 def prepare(query: str, case: bool, accents: bool = False) -> str:
     """QUERY as the index searches it: its spaces one space, without accents (if not ACCENTS), in lower case (if
     not CASE)."""
-    q = " ".join(query.split())
+    q = " ".join(query.split()).translate(QUOTES)
     if not accents:
         q = _fold(q)[0]
     return q if case else q.lower()
@@ -176,8 +185,8 @@ class TextIndex:
     def _find(page: _Page, number: int, q: str, case: bool, accents: bool) -> list[Hit]:
         if accents:  # (el texto tal como está, con sus acentos: sus posiciones son las del texto)
             index = None
-            hay = page.text if case else page.text_lower()
-            plain = page.text
+            hay = page.quoted() if case else page.text_lower()
+            plain = page.quoted()
         else:
             index = page.index
             hay = page.folded if case else page.lower

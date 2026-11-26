@@ -2270,10 +2270,24 @@ grabbed to be moved, it is centred on the nearest one. A window that
 fits is left exactly where it was. A test puts one on a monitor that
 isn't there, one larger than the screen, and one that fits.
 
+103. Quotes as typed
+--------------------
+
+A keyboard has straight quotes; books have curly ones, or guillemets.
+Calibre's viewer finds either for either, and now so does every search
+here: Find and highlight, Find all and the search to redact, which build
+a regular expression, put a class with every kind of quote where the
+query has one; Find as you type, which goes through an index with
+str.find for speed, has the quotes of the index's text, and of the
+query, made straight, one character for one, so that the places found
+stay where they were. "don't" finds "don’t", and a phrase is still found
+across a line break. The test needed a font of its own: Helvetica, the
+PDF's, has no curly quotes, and the first page I wrote for it had none.
+
 Testing
 -------
 
-The program has 846 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 848 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

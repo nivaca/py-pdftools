@@ -334,9 +334,11 @@ def page_chars(page: pymupdf.Page) -> tuple[str, list]:
 def _compile(query: str, case: bool, whole_words: bool, regex: bool):
     import re
 
+    from ..annotate.search import literal
+
     # Sin REGEX, las palabras se escapan y se unen con \s+: así una frase se halla aunque tenga
-    # otros espacios o un salto de línea en medio.
-    pattern = query if regex else r"\s+".join(re.escape(w) for w in query.split())
+    # otros espacios o un salto de línea en medio; sus comillas hallan también las tipográficas (literal).
+    pattern = query if regex else r"\s+".join(literal(w) for w in query.split())
     if whole_words:
         # Lookarounds instead of \b, which fails when the query starts or ends with a non-word character.
         pattern = rf"(?<!\w)(?:{pattern})(?!\w)"

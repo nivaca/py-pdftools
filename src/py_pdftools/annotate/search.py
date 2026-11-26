@@ -92,12 +92,33 @@ def fold(text: str, accents: bool = True, uv: bool = False) -> tuple[str, list[i
     return "".join(out), index
 
 
+# Las comillas: la recta del teclado halla también las tipográficas, y al revés ("x" halla “x”; don't, don’t)
+DOUBLE_QUOTES = '"“”„‟«»″'
+SINGLE_QUOTES = "'‘’‚‛‹›′"
+# (las mismas, cada una vuelta la recta, una letra por otra: para buscar con str.find, en textindex.py)
+QUOTES = str.maketrans({**{c: '"' for c in DOUBLE_QUOTES}, **{c: "'" for c in SINGLE_QUOTES}})
+
+
+def literal(word: str) -> str:
+    """WORD as a regular expression that finds it as written, but for its quotes and apostrophes: any of
+    DOUBLE_QUOTES for one of them, any of SINGLE_QUOTES for one of those (as Calibre's viewer finds them)."""
+    out = []
+    for c in word:
+        if c in DOUBLE_QUOTES:
+            out.append("[" + re.escape(DOUBLE_QUOTES) + "]")
+        elif c in SINGLE_QUOTES:
+            out.append("[" + re.escape(SINGLE_QUOTES) + "]")
+        else:
+            out.append(re.escape(c))
+    return "".join(out)
+
+
 def compile_query(query: str, case: bool = False, whole_words: bool = False, regex: bool = False,
                   wildcards: bool = False) -> re.Pattern:
     """QUERY as a regular expression (raises re.error if REGEX and it is wrong). WILDCARDS: in a
     query that isn't a regular expression, * stands for any letters (none too), ? for one."""
     def word(w: str) -> str:
-        escaped = re.escape(w)
+        escaped = literal(w)
         if wildcards:
             # re.escape has escaped * and ?, so the wildcards are replaced in their escaped form.
             escaped = escaped.replace(r"\*", r"\w*").replace(r"\?", r"\w")

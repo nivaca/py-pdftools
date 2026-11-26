@@ -164,3 +164,25 @@ def test_find_all_page_by_page_and_stopped(tmp_path, monkeypatch):
     finally:
         w.drop_work()
         w.close()
+
+
+@pytest.mark.parametrize("accents", [False, True])
+def test_quotes_as_typed(accents):
+    """The quotes of the keyboard find the typographic ones, and the other way round, in Find and in the search
+    to redact; a phrase is found across a line break."""
+    from py_pdftools.redact import redact
+
+    doc = pymupdf.open()
+    page = doc.new_page()
+    # (a font of its own, embedded: Helvetica, of the PDF, has no curly quotes)
+    page.insert_htmlbox((72, 60, 500, 200), "<p>He said “hello” and don’t go.</p>"
+                        "<p>The «other» one, 'plain' and<br>broken line.</p>")
+    page_text = page.get_text()
+    assert "“" in page_text and "’" in page_text  # (the typographic ones are on the page)
+    for query, count in (('"hello"', 1), ("don't", 1), ("“other”", 1), ("‘plain’", 1),
+                         ("and broken", 1), ('"nothing"', 0)):
+        assert len(find_text(doc, query, accents=accents)) == count, query
+        assert len(redact.find_text(doc, query)) == count, query
+        index = TextIndex(doc)  # (find as you type)
+        for case in (False, True):
+            assert len(index.search(query, case=case, accents=accents)) == count, (query, case)
