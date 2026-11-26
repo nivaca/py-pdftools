@@ -2640,10 +2640,21 @@ view goes back there, and the show_page that follows, to the same page,
 leaves it. A change that moves or turns pages lays them out differently,
 and still goes to the top of the page.
 
+Before the release, the tests run without a desktop theme (as in the
+forges' machines and in the RPM's check) found that hiding the panel had
+broken the test of the eraser. Nothing in the panel erases: with it gone,
+the page was wider, the zoom larger, and the eraser's radius, seven pixels,
+fewer points of the page. The eraser erased only around each position the
+mouse reported, and the test's one move, 20 points across a stroke, now
+fell on both sides of it. A real hand moving fast does the same. So the
+eraser now also passes through the points between two positions, at most
+a radius apart, for drawings and for the other annotations; a new test
+makes one move of 40 points at 200 %.
+
 Testing
 -------
 
-The program has 889 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 890 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

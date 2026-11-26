@@ -2236,6 +2236,14 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     def _erase_at(self, point: QPointF):
         drag = self._drag
         radius = ERASER / (self.zoom() or 1)
+        # Entre dos posiciones del ratón, la goma pasa también por lo de en medio: un movimiento rápido salta más
+        # que su radio, y dejaba sin borrar lo que cruzaba
+        before = len(drag["centres"])
+        if drag["centres"]:
+            x0, y0 = drag["centres"][-1]
+            steps = int(math.hypot(point.x() - x0, point.y() - y0) / radius)
+            drag["centres"].extend((x0 + (point.x() - x0) * k / (steps + 1), y0 + (point.y() - y0) * k / (steps + 1))
+                                   for k in range(1, steps + 1))
         drag["centres"].append((point.x(), point.y()))
         drag["marks"][0].setRect(QRectF(point.x() - radius, point.y() - radius, 2 * radius, 2 * radius))
         mine = [i for i in self.items_ if i.parentItem() is drag["page"] and not i.annot.locked
@@ -2250,7 +2258,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                     item.setOpacity(0.2)
                 else:
                     item.set_annotation(left)
-            elif item.opacity() > 0.5 and item.hit(point, radius) is not None:
+            elif item.opacity() > 0.5 and any(item.hit(QPointF(x, y), radius) is not None
+                                              for x, y in drag["centres"][before:]):
                 item.setOpacity(0.2)  # (to go, once the button is let go)
 
     def mouseMoveEvent(self, event):

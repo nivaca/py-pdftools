@@ -7,6 +7,8 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: un movimiento rápido de la goma dejaba sin borrar lo que
+  cruzaba entre dos posiciones del ratón; ahora borra en todo el camino.
 - Con las páginas dibujadas por la tarjeta gráfica, los resaltados, las
   áreas y el marcador se dibujan translúcidos en vez de multiplicados, lo
   que el pintor de OpenGL no sabe hacer: escribía «Unsupported composition

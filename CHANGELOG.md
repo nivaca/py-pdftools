@@ -7,6 +7,8 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- Fixed: a quick move of the eraser left untouched what it crossed between
+  two positions of the mouse; it erases along the whole way now.
 - With the pages drawn by the graphics card, highlights, areas and the
   marker are drawn see-through instead of multiplied, which OpenGL's
   painter can't do: it printed "Unsupported composition mode" for each.

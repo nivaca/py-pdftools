@@ -1394,3 +1394,20 @@ def test_changes_of_the_document_keep_the_view(window):
     window.undo()
     QApplication.processEvents()
     assert (window.canvas.horizontalScrollBar().value(), bar.value(), window.page) == where
+
+
+def test_eraser_between_two_positions(window):
+    """A quick move of the eraser, longer than its radius, erases what it crossed between the two positions the
+    mouse reported (it erased only around each of them)."""
+    window.canvas.set_zoom(2.0)  # (the radius is then 3.5 points)
+    window.show_page(0)
+    QApplication.processEvents()
+    window.set_tool("ink")
+    drag(window, (100, 150), (150, 150), (200, 150), (250, 150), (300, 150))
+    window.set_tool("rect")
+    drag(window, (100, 250), (250, 260))
+    window.set_tool("eraser")
+    drag(window, (200, 130), (200, 170))  # (one move, 40 points, over the stroke)
+    assert [len(a.paths) for a in window.annotations if a.kind == "ink"] == [2]
+    drag(window, (80, 240), (120, 270))  # (one move, from outside the rectangle, across its corner)
+    assert [a.kind for a in window.annotations] == ["ink"]
