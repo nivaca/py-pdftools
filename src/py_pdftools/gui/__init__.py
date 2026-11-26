@@ -195,9 +195,14 @@ def quit_all() -> bool:
     """Close every window (each asks about what is not saved), then end the program. False if one stayed."""
     from PySide6.QtWidgets import QApplication
 
+    from .tabs import may_close_many
     from .window import _WINDOWS
 
     global _QUITTING
+    open_now = [w for w in _WINDOWS if w.is_open()]
+    # Con más de un documento abierto, se pregunta antes (Settings > General: véase tabs.may_close_many).
+    if not may_close_many(QApplication.activeWindow(), open_now, quitting=True):
+        return False
     # (the documents open now are those to open again next time, if the settings say so)
     save_session([w.path for w in _WINDOWS if w.is_open() and w.path is not None])
     _QUITTING = True

@@ -14237,6 +14237,10 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Como informe (texto simple, UTF-8)…</tr>
   </text>
   <text>
+    <en>Close all</en>
+    <tr>Cerrar todos</tr>
+  </text>
+  <text>
     <en>Text (Markdown)…</en>
     <tr>Texto (Markdown)…</tr>
   </text>
@@ -14247,5 +14251,33 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>The text of the pages as plain text in UTF-8, the pages apart by a form feed</en>
     <tr>El texto de las páginas como texto simple en UTF-8, cada página separada por un salto de página</tr>
+  </text>
+  <text>
+    <en>Warn before closing several documents at once</en>
+    <tr>Avisar antes de cerrar varios documentos a la vez</tr>
+  </text>
+  <text>
+    <en>Warn me again next time</en>
+    <tr>Volver a avisarme la próxima vez</tr>
+  </text>
+  <text>
+    <en>When py-pdftools is quit, or a window of tabs is closed, with more than one document open</en>
+    <tr>Al salir de py-pdftools, o al cerrar una ventana de pestañas, con más de un documento abierto</tr>
+  </text>
+  <text>
+    <en>{count} document is open in this window. Close it?</en>
+    <tr>Hay {count} documento abierto en esta ventana. ¿Cerrarlo?</tr>
+  </text>
+  <text>
+    <en>{count} document is open. Quit py-pdftools and close it?</en>
+    <tr>Hay {count} documento abierto. ¿Salir de py-pdftools y cerrarlo?</tr>
+  </text>
+  <text>
+    <en>{count} documents are open in this window. Close them all?</en>
+    <tr>Hay {count} documentos abiertos en esta ventana. ¿Cerrarlos todos?</tr>
+  </text>
+  <text>
+    <en>{count} documents are open. Quit py-pdftools and close them all?</en>
+    <tr>Hay {count} documentos abiertos. ¿Salir de py-pdftools y cerrarlos todos?</tr>
   </text>
 </interface>

@@ -127,6 +127,14 @@ class SettingsDialog(QDialog):
         except config.ConfigError:
             pass
         form.addRow("", self.lone_tab)
+        self.warn_many = QCheckBox(tr("Warn before closing several documents at once"))
+        self.warn_many.setToolTip(tr("When py-pdftools is quit, or a window of tabs is closed, with more than "
+                                     "one document open"))
+        try:
+            self.warn_many.setChecked(bool(config.get("warn_many")))
+        except config.ConfigError:
+            self.warn_many.setChecked(True)
+        form.addRow("", self.warn_many)
         self.reload = QCheckBox(tr("Reload documents when their files change on disk"))
         self.reload.setToolTip(tr("At once if nothing is unsaved here; else py-pdftools asks first"))
         try:
@@ -586,6 +594,8 @@ class SettingsDialog(QDialog):
                 config.set("reload", self.reload.isChecked())
             if self.gpu.isChecked() != bool(config.get("gpu")):
                 config.set("gpu", self.gpu.isChecked())
+            if self.warn_many.isChecked() != bool(config.get("warn_many")):
+                config.set("warn_many", self.warn_many.isChecked())
             if self.lone_tab.isChecked() != bool(config.get("lone_tab")):
                 config.set("lone_tab", self.lone_tab.isChecked())
                 from .tabs import apply_tab_bars

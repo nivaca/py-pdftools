@@ -350,7 +350,9 @@ espacio entre las páginas, que se puede quitar, los márgenes recortados (solo 
 con tinta de cada página), y Pantalla completa (F11)
 como presentación, donde B deja la pantalla en negro. Archivo > Abrir en una pestaña nueva (Ctrl+T) pone los
 documentos en pestañas de una ventana (la barra de las pestañas aparece
-desde la segunda, o siempre, con una opción), y Ver > Dividir la vista (`Ctrl+\`)
+desde la segunda, o siempre, con una opción; salir, o cerrar esa ventana,
+con más de un documento abierto pregunta antes, salvo que Configuración >
+General diga lo contrario), y Ver > Dividir la vista (`Ctrl+\`)
 muestra dos lado a lado. Ctrl+Mayús+T reabre la última pestaña cerrada, y
 Alt+Mayús+1 a 9 van a una pestaña (9, la última). Un documento que otro programa cambia se abre de
 nuevo solo. Las flechas izquierda y derecha van a la página anterior y a

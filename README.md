@@ -337,7 +337,8 @@ black, or one's own), the gaps between the pages hidden, the margins trimmed (on
 inked part of each page), and Full screen
 (F11) as a presentation, where B makes the screen black. File > Open in a new tab (Ctrl+T) puts documents
 in tabs of one window (the tabbar shows from the second one on,
-or always, with a setting), and View > Split the view (`Ctrl+\`) shows two
+or always, with a setting; quitting, or closing that window, with more than
+one document open asks first, unless Settings > General says not to), and View > Split the view (`Ctrl+\`) shows two
 side by side. Ctrl+Shift+T reopens the last tab closed, and Alt+Shift+1 to 9
 go to a tab (9, the last). A document changed by another program opens again by itself.
 Left and Right go to the previous and next page (while the pages fit across

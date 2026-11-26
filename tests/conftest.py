@@ -42,6 +42,14 @@ if _DISPLAY != "screen" and not (_DISPLAY == "xvfb" and _virtual_display()):
 
 
 @pytest.fixture(autouse=True)
+def close_many_unasked(monkeypatch):
+    """Closing several documents at once doesn't stop at its question (tests/test_close_many.py asks it)."""
+    from py_pdftools.gui import tabs
+
+    monkeypatch.setattr(tabs, "_ask_close_many", lambda parent, count, quitting: (True, True))
+
+
+@pytest.fixture(autouse=True)
 def own_config(tmp_path, monkeypatch):
     """A configuration folder of its own, so the tests don't read or change the user's."""
     monkeypatch.setenv("PY_PDFTOOLS_CONFIG", str(tmp_path / "config"))

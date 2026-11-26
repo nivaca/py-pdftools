@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in ninety stages.
+I explain how it was made, in a hundred and twelve stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2583,10 +2583,35 @@ redacted copy is written (in the function that writes it, before anything
 else) and whenever the setting is off, also at the start. The manuals say
 so, with a new picture of the page of settings.
 
+112. Plain text, and a question before closing several documents
+-----------------------------------------------------------------
+
+The text of a document could already be saved as plain text, but only by
+choosing "Plain text (*.txt)" in the list of types of the dialog, which
+always started with a name ending in .md. Nobody finds that. So File >
+Export now has two items, Text (Markdown) and Text (plain, UTF-8), and each
+dialog starts with its own type; HTML is still in both. The report of the
+annotations had only Markdown. It now has a plain version too, made by the
+same function with one more argument: the headings underlined with = and
+-, as in old text files, the bullets as hyphens, the marked text between
+quotation marks and indented, and no bold or italics, also in the entries
+of textual criticism.
+
+The second request was a question before quitting with several documents
+open, since one Ctrl+Q closed ten tabs at once. It is asked in two places:
+by Quit, for all the windows, and when a window of tabs is closed with its
+own button, for the documents in it. Empty tabs are not counted, and Quit
+does not ask a second time when it closes the windows of tabs. The
+question has a box "Warn me again next time"; unticked, it turns off the
+setting, which is also in Settings > General. In the tests the question is
+answered by a fixture for all of them, since many tests close windows with
+two tabs, and a file of its own replaces that answer to check what is
+asked, and when.
+
 Testing
 -------
 
-The program has 879 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 885 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2608,4 +2633,4 @@ sentence, with the menus, the keys and the dialogs of the program. The RPM runs 
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
 program has 187 files of Python, around 52,000 lines (about a tenth of them
-comments), and 3,517 texts of the interface in Spanish.
+comments), and 3,527 texts of the interface in Spanish.

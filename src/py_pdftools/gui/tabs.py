@@ -11,14 +11,54 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QAction
-from PySide6.QtWidgets import QMainWindow, QMenu, QSplitter, QTabWidget
+from PySide6.QtWidgets import QCheckBox, QMainWindow, QMenu, QMessageBox, QSplitter, QTabWidget
 
-from ..core.interface import tr
+from ..core import config
+from ..core.interface import ntr, tr
 
 _HOSTS: list[TabHost] = []
 # Las pestañas cerradas, la última al final: (su archivo, su página), para volver a abrirlas (Ctrl+Mayús+T).
 _CLOSED: list[tuple] = []
 CLOSED_KEPT = 20
+
+
+def _ask_close_many(parent, count: int, quitting: bool) -> tuple[bool, bool]:
+    """The question of may_close_many: (close them, warn again next time)."""
+    box = QMessageBox(QMessageBox.Icon.Question, "py-pdftools",
+                      (ntr("{count} document is open. Quit py-pdftools and close it?",
+                           "{count} documents are open. Quit py-pdftools and close them all?", count)
+                       if quitting else
+                       ntr("{count} document is open in this window. Close it?",
+                           "{count} documents are open in this window. Close them all?", count)),
+                      QMessageBox.StandardButton.Cancel, parent)
+    yes = box.addButton(tr("Quit") if quitting else tr("Close all"), QMessageBox.ButtonRole.AcceptRole)
+    box.setDefaultButton(yes)
+    again = QCheckBox(tr("Warn me again next time"))
+    again.setChecked(True)
+    box.setCheckBox(again)
+    box.exec()
+    return box.clickedButton() is yes, again.isChecked()
+
+
+# Al salir del programa, o al cerrar una ventana de pestañas, con más de un documento abierto, se pregunta antes
+# (Settings > General > "Warn before closing several documents at once").
+def may_close_many(parent, wins, quitting: bool = False) -> bool:
+    """Whether WINS (the windows about to close, all at once) may close: with more than one document among them,
+    and the setting warn_many on, the user is asked first (and may turn the warning off there)."""
+    count = sum(1 for w in wins if w.path is not None)
+    try:
+        warn = bool(config.get("warn_many"))
+    except config.ConfigError:
+        warn = True
+    if count < 2 or not warn:
+        return True
+    ok, again = _ask_close_many(parent, count, quitting)
+    if ok and not again:
+        try:
+            config.set("warn_many", False)
+        except (OSError, config.ConfigError):
+            pass  # (the warning comes again next time: nothing worse)
+    return ok
 
 
 class TabHost(QMainWindow):
@@ -220,6 +260,12 @@ class TabHost(QMainWindow):
             self.setWindowTitle(win.windowTitle())
 
     def closeEvent(self, event):
+        from . import _QUITTING
+
+        # (Quit asked already, for all the windows)
+        if not _QUITTING and not may_close_many(self, self.windows()):
+            event.ignore()
+            return
         # Cada pestaña se cierra como una ventana (y pregunta por lo que no se guardó); si una se queda, todo se queda.
         self.closing = True
         try:

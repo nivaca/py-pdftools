@@ -12,6 +12,10 @@ Debian package, the RPM, the wheel and the source, are on
   Export > Annotations has As a report (plain text, UTF-8)…, the report
   without the marks of Markdown (headings underlined, the marked text in
   quotation marks).
+- Quitting with more than one document open, or closing a window of tabs
+  that has several, asks first. Settings > General > Warn before closing
+  several documents at once (on at first) turns it off, and so does
+  unticking "Warn me again next time" in the question.
 - The installer for Windows can be signed with Authenticode by SignPath
   (free code signing for open-source projects, with SignPath Foundation's
   certificate), from `.github/workflows/installers.yml` at each release tag,

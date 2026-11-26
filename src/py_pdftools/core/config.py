@@ -34,6 +34,7 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             "thumb_cache": False,  # (thumb_cache: the thumbnails kept on disk too, see core/thumbcache.py)
             "reopen": False,  # (reopen: the documents of the last session, at the start: see gui/__init__.py)
             "tabs": False, "lone_tab": False,  # (lone_tab: the tabbar with only one: see gui/tabs.py)
+            "warn_many": True,  # (warn_many: ask before quitting with several documents open, gui/tabs.py)
             "reload": True,  # (reload: a document changed by another program, opened again: see gui/watching.py)
             "gpu": False,  # (gpu: the pages drawn with the graphics card, by OpenGL: see gui/canvas.py)
             # (Settings > Appearance and Documents: see gui/appearance.py)

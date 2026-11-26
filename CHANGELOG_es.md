@@ -12,6 +12,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
   Archivo > Exportar > Anotaciones tiene Como informe (texto simple,
   UTF-8)…, el informe sin las marcas de Markdown (títulos subrayados, el
   texto marcado entre comillas).
+- Salir con más de un documento abierto, o cerrar una ventana de pestañas
+  que tiene varios, pregunta antes. Configuración > General > Avisar antes
+  de cerrar varios documentos a la vez (activado al principio) lo apaga, y
+  también desmarcar «Volver a avisarme la próxima vez» en la pregunta.
 - El instalador para Windows se puede firmar con Authenticode por SignPath
   (firma de código gratuita para proyectos de código abierto, con el
   certificado de SignPath Foundation), desde
