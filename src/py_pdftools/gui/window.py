@@ -785,6 +785,17 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                       "F11",
                                       tip=tr("The pages one at a time, full screen, as a presentation: arrows or a "
                                              "click turn them, Escape ends it"))
+        # Leer en voz alta (véase readaloud.py): F12 empieza y termina; Mayús+F12 pausa
+        self._voice = None
+        self.a_read_aloud = self._action(m, tr("Read aloud"), self.read_aloud, "F12",
+                                         tip=tr("The text, from the page in view on, with the system's voice; the "
+                                                "word said is highlighted. F12 again stops it"))
+        self.a_read_aloud.setCheckable(True)
+        self.a_read_pause = self._action(m, tr("Pause reading"), self.pause_reading, "Shift+F12")
+        self.a_read_pause.setCheckable(True)
+        self.a_read_pause.setEnabled(False)
+        self.a_read_faster = self._action(m, tr("Read faster"), self.read_faster)
+        self.a_read_slower = self._action(m, tr("Read slower"), self.read_slower)
         # Colores de lectura: solo cambia la vista de las páginas, no el archivo ni las miniaturas.
         colours = self.m_reading = m.addMenu(tr("Reading colours"))
         colours.setToolTipsVisible(True)
@@ -1466,6 +1477,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         if not self._asked and not self.maybe_discard():
             event.ignore()
             return
+        self.stop_reading()
         # El usuario ya aceptó cerrar (guardó o descartó): la copia de recuperación sobra.
         if self.path is not None:
             recovery.discard(self.path)
@@ -1596,6 +1608,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def open_path(self, path: Path, place: dict | None = None, password: str = "") -> bool:
         """Open the document at PATH (shown at PLACE, if given: see navigation.open_at_start), with PASSWORD if
         it is protected (else it is asked for)."""
+        self.stop_reading()  # (reading aloud the document that goes)
         self.canvas.commit_text()
         self.keep_comment()
         self.reset_history()  # (the places of another document)
@@ -2761,6 +2774,62 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         name = str(self.settings.value("reading", ""))
         for key, act in self.reading_actions.items():
             act.setChecked(key == name)
+
+    def read_aloud(self, checked: bool | None = None):
+        """View > Read aloud (F12): the text read with the system's voice from the page in view on; again, it
+        stops (see readaloud.py)."""
+        from ..core import config
+        from . import readaloud
+
+        if not self.a_read_aloud.isChecked():
+            self.stop_reading()
+            return
+        why = readaloud.unavailable() or ("" if self.doc is not None else tr("No document is open"))
+        if why:
+            self.a_read_aloud.setChecked(False)
+            self.warn(tr("Read aloud"), why)
+            return
+        if self._voice is None:
+            self._voice = readaloud.ReadAloud(self, readaloud.make_speech(self))
+            self._voice.finished.connect(self._reading_ended)
+        self.a_read_pause.setEnabled(True)
+        self._voice.start(self.page, float(config.get("speech_rate") or 0.0))
+
+    def stop_reading(self):
+        if self._voice is not None and self._voice.reading:
+            self._voice.stop()
+
+    def _reading_ended(self):
+        self.a_read_aloud.setChecked(False)
+        self.a_read_pause.setChecked(False)
+        self.a_read_pause.setEnabled(False)
+
+    def pause_reading(self, checked: bool | None = None):
+        if self._voice is not None and self._voice.reading:
+            self._voice.pause(self.a_read_pause.isChecked())
+        else:
+            self.a_read_pause.setChecked(False)
+
+    def read_faster(self):
+        self._reading_rate(1)
+
+    def read_slower(self):
+        self._reading_rate(-1)
+
+    def _reading_rate(self, sign: int):
+        """The voice faster or slower (now, if it is reading), and kept for the next time."""
+        from ..core import config
+        from . import readaloud
+
+        if self._voice is not None and self._voice.reading:
+            rate = self._voice.change_rate(sign * readaloud.RATE_STEP)
+        else:
+            rate = max(-1.0, min(1.0, round(float(config.get("speech_rate") or 0.0) + sign * readaloud.RATE_STEP, 2)))
+        try:
+            config.set("speech_rate", rate)
+        except OSError as e:
+            self.status(tr("Could not keep the setting: {error}", error=e), error=True)
+        self.status(tr("Speed of the voice: {rate:+.0%}", rate=rate))
 
     def present(self, page: int | None = None):
         """Full screen, as a presentation, from PAGE (else the page shown): see presentation.py."""

@@ -103,4 +103,5 @@ def regroup(window):
                       "a_zoom_in", "a_zoom_out"]),
         (tr("Page layout"), ["a_continuous", "a_spread", "a_cover", "a_gaps", "a_trim", SEP, "a_turn_right",
                              "a_turn_left"]),
-        "m_reading", "m_theme", "m_icons", SEP, "a_split", "a_detach", "a_present", SEP, "a_next_panel", "a_prev_panel"], skip=moved)
+        "m_reading", "m_theme", "m_icons", SEP,
+        (tr("Read aloud"), ["a_read_aloud", "a_read_pause", SEP, "a_read_faster", "a_read_slower"]), "a_split", "a_detach", "a_present", SEP, "a_next_panel", "a_prev_panel"], skip=moved)

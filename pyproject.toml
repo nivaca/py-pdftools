@@ -43,6 +43,9 @@ py-pdftools-gui = "py_pdftools.gui:main"
 signatures = [
     "pyhanko>=0.29",
 ]
+speech = [
+    "pyside6-addons>=6.10",
+]
 
 [build-system]
 requires = ["uv_build>=0.10,<0.14"]

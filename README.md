@@ -234,6 +234,11 @@ Digital signatures need pyHanko: the AppImage and the installers bring it;
 elsewhere, `pip install 'py-pdftools[signatures]'`. Fedora doesn't package
 it: with the RPM, `python3 -m pip install --user pyhanko` installs it in
 your own packages, where the program looks for it.
+Reading aloud (View > Read aloud) needs Qt's QtTextToSpeech, which the
+PySide6 of Fedora and the other distributions brings, with a voice of
+the system (speech-dispatcher, on Linux); installed with pip,
+`pip install 'py-pdftools[speech]'` adds it (PySide6-Addons, which is
+large). The AppImage and the installers don't bring it.
 
 The window
 ----------

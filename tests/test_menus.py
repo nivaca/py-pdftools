@@ -29,7 +29,7 @@ def reachable(menu) -> set[int]:
 
 
 def test_grouped_and_nothing_lost(window):
-    for menu, most in ((window.m_file, 16), (window.m_edit, 16), (window.m_view, 13)):  # (View: 13, Theme and Icons)
+    for menu, most in ((window.m_file, 16), (window.m_edit, 16), (window.m_view, 14)):  # (View: 14)
         assert len([a for a in menu.actions() if not a.isSeparator()]) <= most
     inside = set()
     for menu in (window.m_file, window.m_edit, window.m_view):

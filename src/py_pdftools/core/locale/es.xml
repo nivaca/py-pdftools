@@ -14184,4 +14184,40 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>py-pdftools met an error it didn't expect: {error}</en>
     <tr>py-pdftools se encontró con un error que no esperaba: {error}</tr>
   </text>
+  <text>
+    <en>Pause reading</en>
+    <tr>Pausar la lectura</tr>
+  </text>
+  <text>
+    <en>Read aloud</en>
+    <tr>Leer en voz alta</tr>
+  </text>
+  <text>
+    <en>Read faster</en>
+    <tr>Leer más rápido</tr>
+  </text>
+  <text>
+    <en>Read slower</en>
+    <tr>Leer más despacio</tr>
+  </text>
+  <text>
+    <en>Reading aloud needs the module QtTextToSpeech of PySide6 (in PySide6-Addons, if PySide6 was installed with pip)</en>
+    <tr>Leer en voz alta necesita el módulo QtTextToSpeech de PySide6 (en PySide6-Addons, si PySide6 se instaló con pip)</tr>
+  </text>
+  <text>
+    <en>Speed of the voice: {rate:+.0%}</en>
+    <tr>Velocidad de la voz: {rate:+.0%}</tr>
+  </text>
+  <text>
+    <en>The system has no voice to read with (on Linux: speech-dispatcher)</en>
+    <tr>El sistema no tiene una voz con la cual leer (en Linux: speech-dispatcher)</tr>
+  </text>
+  <text>
+    <en>The text, from the page in view on, with the system's voice; the word said is highlighted. F12 again stops it</en>
+    <tr>El texto, desde la página a la vista, con la voz del sistema; la palabra que se dice se resalta. F12 otra vez la detiene</tr>
+  </text>
+  <text>
+    <en>The voice stopped: {error}</en>
+    <tr>La voz se detuvo: {error}</tr>
+  </text>
 </interface>

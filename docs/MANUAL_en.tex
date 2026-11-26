@@ -835,6 +835,17 @@ turn them, \key{B} makes the screen black until another key is pressed,
 and \key{Esc} ends it. While it lasts, the screen is kept on: the system
 neither dims it nor starts the screen saver.
 
+\index{reading aloud}%
+\menu{View\then Read aloud\then Read aloud} (\key{F12}) reads the text
+with the system's voice, from the page in view on, page after page, one
+sentence at a time: the sentence said is highlighted, and the view
+follows it (where the voice says which word it is saying, on Windows and
+macOS, the word too). \key{F12} again stops it; \menu{Pause reading}
+(\key{Shift+F12}) pauses it, and \menu{Read faster} and \menu{Read
+slower} change the speed, which is kept. It needs Qt's QtTextToSpeech and
+a voice of the system (on Linux, speech-dispatcher); without them, the
+program says what is missing.
+
 \subsection{Sharper text}
 
 \index{sharpness of text}%

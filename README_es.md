@@ -240,6 +240,11 @@ Las firmas digitales necesitan pyHanko: la AppImage y los instaladores lo
 traen; en otro caso, `pip install 'py-pdftools[signatures]'`. Fedora no lo
 empaqueta: con el RPM, `python3 -m pip install --user pyhanko` lo instala
 en los paquetes propios, donde el programa lo busca.
+Leer en voz alta (Ver > Leer en voz alta) necesita QtTextToSpeech de Qt,
+que trae el PySide6 de Fedora y de las demás distribuciones, con una voz
+del sistema (speech-dispatcher, en Linux); instalado con pip,
+`pip install 'py-pdftools[speech]'` lo añade (PySide6-Addons, que es
+grande). La AppImage y los instaladores no lo traen.
 
 La ventana
 ----------

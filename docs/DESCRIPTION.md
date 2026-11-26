@@ -2314,10 +2314,39 @@ changed yesterday stays. On Linux /tmp is emptied at each start of the
 system anyway; on Windows the temporary folder isn't. A test makes an
 old copy, a new one and an old one changed today.
 
+106. Reading aloud
+------------------
+
+Calibre's viewer reads books aloud, with the word being said marked on
+the page; View > Read aloud (F12) now does it here, with Qt's
+QtTextToSpeech, which speaks with the system's voices: speech-dispatcher
+on Linux, those of Windows and of macOS. It reads from the page in view
+on, page after page, leaving out the pages without text, and the view
+follows; Shift+F12 pauses it, and the speed, faster or slower, is kept.
+
+The plan was to mark the word, by the signal sayingWord. Tried with a
+real voice, speech-dispatcher's said everything and sent no word at all,
+so on Linux nothing would have been marked. So each page is now said one
+sentence at a time (cut after . ! ? ; or :, and at a space if a sentence
+runs past 400 characters, as a list without full stops does), and the
+sentence being said is marked, lightly; where the voice tells the word,
+it is marked too, inside it. A first trial with the real voice seemed to
+stop after the first page: my script, without a guard for __main__, was
+being run again by the program's processes that draw the pages. With the
+guard, the voice went through the three sentences of two pages and
+ended by itself.
+
+QtTextToSpeech comes with the PySide6 of Fedora and of the other
+distributions, but on PyPI it is part of PySide6-Addons, a large package
+apart; the program depends only on PySide6-Essentials, so the module is
+an extra (py-pdftools[speech]), and where it is missing the command says
+so instead of reading. The tests use a voice of their own, which says
+nothing and sends the signals a real one would.
+
 Testing
 -------
 
-The program has 852 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 856 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
