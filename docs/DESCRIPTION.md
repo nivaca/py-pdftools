@@ -2630,10 +2630,20 @@ position of both scroll bars is kept before saving and given back after,
 when the zoom is the same; a test scrolls into a page, saves, and checks
 that nothing moved (it fails without the fix).
 
+The user still saw it, in other ways of saving: a change of page labels in
+Foliate, or undoing one, also reads the document again (from a working
+copy) and went to the top of the page. So the view is now kept in the one
+place all of them go through: when the window closes a state of the
+document to show the next, it notes both scroll bars, the zoom and the
+extent of the pages; when the next state is shown with the same pages, the
+view goes back there, and the show_page that follows, to the same page,
+leaves it. A change that moves or turns pages lays them out differently,
+and still goes to the top of the page.
+
 Testing
 -------
 
-The program has 888 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 889 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

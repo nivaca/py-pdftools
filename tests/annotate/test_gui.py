@@ -1375,3 +1375,22 @@ def test_save_keeps_the_view(window):
     assert window.save()
     QApplication.processEvents()
     assert (window.canvas.horizontalScrollBar().value(), bar.value(), window.page) == where
+
+
+def test_changes_of_the_document_keep_the_view(window):
+    """A change of the document itself that leaves its pages as they were (page labels, as Foliate makes them),
+    and its undo, show it again at the same place; a change of the pages (turned) goes to the top of the page."""
+    window.canvas.set_zoom(2.0)
+    QApplication.processEvents()
+    window.show_page(1)
+    bar = window.canvas.verticalScrollBar()
+    bar.setValue(bar.value() + 150)
+    QApplication.processEvents()
+    where = (window.canvas.horizontalScrollBar().value(), bar.value(), window.page)
+    assert window.edit_document(lambda doc: doc.set_page_labels([{"startpage": 0, "prefix": "A-", "style": "D"}]),
+                                "labels")
+    QApplication.processEvents()
+    assert (window.canvas.horizontalScrollBar().value(), bar.value(), window.page) == where
+    window.undo()
+    QApplication.processEvents()
+    assert (window.canvas.horizontalScrollBar().value(), bar.value(), window.page) == where

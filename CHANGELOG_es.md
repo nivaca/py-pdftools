@@ -13,8 +13,10 @@ AppImage, el RPM, la rueda y el código fuente, están en
   mode» por cada uno.
 - Los mensajes de las bibliotecas de KDE (`kf.*`, del diálogo de archivos
   de Plasma) ya no llenan la terminal; `QT_LOGGING_RULES` sigue mandando.
-- Corregido: guardar llevaba la vista al principio de la página visible;
-  ahora se queda exactamente donde estaba.
+- Corregido: guardar, un cambio del documento mismo que deja sus páginas
+  como estaban (las etiquetas de página, en Foliar), y deshacerlo o
+  rehacerlo llevaban la vista al principio de la página visible; ahora se
+  queda exactamente donde estaba.
 - El panel de anotaciones ya no se abre solo con el modo Anotar; F4 lo
   muestra. Configuración > Aspecto > Mostrar el panel de anotaciones al
   elegir el modo Anotar (desactivado al principio) devuelve lo de antes.

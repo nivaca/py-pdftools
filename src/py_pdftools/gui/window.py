@@ -1727,6 +1727,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # Bare only if there are annotations to take out: else the renderers can use the file as it is.
         self.canvas.source = self._source(path, password, bool(found))
         self.canvas.set_document(doc, self.page)
+        if carry:
+            self._keep_view()
         self._fill_pages()
         self.outline_refresh()
         self.results_clear()
@@ -1735,6 +1737,24 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.form_refresh()
         self.watch_file()
         return found
+
+    def _keep_view(self):
+        """(Another state of the document shown, just loaded: see _load.) The view goes back exactly where it was,
+        if the pages are laid out as before (same number, same zoom, same extent); then the show_page that the
+        caller does next, to the same page, leaves it there (it went to the top of the page at every save)."""
+        before, self._view_before = getattr(self, "_view_before", None), None
+        if before is None:
+            return
+        h, v, h_max, v_max, zoom, page, count = before
+        c = self.canvas
+        if (count, page) != (self.count, self.page) or abs(c.zoom() - zoom) > 1e-6 \
+                or (c.horizontalScrollBar().maximum(), c.verticalScrollBar().maximum()) != (h_max, v_max):
+            return
+        c.horizontalScrollBar().setValue(h)
+        c.verticalScrollBar().setValue(v)
+        self._view_kept = True
+        # (only for the show_page of this same change: cleared once it is done, if nobody called it)
+        QTimer.singleShot(0, lambda: setattr(self, "_view_kept", False))
 
     @staticmethod
     def _source(path: Path, password: str, bare: bool):
@@ -1751,6 +1771,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         """Close the document shown (its pages are no longer shown). CARRY: another state of it comes next,
         which may show again the pictures of the pages that stay as they are (see PageCanvas.carry_over)."""
         if carry and self.doc is not None:
+            # Dónde está la vista, exactamente (no solo la página): el estado siguiente vuelve a ella si sus páginas
+            # quedan como estaban (guardar, un cambio de etiquetas, deshacer: véase _keep_view)
+            c = self.canvas
+            self._view_before = (c.horizontalScrollBar().value(), c.verticalScrollBar().value(),
+                                 c.horizontalScrollBar().maximum(), c.verticalScrollBar().maximum(),
+                                 c.zoom(), self.page, self.count)
             # (only the thumbnails near those in view: fingerprinting hundreds of pages would slow every change)
             near = set(self._thumb_rows())
             carried = self.canvas.carry_over({n: image for n, image in self._thumbs.items() if n in near})
@@ -1799,9 +1825,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         replacing = target.resolve() == self.path.resolve()
         # (what the file has is what was read when it was shown, unless it changed since: then it is read again)
         known = self.known_in_file()
-        # Where the view is, exactly (not only the page): the same file comes back, with its pages as they were.
-        view = (self.canvas.horizontalScrollBar().value(), self.canvas.verticalScrollBar().value(),
-                self.canvas.zoom())
         if replacing:  # (the file is about to change under the open document)
             self._close_doc(carry=True)
         kept: set[int] = set()
@@ -1840,10 +1863,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.add_recent(target)
         self.refresh()
         self.show_page(page)
-        # (show_page put the top of the page at the top of the view: back to where the view was, at the same zoom)
-        if abs(self.canvas.zoom() - view[2]) < 1e-6:
-            self.canvas.horizontalScrollBar().setValue(view[0])
-            self.canvas.verticalScrollBar().setValue(view[1])
         self.status(tr("Saved {path}", path=target) + " — "
                     + ntr("{count} annotation written", "{count} annotations written", written))
         return True
@@ -3516,7 +3535,11 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             return
         # Se acota al rango: quien llama pasa page ± 1, o números guardados sin comprobar.
         page = max(0, min(page, self.count - 1))
-        self.canvas.go_to(page)
+        # Justo después de volver a cargar el documento en el mismo sitio (véase _keep_view), la vista se queda.
+        if getattr(self, "_view_kept", False) and page == self.page:
+            self._view_kept = False
+        else:
+            self.canvas.go_to(page)
         self._page_shown(page)
 
     def _thumb_row_changed(self, row: int):

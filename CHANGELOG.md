@@ -12,8 +12,9 @@ Debian package, the RPM, the wheel and the source, are on
   painter can't do: it printed "Unsupported composition mode" for each.
 - The messages of KDE's libraries (`kf.*`, from Plasma's file dialog)
   no longer fill the terminal; `QT_LOGGING_RULES` still overrides this.
-- Fixed: saving moved the view to the top of the page shown; it now stays
-  exactly where it was.
+- Fixed: saving, a change of the document itself that leaves its pages as
+  they were (page labels, in Foliate), and undoing or redoing one, moved
+  the view to the top of the page shown; it now stays exactly where it was.
 - The Annotations panel no longer opens by itself with the mode Annotate;
   F4 shows it. Settings > Appearance > Show the Annotations panel when the
   mode Annotate is chosen (off at first) brings back the old way.
