@@ -113,13 +113,15 @@ def tinted(width: int, height: int, stride: int, data: bytes, tint: tuple[int, i
 def render(path: str, password: str, stamp: tuple, number: int, scale: float,
            bare: bool = False, clip: tuple | None = None,
            antialias: tuple[int, int] | None = None,
-           tint: tuple[int, int] | None = None, sharpness: tuple = AS_DRAWN) -> tuple[int, int, int, bytes]:
+           tint: tuple[int, int] | None = None, sharpness: tuple = AS_DRAWN,
+           words: bool = False) -> tuple:
     """Page NUMBER of the document at PATH rendered at SCALE (BARE: without the annotations that
     the window draws itself): its width, height, bytes per line and RGB pixels. CLIP: only that
     part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom.
     ANTIALIAS: MuPDF's levels of antialiasing of (text, graphics), as the settings say. TINT: (the colour black
     becomes, the colour white becomes), for reading colours (see gui/reading.py). SHARPNESS: the text made sharper
-    (see sharpen; Settings > Appearance)."""
+    (see sharpen; Settings > Appearance). WORDS: also the words of the page, as get_text('words') gives them,
+    after the pixels (read here, the window needn't read them itself: see PageCanvas.take_words)."""
     if antialias is not None:
         pymupdf.mupdf.fz_set_text_aa_level(antialias[0])
         pymupdf.mupdf.fz_set_graphics_aa_level(antialias[1])
@@ -132,12 +134,13 @@ def render(path: str, password: str, stamp: tuple, number: int, scale: float,
     # alpha=False: the window wants plain RGB; the stride (bytes per line) may be more than width * 3.
     pix = doc[number].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
                                  clip=pymupdf.Rect(clip) if clip is not None else None)
+    found = (doc[number].get_text("words", sort=False),) if words else ()
     if sharpness == AS_DRAWN:
         if tint is not None:
             pix.tint_with(tint[0], tint[1])
-        return pix.width, pix.height, pix.stride, bytes(pix.samples)
+        return (pix.width, pix.height, pix.stride, bytes(pix.samples), *found)
     # Antes del tinte: se afila el texto en sus colores, que luego el tinte cambia
     stride, data = sharpen(pix, sharpness)
     if tint is not None:
         data, stride = tinted(pix.width, pix.height, stride, data, tint), pix.width * 3
-    return pix.width, pix.height, stride, data
+    return (pix.width, pix.height, stride, data, *found)

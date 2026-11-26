@@ -2550,6 +2550,19 @@ had timers that fired on a busy computer and drew its own pages into the
 count. The tests now count only the pages of their own window, and so
 does the test that counts the work of long documents.
 
+PDFCraft reads the text of the pages in its workers, the visible ones
+first. In py-pdftools the window read the words of a page itself, the
+first time something wanted them: selecting text, the cursor over text,
+the links found in the text. On dense pages that takes 5 to 15 ms (1,600
+words on a page of a dictionary), and once 90; and the links read the
+page twice, since the boxes of the words and their texts were kept apart,
+each with its own reading. Now one reading gives both. And the first time
+a page in view is drawn in the other processes, the same process reads
+its words and sends them with the picture, so the window has them when
+the page appears: on the scanned dictionary, the links of a page in view
+took 0.1 ms, those of a page not drawn 51. A page drawn again at another
+zoom doesn't read them again.
+
 Testing
 -------
 

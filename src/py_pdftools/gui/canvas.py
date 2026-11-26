@@ -40,7 +40,6 @@ from .scrolling import MAX_ZOOM, MIN_ZOOM, ScrollingMixin
 from .textselect import TEXT_SELECT, TextSelectMixin
 from ..annotate.annots import (
     CARET_SIZE, DRAWN, MARKUP, NOTE_SIZE, RESIZABLE, TEXTUAL, VERTICES, Annotation, Rect, nearest_word, text_rects,
-    words,
 )
 from ..core.interface import tr
 from .paint import _font, paint, qrect
@@ -1219,7 +1218,16 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
 
         # Without a document on disk (source is None) the other processes cannot open it: render here.
         r = renderer()
+        if not getattr(self, "_hears_words", False):
+            # (a method, not a lambda: a lambda holding a window made Qt crash at exit)
+            r.words_found.connect(self._words_arrived)
+            self._hears_words = True
         return r if self.source is not None and r.available() else None
+
+    def _words_arrived(self, path: str, stamp, number: int, found):
+        """The words of page NUMBER, read by the process that drew it: kept, if they are of the file shown."""
+        if self.source is not None and (path, stamp) == (self.source[0], self.source[2]) and number not in self._words:
+            self.take_words(number, found)
 
     def visible_pages(self, ahead: float | None = None) -> list[int]:
         """The pages in view (and those within AHEAD of a window's height of it), the middle one first."""
@@ -1285,8 +1293,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             item.wanted = key
             # The page in the middle goes first in the queue of the other processes; the rest wait.
             if remote is not None:
+                # (its words too, the first time: read there, the window needn't stop to read them)
                 remote.request("view", self.source, n, scale, lambda image, key=key: self._arrived(key, image),
-                               first=n == self.page)
+                               first=n == self.page, words=n not in self._words)
             else:
                 self._here.append((n, scale, None))
         self._render_tiles(wanted, remote)
@@ -1584,9 +1593,24 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         event.accept()
 
     def page_words(self, number: int) -> list:
+        """The words of page NUMBER: (their rectangle as the page is shown, block, line), in reading order."""
         if number not in self._words:
-            self._words[number] = words(self.doc[number]) if self.doc is not None else []
+            self.take_words(number, self.doc[number].get_text("words", sort=False) if self.doc is not None else [])
         return self._words[number]
+
+    def take_words(self, number: int, found: list):
+        """FOUND, the words of page NUMBER as get_text('words') gives them (read here, or by the process that drew
+        the page: see renderer.py), kept as both page_words and word_texts want them: one reading for both."""
+        if self.doc is None or not 0 <= number < self.doc.page_count:
+            return
+        # Las cajas se pasan a la página tal como se muestra, como todo lo que dibuja la ventana (ver annots.words).
+        turn = self.doc[number].rotation_matrix
+        boxes = []
+        for x0, y0, x1, y1, _text, block, line, *_ in found:
+            r = (pymupdf.Rect(x0, y0, x1, y1) * turn).normalize()
+            boxes.append(((r.x0, r.y0, r.x1, r.y1), block, line))
+        self._words[number] = boxes
+        self._word_texts[number] = [tuple(w) for w in found]
 
     def _text_selection(self, number: int, start: QPointF, end: QPointF) -> list[Rect]:
         found = self.page_words(number)

@@ -34,6 +34,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
   estaban dibujadas, vayan donde vayan, en lugar de dibujarse otra vez;
   solo se dibujan las que cambiaron. En un diccionario escaneado, las
   páginas a la vista volvieron en 0,1 s en lugar de 0,5 a 0,8.
+- Las palabras de una página a la vista las lee el proceso que la dibuja, la
+  primera vez, y llegan con ella: seleccionar texto, el cursor sobre el
+  texto y los enlaces del texto ya no detienen la ventana un momento en una
+  página densa (de 5 a 15 ms, a veces 90). Las de una página se leen una
+  vez para todo, no dos.
 - Las páginas que se guardan dibujadas se limitan por la memoria que
   ocupan (64, 256 o 768 MB, según el ajuste de memoria), no por su número:
   a un zoom bajo se guardan más, y a uno alto dieciséis páginas grandes ya

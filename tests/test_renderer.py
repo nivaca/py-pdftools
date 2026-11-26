@@ -135,6 +135,42 @@ def test_thumbnails_are_drawn_at_a_lower_priority(app, renderer):
     assert thumbs.submit(os.getpriority, os.PRIO_PROCESS, 0).result(timeout=30) == min(mine + 10, 19)
 
 
+def test_the_words_come_with_the_page(app, renderer, tmp_path):
+    """Asked for, the words of a page are read by the process that draws it, and come with it."""
+    path = tmp_path / "words.pdf"
+    doc = pymupdf.open()
+    doc.new_page().insert_text((72, 72), "Quick brown fox", fontsize=14)
+    doc.save(path)
+    found, got = [], []
+    renderer.words_found.connect(lambda *args: found.append(args))
+    renderer.request("view", source(path), 0, 1.0, got.append, words=True)
+    wait(app, lambda: got and found)
+    path_, stamp, number, words = found[0]
+    assert (path_, stamp, number) == (str(path), source(path)[2], 0)
+    assert [w[4] for w in words] == ["Quick", "brown", "fox"]
+    # (without asking, none: a page drawn again at another zoom doesn't read them again)
+    found.clear()
+    renderer.request("view", source(path), 0, 0.5, got.append)
+    wait(app, lambda: len(got) == 2)
+    assert not found
+
+
+def test_the_words_kept_as_the_page_is_shown(app, tmp_path):
+    """take_words gives the boxes of the words as the page is shown, turned or not, as annots.words does."""
+    from py_pdftools.annotate.annots import words
+    from py_pdftools.gui.canvas import PageCanvas
+
+    doc = pymupdf.open()
+    page = doc.new_page()
+    page.insert_text((72, 100), "Turned words", fontsize=14)
+    page.set_rotation(90)
+    canvas = PageCanvas()
+    canvas.doc = doc
+    canvas.take_words(0, doc[0].get_text("words", sort=False))
+    assert canvas.page_words(0) == words(doc[0])
+    assert [w[4] for w in canvas.word_texts(0)] == ["Turned", "words"]
+
+
 def test_the_canvas_shows_a_skipped_page(app, slow_pdf, tmp_path, monkeypatch):
     from py_pdftools.gui.window import MainWindow
 

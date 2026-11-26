@@ -79,6 +79,8 @@ class Renderer(QObject):
     # Futures finish in a thread of the executor; the signal moves the result to the GUI thread,
     # where QImage and the callbacks are safe to use.
     _arrived = Signal(object)  # (lane, slot, key, future): from the executor's thread to the window's
+    # the words of a page, read by the process that drew it: (path, stamp, page, words as get_text('words'))
+    words_found = Signal(str, object, int, object)
 
     def __init__(self):
         super().__init__()
@@ -95,10 +97,10 @@ class Renderer(QObject):
         return ENABLED and not self.broken
 
     def request(self, lane: str, source: Source, number: int, scale: float, callback: Callable,
-                first: bool = False, clip: tuple | None = None) -> None:
+                first: bool = False, clip: tuple | None = None, words: bool = False) -> None:
         """Render page NUMBER of SOURCE at SCALE (only CLIP of it, if given), and give CALLBACK the
         QImage (None if it couldn't be rendered there; a Skipped if the page is skipped).
-        FIRST: before those waiting."""
+        FIRST: before those waiting. WORDS: read its words too, given by words_found."""
         ln = self.lanes.get(lane)
         if ln is None:
             ln = self.lanes[lane] = Lane(WORKERS.get(lane, 1))
@@ -112,7 +114,7 @@ class Renderer(QObject):
         tint = reading.TINT if lane == "view" else None
         # (the sharpness of the text: also only in view)
         sharpness = reading.SHARPEN if lane == "view" else reading.SHARPNESS["drawn"]
-        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, sharpness)
+        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, sharpness, words)
         ln.callbacks.setdefault(key, []).append(callback)
         # Already being rendered: the callback is added and will get the same image.
         if ln.rendering(key):
@@ -123,7 +125,7 @@ class Renderer(QObject):
             ln.waiting.remove(entry)
         else:
             entry = (key, (source[0], source[1], source[2], number, scale, source[3], clip, performance.ANTIALIAS,
-                           tint, sharpness))
+                           tint, sharpness, words))
         if first:
             ln.waiting.insert(0, entry)
         else:
@@ -220,7 +222,9 @@ class Renderer(QObject):
             return
         result = None
         try:
-            width, height, stride, data = future.result()
+            width, height, stride, data, *found = future.result()
+            if found:  # (the words of the page, asked for with it)
+                self.words_found.emit(key[0], key[1], key[2], found[0])
             # Las páginas de la vista, en el formato de la pantalla; las miniaturas, como llegan (ver rgb_image)
             from .canvas import rgb_image
 

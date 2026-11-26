@@ -31,6 +31,11 @@ Debian package, the RPM, the wheel and the source, are on
   drawn, wherever they went, instead of being drawn again; only the pages
   changed are. On a scanned dictionary the pages in view came back after
   about 0.1 s instead of 0.5 to 0.8.
+- The words of a page in view are read by the process that draws it, the
+  first time, and come with it: selecting text, the tool cursor over text
+  and the links in the text no longer stop the window for a moment on a
+  dense page (5 to 15 ms, sometimes 90). Those of a page are read once
+  for all uses, not twice.
 - The pages kept drawn are limited by the memory they take (64, 256 or
   768 MB, by the memory setting), not by their number: at a low zoom more
   are kept, and at a high one sixteen large pages no longer take a

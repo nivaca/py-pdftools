@@ -34,8 +34,8 @@ class TextSelectMixin:
     def word_texts(self, number: int) -> list:
         """The words of page NUMBER: (x0, y0, x1, y1, text, block, line, word), in the order of page_words."""
         if number not in self._word_texts:
-            self._word_texts[number] = self.doc[number].get_text("words", sort=False) if self.doc is not None else []
-        return self._word_texts[number]
+            self.page_words(number)  # (one reading gives both: see PageCanvas.take_words)
+        return self._word_texts.get(number, [])
 
     def selected_words(self) -> dict[int, list[int]]:
         """{page: the indices of its words selected}, the pages in order."""
