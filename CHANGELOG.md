@@ -7,6 +7,9 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- File > Open recent opens the document in a new tab beside the one
+  shown, instead of replacing it; in a window without a document it opens
+  there, and a document already open is only brought to the front.
 - File > Export has Text (Markdown)… and Text (plain, UTF-8)…, each
   dialog starting with its own type (HTML is still in both), and File >
   Export > Annotations has As a report (plain text, UTF-8)…, the report

@@ -7,6 +7,9 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Archivo > Abrir reciente abre el documento en una pestaña nueva junto a
+  la visible, en vez de reemplazarlo; en una ventana sin documento se abre
+  ahí, y uno ya abierto solo pasa al frente.
 - Archivo > Exportar tiene Texto (Markdown)… y Texto (simple, UTF-8)…,
   cada diálogo con su tipo elegido al principio (HTML sigue en los dos), y
   Archivo > Exportar > Anotaciones tiene Como informe (texto simple,

@@ -2038,6 +2038,29 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         path = path.resolve()
         self._set_recent([path] + [p for p in self.recent_files() if p != path])
 
+    def open_recent(self, path: Path) -> bool:
+        """File > Open recent: PATH in this window if it has no document, else in a new tab beside it; a
+        document already open is only brought to the front, in its tab or its window."""
+        for w in _WINDOWS:
+            if w.is_open() and w.path is not None and w.path.resolve() == path.resolve():
+                if w.host is not None:
+                    w.host.show_window(w)
+                    w.host.activateWindow()
+                else:
+                    w.raise_()
+                    w.activateWindow()
+                return True
+        if self.path is None:
+            return self.open_path(path)
+        from .tabs import open_in_tab
+
+        # (antes reemplazaba el documento de esta ventana)
+        win = open_in_tab(path, near=self)
+        if win.path is None:  # (it couldn't be opened: the empty tab goes, and this one comes back)
+            win.close()
+            return False
+        return True
+
     def clear_recent(self):
         self._set_recent([])
 
@@ -2048,7 +2071,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         for i, path in enumerate(paths, 1):
             # Teclas de acceso &1 a &9, y 1&0 para la décima.
             key = f"&{i}" if i < 10 else "1&0"
-            act = m.addAction(f"{key} " + path.name.replace("&", "&&"), lambda p=path: self.open_path(p))
+            act = m.addAction(f"{key} " + path.name.replace("&", "&&"), lambda p=path: self.open_recent(p))
             act.setToolTip(str(path))
             act.setStatusTip(str(path))
         if paths:

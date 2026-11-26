@@ -2583,8 +2583,8 @@ redacted copy is written (in the function that writes it, before anything
 else) and whenever the setting is off, also at the start. The manuals say
 so, with a new picture of the page of settings.
 
-112. Plain text, and a question before closing several documents
------------------------------------------------------------------
+112. Plain text, a question before closing, and recent documents in tabs
+------------------------------------------------------------------------
 
 The text of a document could already be saved as plain text, but only by
 choosing "Plain text (*.txt)" in the list of types of the dialog, which
@@ -2608,10 +2608,17 @@ answered by a fixture for all of them, since many tests close windows with
 two tabs, and a file of its own replaces that answer to check what is
 asked, and when.
 
+Trying these, the user found an older fault: File > Open recent opened the
+document in the same window, so the one being read went away. A recent
+document now opens in a new tab beside it, as Open in a new tab does; in
+a window without a document it opens there, and a document already open
+somewhere is only brought to the front. A file that can no longer be
+opened leaves no empty tab behind.
+
 Testing
 -------
 
-The program has 885 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 886 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
