@@ -127,3 +127,22 @@ def test_from_the_settings(window, icon_themes):
     d.icons.setCurrentIndex(d.icons.findData("Fake"))
     d.accept()
     assert config.get("theme") == "sepia" and config.get("icons") == "Fake" and QIcon.themeName() == "Fake"
+
+
+def test_fusion_where_the_native_style_ignores_the_palette(monkeypatch):
+    """On Windows and macOS, whose styles draw with the system's colours, a theme of the program takes Fusion, and
+    'system' gives the native style back; elsewhere (Breeze, Fusion) the style stays."""
+    QApplication.instance() or QApplication([])
+    used = []
+    monkeypatch.setattr(appearance, "_use_style", used.append)
+    monkeypatch.setattr(appearance, "_SYSTEM_STYLE", "windows11")
+    try:
+        appearance.apply_theme("nord")
+        appearance.apply_theme("system")
+        assert used == ["Fusion", "windows11"]
+        used.clear()
+        monkeypatch.setattr(appearance, "_SYSTEM_STYLE", "Breeze")
+        appearance.apply_theme("sepia")
+        assert used == []  # (Breeze follows the palette: it stays)
+    finally:
+        appearance.apply_theme("system")

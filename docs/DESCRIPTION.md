@@ -2224,10 +2224,25 @@ while one dialog is open, other errors go only to the terminal, so that
 a fault repeated on every movement of the mouse doesn't bury the window
 under dialogs. A test raises errors in the main thread and in another.
 
+100. Fusion where the native look ignores the colours
+------------------------------------------------------
+
+The themes of the program are palettes, and a palette is only a request:
+the style that draws the widgets decides whether to follow it. Breeze,
+on Linux, does; the styles of Windows 11 and of macOS draw with the
+system's colours, so that Nord or Sepia would have come out half done
+in the installers for those systems. Calibre, for this reason, uses
+Qt's Fusion style whenever it applies colours of its own. py-pdftools
+now does the same, only where it is needed: when a theme of the program
+is chosen and the style Qt started with is one of those, Fusion takes
+its place, before the palette (setting a style may set its own palette),
+and "As the system" gives the native style back. On Linux nothing
+changes. A test pretends to start on Windows 11's style and on Breeze.
+
 Testing
 -------
 
-The program has 843 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 844 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

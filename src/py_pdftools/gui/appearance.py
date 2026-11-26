@@ -137,12 +137,27 @@ def icon_theme(name: str, dark: bool) -> str:
     return next((n for n in wanted if _icon_theme_exists(n)), name)
 
 
+# Estilos nativos que no siguen la paleta del programa (dibujan con los colores del sistema): con un tema del
+# programa, Fusion los reemplaza, como hace Calibre; Breeze, en Linux, sí la sigue, y se queda
+NATIVE_STYLES = {"windows11", "windowsvista", "macos", "macintosh"}
+_SYSTEM_STYLE: str | None = None  # (the style Qt started with, given back with the theme 'system')
+
+
+def _use_style(name: str) -> None:
+    """The style NAME for the whole application, if it isn't the one in use already."""
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication.instance()
+    if app is not None and app.style().name().lower() != name.lower():
+        app.setStyle(name)
+
+
 def apply_theme(name: str | None = None):
     """The colours of the interface: as the system has them, or one of the program's themes (THEMES), each a
     whole palette of its own, and the matching variant of the icon theme: asking Qt for a scheme of
     colours alone isn't enough, since the desktop's own theme (the portal of KDE, for one) may keep its
     colours over it. 'system' gives the desktop its colours and icons back."""
-    global _SYSTEM_ICONS
+    global _SYSTEM_ICONS, _SYSTEM_STYLE
     from PySide6.QtCore import Qt
     from PySide6.QtGui import QGuiApplication, QIcon, QPalette
     from PySide6.QtWidgets import QApplication, QToolTip
@@ -153,12 +168,17 @@ def apply_theme(name: str | None = None):
     name = name or value("theme")
     if _SYSTEM_ICONS is None:
         _SYSTEM_ICONS = QIcon.themeName()
+    if _SYSTEM_STYLE is None:
+        _SYSTEM_STYLE = app.style().name()
     hints = QGuiApplication.styleHints()
     if name in PALETTES:
         dark = name in DARK_THEMES  # (high contrast is white on black: the icons of a dark theme)
         # (also the scheme, for what reads it: the style, the dialogs of the system, where they follow it)
         if hasattr(hints, "setColorScheme"):  # (Qt 6.8 or later)
             hints.setColorScheme(Qt.ColorScheme.Dark if dark else Qt.ColorScheme.Light)
+        # (el estilo antes que la paleta: setStyle puede poner la del estilo)
+        if _SYSTEM_STYLE.lower() in NATIVE_STYLES:  # (Windows, macOS: their style would ignore the palette)
+            _use_style("Fusion")
         app.setPalette(palette(name))
         QToolTip.setPalette(app.palette())  # (los globos de ayuda guardan la suya: quedaban del tema anterior)
         app.setStyleSheet(CONTRAST_STYLE if name == "contrast" else "")
@@ -166,6 +186,8 @@ def apply_theme(name: str | None = None):
         return
     if hasattr(hints, "unsetColorScheme"):
         hints.unsetColorScheme()
+    if _SYSTEM_STYLE:
+        _use_style(_SYSTEM_STYLE)  # (the system's style again, if a theme of the program had changed it)
     # Una paleta vacía (sin ningún papel fijado) devuelve la de la plataforma
     app.setPalette(QPalette())
     QToolTip.setPalette(app.palette())
