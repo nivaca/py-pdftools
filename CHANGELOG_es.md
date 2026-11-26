@@ -107,6 +107,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
   publica. `tools/release.py` reúne ahora el depósito después de la etiqueta
   y lo sube como borrador, salvo con `--no-zenodo`. Los metadatos están en
   `.zenodo.json`.
+- `tools/release.py` publica ahora cada versión en Zenodo
+  (`tools/zenodo.py upload --publish`), en vez de dejar un borrador;
+  `--zenodo-draft` todavía lo deja. `tools/zenodo.py publish` publica un
+  borrador que ya está allí (por omisión, el que espera con el título del
+  proyecto).
 
 ## 1.2.0 — 2026-11-20
 

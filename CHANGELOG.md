@@ -45,6 +45,10 @@ Debian package, the RPM, the wheel and the source, are on
   768 MB, by the memory setting), not by their number: at a low zoom more
   are kept, and at a high one sixteen large pages no longer take a
   gigabyte.
+- `tools/release.py` now publishes each release on Zenodo
+  (`tools/zenodo.py upload --publish`), instead of leaving a draft;
+  `--zenodo-draft` still leaves one. `tools/zenodo.py publish` publishes a
+  draft already there (by default the one waiting with the project's title).
 
 ## 1.19.0 — 2026-11-25
 
