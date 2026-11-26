@@ -14168,4 +14168,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{name} is a program, or a file that starts one (a script, an installer…): py-pdftools doesn't open it, since it could do anything on this computer.</en>
     <tr>{name} es un programa, o un archivo que pone uno en marcha (un guion, un instalador…): py-pdftools no lo abre, porque podría hacer cualquier cosa en este computador.</tr>
   </text>
+  <text>
+    <en>Copy the details</en>
+    <tr>Copiar los detalles</tr>
+  </text>
+  <text>
+    <en>Something went wrong</en>
+    <tr>Algo falló</tr>
+  </text>
+  <text>
+    <en>What was being done may have been left undone. If it happens again, please report it with the details, which the button copies.</en>
+    <tr>Lo que se estaba haciendo pudo quedar sin hacer. Si vuelve a ocurrir, avise, por favor, con los detalles, que el botón copia.</tr>
+  </text>
+  <text>
+    <en>py-pdftools met an error it didn't expect: {error}</en>
+    <tr>py-pdftools se encontró con un error que no esperaba: {error}</tr>
+  </text>
 </interface>

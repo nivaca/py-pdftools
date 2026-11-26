@@ -71,6 +71,9 @@ def main(argv: list[str] | None = None) -> int:
     app.setOrganizationName("py-pdftools")
     app.setDesktopFileName("py-pdftools")
     app.setWindowIcon(app_icon())
+    from . import errors
+
+    errors.install(app)  # (an error nothing caught: shown in a dialog, not only in the terminal)
     install_qt_translations()
     from . import performance
 

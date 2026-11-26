@@ -2208,10 +2208,26 @@ the file is already on the computer; links that start a program were
 already not followed. Tests try names that run and names that don't,
 the panel of attached files, an attachment's annotation and a link.
 
+99. Errors that nothing caught, shown
+-------------------------------------
+
+An error inside the window that no part of the program caught went only
+to the terminal, which nobody sees who starts the program from the menu:
+the user saw, at most, that something hadn't happened. Calibre shows a
+dialog instead, and so does py-pdftools now: what failed, in one line,
+and the details (the versions of the program, Python, Qt, PySide6 and
+PyMuPDF, and the traceback), with a button that copies them for a
+report. The error is still written to the terminal. An error in another
+thread reaches the window by a queued signal, since a dialog can only be
+shown from the main thread; Ctrl+C in the terminal shows nothing; and
+while one dialog is open, other errors go only to the terminal, so that
+a fault repeated on every movement of the mouse doesn't bury the window
+under dialogs. A test raises errors in the main thread and in another.
+
 Testing
 -------
 
-The program has 842 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 843 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
