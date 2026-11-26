@@ -2085,6 +2085,17 @@ dragged, the same as Select's, and the other tools that drag a box
 (rectangle, ellipse, cloud, area, redaction) have it too. A test paints
 the box being dragged and finds the frame along its edge.
 
+When the user tried it, the frame was still missing, and only Signature
+showed one. The program running was the installed one: with the setting
+to keep running in the background, the copy started from the source
+gives its files to the one already running and ends, so the change was
+never seen. The user also asked for a frame with Note, which has none to
+drag: a click puts its icon there. Note and Attach file now show, while
+the button is held, a frame of dashes the size of the icon as it is seen,
+where it will go; it doesn't follow a drag, since the icon goes where
+the button was pressed. The frames of Select, Signature and Note are made
+by one method now.
+
 93. The line of a strikeout, lower
 ----------------------------------
 
@@ -2101,7 +2112,7 @@ the height of the red line.
 Testing
 -------
 
-The program has 827 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 828 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

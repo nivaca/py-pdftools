@@ -2018,12 +2018,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         here = (start.x(), start.y())
         if self.mode == "select":
             # Seleccionar: un marco elástico que tomará lo que toque.
-            band = QGraphicsRectItem(QRectF(start, start), page)
-            pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
-            pen.setCosmetic(True)
-            band.setPen(pen)
+            band = self._dashed_frame(page, QRectF(start, start))
             band.setBrush(QColor(42, 127, 255, 30) if TRANSPARENT else QBrush())
-            band.setZValue(4)
             self._drag = {"kind": "band", "page": page, "start": start, "item": band, "add": add}
         elif self.mode in CLICKS:
             self._drag = {"kind": "click", "page": page, "start": start}
@@ -2031,12 +2027,15 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self._drag["item"] = self._preview(page, self._new("callout", n, (*here, *here), ((here,),)))
             elif self.mode == "signature":
                 # Un marco de trazos, como el de seleccionar: el ancho que tendrá la firma si se arrastra
-                band = QGraphicsRectItem(QRectF(start, start), page)
-                pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
-                pen.setCosmetic(True)
-                band.setPen(pen)
-                band.setZValue(4)
-                self._drag["item"] = band
+                self._drag["item"] = self._dashed_frame(page, QRectF(start, start))
+            elif self.mode in ("note", "attachment"):
+                # Where its icon goes, as large as it is seen (NOTE_SIZE pixels): it doesn't follow a drag.
+                side = NOTE_SIZE / (self.transform().m11() or 1)
+                bounds = page.rect()
+                x = max(min(start.x(), bounds.right() - NOTE_SIZE), bounds.left())
+                y = max(min(start.y(), bounds.bottom() - NOTE_SIZE), bounds.top())
+                self._drag["item"] = self._dashed_frame(page, QRectF(x, y, side, side))
+                self._drag["fixed"] = True
         elif self.mode in BOXES:
             self._drag = {"kind": "draw", "page": page, "start": start,
                           "item": self._preview(page, self._new(self.mode, n, (*here, *here),
@@ -2054,6 +2053,16 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         else:
             self._drag = None
         event.accept()
+
+    def _dashed_frame(self, page: PageItem, rect: QRectF) -> QGraphicsRectItem:
+        """A frame of dashes at RECT of PAGE, over everything, while the mouse is pressed: Select's, the size of a
+        signature, where a note goes."""
+        band = QGraphicsRectItem(rect, page)
+        pen = QPen(SELECTED, 1, Qt.PenStyle.DashLine)
+        pen.setCosmetic(True)
+        band.setPen(pen)
+        band.setZValue(4)
+        return band
 
     def _box_paths(self, a: tuple, b: tuple) -> tuple:
         """The points of a cloud drawn as a box from A to B (other boxes have none)."""
@@ -2164,6 +2173,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             self._erase_at(point)
         elif kind in ("band", "zoomarea", "linkarea", "signarea"):
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
+        elif kind == "click" and drag.get("fixed"):  # (the frame of a note: it stays)
+            pass
         elif kind == "click" and isinstance(drag.get("item"), QGraphicsRectItem):  # (the frame of a signature)
             drag["item"].setRect(QRectF(drag["start"], self._clamp(page, point)).normalized())
         elif kind == "click" and "item" in drag:  # (a callout: its box follows the mouse)
@@ -2450,6 +2461,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         n = page.number
         start = drag["start"]
         bounds = page.rect()
+        if drag.get("fixed"):  # (the frame of a note: the note takes its place)
+            self.scene().removeItem(drag["item"])
         if self.mode == "callout":
             self.scene().removeItem(drag["item"])
             box = self._callout_box(page, start, self._clamp(page, point))

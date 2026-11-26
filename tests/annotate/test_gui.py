@@ -165,6 +165,26 @@ def test_a_box_dragged_shows_a_frame_of_dashes(window):
         assert item.scene() is None
 
 
+def test_a_note_shows_where_it_goes(window):
+    """While the mouse is pressed with Note, a frame of dashes shows where its icon goes, as large as it is seen;
+    it doesn't follow a drag (the note goes where the mouse was pressed), and the note takes its place."""
+    from PySide6.QtWidgets import QGraphicsRectItem
+
+    from py_pdftools.annotate.annots import NOTE_SIZE
+
+    window.set_tool("note")
+    mouse(window, QEvent.Type.MouseButtonPress, (100, 120))
+    frame = window.canvas._drag["item"]
+    assert isinstance(frame, QGraphicsRectItem) and frame.scene() is not None
+    side = NOTE_SIZE / window.canvas.transform().m11()
+    assert close((frame.rect().x(), frame.rect().y(), frame.rect().width()), (100, 120, side), 0.5)
+    mouse(window, QEvent.Type.MouseMove, (180, 200))
+    assert close((frame.rect().x(), frame.rect().y()), (100, 120), 0.5)
+    mouse(window, QEvent.Type.MouseButtonRelease, (180, 200))
+    assert frame.scene() is None
+    assert window.annotations[-1].kind == "note" and close(window.annotations[-1].rect[:2], (100, 120), 0.5)
+
+
 def test_comment_in_the_panel(window):
     window.set_tool("ellipse")
     drag(window, (100, 300), (250, 400))
