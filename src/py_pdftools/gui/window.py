@@ -187,8 +187,11 @@ def icon(name: str) -> QIcon:
     """The icon NAME (a freedesktop name: document-open...) of the desktop's icon
     theme, so that it looks like the rest of the desktop; or else the program's own."""
     # Primero el tema del escritorio; el SVG propio de icons/actions solo cuenta si el tema no trae ese icono.
+    # (drawn in the colours of the interface when it shows: its dark lines are made light on a dark one)
+    from .own_icons import own_icon
+
     own = ACTIONS / f"{name}.svg"
-    return QIcon.fromTheme(name, QIcon(str(own)) if own.is_file() else QIcon())
+    return QIcon.fromTheme(name, own_icon(own) if own.is_file() else QIcon())
 
 
 # los iconos de los modos (icons/actions; 'pages' es Foliar), con nombres que ningún tema tiene

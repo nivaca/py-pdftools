@@ -2123,10 +2123,27 @@ when it is about to show, by a filter of events on each button, so it
 also follows a key changed in Settings. A test chooses a tool and asks
 its button for its tooltip.
 
+95. The program's own icons on a dark background
+------------------------------------------------
+
+The user found the Signature button unreadable on a dark background.
+The icons come from the desktop's icon theme, and the program brings
+its own SVGs for the names a theme hasn't: with Papirus, the user's,
+those of Signature, Typewriter, Area highlight, Check mark, Stamp and
+all the modes. They were drawn for a light background: lines of a middle
+grey, some strokes almost black, and Signature's a dark navy blue. Each
+of them is now drawn from its SVG every time it shows, by an icon engine
+of its own (QIconEngine with QSvgRenderer), and on a dark interface its
+dark colours are replaced by light ones; the marks on a light fill of
+the icon itself, such as the letters on Highlight's yellow, are kept. So
+the same icon follows a change of theme while the program runs, which a
+second set of files, loaded once, would not. A test draws the Signature
+icon in the light and in the dark theme and measures its darkest pixel.
+
 Testing
 -------
 
-The program has 829 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 830 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
