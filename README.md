@@ -558,6 +558,17 @@ else offscreen; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` or `=screen` (to
 watch them on the desktop) choose otherwise. See
 [docs/DESCRIPTION.md](docs/DESCRIPTION.md) for how the program was made.
 
+Code signing policy
+-------------------
+
+Free code signing provided by [SignPath.io](https://about.signpath.io),
+certificate by [SignPath Foundation](https://signpath.org). The installer
+for Windows is signed with Authenticode, and only when GitHub builds it from
+this repository; every signing is approved by hand. What is signed, the
+team roles and the privacy policy (the program goes to the internet only
+when one asks it to: to check for updates, or to download OCR models) are
+in [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md).
+
 Licensing
 ---------
 

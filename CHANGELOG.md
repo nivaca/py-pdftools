@@ -7,6 +7,11 @@ Debian package, the RPM, the wheel and the source, are on
 
 ## Unreleased
 
+- The installer for Windows can be signed with Authenticode by SignPath
+  (free code signing for open-source projects, with SignPath Foundation's
+  certificate), from `.github/workflows/installers.yml` at each release tag,
+  once the project is accepted there; `CODE_SIGNING_POLICY.md` is its
+  policy, and the installer now says its product name and version.
 - Fixed: with "Draw the pages with the graphics card (OpenGL)" on
   (Settings > Performance), the text of the pages looked blurred at every
   zoom. The page often falls between two pixels of the screen, and OpenGL

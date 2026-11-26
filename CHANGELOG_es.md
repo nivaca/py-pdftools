@@ -7,6 +7,12 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- El instalador para Windows se puede firmar con Authenticode por SignPath
+  (firma de código gratuita para proyectos de código abierto, con el
+  certificado de SignPath Foundation), desde
+  `.github/workflows/installers.yml` en cada etiqueta de versión, una vez
+  que el proyecto sea aceptado allí; `CODE_SIGNING_POLICY.md` es su
+  política, y el instalador dice ahora el nombre y la versión del producto.
 - Corregido: con «Dibujar las páginas con la tarjeta gráfica (OpenGL)»
   activado (Configuración > Rendimiento), el texto de las páginas se veía
   borroso a cualquier zoom. La página cae a menudo entre dos píxeles de la

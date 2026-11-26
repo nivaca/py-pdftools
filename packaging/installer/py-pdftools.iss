@@ -53,6 +53,11 @@ AppCopyright=Copyright (C) 2026 Nicolas Vaughan
 AppComments=Edits PDF documents: annotations, redaction, page labels, stamps, imposition. GPL-3.0-or-later.
 VersionInfoVersion={#FileVersion}
 VersionInfoDescription=py-pdftools setup
+; El nombre y la versión del producto, que SignPath comprueba antes de firmar
+; (packaging/signpath/artifact-configuration.xml)
+VersionInfoProductName=py-pdftools
+VersionInfoProductVersion={#FileVersion}
+VersionInfoProductTextVersion={#AppVersion}
 DefaultDirName={autopf}\py-pdftools
 DefaultGroupName=py-pdftools
 DisableProgramGroupPage=yes

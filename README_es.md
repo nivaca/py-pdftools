@@ -591,6 +591,17 @@ si no fuera de la pantalla; `PY_PDFTOOLS_TEST_DISPLAY=offscreen` o
 `=screen` (para verlas en el escritorio) eligen otra cosa. Cómo se hizo el
 programa está en [docs/DESCRIPCIÓN_es.md](docs/DESCRIPCIÓN_es.md).
 
+Política de firma de código (Code signing policy)
+-------------------------------------------------
+
+Free code signing provided by [SignPath.io](https://about.signpath.io),
+certificate by [SignPath Foundation](https://signpath.org). El instalador
+para Windows se firma con Authenticode, y solo cuando GitHub lo hace a
+partir de este repositorio; cada firma se aprueba a mano. Qué se firma, los
+papeles del equipo y la política de privacidad (el programa va a internet
+solo cuando se le pide: para buscar actualizaciones o descargar modelos del
+OCR) están en [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md).
+
 Licencia
 --------
 
