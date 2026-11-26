@@ -208,6 +208,10 @@ def write_redacted(source: Path, boxes: list[Box], target: Path, password: str =
     then renamed TARGET (else a new temporary file next to it), so that the
     caller can remove it if the writing is stopped halfway. Returns how many
     boxes were applied (see redact)."""
+    from ..core import thumbcache
+
+    # Las miniaturas guardadas en el disco mostrarían lo que la censura tapa: se borran todas, antes de nada.
+    thumbcache.clear()
     doc = open_pdf(source, password)
     if part is None:
         # En la carpeta de TARGET, para que os.replace sea un simple cambio de nombre y no una copia

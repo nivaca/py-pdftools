@@ -14228,4 +14228,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>e.g. 1-3,7,LAST; odd, even; empty: all</en>
     <tr>p. ej. 1-3,7,LAST; odd, even; vacío: todas</tr>
   </text>
+  <text>
+    <en>Keep the thumbnails on disk</en>
+    <tr>Guardar las miniaturas en el disco</tr>
+  </text>
+  <text>
+    <en>A scanned document opened again shows its thumbnails at once, instead of drawing them again. They are kept in the cache folder, at most 200 MB, and all removed when a redacted copy is written or this is turned off: they would still show what the redaction covers.</en>
+    <tr>Un documento escaneado que se abre de nuevo muestra sus miniaturas enseguida, sin dibujarlas otra vez. Se guardan en la carpeta de caché, hasta 200 MB, y se borran todas al escribir una copia censurada o al desactivar esto: seguirían mostrando lo que la censura tapa.</tr>
+  </text>
 </interface>

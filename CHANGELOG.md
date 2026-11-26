@@ -36,6 +36,11 @@ Debian package, the RPM, the wheel and the source, are on
   and the links in the text no longer stop the window for a moment on a
   dense page (5 to 15 ms, sometimes 90). Those of a page are read once
   for all uses, not twice.
+- Settings > Performance > Keep the thumbnails on disk (off at first): a
+  scanned document opened again shows its thumbnails at once (in a test,
+  0.1 s instead of 0.4). They are kept by what each page draws, at most
+  200 MB, and all removed when a redacted copy is written or the setting
+  is turned off.
 - The pages kept drawn are limited by the memory they take (64, 256 or
   768 MB, by the memory setting), not by their number: at a low zoom more
   are kept, and at a high one sixteen large pages no longer take a

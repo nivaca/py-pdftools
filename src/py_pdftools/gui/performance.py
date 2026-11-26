@@ -41,7 +41,7 @@ ANTIALIAS: tuple[int, int] = (AA_ON, AA_ON)  # (text, graphics)
 def settings() -> dict:
     """The settings of performance in the configuration file, with their usual values."""
     out = {"memory": "normal", "transparency": True, "text_antialias": True, "graphics_antialias": True,
-           "smooth": True}
+           "smooth": True, "thumb_cache": False}
     for key in out:
         try:
             value = config.get(key)
@@ -91,6 +91,12 @@ def apply(values: dict | None = None) -> dict:
     ANTIALIAS = (AA_ON if values["text_antialias"] else AA_OFF, AA_ON if values["graphics_antialias"] else AA_OFF)
     set_antialias(ANTIALIAS)
     scrolling.SMOOTH = values.get("smooth", True)
+    window.DISK_THUMBS = bool(values.get("thumb_cache", False))
+    if not window.DISK_THUMBS:
+        from ..core import thumbcache
+
+        # Apagado, no queda nada en el disco (también al arrancar, si se apagó con el programa cerrado).
+        thumbcache.clear()
     return values
 
 

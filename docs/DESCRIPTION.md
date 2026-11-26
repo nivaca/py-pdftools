@@ -2563,6 +2563,26 @@ the page appears: on the scanned dictionary, the links of a page in view
 took 0.1 ms, those of a page not drawn 51. A page drawn again at another
 zoom doesn't read them again.
 
+The last thing came from Calibre, which keeps the covers of its books on
+disk, in a folder with a limit of size, the least used removed first.
+py-pdftools now can keep its thumbnails so (Settings > Performance, off at
+first). Each one is named by the fingerprint of its page, the size of the
+thumbnails and the antialiasing, not by the file: a page changed has
+another fingerprint, so an old thumbnail is never shown, and the same page
+in another file is found too. They are stored as their bare pixels, the
+quickest to read, at most 200 MB. Looking them up means working out the
+fingerprints of the pages, a few milliseconds each on a scan, so it is
+done a few at a time between the window's other work. On the scanned
+dictionary, opened again at page 300, the thumbnails in view came after
+about 100 ms instead of 410.
+
+Pictures of pages on disk have one risk in a program that redacts: those
+of a document redacted later would still show what the redaction covers.
+So it is off at first, and every thumbnail kept is removed when a
+redacted copy is written (in the function that writes it, before anything
+else) and whenever the setting is off, also at the start. The manuals say
+so, with a new picture of the page of settings.
+
 Testing
 -------
 

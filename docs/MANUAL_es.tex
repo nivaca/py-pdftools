@@ -2068,6 +2068,14 @@ a las habituales.
   no funciona (algunas máquinas virtuales y pantallas remotas), las páginas
   se dibujan como siempre, y \menu{Comprobación del sistema} dice por qué;
   si las páginas se ven negras o parpadean, desactívelo.
+\item[Guardar las miniaturas en el disco] un documento escaneado que se
+  abre de nuevo muestra sus miniaturas enseguida, sin dibujarlas otra vez.
+  Se guardan en la carpeta de caché
+  (\texttt{\textasciitilde/.cache/py-pdftools/thumbs} en Linux), hasta
+  200~MB, según lo que dibuja cada página y no según el nombre del archivo:
+  una página cambiada se dibuja de nuevo. Desactivado al principio. Todas
+  las miniaturas guardadas se borran al escribir una copia censurada y al
+  desactivar esto, porque seguirían mostrando lo que la censura tapa.
 \end{description}
 
 \subsection{Dónde se guarda la configuración}

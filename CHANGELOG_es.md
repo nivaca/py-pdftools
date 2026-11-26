@@ -39,6 +39,11 @@ AppImage, el RPM, la rueda y el código fuente, están en
   texto y los enlaces del texto ya no detienen la ventana un momento en una
   página densa (de 5 a 15 ms, a veces 90). Las de una página se leen una
   vez para todo, no dos.
+- Configuración > Rendimiento > Guardar las miniaturas en el disco
+  (desactivado al principio): un documento escaneado que se abre de nuevo
+  muestra sus miniaturas enseguida (en una prueba, 0,1 s en lugar de 0,4).
+  Se guardan según lo que dibuja cada página, hasta 200 MB, y se borran
+  todas al escribir una copia censurada o al desactivar el ajuste.
 - Las páginas que se guardan dibujadas se limitan por la memoria que
   ocupan (64, 256 o 768 MB, según el ajuste de memoria), no por su número:
   a un zoom bajo se guardan más, y a uno alto dieciséis páginas grandes ya

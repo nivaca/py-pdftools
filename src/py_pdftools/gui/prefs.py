@@ -273,7 +273,14 @@ class SettingsDialog(QDialog):
         self.gpu.setToolTip(tr("Smoother scrolling and zooming: the pictures of the pages are moved and scaled "
                                "by the graphics card. It changes the next time py-pdftools starts. If the pages "
                                "then show black or flicker, turn it off again."))
-        for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.smooth, self.gpu):
+        self.thumb_cache = QCheckBox(tr("Keep the thumbnails on disk"))
+        self.thumb_cache.setChecked(current.get("thumb_cache", False))
+        self.thumb_cache.setToolTip(tr("A scanned document opened again shows its thumbnails at once, instead of "
+                                       "drawing them again. They are kept in the cache folder, at most 200 MB, and "
+                                       "all removed when a redacted copy is written or this is turned off: they "
+                                       "would still show what the redaction covers."))
+        for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.smooth, self.gpu,
+                    self.thumb_cache):
             form.addRow("", box)
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
@@ -557,10 +564,14 @@ class SettingsDialog(QDialog):
 
         values = {"memory": self.memory.currentData(), "transparency": self.transparency.isChecked(),
                   "text_antialias": self.text_antialias.isChecked(),
-                  "graphics_antialias": self.graphics_antialias.isChecked(), "smooth": self.smooth.isChecked()}
+                  "graphics_antialias": self.graphics_antialias.isChecked(), "smooth": self.smooth.isChecked(),
+                  "thumb_cache": self.thumb_cache.isChecked()}
         before = performance.settings()
-        self.performance_changed = values != before  # (de esta vez: lo que la ventana debe dibujar de nuevo)
-        if self.performance_changed:
+        # (de esta vez: lo que la ventana debe dibujar de nuevo; guardar las miniaturas en el disco no cambia nada
+        # de lo dibujado)
+        self.performance_changed = {k: v for k, v in values.items() if k != "thumb_cache"} != \
+            {k: v for k, v in before.items() if k != "thumb_cache"}
+        if values != before:
             try:
                 config.set_many({k: v for k, v in values.items() if v != before[k]})
             except OSError as e:

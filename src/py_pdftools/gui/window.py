@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import dataclasses
 import json
+import time
 import uuid
 from collections import Counter
 from pathlib import Path
@@ -78,6 +79,8 @@ THUMB_SIZES = (60, 300, 112)  # the height of the thumbnails: smallest, largest,
 # comes back to them): about 40 MB, whatever the length of the document
 MAX_THUMBS = 400
 ALL_THUMBS = False  # (the memory profile 'all': every thumbnail is made, not only those near view)
+DISK_THUMBS = False  # (the thumbnails kept on disk too: Settings > Performance, see core/thumbcache.py)
+DISK_SLICE = 0.012  # seconds of looking for thumbnails on disk at each turn of the event loop
 # the tools: (name, freedesktop icon, tooltip), in groups; besides select, hand and eraser, they are the
 # kinds of annotations they make (annots.KINDS)
 TOOLS = [
@@ -1708,6 +1711,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # Las cachés (miniaturas, texto marcado, palabras) eran de las páginas del archivo anterior.
         self._thumbs, self._thumb_shown, self._marked, self._words = {}, {}, {}, {}
         self._thumb_asked = set()
+        self._disk_tried: set[int] = set()  # (pages whose thumbnail was looked for on disk: see _draw_thumbnails)
         self.redact_texts, self.redact_meta = {}, None
         self._by_page = [[] for _ in range(self.count)]
         # Bare only if there are annotations to take out: else the renderers can use the file as it is.
@@ -2736,6 +2740,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             # (drawn anew: with the antialiasing chosen, and caches of the new size)
             self.canvas.clear_cache()
             self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
+            self._disk_tried = set()
             self.canvas.render_timer.start()
             self.thumb_timer.start()
         self.refresh()
@@ -2780,6 +2785,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         page = self.page
         self.canvas.clear_cache()
         self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
+        self._disk_tried = set()
         self.canvas.layout()
         self.canvas.set_annotations(self.canvas_items(self.shown()), self.selected)
         self.show_page(page)
@@ -2912,6 +2918,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._size_thumbnails()
         # Las miniaturas hechas tienen el tamaño anterior: se descartan y se dibujan otra vez.
         self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
+        self._disk_tried = set()
         if self.doc is not None:
             self._fill_pages()
             self._label_pages()
@@ -3688,6 +3695,20 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                     self._thumbs[n] = image
                     self._thumb(n)
                     missing.remove(n)
+        if DISK_THUMBS:  # (those kept on disk, from another time: a few at each turn, the window answers meanwhile)
+            end = time.monotonic() + DISK_SLICE
+            for n in list(missing):
+                if n in self._disk_tried:
+                    continue
+                if time.monotonic() > end:
+                    self.thumb_timer.start(0)
+                    return
+                self._disk_tried.add(n)
+                image = self._disk_thumb(n)
+                if image is not None:
+                    self._thumbs[n] = image
+                    self._thumb(n)
+                    missing.remove(n)
         if remote is not None:
             wanted = set(rows)
             # Las que ya no se ven dejan la cola; las que se están haciendo llegan igual.
@@ -3713,7 +3734,46 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
         self.thumb_timer.setInterval(0)
         self._thumbs[n] = page_image(page, scale)
+        self._keep_thumb(n)
         self._thumb(n)
+
+    def _disk_drawing(self) -> tuple:
+        """What a thumbnail on disk must have been made with to be used: the size of the thumbnails, and the
+        antialiasing."""
+        from . import performance
+
+        return (self.thumb.width(), self.thumb.height()), performance.ANTIALIAS
+
+    def _disk_thumb(self, n: int) -> QImage | None:
+        """The thumbnail of page N kept on disk (see core/thumbcache.py), if there is one."""
+        from ..core import thumbcache
+
+        fingerprint = self.canvas.page_print(n)
+        if fingerprint is None:
+            return None
+        size, drawing = self._disk_drawing()
+        found = thumbcache.load(fingerprint, size, drawing)
+        if found is None:
+            return None
+        width, height, rgb = found
+        return QImage(rgb, width, height, width * 3, QImage.Format.Format_RGB888).copy()
+
+    def _keep_thumb(self, n: int):
+        """Keep the thumbnail of page N on disk too, if the settings say so."""
+        image = self._thumbs.get(n)
+        if not DISK_THUMBS or image is None or image.format() != QImage.Format.Format_RGB888:
+            return
+        from ..core import thumbcache
+
+        fingerprint = self.canvas.page_print(n)
+        if fingerprint is None:
+            return
+        width, height, line = image.width(), image.height(), image.bytesPerLine()
+        data = bytes(image.constBits())[:line * height]
+        # (las filas de una QImage pueden traer relleno al final: se quita)
+        rgb = data if line == width * 3 else b"".join(data[r * line:r * line + width * 3] for r in range(height))
+        size, drawing = self._disk_drawing()
+        thumbcache.save(fingerprint, size, drawing, width, height, rgb)
 
     def _thumb_arrived(self, source, n: int, scale: float, image):
         from .renderer import Skipped, skipped_image
@@ -3721,11 +3781,14 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._thumb_asked.discard(n)
         if self.doc is None or source != self.canvas.source:
             return  # (of a document no longer open)
-        if isinstance(image, Skipped):  # (a page skipped: grey, without words, at the thumbnail's size)
+        skipped = isinstance(image, Skipped)
+        if skipped:  # (a page skipped: grey, without words, at the thumbnail's size)
             r = self.doc[n].rect
             image = skipped_image(round(r.width * scale), round(r.height * scale), image, words=False)
         # Si el otro proceso no pudo, la miniatura se hace aquí.
         self._thumbs[n] = image if image is not None else page_image(self.doc[n], scale)
+        if not skipped:  # (a grey stand-in is never kept on disk)
+            self._keep_thumb(n)
         self._thumb(n)
         self.thumb_timer.start()
 

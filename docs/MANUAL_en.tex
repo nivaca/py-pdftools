@@ -1962,6 +1962,13 @@ the three has a button to bring back the usual ones.
   remote displays), the pages are drawn as usual, and \menu{Check the
   configuration} says why; if the pages show black or flicker, turn it
   off.
+\item[Keep the thumbnails on disk] a scanned document opened again shows
+  its thumbnails at once, instead of drawing them again. They are kept in
+  the cache folder (\texttt{\textasciitilde/.cache/py-pdftools/thumbs} on
+  Linux), at most 200~MB, by what each page draws, not by the file's name:
+  a page changed is drawn again. Off at first. Every thumbnail kept is
+  removed when a redacted copy is written, and when this is turned off,
+  since they would still show what the redaction covers.
 \end{description}
 
 \subsection{Where the settings are kept}
