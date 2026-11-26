@@ -5,7 +5,7 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
-## Unreleased
+## 1.20.0 — 2026-11-26
 
 - Fixed: a quick move of the eraser left untouched what it crossed between
   two positions of the mouse; it erases along the whole way now.
