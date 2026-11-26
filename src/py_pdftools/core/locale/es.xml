@@ -14156,4 +14156,16 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>Theme</en>
     <tr>Tema</tr>
   </text>
+  <text>
+    <en>If you trust it, save it and open it yourself.</en>
+    <tr>Si confía en él, guárdelo y ábralo usted mismo.</tr>
+  </text>
+  <text>
+    <en>Not opened</en>
+    <tr>No se abrió</tr>
+  </text>
+  <text>
+    <en>{name} is a program, or a file that starts one (a script, an installer…): py-pdftools doesn't open it, since it could do anything on this computer.</en>
+    <tr>{name} es un programa, o un archivo que pone uno en marcha (un guion, un instalador…): py-pdftools no lo abre, porque podría hacer cualquier cosa en este computador.</tr>
+  </text>
 </interface>

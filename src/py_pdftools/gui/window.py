@@ -2144,10 +2144,38 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
 
         # TODO: estas carpetas de mkdtemp no se borran nunca; podrían borrarse al cerrar la ventana (el programa
         # externo puede seguir leyendo el archivo mientras tanto).
+        refused = self.refused_to_run(a.filename or "file")
+        if refused is not None:
+            if refused:  # (the user asked to save it: where they say)
+                self.save_attachment(a)
+            return
         folder = Path(tempfile.mkdtemp(prefix="py-pdftools-"))
         path = self.save_attachment(a, folder / Path(a.filename or "file").name)
         if path is not None:
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(path)))
+
+    def refused_to_run(self, name: str, can_save: bool = True) -> bool | None:
+        """None if the file NAME can be opened; if it would run instead (a program, a script, an installer: see
+        core/runnable.py), it isn't, the user is told why, and the answer is whether they asked to save it
+        (offered if CAN_SAVE: an attached file, not one a link points to)."""
+        from ..core.runnable import could_run
+
+        return self.ask_save_runnable(Path(name).name, can_save) if could_run(name) else None
+
+    def ask_save_runnable(self, name: str, can_save: bool = True) -> bool:
+        """The warning that NAME is not opened, since it would run; whether the user asks to save it."""
+        box = QMessageBox(QMessageBox.Icon.Warning, tr("Not opened"),
+                          tr("{name} is a program, or a file that starts one (a script, an installer…): "
+                             "py-pdftools doesn't open it, since it could do anything on this computer.",
+                             name=name), parent=self)
+        save = None
+        if can_save:
+            box.setInformativeText(tr("If you trust it, save it and open it yourself."))
+            save = box.addButton(tr("Save as…"), QMessageBox.ButtonRole.AcceptRole)
+            box.addButton(QMessageBox.StandardButton.Cancel)
+            box.setDefaultButton(QMessageBox.StandardButton.Cancel)
+        box.exec()
+        return save is not None and box.clickedButton() is save
 
     def _mark(self, page: int, rect: Rect) -> Annotation:
         """The mark chosen for the Check mark tool (see MARKS) in RECT: a drawing, or a disc for a dot,

@@ -315,6 +315,10 @@ class NavigationMixin:
 
         if not uri:
             return False
+        # Una dirección file: que lleva a un programa (o un guion) lo pondría en marcha: no se abre
+        local = QUrl(uri)
+        if local.isLocalFile() and self.refused_to_run(local.toLocalFile() or uri, can_save=False) is not None:
+            return False
         if value("ask_links"):  # (Settings > Documents)
             answer = QMessageBox.question(self, tr("Open the address"),
                                           tr("Open this address, outside py-pdftools?") + "\n\n" + uri)

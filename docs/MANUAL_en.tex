@@ -761,7 +761,11 @@ ahead, when the program is idle, so that searching doesn't wait for them.
 document carries: those attached to the whole document, and those attached
 to its pages (the annotations Attached file), each with its size, where it
 is and its description. A double click or \key{Enter} opens one with the
-desktop's program for it; \menu{Save} saves those chosen (several go into a
+desktop's program for it, unless it would run instead of opening (a
+program, a script, an installer: \texttt{.exe}, \texttt{.js},
+\texttt{.sh}\dots): such a file is not opened, since it could do anything
+on the computer, but it can be saved, to be opened by whoever trusts it.
+The same holds for a link to such a file. \menu{Save} saves those chosen (several go into a
 folder, without overwriting what is there); \menu{Add} attaches files to
 the document; \menu{Remove} takes those chosen out. Adding and removing
 are changes of the document, undone as the others.

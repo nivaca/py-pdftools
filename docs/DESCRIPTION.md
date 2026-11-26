@@ -2190,10 +2190,28 @@ the same whatever pop-up one of them lacks. Tests drag with Note, and
 write, move and read again a note with its pop-up on a page turned and
 not.
 
+98. Attached programs are not opened
+------------------------------------
+
+Reading Calibre's source, I found that it refuses to open a local file
+whose extension makes it a program. Here a double click on an attached
+file wrote it to a temporary folder and gave it to the desktop: on
+Windows, a PDF carrying invoice.exe, or a script in .js or .vbs, would
+have run it. Such files are no longer opened. A list of extensions
+(core/runnable.py: Calibre's, made longer with installers, shortcuts and
+the files that run on macOS and Linux, such as .app, .desktop and
+.AppImage) decides, whatever the case of the name and with the dots and
+spaces at its end that Windows drops, so that "bill.exe." is caught. The
+user is told why, and may save the file to open it themselves. A link
+to a local file of that kind is refused too, without that offer, since
+the file is already on the computer; links that start a program were
+already not followed. Tests try names that run and names that don't,
+the panel of attached files, an attachment's annotation and a link.
+
 Testing
 -------
 
-The program has 838 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 842 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

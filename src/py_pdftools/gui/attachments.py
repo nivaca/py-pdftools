@@ -178,6 +178,13 @@ class AttachmentsMixin:
         if found is None:
             return None
         name, data = found
+        refused = self.refused_to_run(name or "file")
+        if refused is not None:  # (it would run: not opened; saved, if the user asks)
+            if refused:  # (this one, the one double-clicked)
+                self.attach_list.clearSelection()
+                item.setSelected(True)
+                self.save_attached()
+            return None
         path = Path(tempfile.mkdtemp(prefix="py-pdftools-")) / (Path(name).name or "file")
         try:
             path.write_bytes(data)
