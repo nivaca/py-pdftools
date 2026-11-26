@@ -879,6 +879,10 @@ class Workspace(QMainWindow):
             self.timer.start()
 
     def auto_preview(self):
+        # (not if it was turned off after the timer started, nor over a run that a Save or an Apply waits for: its
+        # preview would take the place of that run, and the save, or the apply, was lost)
+        if not self.auto.isChecked() or self._save_after or self._apply_after:
+            return
         # La vista previa automática se calla si falta algo (opciones obligatorias, documento); no tiene sentido
         # mostrar un error por cada cambio.
         f = self.form(self.current)
@@ -948,6 +952,7 @@ class Workspace(QMainWindow):
         tokens = self.current_tokens(check=True)
         if not tokens:
             return
+        self.timer.stop()  # (a preview asked for: no automatic one after it, for the same options)
         purpose = {"info": "info", "run": "batch", "watch": "watch"}.get(self.current, "preview")
         self._pending_key = self.key()
         self._apply_after = False
@@ -968,6 +973,7 @@ class Workspace(QMainWindow):
         if not tokens:
             return
         # Si el resultado no está al día, se lanza el comando y se aplica al terminar (ver job_finished).
+        self.timer.stop()  # (no automatic preview in its place: see auto_preview)
         self._pending_key = self.key()
         self._apply_after = True
         self._save_after = False
@@ -1134,6 +1140,7 @@ class Workspace(QMainWindow):
         tokens = self.current_tokens(check=True)
         if not tokens:
             return
+        self.timer.stop()  # (no automatic preview in its place: see auto_preview)
         self._pending_key = self.key()
         self._apply_after = False
         self._save_after = True

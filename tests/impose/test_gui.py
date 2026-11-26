@@ -115,6 +115,17 @@ def wait(app, window, timeout=60):
     app.processEvents()
 
 
+def wait_for(app, window, path: Path, timeout=60):
+    """Until PATH is written: a save that runs the command first writes it when the end of the run is told, which
+    may take more than one turn of events after the runner is no longer busy. If it never is, the test says what
+    the workspace logged (an error of the command, under load)."""
+    end = time.time() + timeout
+    while not path.exists() and time.time() < end:
+        app.processEvents()
+        time.sleep(0.02)
+    assert path.exists(), f"{path.name} not written; log: {window.logbox.toPlainText()[-2000:]!r}"
+
+
 def test_preview_apply_undo(app, window, tmp_path):
     sample = tmp_path / "s.pdf"
     assert main(["sample", "--count", "6", "--paper", "a5", "-o", str(sample), "-q"]) == 0
@@ -301,6 +312,7 @@ def test_save_saves_what_the_result_pane_shows(app, window, tmp_path, monkeypatc
     window.form("nup").set_tokens(["nup", "--cols", "2", "--rows", "1", "--scale", "fit"])
     window.save()  # (no preview yet: the command runs first, then it is saved)
     wait(app, window)
+    wait_for(app, window, tmp_path / "out1.pdf")
     assert _pages(tmp_path / "out1.pdf") == 4
     window.apply()  # the right pane now shows the applied document; nothing runs again
     wait(app, window)
@@ -311,7 +323,26 @@ def test_save_saves_what_the_result_pane_shows(app, window, tmp_path, monkeypatc
     window.preview()
     wait(app, window)
     window.save()
+    wait_for(app, window, tmp_path / "out3.pdf")
     assert _pages(tmp_path / "out3.pdf") == 4
+
+
+def test_a_save_is_not_lost_to_the_automatic_preview(app, window, tmp_path, monkeypatch):
+    """An option changed (the automatic preview due 0.7 s later) and Save at once: the preview due no longer takes
+    the place of the run the save waits for (the save was lost: what made the test above fail under load)."""
+    sample = tmp_path / "s.pdf"
+    assert main(["sample", "--count", "4", "--paper", "a5", "-o", str(sample), "-q"]) == 0
+    monkeypatch.setattr(window, "_save_target", lambda title, suggested: tmp_path / "saved.pdf")
+    window.auto.setChecked(True)
+    window.open_path(sample)
+    window.select_command("nup")
+    window.form("nup").set_tokens(["nup", "--cols", "2", "--rows", "1", "--scale", "fit"])
+    window.save()
+    assert not window.timer.isActive()  # (Save took the place of the preview due)
+    window.auto_preview()  # (as if the timer had fired during the run, which a slow machine lets it do)
+    wait(app, window)
+    wait_for(app, window, tmp_path / "saved.pdf")
+    assert _pages(tmp_path / "saved.pdf") == 2
 
 
 def test_basic_gutters_only_where_there_are_two_columns_or_rows(app, window):

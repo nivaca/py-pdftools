@@ -2374,10 +2374,32 @@ without it, and every page without a redaction keeps its content exactly
 as it was. A test redacts one page of two and compares the other's
 content, byte for byte, and checks that the redacted text is gone.
 
+109. A save lost to the automatic preview
+-----------------------------------------
+
+The release of 1.19.0 stopped twice at its tests. The first time the
+RPM's check failed two new tests of Note, whose half a point of
+tolerance was less than a pixel in its smaller window: a click falls on a
+whole pixel, so the tolerance is now a pixel at the zoom of the view. The
+second time a test of Impose failed that had failed once before under
+load, and that I had taken for slowness: Save, with no result yet, runs
+the command and writes the file when the run ends. Waiting longer didn't
+help, and the log of the workspace showed why: two runs, the second
+started before the first ended. It was the automatic preview, which
+starts 0.7 seconds after an option changes; it didn't look whether it
+had been turned off since, nor whether a run had a save or an apply
+waiting for it, and its own run took that one's place, so the save was
+never made. On a busy machine the first run outlasted those 0.7 seconds.
+A user could lose a save the same way, by pressing Save just after
+changing an option. Save, Apply and Preview now stop the preview due,
+and the automatic preview does nothing when it is off or when a run is
+awaited. A test fires the preview in the middle of a save's run, and
+four runs of every test at once, with 28 processes, passed.
+
 Testing
 -------
 
-The program has 858 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 859 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

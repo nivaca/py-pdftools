@@ -42,6 +42,9 @@ Debian package, the RPM, the wheel and the source, are on
   document had already left the screen; it asks first now.
 - Fixed: the line of a strikeout was drawn some points too high on the
   screen; it is where the saved file has it.
+- Fixed: in Impose, Save (or Apply) pressed less than a second after
+  changing an option could be lost: the automatic preview due then took
+  the place of the run the save waited for.
 - The window is brought back onto a screen if it was left on one that
   is gone, or is larger than this one. The copies of opened attachments
   are deleted two days later. A redacted copy leaves the pages without
