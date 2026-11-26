@@ -174,32 +174,34 @@ def test_a_note_shows_where_it_goes(window):
     from py_pdftools.annotate.annots import NOTE_SIZE
 
     window.set_tool("note")
+    pixel = 1.2 / window.canvas.transform().m11()  # (a click falls on a whole pixel: so far, in points, at most)
     mouse(window, QEvent.Type.MouseButtonPress, (100, 120))
     frame = window.canvas._drag["item"]
     assert isinstance(frame, QGraphicsRectItem) and frame.scene() is not None
     side = NOTE_SIZE / window.canvas.transform().m11()
-    assert close((frame.rect().x(), frame.rect().y(), frame.rect().width()), (100, 120, side), 0.5)
+    assert close((frame.rect().x(), frame.rect().y(), frame.rect().width()), (100, 120, side), pixel)
     mouse(window, QEvent.Type.MouseMove, (180, 200))
-    assert close((frame.rect().x(), frame.rect().y()), (100, 120), 0.5)
+    assert close((frame.rect().x(), frame.rect().y()), (100, 120), pixel)
     mouse(window, QEvent.Type.MouseButtonRelease, (180, 200))
     assert frame.scene() is None
-    assert window.annotations[-1].kind == "note" and close(window.annotations[-1].rect[:2], (100, 120), 0.5)
+    assert window.annotations[-1].kind == "note" and close(window.annotations[-1].rect[:2], (100, 120), pixel)
 
 
 def test_a_note_dragged_has_its_popup_there(window):
     """Dragging with Note: a frame of dashes follows the mouse, the size of the note's pop-up window (where readers
     show its text); the note goes where the mouse was pressed, with that pop-up. A click: no pop-up of its own."""
     window.set_tool("note")
+    pixel = 1.2 / window.canvas.transform().m11()  # (a click falls on a whole pixel: so far, in points, at most)
     mouse(window, QEvent.Type.MouseButtonPress, (100, 120))
     mouse(window, QEvent.Type.MouseMove, (300, 260))
     box = window.canvas._drag["box"]
     assert box.scene() is not None and close((box.rect().left(), box.rect().top(), box.rect().right(),
-                                              box.rect().bottom()), (100, 120, 300, 260), 1.5)  # (pixels)
+                                              box.rect().bottom()), (100, 120, 300, 260), pixel)
     mouse(window, QEvent.Type.MouseButtonRelease, (300, 260))
     assert box.scene() is None
     note = window.annotations[-1]
-    assert note.kind == "note" and close(note.rect[:2], (100, 120), 0.5)
-    assert note.popup is not None and close(note.popup, (100, 120, 300, 260), 1.5)
+    assert note.kind == "note" and close(note.rect[:2], (100, 120), pixel)
+    assert note.popup is not None and close(note.popup, (100, 120, 300, 260), pixel)
     click(window, (400, 500))
     assert window.annotations[-1].kind == "note" and window.annotations[-1].popup is None
 
