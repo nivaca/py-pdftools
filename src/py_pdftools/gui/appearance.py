@@ -332,13 +332,18 @@ def apply_sharpness(name: str | None = None) -> bool:
 
 
 _NO_TIPS = None  # (the filter that keeps the tooltips from showing, while it is installed: see apply_tooltips)
+# ms: at the start, how long the filter waits before it is installed. It sees every event of the application, and
+# building the window and drawing its first page send thousands (14 ms more, measured); a tooltip needs the mouse
+# still for 700 ms, so none can show before it is there.
+TIPS_LATER_MS = 500
 
 
-def apply_tooltips(show: bool | None = None):
+def apply_tooltips(show: bool | None = None, later: int = 0):
     """Whether the tooltips show (the bubbles over buttons, menus and fields when the mouse rests on them):
     without them, an event filter of the application drops the events that ask for them, except those of
     the toolbars, which always show. Tips the program
-    shows by itself (the address of a link under the mouse) are not of those, and stay."""
+    shows by itself (the address of a link under the mouse) are not of those, and stay. LATER: ms to wait
+    before the filter is installed (see TIPS_LATER_MS)."""
     global _NO_TIPS
     from PySide6.QtCore import QEvent, QObject
     from PySide6.QtWidgets import QApplication, QToolBar, QWidget
@@ -350,6 +355,11 @@ def apply_tooltips(show: bool | None = None):
     if show and _NO_TIPS is not None:
         app.removeEventFilter(_NO_TIPS)
         _NO_TIPS = None
+    elif not show and _NO_TIPS is None and later:
+        from PySide6.QtCore import QTimer
+
+        # (asked again then: the setting may have changed meanwhile, and the filter is installed only once)
+        QTimer.singleShot(later, apply_tooltips)
     elif not show and _NO_TIPS is None:
 
         class NoTips(QObject):
@@ -374,4 +384,4 @@ def apply():
     apply_theme()
     apply_scale()
     apply_sharpness()
-    apply_tooltips()
+    apply_tooltips(later=TIPS_LATER_MS)

@@ -269,3 +269,22 @@ def test_the_colours_shown_as_colours(window):
     assert button.iconSize().width() > button.iconSize().height()
     button.set_color("#123456")
     assert button.text() == "" and "#123456" in button.toolTip()
+
+
+def test_tooltips_filter_later(window):
+    """At the start, the filter that hides the tooltips is installed a moment later (TIPS_LATER_MS): building the
+    window and drawing the first page don't pay for it, and no tooltip can show sooner than that anyway."""
+    from PySide6.QtTest import QTest
+
+    from py_pdftools.core import config
+
+    try:
+        config.set("tooltips", False)
+        appearance.apply_tooltips(True)
+        assert appearance._NO_TIPS is None
+        appearance.apply_tooltips(later=50)
+        assert appearance._NO_TIPS is None and appearance.TIPS_LATER_MS < 700
+        QTest.qWait(150)
+        assert appearance._NO_TIPS is not None
+    finally:
+        appearance.apply_tooltips(True)
