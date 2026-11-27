@@ -149,3 +149,24 @@ def test_the_appimage_starts_the_window_or_the_command_line(tmp_path):
     assert module(str(book)) == module(f"{book}#page=3") == module("--background") == "py_pdftools.gui"
     for command in ("impose", "combine", "export", "pdf-version", "form", "ocr", "--help"):
         assert module(command, "x") == "py_pdftools", command
+
+
+def test_keep_in_dist(tmp_path):
+    """dist/ keeps the newest source package and ZIP, in place of older ones; anything else there stays."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("release", ROOT / "tools" / "release.py")
+    release = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(release)
+    out = tmp_path / "build" / "release"
+    out.mkdir(parents=True)
+    for made, _ in release.KEPT:
+        (tmp_path / made).write_text("new")
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "py_pdftools-0.0.1.tar.gz").write_text("old")
+    (dist / "py-pdftools-0.0.1.zip").write_text("old")
+    (dist / "py-pdftools-0.0.1-1.fc45.noarch.rpm").write_text("rpm")
+    assert release.keep_in_dist(tmp_path) == 0
+    names = sorted(p.name for p in dist.iterdir())
+    assert names == sorted(["py-pdftools-0.0.1-1.fc45.noarch.rpm", Path(release.SDIST).name, Path(release.ZIP).name])
