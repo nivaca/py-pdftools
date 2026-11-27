@@ -148,3 +148,18 @@ def test_link_targets(tmp_path):
     shown = {link["xref"]: link["from"] for link in page.get_links()}
     for a in found[:3]:
         assert a.rect == pytest.approx(tuple(shown[a.xref]), abs=0.01)
+
+
+def test_first_drawing_without_the_pause(window, tmp_path):
+    """A document just opened is drawn at once: the pause that gathers scrolls and zooms (RENDER_MS) comes back
+    after that first drawing."""
+    from py_pdftools.gui import canvas
+
+    path = tmp_path / "one.pdf"
+    d = pymupdf.open()
+    d.new_page()
+    d.save(path)
+    assert window.open_path(path)
+    assert window.canvas.render_timer.interval() == 0
+    window.canvas._render_visible()
+    assert window.canvas.render_timer.interval() == canvas.RENDER_MS == 90

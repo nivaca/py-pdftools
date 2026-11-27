@@ -84,6 +84,10 @@ def rgb_image(data, width: int, height: int, stride: int, screen: bool = False) 
     return image.convertToFormat(QImage.Format.Format_RGB32) if screen else image.copy()
 
 
+# ms: the pause after a scroll or a zoom before the pages are drawn (several of them, one drawing)
+RENDER_MS = 90
+
+
 def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint: tuple | None = None,
                sharpness: tuple | None = None, screen: bool = False) -> QImage:
     """PAGE rendered at SCALE (only CLIP of it, in points, if given; in the colours TINT, if given, and with the
@@ -767,7 +771,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._quiet = False  # (scrolled by the program: the page in view is said by it)
         # El temporizador agrupa los cambios (desplazamiento, zoom, tamaño): se renderiza 90 ms después
         # del último, no en cada uno.
-        self.render_timer = QTimer(self, singleShot=True, interval=90)
+        self.render_timer = QTimer(self, singleShot=True, interval=RENDER_MS)
         self.render_timer.timeout.connect(self._render_visible)
         # Interval 0: one page rendered here per turn of the event loop, so the window stays responsive.
         self.local_timer = QTimer(self, singleShot=True, interval=0)
@@ -815,6 +819,9 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         self._shown_items, self._selected = [], []
         self._prints = None
         self._print_queue = []
+        # El primer dibujo de un documento recién abierto no espera la pausa que agrupa desplazamientos y zooms
+        # (RENDER_MS): la primera página salía 90 ms después. _render_visible la repone.
+        self.render_timer.setInterval(0)
         self.layout()
         self.go_to(page)
         # Con dibujos traídos del documento de antes, las páginas que siguen iguales se muestran ya, sin esperar
@@ -1251,6 +1258,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
 
     def _render_visible(self):
         """Render the pages in view at the zoom of now: from the cache, in the other process, or here."""
+        self.render_timer.setInterval(RENDER_MS)
         if self.doc is None:
             return
         remote = self._remote()
