@@ -144,6 +144,23 @@ def _combo(choices: dict, value) -> QComboBox:
     return box
 
 
+
+class ShortText(QPlainTextEdit):
+    """The text or comment of an annotation in its properties: LINES lines high at first, three at least, with a
+    scroll bar for a longer one; it grows with the dialog, if the dialog is made taller."""
+
+    LINES = 5
+
+    def _height(self, lines: int) -> int:
+        margin = 2 * (self.frameWidth() + round(self.document().documentMargin()))
+        return lines * self.fontMetrics().lineSpacing() + margin
+
+    def sizeHint(self) -> QSize:
+        return QSize(super().sizeHint().width(), self._height(self.LINES))
+
+    def minimumSizeHint(self) -> QSize:
+        return QSize(super().minimumSizeHint().width(), self._height(3))
+
 class PropertiesDialog(QDialog):
     """The properties of ANNOTATIONS; or, with TOOL, of the tool that makes
     annotations of their kind (ANNOTATIONS: one, made with its style)."""
@@ -230,9 +247,8 @@ class PropertiesDialog(QDialog):
             note = QGroupBox(tr("Annotation"))
             form = QFormLayout(note)
             contents = common("contents")
-            self.contents = QPlainTextEdit("" if contents is SAME else contents)
+            self.contents = ShortText("" if contents is SAME else contents)
             self.contents.setPlaceholderText(tr("(several)") if contents is SAME else "")
-            self.contents.setMinimumHeight(110)
             self._contents_given = contents is not SAME
             # For notes and text boxes the contents are the text itself; for the others, a comment on them.
             form.addRow(tr("Text:") if kinds <= {"note", "freetext", "callout", "caret"} else tr("Comment:"),
@@ -263,7 +279,10 @@ class PropertiesDialog(QDialog):
                 else:
                     item.setCheckState(Qt.CheckState.Checked if have else Qt.CheckState.Unchecked)
                 self.categories.addItem(item)
-            self.categories.setMaximumHeight(110)
+            # Cuatro filas a la vista, y una barra de desplazamiento si hay más.
+            row = self.categories.sizeHintForRow(0) if self.categories.count() else \
+                self.categories.fontMetrics().height() + 2
+            self.categories.setMaximumHeight(4 * row + 2 * self.categories.frameWidth() + 2)
             form.addRow(tr("Categories:"), self.categories)
             self.locked = tristate_check(tr("Locked: can't be moved, resized, erased or deleted"), common("locked"))
             form.addRow("", self.locked)
