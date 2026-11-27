@@ -121,13 +121,34 @@ def download(url: str, path: Path) -> Path:
     return path
 
 
+def _gh_token() -> str:
+    """The token of the GitHub CLI's session ('' if gh is not there or not logged in)."""
+    if not shutil.which("gh"):
+        return ""
+    r = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True)
+    return r.stdout.strip() if r.returncode == 0 else ""
+
+
 def python_appimage(version: str) -> Path:
     """The Python AppImage of VERSION, for the newest manylinux there is one for."""
     url = PYTHON_RELEASES.format(version=version)
-    request = urllib.request.Request(url, headers={"Accept": "application/vnd.github+json"})
-    with urllib.request.urlopen(request, timeout=60) as r:
-        assets = json.load(r)["assets"]
     tag = "cp" + version.replace(".", "")
+    headers = {"Accept": "application/vnd.github+json"}
+    # Con la sesión de gh (o GITHUB_TOKEN), la API admite 5000 consultas por hora; sin ella, 60, y se agotan.
+    token = os.environ.get("GITHUB_TOKEN") or _gh_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60) as r:
+            assets = json.load(r)["assets"]
+    except OSError as e:
+        # Sin la API (sin red, o su límite agotado): la AppImage de Python ya descargada, si la hay.
+        for manylinux in MANYLINUX:
+            cached = sorted(cache_dir().glob(f"*-{tag}-{tag}-{manylinux}_{ARCH}.AppImage"))
+            if cached:
+                say(f"GitHub's API failed ({e}): using {cached[-1].name}, downloaded before.")
+                return cached[-1]
+        raise
     for manylinux in MANYLINUX:
         end = f"-{tag}-{tag}-{manylinux}_{ARCH}.AppImage"  # (not the free-threaded cp3XXt)
         found = [a["browser_download_url"] for a in assets if a["name"].endswith(end)]
