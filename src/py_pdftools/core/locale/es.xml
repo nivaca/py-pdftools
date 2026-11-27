@@ -14708,4 +14708,76 @@ Should the saved PDF also contain the annotations?</en>
     <en>{path}: not a kind of document {command} can read</en>
     <tr>{path}: no es un tipo de documento que {command} pueda leer</tr>
   </text>
+  <text>
+    <en>Ask which engine when opening a document</en>
+    <tr>Preguntar qué motor al abrir un documento</tr>
+  </text>
+  <text>
+    <en>Draw the pages with:</en>
+    <tr>Dibujar las páginas con:</tr>
+  </text>
+  <text>
+    <en>Engine that draws the pages</en>
+    <tr>Motor que dibuja las páginas</tr>
+  </text>
+  <text>
+    <en>Engines that draw the pages</en>
+    <tr>Motores que dibujan las páginas</tr>
+  </text>
+  <text>
+    <en>MuPDF</en>
+    <tr>MuPDF</tr>
+  </text>
+  <text>
+    <en>Needs Poppler's pdftoppm (poppler-utils on Fedora, Debian and Ubuntu)</en>
+    <tr>Necesita el pdftoppm de Poppler (poppler-utils en Fedora, Debian y Ubuntu)</tr>
+  </text>
+  <text>
+    <en>Needs Qt PDF or pypdfium2: pip install 'py-pdftools[pdfium]'</en>
+    <tr>Necesita Qt PDF o pypdfium2: pip install 'py-pdftools[pdfium]'</tr>
+  </text>
+  <text>
+    <en>Not an engine of py-pdftools</en>
+    <tr>No es un motor de py-pdftools</tr>
+  </text>
+  <text>
+    <en>PDFium</en>
+    <tr>PDFium</tr>
+  </text>
+  <text>
+    <en>Poppler</en>
+    <tr>Poppler</tr>
+  </text>
+  <text>
+    <en>Settings &gt; Performance chooses the engine of every document, and whether to ask.</en>
+    <tr>Configuración &gt; Rendimiento elige el motor de todos los documentos, y si se pregunta.</tr>
+  </text>
+  <text>
+    <en>The engine of Chrome</en>
+    <tr>El motor de Chrome</tr>
+  </text>
+  <text>
+    <en>The engine of Okular and Evince (its program pdftoppm): slower, one program for each page</en>
+    <tr>El motor de Okular y Evince (su programa pdftoppm): más lento, un programa por página</tr>
+  </text>
+  <text>
+    <en>The engine of py-pdftools, which also edits the documents</en>
+    <tr>El motor de py-pdftools, que también edita los documentos</tr>
+  </text>
+  <text>
+    <en>The engine that draws the pages on the screen, in the thumbnails and the presentation. Only how they look changes: annotating, finding, saving and printing are the same with all of them.</en>
+    <tr>El motor que dibuja las páginas en la pantalla, en las miniaturas y en la presentación. Solo cambia cómo se ven: anotar, buscar, guardar e imprimir son iguales con todos.</tr>
+  </text>
+  <text>
+    <en>When more than one can draw here; the one chosen above comes first</en>
+    <tr>Cuando aquí puede dibujar más de uno; el elegido arriba va primero</tr>
+  </text>
+  <text>
+    <en>Which engine should draw the pages of {name}? Only how they look changes: annotating, finding and saving are the same with all of them.</en>
+    <tr>¿Qué motor dibuja las páginas de {name}? Solo cambia cómo se ven: anotar, buscar y guardar son iguales con todos.</tr>
+  </text>
+  <text>
+    <en>{name} is chosen, but it isn't here: MuPDF draws the pages</en>
+    <tr>{name} está elegido, pero no está aquí: MuPDF dibuja las páginas</tr>
+  </text>
 </interface>

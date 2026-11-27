@@ -2238,6 +2238,22 @@ a las habituales.
   una página cambiada se dibuja de nuevo. Desactivado al principio. Todas
   las miniaturas guardadas se borran al escribir una copia censurada y al
   desactivar esto, porque seguirían mostrando lo que la censura tapa.
+\item[Dibujar las páginas con] el motor que dibuja las páginas en la
+  pantalla, en las miniaturas, la lupa y la presentación: MuPDF (el de
+  siempre, que también edita los documentos), PDFium (el motor de Chrome)
+  o Poppler (el de Okular y Evince, mediante su programa \texttt{pdftoppm};
+  más lento). Solo cambia cómo se ven las páginas: anotar, buscar, guardar,
+  imprimir y exportar los hace MuPDF con cualquiera de ellos. Antes de que
+  otro motor dibuje una página, MuPDF le quita las anotaciones que la
+  ventana dibuja por su cuenta, para que ninguna salga dos veces. Un motor
+  que no está instalado aparece desactivado, con lo que necesita; uno que
+  falla con una página se la deja a MuPDF. PDFium viene con el Qt PDF de
+  Fedora, y con pypdfium2 en la AppImage y los instaladores
+  (\texttt{pip install 'py-pdftools[pdfium]'} en los demás casos).
+\item[Preguntar qué motor al abrir un documento] cuando hay más de uno
+  instalado, una pregunta al abrir cada documento elige su motor (el de
+  arriba va primero); cancelarla deja el documento que estaba abierto.
+  Desactivado al principio. La idea es de Okular.
 \end{description}
 
 \subsection{Dónde se guarda la configuración}

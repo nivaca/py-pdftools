@@ -98,7 +98,7 @@ class Presentation(QWidget):
         x = (size.width() - total_w * scale / self.devicePixelRatioF()) / 2
         self.boxes = []
         for n, r in zip(numbers, rects):
-            picture = page_image(self.doc[n], scale, tint=reading.TINT, screen=True)
+            picture = page_image(self.doc[n], scale, tint=reading.TINT, screen=True, backend=self.window.canvas.backend)
             picture.setDevicePixelRatio(self.devicePixelRatioF())
             w, h = r.width * scale / self.devicePixelRatioF(), r.height * scale / self.devicePixelRatioF()
             box = QRectF(x, (size.height() - h) / 2, w, h)

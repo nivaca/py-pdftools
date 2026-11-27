@@ -43,7 +43,7 @@ DEPENDS = ("libc6 (>= 2.34), libegl1, libgl1, libxkbcommon0, libxkbcommon-x11-0,
            "libxcb-cursor0")
 RECOMMENDS = "tesseract-ocr, ghostscript"
 # (Pandoc: the documents exported and imported; texlive-luatex makes its PDFs. Large: only suggested)
-SUGGESTS = "pandoc, texlive-luatex"
+SUGGESTS = "pandoc, texlive-luatex, poppler-utils"  # (poppler-utils: pdftoppm, the engine Poppler)
 DESCRIPTION = """\
 edit PDF documents: annotate, redact, OCR, foliate and impose them
  py-pdftools annotates PDF documents, fills their forms, redacts them

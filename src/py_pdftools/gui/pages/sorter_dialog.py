@@ -163,7 +163,7 @@ class SorterDialog(QDialog):
 
             page = doc[item.data(PAGE) - 1]
             scale = self.side / max(page.rect.width, page.rect.height)
-            image = page_image(page, scale)
+            image = page_image(page, scale, backend=self.window.canvas.backend)
             turn = item.data(TURN)
             if turn:
                 image = image.transformed(QTransform().rotate(turn))

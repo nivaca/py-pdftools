@@ -233,6 +233,12 @@ and Ubuntu). Pandoc exports the text and the annotations as Word, ODT,
 EPUB, HTML or LaTeX documents, and makes PDFs of documents (File > New >
 New PDF from a document), with LuaLaTeX (`texlive-luatex`), XeLaTeX or
 Typst.
+The pages can be drawn by MuPDF (the usual engine), PDFium (the engine of
+Chrome) or Poppler (Okular's, through its `pdftoppm`), chosen in Settings >
+Performance, which can also ask on opening each document; only how the
+pages look changes. PDFium comes with Fedora's Qt PDF, and with pypdfium2 in
+the AppImage and the installers (`pip install 'py-pdftools[pdfium]'`
+elsewhere).
 Digital signatures need pyHanko: the AppImage and the installers bring it;
 elsewhere, `pip install 'py-pdftools[signatures]'`. Fedora doesn't package
 it: with the RPM, `python3 -m pip install --user pyhanko` installs it in

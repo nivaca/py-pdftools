@@ -157,7 +157,7 @@ function Install-PyPdftools {
     $venvPython = Join-Path $Venv "Scripts\python.exe"
     Say "Installing py-pdftools, PyMuPDF, pikepdf, reportlab and PySide6 in it (this takes a while the first time)"
     & $venvPython -m pip install --quiet --upgrade pip
-    & $venvPython -m pip install --quiet "$Root[signatures]"  # (with pyHanko, for digital signatures)
+    & $venvPython -m pip install --quiet "$Root[signatures,pdfium]"  # (pyHanko, to sign; pypdfium2, the engine PDFium)
     if ($LASTEXITCODE -ne 0) { Fail "py-pdftools could not be installed (see the messages above)" }
     Say "Checking that it starts"
     & $venvPython -m py_pdftools --version

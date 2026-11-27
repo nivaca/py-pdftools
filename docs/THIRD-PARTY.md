@@ -47,6 +47,20 @@ What these bring with them:
 | pymupdf-layout, pymupdf4llm | 2.1 | (empty packages, kept by PyMuPDF 2 for upgrading; their code is now in PyMuPDF, under its licence) |
 
 
+The engine PDFium (optional)
+----------------------------
+
+One of the engines that can draw the pages (Settings > Performance). The Fedora
+package uses the Qt PDF of Fedora's PySide6; the AppImage, the installers and
+`pip install 'py-pdftools[pdfium]'` bring pypdfium2.
+
+| Software | Licence | What py-pdftools does with it |
+|---|---|---|
+| [PDFium](https://pdfium.googlesource.com/pdfium/) (the PDF engine of Chrome), by Google and Foxit | BSD-3-Clause | Draws the pages, if chosen |
+| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | Apache-2.0 OR BSD-3-Clause | PDFium for Python, with its own build of PDFium |
+| [Qt PDF](https://doc.qt.io/qt-6/qtpdf-index.html) (of Qt 6, in Fedora's PySide6) | LGPL-3.0-only (or GPL-2.0-only or GPL-3.0-only) | PDFium through Qt, where it is there |
+
+
 Digital signatures (optional)
 -----------------------------
 
@@ -86,6 +100,7 @@ they do.
 | [tessdata_best](https://github.com/tesseract-ocr/tessdata_best) | Apache-2.0 | The more accurate models of Tesseract, downloaded from Settings when wished |
 | [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Copies as PDF/A and PDF/X (through pdf2iso), with its ICC profiles |
 | [veraPDF](https://verapdf.org) | GPL-3.0-or-later OR MPL-2.0 | Checking PDF/A copies, if it is installed |
+| [Poppler](https://poppler.freedesktop.org) (`pdftoppm`) | GPL-2.0-or-later | One of the engines that can draw the pages, if chosen |
 | [Pandoc](https://pandoc.org), by John MacFarlane and contributors | GPL-2.0-or-later | Documents: the text and the annotations exported as Word, ODT, EPUB, HTML or LaTeX, and PDFs made from documents |
 | [LuaTeX](https://www.luatex.org) and [XeTeX](https://tug.org/xetex/) (of [TeX Live](https://tug.org/texlive/)), [Typst](https://typst.app) | GPL-2.0-or-later; MIT; Apache-2.0 | Making the PDFs of Pandoc (the first one installed) |
 | [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/) (`fc-list`) | MIT | Finding a font with Greek for those PDFs |

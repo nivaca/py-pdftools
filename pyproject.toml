@@ -46,6 +46,10 @@ signatures = [
 speech = [
     "pyside6-addons>=6.10",
 ]
+# (PDFium, one of the engines that can draw the pages: Settings > Performance; the RPM uses Fedora's Qt PDF)
+pdfium = [
+    "pypdfium2>=4.30",
+]
 
 [build-system]
 requires = ["uv_build>=0.10,<0.14"]

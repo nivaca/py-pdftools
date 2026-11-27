@@ -1,8 +1,8 @@
 """Revisión de la configuración (Configuración > General > Revisar la configuración): qué tiene py-pdftools
 para trabajar y si sus ajustes están bien. Revisa la versión de Python y de las bibliotecas, pyHanko (las
 firmas), el archivo de configuración (si se lee, si la carpeta admite escribir, qué valores no valen o no se
-conocen), tesseract y los idiomas del OCR, Ghostscript (PDF/A y PDF/X), Pandoc (los documentos) y el espacio
-de la carpeta temporal.
+conocen), tesseract y los idiomas del OCR, Ghostscript (PDF/A y PDF/X), Pandoc (los documentos), los motores que
+dibujan las páginas y el espacio de la carpeta temporal.
 Cada revisión da un Check: su estado, lo que se revisó, lo que se halló y, si algo falla, qué hacer. La
 ventana añade las suyas (los atajos repetidos: véase gui/health_dialog.py)."""
 
@@ -238,6 +238,25 @@ def documents() -> list[Check]:
     return out
 
 
+def engines() -> Check:
+    """The engines that can draw the pages here (Settings > Performance), and the one chosen."""
+    from . import backends
+
+    try:
+        chosen = config.get("backend")
+    except config.ConfigError:
+        chosen = backends.MUPDF
+    here = [f"{tr(backends.NAMES[b])} ({backends.detail(b)})" for b in backends.available()]
+    missing = [b for b in backends.BACKENDS if backends.why_not(b)]
+    title = tr("Engines that draw the pages")
+    if chosen not in backends.available():
+        return Check(WARNING, title, tr("{name} is chosen, but it isn't here: MuPDF draws the pages",
+                                        name=tr(backends.NAMES.get(chosen, chosen))), backends.why_not(chosen))
+    if missing:
+        return Check(INFO, title, ", ".join(here), "; ".join(backends.why_not(b) for b in missing))
+    return Check(OK, title, ", ".join(here))
+
+
 def temporary() -> Check:
     folder = tempfile.gettempdir()
     title = tr("Temporary folder")
@@ -254,7 +273,7 @@ def temporary() -> Check:
 
 def run() -> list[Check]:
     """Every check, in the order they are shown."""
-    return [python(), *libraries(), signatures(), *configuration(), *ocr(), ghostscript(), *documents(), temporary()]
+    return [python(), *libraries(), signatures(), *configuration(), *ocr(), ghostscript(), *documents(), engines(), temporary()]
 
 
 def report(checks: list[Check]) -> str:

@@ -291,6 +291,32 @@ class SettingsDialog(QDialog):
         for box in (self.transparency, self.text_antialias, self.graphics_antialias, self.smooth, self.gpu,
                     self.thumb_cache):
             form.addRow("", box)
+        # El motor que dibuja las páginas (core/backends.py): los que faltan aquí, desactivados, con lo que piden.
+        from PySide6.QtGui import QStandardItemModel
+
+        from ..core import backends
+
+        self.backend = QComboBox()
+        for key in backends.BACKENDS:
+            self.backend.addItem(tr(backends.NAMES[key]), key)
+            why = backends.why_not(key)
+            index = self.backend.count() - 1
+            self.backend.setItemData(index, why or tr(backends.DESCRIPTIONS[key]), Qt.ItemDataRole.ToolTipRole)
+            if why:
+                model = self.backend.model()
+                if isinstance(model, QStandardItemModel):
+                    model.item(index).setEnabled(False)
+        wanted = config.get("backend")
+        self.backend.setCurrentIndex(max(self.backend.findData(wanted if not backends.why_not(wanted)
+                                                               else backends.MUPDF), 0))
+        self.backend.setToolTip(tr("The engine that draws the pages on the screen, in the thumbnails and the "
+                                   "presentation. Only how they look changes: annotating, finding, saving and "
+                                   "printing are the same with all of them."))
+        form.addRow(tr("Draw the pages with:"), self.backend)
+        self.ask_backend = QCheckBox(tr("Ask which engine when opening a document"))
+        self.ask_backend.setChecked(bool(config.get("ask_backend")))
+        self.ask_backend.setToolTip(tr("When more than one can draw here; the one chosen above comes first"))
+        form.addRow("", self.ask_backend)
         tabs.addTab(_scrolled(perf), tr("Performance"))
 
         # Aceptar, Aplicar y Cancelar, como en KDE Plasma: Aplicar deja la ventana abierta, y solo se puede pulsar
@@ -649,6 +675,16 @@ class SettingsDialog(QDialog):
                 config.set("reload", self.reload.isChecked())
             if self.gpu.isChecked() != bool(config.get("gpu")):
                 config.set("gpu", self.gpu.isChecked())
+            if self.ask_backend.isChecked() != bool(config.get("ask_backend")):
+                config.set("ask_backend", self.ask_backend.isChecked())
+            backend = self.backend.currentData()
+            if backend != config.get("backend"):
+                config.set("backend", backend)
+                from .window import _WINDOWS
+
+                for win in _WINDOWS:  # (every document open, drawn anew with it)
+                    if hasattr(win, "set_backend"):
+                        win.set_backend(backend)
             if self.warn_many.isChecked() != bool(config.get("warn_many")):
                 config.set("warn_many", self.warn_many.isChecked())
             if self.lone_tab.isChecked() != bool(config.get("lone_tab")):

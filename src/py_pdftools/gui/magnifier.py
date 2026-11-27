@@ -70,7 +70,7 @@ def lens_image(canvas, page_item, point: QPointF) -> QImage | None:
     if clip[2] <= clip[0] or clip[3] <= clip[1]:
         return None
     try:
-        image = page_image(doc[page_item.number], scale * ratio, clip, reading.TINT)
+        image = page_image(doc[page_item.number], scale * ratio, clip, reading.TINT, backend=canvas.backend)
     except (RuntimeError, ValueError):
         return None
     if canvas.turn:

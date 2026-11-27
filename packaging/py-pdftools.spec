@@ -44,6 +44,8 @@ Recommends:     tesseract
 Recommends:     tesseract-langpack-eng
 # (for documents exported as Word, ODT, EPUB, LaTeX, and made PDFs: Pandoc, and LuaLaTeX for the PDFs)
 Suggests:       pandoc
+# (Poppler's pdftoppm, one of the engines that can draw the pages; PDFium comes with Fedora's Qt PDF)
+Suggests:       poppler-utils
 Suggests:       texlive-luatex
 
 %description

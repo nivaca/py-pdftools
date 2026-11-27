@@ -7,7 +7,8 @@ annotations of the document itself (those it can edit), the process takes them
 out of each page before rendering it (in its own copy, in memory: the file
 is never changed).
 
-Nothing here uses Qt: the process imports only this, annotate/annots.py and PyMuPDF.
+Nothing here uses Qt (but Qt PDF, when it is the engine that draws: see backends.py): the process imports
+only this, annotate/annots.py and PyMuPDF.
 """
 
 from __future__ import annotations
@@ -114,14 +115,15 @@ def render(path: str, password: str, stamp: tuple, number: int, scale: float,
            bare: bool = False, clip: tuple | None = None,
            antialias: tuple[int, int] | None = None,
            tint: tuple[int, int] | None = None, sharpness: tuple = AS_DRAWN,
-           words: bool = False) -> tuple:
+           words: bool = False, backend: str = "mupdf") -> tuple:
     """Page NUMBER of the document at PATH rendered at SCALE (BARE: without the annotations that
     the window draws itself): its width, height, bytes per line and RGB pixels. CLIP: only that
     part of the page (x0, y0, x1, y1, in points of the page as shown), for a tile of a deep zoom.
     ANTIALIAS: MuPDF's levels of antialiasing of (text, graphics), as the settings say. TINT: (the colour black
     becomes, the colour white becomes), for reading colours (see gui/reading.py). SHARPNESS: the text made sharper
     (see sharpen; Settings > Appearance). WORDS: also the words of the page, as get_text('words') gives them,
-    after the pixels (read here, the window needn't read them itself: see PageCanvas.take_words)."""
+    after the pixels (read here, the window needn't read them itself: see PageCanvas.take_words). BACKEND: the
+    engine that draws the page (see backends.py; the words are always MuPDF's)."""
     if antialias is not None:
         pymupdf.mupdf.fz_set_text_aa_level(antialias[0])
         pymupdf.mupdf.fz_set_graphics_aa_level(antialias[1])
@@ -131,9 +133,10 @@ def render(path: str, password: str, stamp: tuple, number: int, scale: float,
 
         remove_editable(doc, [number])
         _bare[path].add(number)
-    # alpha=False: the window wants plain RGB; the stride (bytes per line) may be more than width * 3.
-    pix = doc[number].get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
-                                 clip=pymupdf.Rect(clip) if clip is not None else None)
+    from .backends import draw
+
+    # Plain RGB, without alpha; the stride (bytes per line) may be more than width * 3.
+    pix = draw(doc[number], scale, clip, backend)
     found = (doc[number].get_text("words", sort=False),) if words else ()
     if sharpness == AS_DRAWN:
         if tint is not None:

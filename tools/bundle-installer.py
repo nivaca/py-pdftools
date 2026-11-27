@@ -188,13 +188,13 @@ def install_packages(python: Path, system: str, arch: str, whl: Path, native: bo
         # (--only-binary: nunca compilar un paquete; sin uno hecho para este sistema, pip lo dice y se para)
         subprocess.run([str(interpreter(python, system)), "-s", "-m", "pip", "install", "--isolated",
                         "--no-cache-dir", "--no-warn-script-location", "--disable-pip-version-check", "--quiet",
-                        "--only-binary", ":all:", f"{whl}[signatures]"], check=True, env=env)
+                        "--only-binary", ":all:", f"{whl}[signatures,pdfium]"], check=True, env=env)
     else:
         # En otro sistema (--stage-only), uv los elige para el de destino.
         # (MACOSX_DEPLOYMENT_TARGET: los paquetes hechos para el macOS mínimo de la aplicación)
         subprocess.run(["uv", "pip", "install", "--quiet", "--target", str(site), "--python-platform",
                         TRIPLES[system, arch], "--python-version", PYTHON_MINOR, "--only-binary", ":all:",
-                        f"{whl}[signatures]"], check=True,
+                        f"{whl}[signatures,pdfium]"], check=True,
                        env={**os.environ, "MACOSX_DEPLOYMENT_TARGET": MACOS_MINIMUM})
     prune(site, system)
     remove(site / "bin")  # (las órdenes que uv --target deja, para otro sistema)

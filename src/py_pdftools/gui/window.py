@@ -1720,7 +1720,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             except AnnotateError as e:
                 self.status(str(e), error=True)
                 return False
+        # El motor que dibuja las páginas (Configuración > Rendimiento), o el que se elija ahora: cancelar la
+        # pregunta deja el documento de antes como estaba.
+        backend = self.ask_backend(path)
+        if backend is None:
+            return False
         # From here on the old document is gone: its working copies are removed (the history is cleared below).
+        self.canvas.backend = backend
         self.remember_file_place()  # (where it was left, to open it there again)
         self.canvas.turn = 0  # (a view turned is of the document left)
         self.drop_work()
@@ -1828,6 +1834,35 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._view_kept = True
         # (only for the show_page of this same change: cleared once it is done, if nobody called it)
         QTimer.singleShot(0, lambda: setattr(self, "_view_kept", False))
+
+    def ask_backend(self, path: Path) -> str | None:
+        """The engine that draws the pages of the document at PATH (see core/backends.py): that of the settings, or,
+        if they say so and there is more than one here, the one chosen in a question (None: cancelled)."""
+        from ..core import backends
+
+        try:
+            wanted, ask = config.get("backend"), bool(config.get("ask_backend"))
+        except config.ConfigError:
+            wanted, ask = backends.MUPDF, False
+        here = backends.available()
+        wanted = wanted if wanted in here else backends.MUPDF
+        if not ask or len(here) < 2:
+            return wanted
+        from .backend_dialog import BackendDialog
+
+        dialog = BackendDialog(path.name, here, wanted, self)
+        return dialog.choice() if dialog.exec() == QDialog.DialogCode.Accepted else None
+
+    def set_backend(self, backend: str):
+        """Draw the pages with the engine BACKEND from now on (the settings changed): drawn anew, thumbnails too."""
+        if backend == self.canvas.backend:
+            return
+        self.canvas.backend = backend
+        self.canvas.clear_cache()
+        self._thumbs, self._thumb_shown, self._thumb_asked, self._carried_thumbs = {}, {}, set(), {}
+        self._disk_tried = set()
+        self.canvas.render_timer.start()
+        self.thumb_timer.start()
 
     @staticmethod
     def _source(path: Path, password: str, bare: bool):
@@ -3877,7 +3912,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                 page = self.doc[n]
                 scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
                 remote.request("thumbs", source, n, round(scale, 4),
-                               lambda image, n=n, scale=scale: self._thumb_arrived(source, n, scale, image))
+                               lambda image, n=n, scale=scale: self._thumb_arrived(source, n, scale, image),
+                               backend=self.canvas.backend)
             # (each one that arrives starts the timer again, for those still missing)
             self.thumb_timer.stop()
             return
@@ -3888,16 +3924,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         page = self.doc[n]
         scale = min(self.thumb.width() / page.rect.width, self.thumb.height() / page.rect.height)
         self.thumb_timer.setInterval(0)
-        self._thumbs[n] = page_image(page, scale)
+        self._thumbs[n] = page_image(page, scale, backend=self.canvas.backend)
         self._keep_thumb(n)
         self._thumb(n)
 
     def _disk_drawing(self) -> tuple:
-        """What a thumbnail on disk must have been made with to be used: the size of the thumbnails, and the
-        antialiasing."""
+        """What a thumbnail on disk must have been made with to be used: the size of the thumbnails, the
+        antialiasing, and the engine that drew it."""
         from . import performance
 
-        return (self.thumb.width(), self.thumb.height()), performance.ANTIALIAS
+        # (MuPDF's, as they were before there were other engines: those already on disk still serve)
+        backend = self.canvas.backend
+        drawing = performance.ANTIALIAS if backend == "mupdf" else (performance.ANTIALIAS, backend)
+        return (self.thumb.width(), self.thumb.height()), drawing
 
     def _disk_thumb(self, n: int) -> QImage | None:
         """The thumbnail of page N kept on disk (see core/thumbcache.py), if there is one."""
@@ -3941,7 +3980,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             r = self.doc[n].rect
             image = skipped_image(round(r.width * scale), round(r.height * scale), image, words=False)
         # Si el otro proceso no pudo, la miniatura se hace aquí.
-        self._thumbs[n] = image if image is not None else page_image(self.doc[n], scale)
+        self._thumbs[n] = image if image is not None else page_image(self.doc[n], scale, backend=self.canvas.backend)
         if not skipped:  # (a grey stand-in is never kept on disk)
             self._keep_thumb(n)
         self._thumb(n)

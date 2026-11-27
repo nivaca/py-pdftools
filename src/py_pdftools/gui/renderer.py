@@ -97,10 +97,11 @@ class Renderer(QObject):
         return ENABLED and not self.broken
 
     def request(self, lane: str, source: Source, number: int, scale: float, callback: Callable,
-                first: bool = False, clip: tuple | None = None, words: bool = False) -> None:
+                first: bool = False, clip: tuple | None = None, words: bool = False, backend: str = "mupdf") -> None:
         """Render page NUMBER of SOURCE at SCALE (only CLIP of it, if given), and give CALLBACK the
         QImage (None if it couldn't be rendered there; a Skipped if the page is skipped).
-        FIRST: before those waiting. WORDS: read its words too, given by words_found."""
+        FIRST: before those waiting. WORDS: read its words too, given by words_found. BACKEND: the engine that
+        draws it (see core/backends.py)."""
         ln = self.lanes.get(lane)
         if ln is None:
             ln = self.lanes[lane] = Lane(WORKERS.get(lane, 1))
@@ -114,7 +115,8 @@ class Renderer(QObject):
         tint = reading.TINT if lane == "view" else None
         # (the sharpness of the text: also only in view)
         sharpness = reading.SHARPEN if lane == "view" else reading.SHARPNESS["drawn"]
-        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, sharpness, words)
+        key = (source[0], source[2], number, scale, source[3], clip, performance.ANTIALIAS, tint, sharpness, words,
+               backend)
         ln.callbacks.setdefault(key, []).append(callback)
         # Already being rendered: the callback is added and will get the same image.
         if ln.rendering(key):
@@ -125,7 +127,7 @@ class Renderer(QObject):
             ln.waiting.remove(entry)
         else:
             entry = (key, (source[0], source[1], source[2], number, scale, source[3], clip, performance.ANTIALIAS,
-                           tint, sharpness, words))
+                           tint, sharpness, words, backend))
         if first:
             ln.waiting.insert(0, entry)
         else:

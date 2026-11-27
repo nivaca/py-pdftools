@@ -48,6 +48,21 @@ Lo que estas traen consigo:
 | pymupdf-layout, pymupdf4llm | 2.1 | (paquetes vacíos, que PyMuPDF 2 conserva para actualizarse; su código está ahora en PyMuPDF, bajo su licencia) |
 
 
+El motor PDFium (opcional)
+--------------------------
+
+Uno de los motores que pueden dibujar las páginas (Configuración >
+Rendimiento). El paquete de Fedora usa el Qt PDF del PySide6 de Fedora; la
+AppImage, los instaladores y `pip install 'py-pdftools[pdfium]'` traen
+pypdfium2.
+
+| Software | Licencia | Qué hace py-pdftools con él |
+|---|---|---|
+| [PDFium](https://pdfium.googlesource.com/pdfium/) (el motor de PDF de Chrome), de Google y Foxit | BSD-3-Clause | Dibuja las páginas, si se elige |
+| [pypdfium2](https://github.com/pypdfium2-team/pypdfium2) | Apache-2.0 OR BSD-3-Clause | PDFium para Python, con su propia compilación de PDFium |
+| [Qt PDF](https://doc.qt.io/qt-6/qtpdf-index.html) (de Qt 6, en el PySide6 de Fedora) | LGPL-3.0-only (o GPL-2.0-only o GPL-3.0-only) | PDFium a través de Qt, donde lo hay |
+
+
 Firmas digitales (opcional)
 ---------------------------
 
@@ -86,6 +101,7 @@ ejecuta como programas propios, y funciona sin ellos, sin lo que hacen.
 | [tessdata_best](https://github.com/tesseract-ocr/tessdata_best) | Apache-2.0 | Los modelos más precisos de Tesseract, descargados desde la configuración si se quiere |
 | [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Las copias PDF/A y PDF/X (por medio de pdf2iso), con sus perfiles ICC |
 | [veraPDF](https://verapdf.org) | GPL-3.0-or-later OR MPL-2.0 | La comprobación de las copias PDF/A, si está instalado |
+| [Poppler](https://poppler.freedesktop.org) (`pdftoppm`) | GPL-2.0-or-later | Uno de los motores que pueden dibujar las páginas, si se elige |
 | [Pandoc](https://pandoc.org), de John MacFarlane y colaboradores | GPL-2.0-or-later | Los documentos: el texto y las anotaciones exportados como Word, ODT, EPUB, HTML o LaTeX, y los PDF hechos de documentos |
 | [LuaTeX](https://www.luatex.org) y [XeTeX](https://tug.org/xetex/) (de [TeX Live](https://tug.org/texlive/)), [Typst](https://typst.app) | GPL-2.0-or-later; MIT; Apache-2.0 | Hacer los PDF de Pandoc (el primero que esté instalado) |
 | [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/) (`fc-list`) | MIT | Hallar una fuente con griego para esos PDF |

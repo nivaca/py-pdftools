@@ -89,14 +89,13 @@ RENDER_MS = 90
 
 
 def page_image(page: pymupdf.Page, scale: float, clip: tuple | None = None, tint: tuple | None = None,
-               sharpness: tuple | None = None, screen: bool = False) -> QImage:
+               sharpness: tuple | None = None, screen: bool = False, backend: str = "mupdf") -> QImage:
     """PAGE rendered at SCALE (only CLIP of it, in points, if given; in the colours TINT, if given, and with the
     sharpness of the text SHARPNESS, by default that of the settings: see reading.py); for the SCREEN, in its
-    format (see rgb_image)."""
-    from ..core import rendering
+    format (see rgb_image). BACKEND: the engine that draws it (see core/backends.py)."""
+    from ..core import backends, rendering
 
-    pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), alpha=False,
-                          clip=pymupdf.Rect(clip) if clip is not None else None)
+    pix = backends.draw(page, scale, clip, backend)
     sharpness = reading.SHARPEN if sharpness is None else sharpness
     if sharpness == rendering.AS_DRAWN:
         if tint is not None:
@@ -792,6 +791,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         # (path, password, stamp) of the document on disk, if the pages can be rendered in
         # another process (see renderer.py)
         self.source = None
+        self.backend = "mupdf"  # the engine that draws the pages (see core/backends.py): Settings, or asked on opening
         self.verticalScrollBar().valueChanged.connect(self._scrolled)
         self.horizontalScrollBar().valueChanged.connect(lambda _: self.render_timer.start())
 
@@ -1312,7 +1312,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             if remote is not None:
                 # (its words too, the first time: read there, the window needn't stop to read them)
                 remote.request("view", self.source, n, scale, lambda image, key=key: self._arrived(key, image),
-                               first=n == self.page, words=n not in self._words)
+                               first=n == self.page, words=n not in self._words, backend=self.backend)
             else:
                 self._here.append((n, scale, None))
         self._render_tiles(wanted, remote)
@@ -1351,7 +1351,8 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                     self._tiles_asked.add(key)
                     if remote is not None:
                         remote.request("view", self.source, n, full,
-                                       lambda image, key=key: self._tile_arrived(key, image), clip=clip)
+                                       lambda image, key=key: self._tile_arrived(key, image), clip=clip,
+                                       backend=self.backend)
                     else:
                         self._here.append((n, full, (clip, column, row)))
 
@@ -1368,7 +1369,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                                   words=False)
         if image is None:
             try:
-                image = page_image(self.doc[n], scale, clip, reading.TINT, screen=True)
+                image = page_image(self.doc[n], scale, clip, reading.TINT, screen=True, backend=self.backend)
             except (RuntimeError, ValueError):
                 return
         pixmap = QPixmap.fromImage(image)
@@ -1392,7 +1393,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
                 self.local_timer.start()
             return
         try:
-            image = page_image(self.doc[n], scale, tint=reading.TINT, screen=True)
+            image = page_image(self.doc[n], scale, tint=reading.TINT, screen=True, backend=self.backend)
         # El documento se cerró o cambió entre dos turnos: se abandonan las páginas pendientes.
         except (RuntimeError, ValueError):
             self._here = []
@@ -1417,7 +1418,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
             image = skipped_image(round(r.width * key[2]), round(r.height * key[2]), image)
         if image is None:
             try:
-                image = page_image(self.doc[key[1]], key[2], tint=reading.TINT, screen=True)
+                image = page_image(self.doc[key[1]], key[2], tint=reading.TINT, screen=True, backend=self.backend)
             except (RuntimeError, ValueError):
                 return
         pixmap = self._keep(key, image)
@@ -1432,7 +1433,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
         if self.doc is None or self.page not in self.pages:
             return
         scale = self._scale_for(self.page)
-        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale, tint=reading.TINT, screen=True))
+        self._arrived((id(self.doc), self.page, scale), page_image(self.doc[self.page], scale, tint=reading.TINT, screen=True, backend=self.backend))
         self.pages[self.page].show(self._cache[(id(self.doc), self.page, scale)], scale)
 
     # ----------------------------------------------------------------- zoom
