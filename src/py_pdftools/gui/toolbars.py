@@ -190,7 +190,8 @@ class ToolbarsMixin:
 
     def _init_toolbars(self):
         """What each toolbar has at first (to go back to it), and the toolbars as they were left."""
-        self._tb_defaults = {bar.objectName(): self.bar_ids(bar) for bar in self.editable_bars()}
+        names = self.action_names()
+        self._tb_defaults = {bar.objectName(): self.bar_ids(bar, names) for bar in self.editable_bars()}
         self._tb_custom: list[QToolBar] = []
         self.apply_toolbar_layout(self.toolbar_layout(), keep=False)
         self.apply_bar_looks()
@@ -211,8 +212,14 @@ class ToolbarsMixin:
                 taken.add(id(value))
         return found
 
-    def bar_ids(self, bar: QToolBar) -> list[str]:
-        names = {id(a): n for n, a in self.action_ids().items()}
+    def action_names(self) -> dict[int, str]:
+        """{id(action): name} of the actions of action_ids (made once for several toolbars: see bar_ids)."""
+        return {id(a): n for n, a in self.action_ids().items()}
+
+    def bar_ids(self, bar: QToolBar, names: dict[int, str] | None = None) -> list[str]:
+        """The names of the actions of BAR, in order (NAMES: action_names, if made already)."""
+        # (action_ids recorre todos los atributos de la ventana: una vez por barra costaba unos 9 ms al arrancar)
+        names = self.action_names() if names is None else names
         return [SEPARATOR if a.isSeparator() else SPACER if a.objectName() == SPACER_NAME else names[id(a)]
                 for a in bar.actions() if a.isSeparator() or a.objectName() == SPACER_NAME or id(a) in names]
 
@@ -264,9 +271,10 @@ class ToolbarsMixin:
                 self._tb_custom.append(bar)
                 self.common_bars.append(bar)  # (of every mode)
         actions = self.action_ids()
+        names = {id(a): n for n, a in actions.items()}
         for bar in self.editable_bars():
             ids = layout["bars"].get(bar.objectName(), self._tb_defaults.get(bar.objectName(), []))
-            if self.bar_ids(bar) == ids:
+            if self.bar_ids(bar, names) == ids:
                 continue
             for act in bar.actions():  # (los espacios son de su barra: se van con ella)
                 if act.objectName() == SPACER_NAME:
@@ -284,8 +292,8 @@ class ToolbarsMixin:
         if hasattr(self, "_tb_custom"):
             self.apply_bar_looks()
         if keep:
-            changed = {bar.objectName(): self.bar_ids(bar) for bar in self.editable_bars()
-                       if self.bar_ids(bar) != self._tb_defaults.get(bar.objectName(), [])}
+            now = {bar.objectName(): self.bar_ids(bar, names) for bar in self.editable_bars()}
+            changed = {n: ids for n, ids in now.items() if ids != self._tb_defaults.get(n, [])}
             self.settings.setValue(SETTING, json.dumps({"bars": changed, "custom": layout["custom"]}))
             self.settings.sync()
 
@@ -491,7 +499,8 @@ class ToolbarsDialog(QDialog):
         self.actions_ = win.action_ids()
         self.defaults = dict(win._tb_defaults)
         self.titles = {bar.objectName(): win.bar_title(bar) for bar in win.editable_bars()}
-        self.contents = {bar.objectName(): win.bar_ids(bar) for bar in win.editable_bars()}
+        names = win.action_names()
+        self.contents = {bar.objectName(): win.bar_ids(bar, names) for bar in win.editable_bars()}
         self.custom = [[bar.objectName(), bar.windowTitle()] for bar in win._tb_custom]
         self.bar_looks = {n: dict(v) for n, v in win.looks()["bars"].items()}
 
