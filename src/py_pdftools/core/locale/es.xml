@@ -14432,4 +14432,12 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>not a file of notes of Skim</en>
     <tr>no es un archivo de notas de Skim</tr>
   </text>
+  <text>
+    <en>Hide the separate files of annotations</en>
+    <tr>Ocultar los archivos aparte de anotaciones</tr>
+  </text>
+  <text>
+    <en>Name them .NAME.pdf.pdfnotes, which Linux and macOS hide, and mark them hidden on Windows; a file already saved changes at its next save</en>
+    <tr>Llamarlos .NOMBRE.pdf.pdfnotes, que Linux y macOS ocultan, y marcarlos como ocultos en Windows; un archivo ya guardado cambia en su siguiente guardado</tr>
+  </text>
 </interface>

@@ -269,7 +269,7 @@ cómo se dispone:
   página de un PDF (un sello oficial, un logotipo), en el menú del botón
   derecho de la herramienta Sello, junto a los estándar; las anotaciones
   guardadas en el PDF o, con Archivo > Anotaciones en un archivo aparte,
-  junto a él en `NOMBRE.pdf.pdfnotes`, sin tocar el PDF (y de vuelta,
+  junto a él en `NOMBRE.pdf.pdfnotes` (oculto al principio: `.NOMBRE.pdf.pdfnotes`), sin tocar el PDF (y de vuelta,
   conservándolas todas);
 * **Foliar**: los intervalos de etiquetas y la lista de las páginas con sus
   etiquetas, a la derecha; las acciones sobre las páginas elegidas, en la

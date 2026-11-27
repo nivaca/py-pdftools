@@ -23,6 +23,11 @@ campos (los de annots.Annotation, con sus respuestas), y además:
   cual, y luego se le aplican los cambios que se hicieron aquí, donde está:
   nada de lo que py-pdftools no conoce se pierde (véase capture y restore).
 
+Junto al PDF, el archivo va oculto si los ajustes lo piden (Ajustes >
+Documentos, así por omisión): con un punto delante del nombre
+(``.libro.pdf.pdfnotes``, que Linux y macOS ocultan) y, en Windows, con el
+atributo de oculto. Al abrir se busca con los dos nombres.
+
 Si la carpeta del PDF no se puede escribir, el archivo va a la carpeta
 ``annotations`` de la configuración (véase config.py), con un nombre sacado
 de la ruta del PDF.
@@ -58,6 +63,7 @@ import hashlib
 import json
 import os
 import re
+import sys
 import tempfile
 import uuid
 import xml.etree.ElementTree as ET
@@ -112,9 +118,29 @@ class Kept:
 
 # --------------------------------------------------------------------- where
 
-def beside(pdf: Path) -> Path:
-    """The file of annotations beside the PDF: book.pdf -> book.pdf.pdfnotes."""
-    return pdf.with_name(pdf.name + SUFFIX)
+def hidden() -> bool:
+    """Whether the files of annotations beside their PDF are hidden (Settings > Documents)."""
+    try:
+        return bool(config.get("hide_notes"))
+    except config.ConfigError:
+        return True
+
+
+def beside(pdf: Path, hide: bool | None = None) -> Path:
+    """The file of annotations beside the PDF: book.pdf -> .book.pdf.pdfnotes, hidden (HIDE, or as the settings
+    say), else book.pdf.pdfnotes."""
+    hide = hidden() if hide is None else hide
+    return pdf.with_name(("." if hide else "") + pdf.name + SUFFIX)
+
+
+def _set_hidden(path: Path, hide: bool) -> None:
+    """On Windows, give PATH the attribute of hidden (HIDE) or take it away; elsewhere the dot of its name does."""
+    if sys.platform != "win32":
+        return
+    import ctypes
+
+    # FILE_ATTRIBUTE_HIDDEN (2), o NORMAL (0x80); un fallo no impide nada: el archivo solo se ve.
+    ctypes.windll.kernel32.SetFileAttributesW(str(path), 0x2 if hide else 0x80)
 
 
 def in_config(pdf: Path) -> Path:
@@ -124,26 +150,43 @@ def in_config(pdf: Path) -> Path:
     return config.config_dir() / "annotations" / f"{pdf.stem[:40]}-{key}{SUFFIX}"
 
 
+def _places(pdf: Path) -> tuple[Path, ...]:
+    # Primero el nombre que piden los ajustes, luego el otro (se cambió el ajuste), luego la configuración.
+    hide = hidden()
+    return beside(pdf, hide), beside(pdf, not hide), in_config(pdf)
+
+
 def find(pdf: Path) -> Path | None:
-    """The file of annotations of the PDF at PDF, if it has one (beside it first)."""
-    for place in (beside(pdf), in_config(pdf)):
+    """The file of annotations of the PDF at PDF, if it has one (beside it first, hidden or not)."""
+    for place in _places(pdf):
         if place.is_file():
             return place
     return None
 
 
 def place_for(pdf: Path) -> Path:
-    """Where the annotations of PDF are to be written: where they are already, else beside it, if its folder can
-    be written, else in the configuration's folder."""
+    """Where the annotations of PDF are to be written: beside it, hidden or not as the settings say, if its folder
+    can be written; else where they are already, or in the configuration's folder."""
+    if os.access(pdf.parent, os.W_OK):
+        return beside(pdf)
     found = find(pdf)
-    if found is not None:
-        return found
-    return beside(pdf) if os.access(pdf.parent, os.W_OK) else in_config(pdf)
+    return found if found is not None else in_config(pdf)
+
+
+def tidy(pdf: Path, written: Path) -> None:
+    """(The annotations of PDF just written as WRITTEN.) The other files of them, now old, removed: that of the
+    other name (the setting of hiding changed) or the configuration's. Failures are left alone."""
+    for place in _places(pdf):
+        if place != written:
+            try:
+                place.unlink(missing_ok=True)
+            except OSError:
+                pass
 
 
 def remove(pdf: Path) -> None:
     """Remove the files of annotations of PDF (raises OSError)."""
-    for place in (beside(pdf), in_config(pdf)):
+    for place in _places(pdf):
         place.unlink(missing_ok=True)
 
 
@@ -276,12 +319,17 @@ def write(target: Path, doc: pymupdf.Document, pdf_name: str, annotations: list[
     ET.indent(root)
     target.parent.mkdir(parents=True, exist_ok=True)
     # Escritura atómica, como la de las copias de recuperación: un temporal en la misma carpeta, y os.replace.
-    fd, tmp = tempfile.mkstemp(suffix=SUFFIX, dir=target.parent)
+    # (the temporary file hidden as well: a dot in front of its name)
+    fd, tmp = tempfile.mkstemp(prefix=".", suffix=SUFFIX, dir=target.parent)
     try:
         with os.fdopen(fd, "wb") as f:
             ET.ElementTree(root).write(f, encoding="utf-8", xml_declaration=True)
             f.write(b"\n")
+        if target.exists():
+            _set_hidden(target, False)  # (Windows may refuse to put a file in the place of a hidden one)
         replace(tmp, target)
+        if target.name.startswith("."):
+            _set_hidden(target, True)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise

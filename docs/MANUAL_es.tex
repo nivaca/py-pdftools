@@ -636,8 +636,12 @@ próxima vez que se abra el documento ofrecerá recuperar esos cambios.
 
 \index{anotaciones!en un archivo aparte}\index{guardar}\index{pdfnotes@archivos \texttt{.pdfnotes}}%
 Las anotaciones también pueden quedar fuera del PDF, en un archivo propio
-junto a él: para \texttt{libro.pdf}, \texttt{libro.pdf.pdfnotes}. El PDF
-sigue entonces exactamente como estaba, byte a byte, por mucho que se
+junto a él: para \texttt{libro.pdf}, \texttt{.libro.pdf.pdfnotes}, un
+archivo oculto (el punto lo oculta en Linux y macOS; en Windows se marca
+como oculto), salvo que se desactive \menu{Configuración\then
+Documentos\then Ocultar los archivos aparte de anotaciones}; entonces es
+\texttt{libro.pdf.pdfnotes}. Al copiar el PDF a mano, recuerde el archivo
+oculto que tiene al lado. El PDF sigue entonces exactamente como estaba, byte a byte, por mucho que se
 anote; conviene con un documento ajeno, con uno bajo control de versiones
 o con uno firmado. \menu{Archivo\then Anotaciones en un archivo aparte}
 activa o desactiva esto para el documento abierto, y guarda enseguida:
@@ -2100,6 +2104,9 @@ Al pie de la pestaña se dice dónde se guarda la configuración
 \item[Guardar las anotaciones] de un documento que aún no tiene archivo
   aparte de ellas: en el PDF mismo, o en un archivo aparte junto a él
   (véase la sección~\ref{sec:apart}).
+\item[Ocultar los archivos aparte de anotaciones] con un punto delante
+  del nombre, y marcados como ocultos en Windows (activado al principio);
+  un archivo ya guardado toma el nombre nuevo en su siguiente guardado.
 \end{description}
 
 \subsection{Colores, Atajos, Categorías}

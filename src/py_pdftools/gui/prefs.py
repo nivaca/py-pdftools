@@ -471,6 +471,11 @@ class SettingsDialog(QDialog):
                                    "one that has it is always saved there. File > Annotations in a separate file "
                                    "changes it for the document open"))
         form.addRow(tr("Save the annotations:"), self.storage)
+        self.hide_notes = QCheckBox(tr("Hide the separate files of annotations"))
+        self.hide_notes.setChecked(bool(appearance.value("hide_notes")))
+        self.hide_notes.setToolTip(tr("Name them .NAME.pdf.pdfnotes, which Linux and macOS hide, and mark them "
+                                      "hidden on Windows; a file already saved changes at its next save"))
+        form.addRow("", self.hide_notes)
         return page
 
     def _clear_recent(self):
@@ -494,7 +499,7 @@ class SettingsDialog(QDialog):
                   "opening": self.opening.currentData(),
                   "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
                   "recent": self.recent.value(), "dialogs": self.dialogs.currentData(),
-                  "annot_storage": self.storage.currentData()}
+                  "annot_storage": self.storage.currentData(), "hide_notes": self.hide_notes.isChecked()}
         changed = {k: v for k, v in values.items() if v != appearance.value(k)}
         if changed:
             try:

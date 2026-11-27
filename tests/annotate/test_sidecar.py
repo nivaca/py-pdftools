@@ -32,7 +32,8 @@ def keep(path, doc, items, in_pdf=()):
 
 
 def test_names(sample):
-    assert sidecar.beside(sample).name == "sample.pdf.pdfnotes"
+    assert sidecar.beside(sample).name == ".sample.pdf.pdfnotes"  # (hidden, as the settings say at first)
+    assert sidecar.beside(sample, hide=False).name == "sample.pdf.pdfnotes"
     assert sidecar.find(sample) is None
     assert sidecar.place_for(sample) == sidecar.beside(sample)
 

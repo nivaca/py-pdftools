@@ -124,11 +124,13 @@ class StorageMixin:
     def _write_kept(self, pdf: Path, items: list[Annotation], base: dict[int, str]) -> Path:
         """ITEMS written as the file apart of PDF (the document shown); returns where (raises OSError)."""
         place = sidecar.place_for(pdf)
-        if self._kept_unreadable and place.is_file():
-            # (el archivo que no se pudo leer queda al lado, por si se quiere)
-            replace(place, place.with_name(place.name + ".unreadable"))
+        bad = self.kept_file
+        if self._kept_unreadable and bad is not None and bad.is_file():
+            # (el archivo que no se pudo leer queda al lado, por si se quiere: antes de que tidy borre los viejos)
+            replace(bad, bad.with_name(bad.name + ".unreadable"))
             self._kept_unreadable = False
         sidecar.write(place, self.doc, pdf.name, items, base, self.layers, self.kept_raws)
+        sidecar.tidy(pdf, place)  # (one file only: that of the other name, or the configuration's, goes)
         return place
 
     def restorer(self):

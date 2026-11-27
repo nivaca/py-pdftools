@@ -44,6 +44,7 @@ SETTINGS = {"interface": "en", "pdfconform": "", "show_document": False,  # name
             # (annot_storage: where the annotations of a document without a file of them apart are saved: "pdf" or
             # "file", see gui/storing.py)
             "annot_storage": "pdf",
+            "hide_notes": True,  # (hide_notes: those files hidden, .NAME.pdf.pdfnotes: see annotate/sidecar.py)
             "speech_rate": 0.0}  # (speech_rate: of reading aloud, from -1 to 1: see gui/readaloud.py)
 
 

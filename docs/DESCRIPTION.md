@@ -2686,7 +2686,14 @@ copies, by mail and by Git, so I chose a visible file beside the PDF:
 `book.pdf.pdfnotes`, or, if the folder can't be written, one in the
 configuration's folder. The name keeps the whole name of the PDF, so the
 two sort together and can't be mixed up, and ends in an extension of its
-own rather than `.xml`, so that the desktop can tell these files apart. It is XML of the program's own, not XFDF, because
+own rather than `.xml`, so that the desktop can tell these files apart.
+I also wanted them out of sight in the file manager. By default
+the name begins with a dot (`.book.pdf.pdfnotes`), which Linux and macOS
+hide, and on Windows, where a dot hides nothing, the file is given the
+attribute of hidden after each save (and has it taken away just before,
+since Windows may refuse to put a file in the place of a hidden one). A
+setting turns this off; both names are looked for when opening, and the
+next save moves the file to the name the setting asks for. It is XML of the program's own, not XFDF, because
 XFDF has no place for the tags, categories, groups, layers, attached files
 and textual criticism, and nothing may be lost when going from one way to
 the other. Skim also leaves the PDF's own annotations where they are, and
@@ -2739,7 +2746,7 @@ annotations.
 Testing
 -------
 
-The program has 915 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 916 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of

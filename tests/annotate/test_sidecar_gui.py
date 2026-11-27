@@ -79,7 +79,7 @@ def test_apart_without_touching_the_pdf(make, book):
               Annotation("ellipse", 2, (200, 200, 260, 240), "#0000ff")])
     assert w.save()
     assert book.read_bytes() == before and not w.is_modified()
-    assert "annotations saved in book.pdf.pdfnotes" in w.statusBar().currentMessage()
+    assert "annotations saved in .book.pdf.pdfnotes" in w.statusBar().currentMessage()
     # Opened again: the annotations of the file apart, not those of the PDF.
     other = make(book)
     assert other.apart()
@@ -211,3 +211,18 @@ def test_taken_out_and_back_exactly(make, book):
     assert [a.contents for a in back] == ["first", "second, changed"]
     assert [doc.xref_get_key(a.xref, "OtherProgram")[1] for a in back] == ["kept", "kept"]
     assert back[1].replies[0].contents == "yes"
+
+
+def test_hidden_or_not(make, book):
+    w = make(book)
+    w.answers["strip"] = "keep"
+    assert w.set_apart(True)
+    hidden, shown = sidecar.beside(book, hide=True), sidecar.beside(book, hide=False)
+    assert hidden.name == ".book.pdf.pdfnotes" and hidden.is_file() and not shown.exists()
+    # The setting changed: found under its old name, and moved to the new one at the next save.
+    config.set("hide_notes", False)
+    other = make(book)
+    assert other.apart() and other.kept_file == hidden
+    other.change(other.annotations[:1])
+    assert other.save()
+    assert shown.is_file() and not hidden.exists() and other.kept_file == shown
