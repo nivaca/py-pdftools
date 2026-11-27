@@ -14532,4 +14532,48 @@ Should the saved PDF also contain the annotations?</en>
     <en>{count} annotations flattened</en>
     <tr>{count} anotaciones aplanadas</tr>
   </text>
+  <text>
+    <en>A document keeps at least one page: they can't all be moved</en>
+    <tr>Un documento conserva al menos una página: no se pueden mover todas</tr>
+  </text>
+  <text>
+    <en>A new PDF with the pages chosen (and their annotations), opened in a tab</en>
+    <tr>Un PDF nuevo con las páginas elegidas (y sus anotaciones), abierto en una pestaña</tr>
+  </text>
+  <text>
+    <en>A new PDF with the pages chosen, which are then deleted from this document (Undo brings them back)</en>
+    <tr>Un PDF nuevo con las páginas elegidas, que luego se borran de este documento (Deshacer las devuelve)</tr>
+  </text>
+  <text>
+    <en>Copy the pages to a new PDF</en>
+    <tr>Copiar las páginas a un PDF nuevo</tr>
+  </text>
+  <text>
+    <en>Copy to a new PDF…</en>
+    <tr>Copiar a un PDF nuevo…</tr>
+  </text>
+  <text>
+    <en>Move the pages to a new PDF</en>
+    <tr>Mover las páginas a un PDF nuevo</tr>
+  </text>
+  <text>
+    <en>Move to a new PDF…</en>
+    <tr>Mover a un PDF nuevo…</tr>
+  </text>
+  <text>
+    <en>{count} page copied to {path}</en>
+    <tr>{count} página copiada a {path}</tr>
+  </text>
+  <text>
+    <en>{count} page moved to {path}</en>
+    <tr>{count} página movida a {path}</tr>
+  </text>
+  <text>
+    <en>{count} pages copied to {path}</en>
+    <tr>{count} páginas copiadas a {path}</tr>
+  </text>
+  <text>
+    <en>{count} pages moved to {path}</en>
+    <tr>{count} páginas movidas a {path}</tr>
+  </text>
 </interface>

@@ -216,7 +216,7 @@ def test_the_menu_of_pages_in_groups(window):
     menu = window.build_pages_menu()
     top = [a.text() for a in menu.actions() if a.text()]
     assert top[0] == "Page 3 (iii)"
-    assert top[1:5] == ["Rotate", "Duplicate", "Extract pages…", "Delete"]
+    assert top[1:6] == ["Rotate", "Duplicate", "Copy to a new PDF…", "Move to a new PDF…", "Delete"]
     subs = [a.text() for a in menu.actions() if a.menu() is not None]
     assert subs == ["Rotate", "Move", "Insert", "Labels", "Header, footer and watermark", "More page actions",
                     "Initial view"]
@@ -236,3 +236,32 @@ def test_the_menu_of_pages_in_groups(window):
     window.show_menu = lambda m, where: shown.append(m)
     window.thumbs_menu(window.pages.visualItemRect(window.pages.item(4)).center())
     assert shown and "OCR" in [a.text() for a in shown[0].actions() if a.text()][-1]
+
+
+def test_pages_copied_and_moved_to_a_new_pdf(window, tmp_path, monkeypatch):
+    from py_pdftools.annotate import annots
+    from py_pdftools.annotate.annots import Annotation
+    from py_pdftools.gui import tabs
+
+    opened = []
+    monkeypatch.setattr(tabs, "open_in_tab", lambda path, near=None: opened.append(path))
+    count = window.count
+    window.change([Annotation("rect", 1, (50, 50, 150, 150), "#ff0000", contents="on page 2")])
+    # Copied: the new PDF has pages 2 and 3, with the annotation; the document is as it was.
+    copy = tmp_path / "copy.pdf"
+    window.ask_new_pdf = lambda title, name: copy
+    assert window.pages_to_new_pdf([2, 3])
+    with pymupdf.open(copy) as doc:
+        assert doc.page_count == 2
+    assert [a.contents for a in annots.read(annots.open_pdf(copy)) if a.kind != annots.OTHER] == ["on page 2"]
+    assert window.count == count and opened == [copy]
+    # Moved: the same, and the pages deleted here, as a step Undo takes back.
+    moved = tmp_path / "moved.pdf"
+    window.ask_new_pdf = lambda title, name: moved
+    assert window.pages_to_new_pdf([2, 3], move=True)
+    assert pymupdf.open(moved).page_count == 2 and window.count == count - 2 and opened[-1] == moved
+    assert all(a.page != 1 or a.kind == annots.OTHER for a in window.annotations)
+    window.undo()
+    assert window.count == count
+    # Never all of them: a document keeps one page.
+    assert not window.pages_to_new_pdf(list(range(1, count + 1)), move=True)

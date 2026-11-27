@@ -124,6 +124,14 @@ class PagesMixin:
                             lambda pages: self.arrange_dialog("insert", pages))
         self.page_actions = [self.a_rotate_left, self.a_rotate_right, self.a_earlier, self.a_later,
                              self.a_page_duplicate, self.a_page_delete, self.a_blank, self.a_insert]
+        # (in the menus, not in the toolbar Arrange pages: see _update_page_actions)
+        self.a_pages_copy = act(N_("Copy to a new PDF…"), "document-export", [],
+                                lambda pages: self.pages_to_new_pdf(pages),
+                                N_("A new PDF with the pages chosen (and their annotations), opened in a tab"))
+        self.a_pages_move = act(N_("Move to a new PDF…"), "document-export", [],
+                                lambda pages: self.pages_to_new_pdf(pages, move=True),
+                                N_("A new PDF with the pages chosen, which are then deleted from this document "
+                                   "(Undo brings them back)"))
         self.a_headfoot = QAction(icon("draw-text"), tr("Header and footer…"), self)
         self.a_headfoot.triggered.connect(lambda: self.stamp_dialog(stamps.HEADER_FOOTER))
         self.a_watermark = QAction(icon("watermark"), tr("Watermark…"), self)
@@ -161,6 +169,9 @@ class PagesMixin:
         self.m_headfoot.aboutToShow.connect(lambda: self._fill_stamp_menu(self.m_headfoot, stamps.HEADER_FOOTER))
         self.m_watermark = m.addMenu(tr("Watermark"))
         self.m_watermark.aboutToShow.connect(lambda: self._fill_stamp_menu(self.m_watermark, stamps.WATERMARK))
+        m.addAction(self.a_pages_copy)
+        m.addAction(self.a_pages_move)
+        m.addSeparator()
         self.m_arrange = m.addMenu(tr("Arrange pages"))
         self.m_arrange.aboutToShow.connect(lambda: self._fill_arrange(self.m_arrange))
         self.m_opening = m.addMenu(tr("Initial view"))
@@ -830,6 +841,32 @@ class PagesMixin:
             return self.split_document(spec, folder)
         return self.arrange_pages(value, ask=False)
 
+    def pages_to_new_pdf(self, pages: list[int], move: bool = False) -> bool:
+        """PAGES (1-based), as they are now (with their annotations), written as a new PDF, which opens in a tab
+        beside this document; with MOVE, then deleted from this document (a step Undo takes back)."""
+        if self.path is None or not pages:
+            return False
+        if move and len(pages) >= self.count:
+            self.status(tr("A document keeps at least one page: they can't all be moved"), error=True)
+            return False
+        title = tr("Move the pages to a new PDF") if move else tr("Copy the pages to a new PDF")
+        target = self.ask_new_pdf(title, f"{self.path.stem}-{stamps.compact_pages(pages)}.pdf")
+        if target is None or self._same_file(target):
+            return False
+        if not self.write_parts([(target, list(pages))]):
+            return False
+        # Primero el archivo nuevo, completo; solo entonces se quitan las páginas de este documento.
+        if move and not self.arrange_pages(arrange.Delete(tuple(pages))):
+            return False
+        from .tabs import open_in_tab
+
+        open_in_tab(target, near=self)
+        self.status((ntr("{count} page moved to {path}", "{count} pages moved to {path}", len(pages), path=target)
+                     if move else
+                     ntr("{count} page copied to {path}", "{count} pages copied to {path}", len(pages),
+                         path=target)))
+        return True
+
     def split_document(self, spec: dict, folder: Path) -> bool:
         """The document, as it is now (with its annotations), split into several files in FOLDER as SPEC says
         (see pages/split.py: every so many pages, at pages, at its bookmarks, by size)."""
@@ -886,12 +923,13 @@ class PagesMixin:
         if self.mode != KIND:
             return
         pages = self.selected_pages() if self.path is not None else []
-        for a in self.page_actions:
+        for a in self.page_actions + [self.a_pages_copy, self.a_pages_move]:
             a.setEnabled(bool(pages))
         if pages:
             self.a_earlier.setEnabled(pages[0] > 1)
             self.a_later.setEnabled(pages[-1] < self.count)
             self.a_page_delete.setEnabled(len(pages) < self.count)
+            self.a_pages_move.setEnabled(len(pages) < self.count)
         for a in (self.a_headfoot, self.a_watermark):
             a.setEnabled(self.path is not None)
 
@@ -941,7 +979,13 @@ class PagesMixin:
         for angle, text in ((90, N_("90° clockwise")), (270, N_("90° counterclockwise")), (180, N_("180°"))):
             turn.addAction(tr(text), lambda *_, a=angle: self.arrange_pages(arrange.Rotate(tuple(pages), a)))
         menu.addAction(tr("Duplicate"), lambda *_: self.arrange_pages(arrange.Duplicate(tuple(pages))))
-        menu.addAction(tr("Extract pages…"), lambda *_: self.arrange_dialog("extract", pages))
+        menu.addAction(tr("Copy to a new PDF…"), lambda *_: self.pages_to_new_pdf(pages)).setToolTip(
+            tr("A new PDF with the pages chosen (and their annotations), opened in a tab"))
+        # Moving them all would leave the document without pages: a PDF keeps at least one.
+        a = menu.addAction(tr("Move to a new PDF…"), lambda *_: self.pages_to_new_pdf(pages, move=True))
+        a.setToolTip(tr("A new PDF with the pages chosen, which are then deleted from this document (Undo brings "
+                        "them back)"))
+        a.setEnabled(count < self.count)
         # Delete is disabled when every page is chosen: the document must keep at least one.
         menu.addAction(tr("Delete"), lambda *_: self.arrange_pages(arrange.Delete(tuple(pages)))).setEnabled(
             count < self.count)
