@@ -246,6 +246,11 @@ class EscapeToDocument(QObject):
         self.win = win
 
     def eventFilter(self, obj, event):
+        # The field claims Escape first: else, in an active window, the window's shortcut Deselect all (Escape)
+        # takes it, and the tags or the reply typed would be lost.
+        if event.type() == QEvent.Type.ShortcutOverride and event.key() == Qt.Key.Key_Escape:
+            event.accept()
+            return True
         if event.type() == QEvent.Type.KeyPress and event.key() == Qt.Key.Key_Escape:
             # Se guarda aquí mismo, sin esperar a que el campo pierda el foco (en una ventana inactiva no llega).
             p = self.win.listing

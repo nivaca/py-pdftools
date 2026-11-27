@@ -613,6 +613,10 @@ def test_escape_in_the_panel(window, app):
     drag(window, (100, 300), (250, 400))  # (the new one is selected)
     p = window.listing
     window.panel.show()
+    # (active, as on a desktop: there Escape is also the window's shortcut Deselect all, which takes it first
+    # unless the field claims it)
+    window.activateWindow()
+    QTest.qWaitForWindowActive(window, 1000)
     for field, text in ((p.comment, "A comment"), (p.tags, "one, two"), (p.reply_edit, "A reply")):
         field.setFocus()
         app.processEvents()
