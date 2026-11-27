@@ -5,6 +5,15 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.22.1 — 2026-11-27
+
+- Fixed: Escape in the tags or in a reply of the panel Annotations went to
+  Edit > Deselect all in an active window, and what was typed there was
+  lost; it is kept now (the tags), or added (the reply). The tests of 1.22.0
+  failed on it when its RPM was built, so 1.22.0 was published on GitHub
+  and Codeberg only: its changes, below, come to Fedora (Copr), Debian and
+  Ubuntu (APT) and Zenodo with this version.
+
 ## 1.22.0 — 2026-11-27
 
 - Flatten annotations (Annotate > Flatten annotations…, Flatten… in the

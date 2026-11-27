@@ -7,6 +7,8 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Corregido: Escape en las etiquetas o en una respuesta del panel
+  Anotaciones las perdía en una ventana activa; ahora se guardan.
 - Aplanar anotaciones (Anotar > Aplanar anotaciones…, Aplanar… en el menú
   del botón derecho de las seleccionadas, y Archivo > Guardar una copia >
   Con las anotaciones aplanadas…): todas, las seleccionadas o las de
