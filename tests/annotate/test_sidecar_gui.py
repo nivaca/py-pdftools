@@ -66,11 +66,11 @@ def editable(items):
 
 def test_apart_without_touching_the_pdf(make, book):
     w = make(book)
-    assert not w.apart() and not w.a_apart.isChecked()
+    assert not w.apart() and not w.a_embedded.isEnabled()
     before = book.read_bytes()
     w.answers["strip"] = "keep"
     assert w.set_apart(True)
-    assert w.apart() and w.a_apart.isChecked() and w.a_embedded.isEnabled()
+    assert w.apart() and w.a_embedded.isEnabled()
     xml = sidecar.beside(book)
     assert xml.is_file() and book.read_bytes() == before and not w.is_modified()
     # The PDF's own annotations are edited, deleted and added to: only the file apart changes.
@@ -228,18 +228,28 @@ def test_hidden_or_not(make, book):
     assert shown.is_file() and not hidden.exists() and other.kept_file == shown
 
 
-def test_settings_menu(make, book):
-    # Las tres casillas están en Configuración > Anotaciones en un archivo aparte, ninguna en Archivo.
+def test_settings_tab(make, book):
+    # Las tres casillas, en la pestaña Anotaciones de Configuración: se aplican al aceptar.
+    from py_pdftools.gui.prefs import SettingsDialog
+
     w = make(book)
-    assert w.a_apart not in w.m_file.actions()
-    assert [a for a in w.m_apart.actions() if not a.isSeparator()] == [w.a_apart, w.a_apart_default,
-                                                                        w.a_hide_notes]
-    w._show_apart_settings()
-    assert not w.a_apart_default.isChecked() and w.a_hide_notes.isChecked()
-    w.a_apart_default.trigger()
-    w.a_hide_notes.trigger()
+    dialog = SettingsDialog(w.prefs, w)
+    assert dialog.apart_here.isEnabled() and not dialog.apart_here.isChecked()
+    assert not dialog.apart_default.isChecked() and dialog.hide_notes.isChecked()
+    dialog.apart_default.setChecked(True)
+    dialog.hide_notes.setChecked(False)
+    assert dialog.put_in_effect()
     assert config.get("annot_storage") == "file" and config.get("hide_notes") is False
-    w._show_apart_settings()
-    assert w.a_apart_default.isChecked() and not w.a_hide_notes.isChecked()
-    # (the document open stays as it was: the default is for those without a file yet)
-    assert not w.apart()
+    assert not w.apart()  # (the document open stays as it was: the default is for those without a file yet)
+    # Este documento, aparte: pregunta, y cancelada la pregunta, la casilla vuelve a como está.
+    w.answers["strip"] = None
+    dialog.apart_here.setChecked(True)
+    assert dialog.put_in_effect() and not w.apart() and not dialog.apart_here.isChecked()
+    w.answers["strip"] = "keep"
+    dialog.apart_here.setChecked(True)
+    assert dialog.put_in_effect() and w.apart() and sidecar.beside(book, hide=False).is_file()
+    dialog.close()
+    # Sin documento, la casilla de este documento no se puede marcar.
+    empty = SettingsDialog(w.prefs, None)
+    assert not empty.apart_here.isEnabled()
+    empty.close()

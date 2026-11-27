@@ -260,7 +260,7 @@ and how it is arranged:
   first, unless Settings > Appearance asks for it), which can be searched, filtered and sorted; stamps of one's own, made of a picture or
   of a page of a PDF (a seal, a logo), in the Stamp tool's right-click
   menu, with the standard ones; the annotations saved in the PDF, or, with
-  Settings > Annotations in a separate file, beside it in `NAME.pdf.pdfnotes` (hidden at first: `.NAME.pdf.pdfnotes`),
+  Settings > Annotations, in a separate file beside it, `NAME.pdf.pdfnotes` (hidden at first: `.NAME.pdf.pdfnotes`),
   leaving the PDF untouched (and back, keeping them all);
 * **Foliate**: the ranges of labels and the list of the pages with their
   labels, on the right; the actions on the pages chosen in the toolbar and

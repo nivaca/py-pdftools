@@ -14285,10 +14285,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Desactivado, el panel queda oculto hasta que Ver &gt; Paneles &gt; Panel de anotaciones (F4) lo muestre</tr>
   </text>
   <text>
-    <en>Annotations in a separate file</en>
-    <tr>Anotaciones en un archivo aparte</tr>
-  </text>
-  <text>
     <en>Choose another name: this is the document itself</en>
     <tr>Elija otro nombre: ese es el documento mismo</tr>
   </text>
@@ -14299,10 +14295,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Save a copy with the annotations in the PDF</en>
     <tr>Guardar una copia con las anotaciones en el PDF</tr>
-  </text>
-  <text>
-    <en>Save the annotations beside the PDF, in NAME.pdf.pdfnotes, and leave the PDF as it is; unchecked, they are saved in the PDF itself. Changing it saves them at once</en>
-    <tr>Guardar las anotaciones junto al PDF, en NOMBRE.pdf.pdfnotes, y dejar el PDF como está; sin marcar, se guardan en el PDF mismo. Al cambiarlo se guardan enseguida</tr>
   </text>
   <text>
     <en>The annotations are in the PDF now: {path}</en>
@@ -14561,14 +14553,6 @@ Should the saved PDF also contain the annotations?</en>
     <tr>{count} páginas movidas a {path}</tr>
   </text>
   <text>
-    <en>For this document</en>
-    <tr>Para este documento</tr>
-  </text>
-  <text>
-    <en>For new documents</en>
-    <tr>Para los documentos nuevos</tr>
-  </text>
-  <text>
     <en>For documents that have no separate file of annotations yet (NAME.pdf.pdfnotes); unchecked, their annotations are saved in the PDF itself. One that has the file is always saved there</en>
     <tr>Para los documentos que aún no tienen un archivo aparte de anotaciones (NOMBRE.pdf.pdfnotes); sin marcar, sus anotaciones se guardan en el PDF mismo. El que tiene ese archivo se guarda siempre allí</tr>
   </text>
@@ -14587,5 +14571,21 @@ Should the saved PDF also contain the annotations?</en>
   <text>
     <en>{count} have no kind in Skim, and were left out</en>
     <tr>{count} no tienen clase en Skim, y se dejaron fuera</tr>
+  </text>
+  <text>
+    <en>Save the annotations of this document in a separate file</en>
+    <tr>Guardar las anotaciones de este documento en un archivo aparte</tr>
+  </text>
+  <text>
+    <en>Save those of new documents in a separate file</en>
+    <tr>Guardar las de los documentos nuevos en un archivo aparte</tr>
+  </text>
+  <text>
+    <en>The annotations can be saved in the PDF itself, or in a separate file beside it (NAME.pdf.pdfnotes), which leaves the PDF as it is</en>
+    <tr>Las anotaciones pueden guardarse en el PDF mismo o en un archivo aparte, junto a él (NOMBRE.pdf.pdfnotes), que deja el PDF como está</tr>
+  </text>
+  <text>
+    <en>Unchecked, they are saved in the PDF itself. Changing it saves them at once, when the settings are applied</en>
+    <tr>Sin marcar, se guardan en el PDF mismo. Cambiarlo las guarda enseguida, al aplicar la configuración</tr>
   </text>
 </interface>

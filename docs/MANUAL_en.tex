@@ -614,13 +614,13 @@ time the document is opened it offers to bring those changes back.
 The annotations can also be kept out of the PDF, in a file of their own
 beside it: for \texttt{book.pdf}, \texttt{.book.pdf.pdfnotes}, a hidden
 file (the dot hides it on Linux and macOS; on Windows it is marked hidden),
-unless \menu{Settings\then Annotations in a separate file\then Hide the
-separate files of annotations} is turned off; then it is \texttt{book.pdf.pdfnotes}. Copying
+unless \menu{Settings\then Annotations\then Hide the separate files of
+annotations} is turned off; then it is \texttt{book.pdf.pdfnotes}. Copying
 the PDF by hand, remember the hidden file beside it. The PDF then stays exactly as it was, byte for byte, however much it is annotated,
 which suits a document that is not yours, one under version control, or
-one that is signed. \menu{Settings\then Annotations in a separate
-file\then For this document} turns this on or off for the document open,
-and saves at once:
+one that is signed. \menu{Settings\then Annotations\then Save the
+annotations of this document in a separate file} turns this on or off for
+the document open, and saves at once, when the settings are applied:
 
 \begin{itemize}
 \item Turned on, it writes the separate file. If the PDF has annotations
@@ -648,8 +648,8 @@ in it, to give to someone else.
 
 \index{annotations!in a separate file}%
 A document that has a separate file is always opened with it, and saved
-there. \menu{Settings\then Annotations in a separate file\then For new
-documents} says where the annotations of the others go: checked, in a
+there. \menu{Settings\then Annotations\then Save those of new documents
+in a separate file} says where the annotations of the others go: checked, in a
 separate file; unchecked (the usual way), in the PDF itself. If the folder of the PDF can't be written, the separate
 file goes to the folder \texttt{annotations} of the configuration (see
 section~\ref{sec:files-kept}).
@@ -2029,6 +2029,24 @@ section~\ref{sec:files-kept}).
   shows, and a button to clear the list.
 \item[Open and save dialogs start in] the last folder used, or the
   folder of the document.
+\end{description}
+
+\subsection{Annotations}
+
+\index{annotations!in a separate file}\index{settings!annotations}%
+Where the annotations are saved (see section~\ref{sec:apart}):
+
+\begin{description}
+\item[Save the annotations of this document in a separate file] or in
+  the PDF itself; for the document open, which is switched, and saved at
+  once, when the settings are applied (it can't be checked with no
+  document open).
+\item[Save those of new documents in a separate file] those of the
+  documents that have no separate file of annotations yet; unchecked (the
+  usual way), in the PDF itself.
+\item[Hide the separate files of annotations] with a dot in front of
+  their name, and marked hidden on Windows (on at first); a file already
+  saved takes the new name at its next save.
 \end{description}
 
 \subsection{Colours, Shortcuts, Categories}

@@ -639,14 +639,13 @@ Las anotaciones también pueden quedar fuera del PDF, en un archivo propio
 junto a él: para \texttt{libro.pdf}, \texttt{.libro.pdf.pdfnotes}, un
 archivo oculto (el punto lo oculta en Linux y macOS; en Windows se marca
 como oculto), salvo que se desactive \menu{Configuración\then
-Anotaciones en un archivo aparte\then Ocultar los archivos aparte de
-anotaciones}; entonces es
+Anotaciones\then Ocultar los archivos aparte de anotaciones}; entonces es
 \texttt{libro.pdf.pdfnotes}. Al copiar el PDF a mano, recuerde el archivo
 oculto que tiene al lado. El PDF sigue entonces exactamente como estaba, byte a byte, por mucho que se
 anote; conviene con un documento ajeno, con uno bajo control de versiones
-o con uno firmado. \menu{Configuración\then Anotaciones en un archivo
-aparte\then Para este documento} activa o desactiva esto para el documento
-abierto, y guarda enseguida:
+o con uno firmado. \menu{Configuración\then Anotaciones\then Guardar las
+anotaciones de este documento en un archivo aparte} activa o desactiva esto
+para el documento abierto, y guarda enseguida, al aplicar la configuración:
 
 \begin{itemize}
 \item Al activarlo, escribe el archivo aparte. Si el PDF tiene anotaciones
@@ -674,8 +673,8 @@ en el PDF} hace una copia con ellas escritas dentro, para dársela a otro.
 
 \index{anotaciones!en un archivo aparte}%
 Un documento que tiene archivo aparte se abre siempre con él, y se guarda
-allí. \menu{Configuración\then Anotaciones en un archivo aparte\then Para
-los documentos nuevos} dice adónde van las de los demás: marcada, a un
+allí. \menu{Configuración\then Anotaciones\then Guardar las de los
+documentos nuevos en un archivo aparte} dice adónde van las de los demás: marcada, a un
 archivo aparte; sin marcar (lo de siempre), al PDF mismo. Si la carpeta del PDF no se puede escribir, el archivo
 aparte va a la carpeta \texttt{annotations} de la configuración (véase la
 sección~\ref{sec:files-kept}).
@@ -2141,6 +2140,24 @@ Al pie de la pestaña se dice dónde se guarda la configuración
   \menu{Archivo\then Abrir reciente}, y un botón para vaciar la lista.
 \item[Los diálogos de abrir y guardar empiezan en] la última carpeta usada
   o la carpeta del documento.
+\end{description}
+
+\subsection{Anotaciones}
+
+\index{anotaciones!en un archivo aparte}\index{configuracion@configuración!anotaciones}%
+Dónde se guardan las anotaciones (véase la sección~\ref{sec:apart}):
+
+\begin{description}
+\item[Guardar las anotaciones de este documento en un archivo aparte] o
+  en el PDF mismo; para el documento abierto, que se cambia y se guarda
+  enseguida, al aplicar la configuración (sin documento abierto no se puede
+  marcar).
+\item[Guardar las de los documentos nuevos en un archivo aparte] las de
+  los documentos que aún no tienen un archivo aparte de anotaciones; sin
+  marcar (lo de siempre), en el PDF mismo.
+\item[Ocultar los archivos aparte de anotaciones] con un punto delante
+  del nombre, y marcados como ocultos en Windows (activado al principio);
+  un archivo ya guardado toma el nombre nuevo en su siguiente guardado.
 \end{description}
 
 \subsection{Colores, Atajos, Categorías}

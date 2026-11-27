@@ -514,47 +514,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             menu.addAction(act)
         return act
 
-    def _build_apart_menu(self, menu: QMenu):
-        """Settings > Annotations in a separate file: for the document open (a_apart, see storing.py), for
-        the documents that have no such file yet, and whether those files are hidden."""
-        sub = self.m_apart = menu.addMenu(tr("Annotations in a separate file"))
-        sub.setToolTipsVisible(True)
-        # Guardar aparte, junto al PDF: una casilla, que guarda enseguida al cambiarla.
-        self.a_apart = self._action(sub, tr("For this document"), lambda on: self.set_apart(on),
-                                    tip=tr("Save the annotations beside the PDF, in NAME.pdf.pdfnotes, and leave "
-                                           "the PDF as it is; unchecked, they are saved in the PDF itself. "
-                                           "Changing it saves them at once"))
-        self.a_apart.setCheckable(True)
-        sub.addSeparator()
-        # (las dos que siguen son ajustes de config.toml, válidos para todas las ventanas: se leen al abrirse)
-        self.a_apart_default = self._action(
-            sub, tr("For new documents"), lambda on: self.keep_setting("annot_storage", "file" if on else "pdf"),
-            tip=tr("For documents that have no separate file of annotations yet (NAME.pdf.pdfnotes); unchecked, "
-                   "their annotations are saved in the PDF itself. One that has the file is always saved there"))
-        self.a_apart_default.setCheckable(True)
-        self.a_hide_notes = self._action(
-            sub, tr("Hide the separate files of annotations"), lambda on: self.keep_setting("hide_notes", on),
-            tip=tr("Name them .NAME.pdf.pdfnotes, which Linux and macOS hide, and mark them hidden on Windows; a "
-                   "file already saved changes at its next save"))
-        self.a_hide_notes.setCheckable(True)
-        sub.aboutToShow.connect(self._show_apart_settings)
-
-    def _show_apart_settings(self):
-        """The two settings of Settings > Annotations in a separate file, as config.toml has them now."""
-        from .storing import default_storage
-
-        self.a_apart_default.setChecked(default_storage() == "file")
-        self.a_hide_notes.setChecked(bool(config.get("hide_notes")))
-
-    def keep_setting(self, name: str, value) -> bool:
-        """The setting NAME of config.toml changed to VALUE (from a menu). Whether it was kept."""
-        try:
-            config.set(name, value)
-        except (OSError, config.ConfigError) as e:
-            self.status(tr("Could not keep the setting: {error}", error=e), error=True)
-            return False
-        return True
-
     def _build_menus(self):
         m = self.m_file = self.menuBar().addMenu(tr("&File"))
         m.setToolTipsVisible(True)
@@ -971,7 +930,6 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                                     "toolbars of your own"))
         # Barras: cómo se ven todas (el texto, el tamaño de los iconos), bloquearlas y personalizarlas; el menú se
         # hace al abrirse, con lo que está elegido entonces.
-        self._build_apart_menu(m)
         self.m_toolbars = m.addMenu(tr("Toolbars"))
         self.m_toolbars.aboutToShow.connect(lambda: (self.m_toolbars.clear(), self.looks_menu(self.m_toolbars)))
         lang = self.m_language = m.addMenu(tr("Language"))

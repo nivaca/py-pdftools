@@ -192,6 +192,7 @@ class SettingsDialog(QDialog):
         tabs.addTab(_scrolled(general), tr("General"))
         tabs.addTab(_scrolled(self._appearance_tab(parent)), tr("Appearance"))
         tabs.addTab(_scrolled(self._documents_tab()), tr("Documents"))
+        tabs.addTab(_scrolled(self._annotations_tab(parent)), tr("Annotations"))
 
         colours = QWidget()
         form = QFormLayout(colours)
@@ -463,6 +464,58 @@ class SettingsDialog(QDialog):
         form.addRow(tr("Open and save dialogs start in:"), self.dialogs)
         return page
 
+    def _annotations_tab(self, window) -> QWidget:
+        """Where the annotations are saved: those of the document open (WINDOW's), those of the documents
+        without a separate file yet, and whether those files are hidden (see gui/storing.py)."""
+        from .storing import default_storage
+
+        page = QWidget()
+        form = QFormLayout(page)
+        intro = QLabel(tr("The annotations can be saved in the PDF itself, or in a separate file beside it "
+                          "(NAME.pdf.pdfnotes), which leaves the PDF as it is"))
+        intro.setWordWrap(True)
+        form.addRow(intro)
+        # (la del documento abierto: solo si la ventana tiene uno; se aplica al aceptar, y guarda enseguida)
+        self._apart_window = window if getattr(window, "path", None) is not None and hasattr(window, "apart") \
+            else None
+        self.apart_here = QCheckBox(tr("Save the annotations of this document in a separate file"))
+        self.apart_here.setChecked(self._apart_window is not None and self._apart_window.apart())
+        self.apart_here.setEnabled(self._apart_window is not None)
+        self.apart_here.setToolTip(tr("Unchecked, they are saved in the PDF itself. Changing it saves them at "
+                                      "once, when the settings are applied"))
+        form.addRow("", self.apart_here)
+        self.apart_default = QCheckBox(tr("Save those of new documents in a separate file"))
+        self.apart_default.setChecked(default_storage() == "file")
+        self.apart_default.setToolTip(tr("For documents that have no separate file of annotations yet "
+                                         "(NAME.pdf.pdfnotes); unchecked, their annotations are saved in the PDF "
+                                         "itself. One that has the file is always saved there"))
+        form.addRow("", self.apart_default)
+        self.hide_notes = QCheckBox(tr("Hide the separate files of annotations"))
+        self.hide_notes.setChecked(bool(config.get("hide_notes")))
+        self.hide_notes.setToolTip(tr("Name them .NAME.pdf.pdfnotes, which Linux and macOS hide, and mark them "
+                                      "hidden on Windows; a file already saved changes at its next save"))
+        form.addRow("", self.hide_notes)
+        return page
+
+    def _keep_annotations(self):
+        """The settings of the page Annotations kept; the document open switched, if asked (it may ask whether
+        the PDF keeps its own annotations: cancelled, the box shows again how they are saved)."""
+        from .storing import default_storage
+
+        try:
+            if self.apart_default.isChecked() != (default_storage() == "file"):
+                config.set("annot_storage", "file" if self.apart_default.isChecked() else "pdf")
+            if self.hide_notes.isChecked() != bool(config.get("hide_notes")):
+                config.set("hide_notes", self.hide_notes.isChecked())
+        except (OSError, config.ConfigError) as e:
+            QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
+        win = self._apart_window
+        if win is not None and win.path is not None and self.apart_here.isChecked() != win.apart():
+            win.set_apart(self.apart_here.isChecked())
+            self.apart_here.blockSignals(True)
+            self.apart_here.setChecked(win.apart())
+            self.apart_here.blockSignals(False)
+
     def _clear_recent(self):
         from .window import _WINDOWS
 
@@ -629,6 +682,7 @@ class SettingsDialog(QDialog):
                 autostart.enable(self.login.isChecked())
             except OSError as e:
                 QMessageBox.warning(self, tr("Settings"), tr("Could not keep the setting: {error}", error=e))
+        self._keep_annotations()
         if self.on_apply is not None:
             self.on_apply(self)
         return True
