@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in a hundred and sixteen stages.
+I explain how it was made, in a hundred and seventeen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2815,10 +2815,59 @@ asks fontconfig for a serif font that has it (Libertinus Serif here).
 Pandoc is optional, as tesseract is: without it the entries are turned off,
 and the system check says what to install.
 
+117. A faster start, and other engines to draw the pages
+-------------------------------------------------------
+
+I measured the start once more, from the program launched to the first page
+of the user manual drawn: about 510 milliseconds. The measuring itself had
+its traps. The processes that draw the pages start Python again and run the
+main script, so a timing script without the usual guard opened three
+windows at each start; and ending it at once, without letting the program
+stop those processes, left them alive, holding the script's output, so that
+each measurement waited for its time limit. Old and new code were compared
+from a second copy of the repository, alternating starts, because the
+computer was busy with other programs.
+
+The largest wait was not where I expected it. The processes that draw were
+ready before the window asked them for anything; the first page waited 90
+milliseconds for a pause meant to gather several scrolls or zooms into one
+drawing. The first drawing of a document just opened now goes at once.
+Three smaller things followed: the panel of the mode OCR, which asked
+tesseract for its languages, is made the first time the mode is entered;
+the toolbars looked for their actions once for each toolbar, and now once;
+and the filter that hides the tooltips, which sees every event of the
+application, was costing 14 milliseconds while the window was built, so it
+is installed half a second later, when no tooltip could have shown yet. The
+first page now comes at about 405 milliseconds. Two other ideas did not pay:
+drawing the first page in the window's own process (it would also lose the
+protection of the separate processes against a page that crashes MuPDF), and
+loading the code of the other modes only when first used, which saved three
+milliseconds, because most of it is needed before the first page anyway.
+
+Then I added a choice of engine for drawing the pages, as Okular has: it
+ranks the engines that can open a kind of document and can ask which one to
+use. I read its source for this (KDE, GPL-2.0-or-later). Here the engines
+are MuPDF, as always, PDFium, the engine of Chrome, and Poppler, the engine
+of Okular itself. Only the drawing changes. MuPDF still does everything
+else, and it prepares each page for the other engine: it takes out the
+annotations that the window draws by itself, and hands over a PDF of that
+one page, in memory, which the other engine draws with whatever is left on
+it, form fields included. PDFium comes in two ways, because the PySide6 of
+pip has no Qt PDF and only Fedora's has: the Fedora package uses Qt PDF,
+and the AppImage and the installers bring pypdfium2 (Apache-2.0 or
+BSD-3-Clause; PDFium itself is BSD-3-Clause). Poppler is its program
+pdftoppm (GPL-2.0-or-later), which reads the page from its input and writes
+the picture to its output. The first comparison showed Qt PDF's pictures one
+pixel narrower than MuPDF's: Python rounds 892.5 down, and MuPDF counts the
+pixels of a page outwards, so every engine now takes its sizes from MuPDF.
+Each engine draws a tile of a deep zoom by itself, and a turned page and a
+page whose crop box is not its media box come out in the same place. If an
+engine fails with a page, MuPDF draws it.
+
 Testing
 -------
 
-The program has 940 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some thirty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 964 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some thirty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2830,7 +2879,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, pages made pictures, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, the switch both ways, and the exact copies of what is taken out of the PDF), Skim's notes in both their forms and back again, the documents made by Pandoc, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, the switch both ways, and the exact copies of what is taken out of the PDF), Skim's notes in both their forms and back again, the documents made by Pandoc, the engines that draw the pages (each one against MuPDF, on turned and cropped pages and in tiles, also with Fedora's Qt PDF), the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -2839,5 +2888,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 193 files of Python, around 54,800 lines (about a tenth of them
-comments), and 3,633 texts of the interface in Spanish.
+program has 195 files of Python, around 55,200 lines (about a tenth of them
+comments), and 3,651 texts of the interface in Spanish.

@@ -1,4 +1,4 @@
-# py-pdftools 1.23.0: descripción
+# py-pdftools 1.24.0: descripción
 
 ## Análisis
 
@@ -36,11 +36,11 @@ Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotació
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 193 archivos de Python, unas 54 800 líneas (una décima parte, comentarios), y 3633 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 195 archivos de Python, unas 55 200 líneas (una décima parte, comentarios), y 3651 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
-Un script copió los módulos de cada programa y reescribió sus importaciones. Dos módulos homónimos diferían: las listas de páginas de py-imposition rechazaban una página más allá de la última y las de py-redact la omitían; el común hace las dos cosas. Las cuatro traducciones se unieron en un archivo, y de 35 textos con dos traducciones se eligió una, salvo donde el sentido cambiaba (*izquierda* como alineación, *izquierdo* como margen). Las claves que los programas antiguos escriben en un PDF conservan su nombre, para que sus documentos se sigan leyendo.
+Un script copió los módulos y reescribió sus importaciones. Dos módulos homónimos que diferían se unieron en uno. Las cuatro traducciones se unieron en un archivo, y de 35 textos con dos traducciones se eligió una, salvo donde el sentido cambiaba (*izquierda* como alineación, *izquierdo* como margen). Las claves que los programas antiguos escriben en un PDF conservan su nombre, para que sus documentos se sigan leyendo.
 
 ### La línea de órdenes
 
@@ -50,19 +50,19 @@ Los dos analizadores de argumentos se injertaron, sin reescribirlos, en un árbo
 
 Cada cambio del documento lo escribe primero con sus anotaciones, lo cambia con pikepdf y abre el resultado; las anotaciones van con sus páginas. El historial guarda, antes de cada cambio, el archivo, las anotaciones y la página: Deshacer recorre por igual los cambios de las anotaciones y los del documento.
 
-Las copias están en `~/.cache/py-pdftools/work`, no en /tmp (en Fedora, en la memoria); el historial guarda los diez últimos cambios del documento.
+Las copias están en `~/.cache/py-pdftools/work`, no en /tmp (en Fedora, en la memoria); el historial guarda diez cambios.
 
 ### Documentos con miles de anotaciones
 
-Con 300 páginas y 3000 anotaciones, cambiar las etiquetas tardaba casi 2 s, porque las anotaciones se leían dos veces; ahora, 0,3 s.
+Con 3000 anotaciones, cambiar las etiquetas tardaba 2 s (las anotaciones se leían dos veces); ahora, 0,3.
 
 ### pdf2iso, incluido
 
-pdf2iso, el programa del autor que hace las copias PDF/A y PDF/X, se instalaba aparte. Ahora es un módulo del paquete (`core/pdf2iso.py`), que corre con el mismo Python en un proceso propio, y una orden, `py-pdftools pdf2iso`. Solo Ghostscript sigue fuera.
+pdf2iso, que hace las copias PDF/A y PDF/X, es ahora un módulo del paquete (`core/pdf2iso.py`) y una orden, `py-pdftools pdf2iso`; solo Ghostscript sigue fuera.
 
 ### Las etiquetas de página
 
-El PyMuPDF de Fedora (1.28) leía mal el `/Type /PageLabel` de un intervalo: las etiquetas se leen con el motor de py-foliation.
+El PyMuPDF 1.28 de Fedora leía mal `/Type /PageLabel`: las etiquetas las lee el motor de py-foliation.
 
 ### Documentos grandes
 
@@ -76,13 +76,17 @@ Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `.libro.pdf.pdf
 
 Pandoc, opcional como tesseract (`core/pandoc.py`), convierte en Word, ODT, EPUB, HTML o LaTeX el informe de anotaciones, el aparato crítico y el texto con sus imágenes; y hace PDF de documentos (Markdown, Word, ODT…) con LuaLaTeX, XeLaTeX o Typst, en una fuente con griego si la hay.
 
+### Motores de dibujo
+
+Como en Okular, las páginas puede dibujarlas MuPDF, PDFium (Qt PDF en Fedora; pypdfium2 en los demás) o Poppler (pdftoppm) (`core/backends.py`). MuPDF quita antes las anotaciones que la ventana dibuja y pasa al otro motor un PDF de esa sola página. El arranque bajó de 510 a 405 ms hasta la primera página.
+
 ### OCR
 
 El OCR, el de py-pdfocr, tiene su modo; usa tesseract en varios procesos a la vez y lee el lugar y la confianza de cada palabra. El texto se escribe invisible en el documento, como un cambio que se deshace, después de revisar las palabras dudosas junto a su imagen. Las páginas de lado se giran antes, con el modelo osd.
 
 ## Validación
 
-Hay 940 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones (también a Skim, de ida y vuelta, y con Pandoc), la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 964 pruebas automáticas (`tools/test.py`, en paralelo, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones (también a Skim, de ida y vuelta, y con Pandoc), los motores de dibujo frente a MuPDF, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso.
 

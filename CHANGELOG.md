@@ -5,6 +5,23 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.24.0 — 2026-11-27
+
+- The pages can be drawn by another engine (Settings > Performance > Draw
+  the pages with): MuPDF, as always, PDFium (the engine of Chrome: Fedora's
+  Qt PDF, or pypdfium2 in the AppImage and the installers) or Poppler
+  (through its pdftoppm). Only how the pages look changes: annotating,
+  finding, saving and printing stay the same. As Okular does, the program
+  can also ask which engine when a document is opened (off at first).
+- Faster start: the first page of a document comes about a fifth sooner.
+  It no longer waits the pause that gathers scrolls and zooms; the panel of
+  the mode OCR is made the first time the mode is entered; the toolbars
+  find their actions once; and the filter that hides the tooltips comes
+  half a second later.
+- The lists of third-party software credit the projects py-pdftools learnt
+  from (Okular, Skim, PDFCraft, calibre, Visual Studio Code, KDE Plasma),
+  and the programs Pandoc uses.
+
 ## 1.23.0 — 2026-11-27
 
 - Settings > Annotations, a new page of the Settings dialog, holds the
