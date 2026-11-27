@@ -42,7 +42,7 @@ En orden, y cada paso solo si hace falta:
 6. en cada forja, crea la versión de la etiqueta, o conserva la que haya,
    y le adjunta los archivos, que reemplazan a los del mismo nombre;
 7. salvo con --no-rpm o --no-copr, manda el RPM fuente firmado a Copr (copr-cli build, proyecto
-   nivaca/py-pdftools), salvo con --no-copr. Copr lo construye para cada Fedora
+   nivaca/py-pdftools). Copr lo construye para cada Fedora
    del proyecto y lo firma con su propia clave. Cada construcción necesita una
    version-release mayor que la anterior, así que hay que haber subido la del
    spec (rpmdev-bumpspec; véase packaging/RELEASING.md);
