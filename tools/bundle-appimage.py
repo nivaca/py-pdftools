@@ -282,7 +282,9 @@ def main(argv=None):
     args = parser.parse_args(argv)
     if not sys.platform.startswith("linux"):
         sys.exit("bundle-appimage.py: AppImages are made on Linux")
-    output = args.output or DIST
+    # Ruta absoluta: la prueba del final ejecuta la AppImage desde otra carpeta (un home vacío), donde una
+    # ruta relativa como la que pasa release.py (build/release) no se encuentra.
+    output = (args.output or DIST).resolve()
     output.mkdir(parents=True, exist_ok=True)
     try:
         path = bundle(output, args.python, args.appimagetool, args.python_version)
