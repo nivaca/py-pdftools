@@ -5,6 +5,37 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.22.0 — 2026-11-27
+
+- Flatten annotations (Annotate > Flatten annotations…, Flatten… in the
+  right-click menu of those selected, and File > Save a copy > With
+  annotations flattened…): all of them, those selected or those of some
+  kinds, in the document itself (Undo takes it back) or in a copy. Their
+  comments, with their replies, can be written on the page, each in a small
+  box level with its annotation, in the margin beside the text. The
+  annotations not flattened stay exactly as they were.
+- Copy to a new PDF… and Move to a new PDF…, for the pages chosen in the
+  thumbnails (their right-click menu and the menu Pages): the new PDF opens
+  in a tab; moving then deletes the pages from the document (Undo brings
+  them back).
+- Escape while writing a note, a text box, a callout or with the
+  typewriter keeps what was written and goes back to the tool Select (it
+  threw the text away); with nothing being written, it clears the selection
+  first, then leaves the tool. In the panel Annotations, Escape keeps the
+  comment and the tags, and adds a reply typed.
+- The separate files of annotations are hidden in the file manager
+  (.book.pdf.pdfnotes, and marked hidden on Windows); Settings >
+  Documents > Hide the separate files of annotations turns it off.
+- The questions asked when the annotations go into a separate file, or
+  when the PDF must be saved with them, say plainly what happens and what
+  each answer means.
+- The properties of an annotation: its text five lines high, with a scroll
+  bar, and the categories four rows; the dialog is shorter.
+- The right-click menu of the pages no longer repeats, under More page
+  actions, what it has already.
+- Fixed: on Windows, saving the separate file of annotations could fail
+  while another program held it a moment.
+
 ## 1.21.0 — 2026-11-26
 
 - The annotations of a document can be kept out of the PDF, in a file of

@@ -7,6 +7,18 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Aplanar anotaciones (Anotar > Aplanar anotaciones…, Aplanar… en el menú
+  del botón derecho de las seleccionadas, y Archivo > Guardar una copia >
+  Con las anotaciones aplanadas…): todas, las seleccionadas o las de
+  algunos tipos, en el documento mismo (Deshacer lo revierte) o en una
+  copia, con sus comentarios escritos al margen si se quiere.
+- Copiar a un PDF nuevo… y Mover a un PDF nuevo…, para las páginas
+  elegidas en las miniaturas.
+- Escape, al escribir una nota, un cuadro de texto, una llamada o con la
+  máquina de escribir, guarda lo escrito y vuelve a Seleccionar.
+- Los archivos aparte de anotaciones van ocultos (.libro.pdf.pdfnotes).
+- Preguntas más claras al pasar las anotaciones a un archivo aparte, y un
+  diálogo de propiedades más bajo.
 - Las anotaciones de un documento pueden guardarse fuera del PDF, en un
   archivo propio junto a él: para libro.pdf, libro.pdf.pdfnotes (XML). El
   PDF queda entonces exactamente como estaba. Archivo > Anotaciones en un

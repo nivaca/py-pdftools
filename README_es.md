@@ -32,7 +32,7 @@ páginas escaneadas. Reúne, en una sola ventana y una sola línea de
 
 La ventana y la línea de órdenes están en español y en inglés. Funciona en
 Linux, y sus instaladores lo instalan también en Windows y macOS. Esta es la
-versión 1.21.0.
+versión 1.22.0.
 
 El manual de usuario, con imágenes de la ventana y de sus diálogos, lo
 explica todo por extenso: [docs/MANUAL_es.pdf](docs/MANUAL_es.pdf) (en
