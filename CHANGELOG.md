@@ -5,6 +5,29 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.23.0 — 2026-11-27
+
+- Settings > Annotations, a new page of the Settings dialog, holds the
+  settings of the separate file of annotations: this document's
+  annotations in a separate file (was File > Annotations in a separate
+  file; applied with OK or Apply, and saved at once), those of new
+  documents and hiding the files (both were on the page Documents).
+- Export the annotations for Skim (File > Export > Annotations > For Skim
+  (.skim)…): a `.skim` file with the name of the PDF, which Skim offers to
+  read when it opens the PDF. The kinds Skim lacks go as the nearest
+  (squiggly underline as underline, area highlight as a filled rectangle,
+  polygons and freehand highlights as drawings, callouts as text boxes);
+  insert-text marks, stamps and attached files are left out, and counted.
+- With Pandoc, which is optional: the annotations report and the critical
+  apparatus as Word, ODT, EPUB, HTML or LaTeX documents (File > Export >
+  Annotations); the text of the pages, with its headings, lists and
+  pictures, as such a document (File > Export > Text as a document); and a
+  PDF made from a document in Markdown, Word, ODT, HTML, EPUB, LaTeX and
+  the other formats Pandoc reads (File > New > New PDF from a document),
+  with LuaLaTeX, XeLaTeX or Typst, in a font with Greek when one is
+  installed. Without Pandoc these entries are turned off; Help > System
+  check says what to install.
+
 ## 1.22.1 — 2026-11-27
 
 - Fixed: Escape in the tags or in a reply of the panel Annotations went to

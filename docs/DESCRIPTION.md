@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in a hundred and fifteen stages.
+I explain how it was made, in a hundred and sixteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2772,10 +2772,53 @@ so they are left out (their text is in the box); and the annotations not
 flattened must survive the flattening exactly, which the copies of their
 objects made for the separate files already did.
 
+116. Notes for Skim, the settings of a separate file, and Pandoc
+---------------------------------------------------------------
+
+The settings of the separate file of annotations were in three places: a
+check box in the menu File for the document open, and two settings on the
+page Documents of the Settings dialog. I put them first in a submenu of
+the menu Settings, and then, when that was not yet right, on a page of
+their own, Annotations, in the Settings dialog. The box of the document
+open is a strange thing for a dialog of settings, since it acts on a
+document and not on the program: it is applied with OK or Apply, and if
+the question that follows (whether the PDF keeps its own annotations) is
+cancelled, the box shows again how the document is saved. A line of
+introduction on that page made the whole dialog wider, and I took it out.
+
+Skim's notes could be imported since 1.21.0; now they are exported too.
+Skim's source says how it keeps them: in extended attributes of the PDF
+file (compressed and split into pieces of 2 KB when long), and, on
+request, in a `book.skim` beside it, which Skim offers to read when it
+opens `book.pdf`. The export writes that file, as the binary property list
+Skim writes today. One detail of Skim's reader decided the colours: it
+takes always four components of a colour, so a list of three would make it
+fail; every colour is written with four. Skim has fewer kinds than
+py-pdftools: a squiggly underline goes as an underline, an area highlight
+as a filled rectangle, polygons and freehand highlights as drawings, a
+callout as a text box; insert-text marks, stamps and attached files are
+left out and counted. The test takes every kind there and back, also on a
+turned page.
+
+The last part was Pandoc, to bring documents that are not PDF in and out.
+The annotations report and the critical apparatus were already Markdown,
+and so was the text of the pages; Pandoc makes of them Word, ODT, EPUB,
+HTML or LaTeX documents. For the text I made the Markdown carry the
+pictures of the pages as well, written in a temporary folder and named
+where they are; Word, ODT, EPUB and HTML keep them inside, and LaTeX cites
+them from a folder beside the file. In the other direction, a document in
+Markdown, Word, ODT, HTML, EPUB, LaTeX and other formats becomes a PDF,
+which opens in a tab. Pandoc does not write PDF itself; it uses LuaLaTeX,
+XeLaTeX or Typst, the first that is installed. The first PDF lost all the
+Greek of a test, because the font of LaTeX has none, and the program now
+asks fontconfig for a serif font that has it (Libertinus Serif here).
+Pandoc is optional, as tesseract is: without it the entries are turned off,
+and the system check says what to install.
+
 Testing
 -------
 
-The program has 922 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 940 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some thirty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2787,7 +2830,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, pages made pictures, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, the switch both ways, and the exact copies of what is taken out of the PDF), Skim's notes in both their forms, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, the switch both ways, and the exact copies of what is taken out of the PDF), Skim's notes in both their forms and back again, the documents made by Pandoc, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -2796,5 +2839,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 190 files of Python, around 53,700 lines (about a tenth of them
-comments), and 3,566 texts of the interface in Spanish.
+program has 193 files of Python, around 54,800 lines (about a tenth of them
+comments), and 3,633 texts of the interface in Spanish.

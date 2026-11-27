@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.22.1
+Version:        1.23.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -106,6 +106,10 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Fri Nov 27 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.23.0-1
+- Settings > Annotations; annotations exported for Skim (.skim); with Pandoc,
+  documents exported (Word, ODT, EPUB, HTML, LaTeX) and made PDFs
+
 * Fri Nov 27 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.22.1-1
 - Version 1.22.1: Escape in the fields of the panel Annotations keeps the tags
   and the reply typed in an active window (1.22.0's %check failed on it); with
