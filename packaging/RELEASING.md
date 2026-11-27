@@ -97,6 +97,8 @@ sudo dnf install rpm-build rpm-sign rpmdevtools python3-devel pyproject-rpm-macr
 
 `rpmbuild` checks the build dependencies of the spec, and `%check` runs the
 whole test suite on the installed package, so they must be installed here.
+It runs it as `tools/test.py` does, each test file in a process of its own,
+all at once: about a minute, against eleven one after the other.
 
 ## The signing key
 

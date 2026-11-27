@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in a hundred and twelve stages.
+I explain how it was made, in a hundred and thirteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2650,6 +2650,26 @@ fell on both sides of it. A real hand moving fast does the same. So the
 eraser now also passes through the points between two positions, at most
 a radius apart, for drawings and for the other annotations; a new test
 makes one move of 40 points at 200 %.
+
+
+113. The release of 1.20.0, and what it taught
+-----------------------------------------------
+
+The release of 1.20.0 took longer than any before it, and showed why. The
+%check of the RPM ran the 872 tests one after the other, with Fedora's
+Python: eleven minutes, where tools/test.py takes under one. Then pytest
+took minutes more to quit. The debugger showed it inside the destructor of
+the application, deleting what the desktop's style, Breeze, keeps of every
+window it ever drew; after hundreds of tests in one process that was five
+gigabytes. Copr then runs the same %check again. So the %check now runs
+tools/test.py, with the system's Python and the package installed in the
+build root, as Fedora's own macro does: the whole RPM is built in about a
+minute, and each short process has little to delete when it ends.
+
+The tag's tests on GitHub's Mac, which run only for tags, also failed once:
+a signature's frame, dragged 150 points wide, was 151.1 there. The mouse
+moves in whole pixels, and at that Mac's zoom a pixel is more than a point;
+the test now allows half a pixel at each end.
 
 Testing
 -------
