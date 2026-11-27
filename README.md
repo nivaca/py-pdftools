@@ -229,7 +229,10 @@ Copies as PDF/A or PDF/X need Ghostscript, which makes them (pdf2iso, which
 prepares and checks them, is part of py-pdftools: see "Where it comes
 from"). For OCR, the tesseract program, with the languages of the
 documents (`tesseract-langpack-…` on Fedora, `tesseract-ocr-…` on Debian
-and Ubuntu).
+and Ubuntu). Pandoc exports the text and the annotations as Word, ODT,
+EPUB, HTML or LaTeX documents, and makes PDFs of documents (File > New >
+New PDF from a document), with LuaLaTeX (`texlive-luatex`), XeLaTeX or
+Typst.
 Digital signatures need pyHanko: the AppImage and the installers bring it;
 elsewhere, `pip install 'py-pdftools[signatures]'`. Fedora doesn't package
 it: with the RPM, `python3 -m pip install --user pyhanko` installs it in
@@ -530,7 +533,7 @@ and the program ends; stamps, signatures, digital IDs, recipes and
 profiles are not touched.
 Help > System check (also a button at the foot of Settings) lists what py-pdftools needs
 and whether it has it (Python and its libraries, pyHanko, tesseract and the
-OCR languages chosen, Ghostscript, the space of the temporary folder),
+OCR languages chosen, Ghostscript, Pandoc, the space of the temporary folder),
 which settings in the file aren't valid or known, and shortcuts used twice;
 each with what to do, and a report that can be copied.
 Help > Check for updates asks GitHub for the latest release (only

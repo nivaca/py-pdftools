@@ -42,6 +42,8 @@ MAINTAINER = "Nicolas Vaughan <nicolasvaughan@proton.me>"
 DEPENDS = ("libc6 (>= 2.34), libegl1, libgl1, libxkbcommon0, libxkbcommon-x11-0, libfontconfig1, libdbus-1-3, "
            "libxcb-cursor0")
 RECOMMENDS = "tesseract-ocr, ghostscript"
+# (Pandoc: the documents exported and imported; texlive-luatex makes its PDFs. Large: only suggested)
+SUGGESTS = "pandoc, texlive-luatex"
 DESCRIPTION = """\
 edit PDF documents: annotate, redact, OCR, foliate and impose them
  py-pdftools annotates PDF documents, fills their forms, redacts them
@@ -147,7 +149,7 @@ def control(tree: Path, folder: Path):
     folder.mkdir()
     (folder / "control").write_text(
         f"Package: {APP}\nVersion: {VERSION}-{REVISION}\nArchitecture: amd64\nMaintainer: {MAINTAINER}\n"
-        f"Installed-Size: {size // 1024 + 1}\nDepends: {DEPENDS}\nRecommends: {RECOMMENDS}\nSection: graphics\n"
+        f"Installed-Size: {size // 1024 + 1}\nDepends: {DEPENDS}\nRecommends: {RECOMMENDS}\nSuggests: {SUGGESTS}\nSection: graphics\n"
         f"Priority: optional\nHomepage: https://github.com/nivaca/py-pdftools\nDescription: {DESCRIPTION}\n")
     lines = []
     for path in sorted(p for p in tree.rglob("*") if p.is_file() and not p.is_symlink()):

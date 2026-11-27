@@ -523,6 +523,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_images = self._action(m, tr("New PDF from images…"), lambda: self.images_dialog(),
                                      tip=tr("A PDF of photographs or scans, a page for each, and then, if wished, "
                                             "their text read (OCR)"))
+        self.a_from_document = self._action(
+            None, tr("New PDF from a document…"), lambda: self.from_document_dialog(),
+            tip=tr("A PDF made by Pandoc from a document in Markdown, Word, ODT, HTML, EPUB, LaTeX and others: "
+                   "laid out anew, not as the original looked"))
         self.a_steps = self._action(m, tr("Run steps on several files…"), lambda: self.steps_dialog(),
                                     tip=tr("OCR, a header or footer, a watermark, a smaller size, PDF/A: those "
                                            "chosen, in their order, on each file of a list; kept as recipes"))
@@ -598,6 +602,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                               lambda: self.export_text_dialog("txt"),
                                               tip=tr("The text of the pages as plain text in UTF-8, the pages "
                                                      "apart by a form feed"))
+        self.a_export_document = self._action(
+            None, tr("Text as a document (Word, ODT, EPUB…)…"), lambda: self.export_document_dialog(),
+            tip=tr("The text of the pages, with its headings, lists and pictures, as a Word, ODT, EPUB, HTML or "
+                   "LaTeX document, made by Pandoc"))
         sub = self.m_export_annots = m.addMenu(tr("Export the annotations"))
         sub.setToolTipsVisible(True)
         self.a_export_md = self._action(sub, tr("As a report (Markdown)…"), lambda: self.export_dialog("md"))
@@ -607,6 +615,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_export_apparatus = self._action(
             sub, tr("The critical apparatus (Markdown)…"), lambda: self.export_dialog("apparatus"),
             tip=tr("The entries of textual criticism, in the order of the text"))
+        self.a_export_report_doc = self._action(
+            sub, tr("As a report (Word, ODT, LaTeX…)…"), lambda: self.export_dialog("report-doc"),
+            tip=tr("The report, as a Word, ODT, EPUB, HTML or LaTeX document, made by Pandoc"))
+        self.a_export_apparatus_doc = self._action(
+            sub, tr("The critical apparatus (Word, ODT, LaTeX…)…"), lambda: self.export_dialog("apparatus-doc"),
+            tip=tr("The entries of textual criticism, in the order of the text, as a Word, ODT, EPUB, HTML or "
+                   "LaTeX document, made by Pandoc"))
         self.a_export_json = self._action(sub, tr("As data, to import them again (JSON)…"),
                                           lambda: self.export_dialog("json"))
         self.a_export_xfdf = self._action(sub, tr("For other PDF programs (XFDF)…"), lambda: self.export_dialog("xfdf"),
@@ -4151,8 +4166,24 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         if self._have_conform is not None:
             self._enable_standards()
         for w in (self.a_export_md, self.a_export_report_txt, self.a_export_csv, self.a_export_apparatus, self.a_export_json, self.a_export_xfdf, self.a_export_skim, self.a_summary,
+                  self.a_export_report_doc, self.a_export_apparatus_doc,
                   self.a_next_annot, self.a_prev_annot):
             w.setEnabled(has and bool(self._rows))
+        # Las de Pandoc, solo si está (pandoc.available() se mira una vez: instalado con la ventana abierta, se nota
+        # al reiniciar).
+        from ..core import pandoc
+
+        needs = "" if pandoc.available() else tr("Needs {command}: install it", command=pandoc.COMMAND)
+        for w in (self.a_from_document, self.a_export_document, self.a_export_report_doc,
+                  self.a_export_apparatus_doc):
+            if needs:
+                w.setEnabled(False)
+                w.setToolTip(needs)
+                w.setStatusTip(needs)
+            elif w is self.a_export_document:
+                w.setEnabled(has)
+            elif w is self.a_from_document:
+                w.setEnabled(True)
         # Save is enabled only with something to save; Save as, with any document.
         self.a_save.setEnabled(has and self.is_modified())
         self._show_storage()

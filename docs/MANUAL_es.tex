@@ -350,7 +350,7 @@ $ uv run py-pdftools --help
 
 \subsection{Qué más puede usar}
 
-Tres programas, que se instalan aparte, añaden lo que hacen; sin ellos,
+Cuatro programas, que se instalan aparte, añaden lo que hacen; sin ellos,
 \texttt{py-pdftools} funciona sin eso:
 
 \index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{ocr@OCR}\index{ocr@OCR!idiomas}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{idioma de la interfaz}%
@@ -359,7 +359,11 @@ Tres programas, que se instalan aparte, añaden lo que hacen; sin ellos,
   (\texttt{tesseract-langpack-\ldots} en Fedora,
   \texttt{tesseract-ocr-\ldots} en Debian y Ubuntu);
 \item \textbf{Ghostscript}, para las copias PDF/A y PDF/X;
-\item \textbf{veraPDF}, si está instalado, para comprobar las copias PDF/A.
+\item \textbf{veraPDF}, si está instalado, para comprobar las copias PDF/A;
+\item \textbf{Pandoc}, para exportar el texto y las anotaciones como
+  documentos de Word, ODT, EPUB, HTML o LaTeX, y para hacer PDF de
+  documentos; para esto necesita además un programa que haga los PDF:
+  LuaLaTeX (\texttt{texlive-luatex}), XeLaTeX o Typst.
 \end{itemize}
 
 \noindent\index{appimage@AppImage}\index{instaladores}\index{pyhanko@pyHanko}\index{firmas digitales}%
@@ -1251,6 +1255,10 @@ saca del documento todos los enlaces.
   página, con lo que marcan y sus comentarios;
 \item como tabla (CSV), para una hoja de cálculo;
 \item como el aparato crítico (Markdown);
+\item el informe y el aparato crítico también como documento: Word, ODT,
+  EPUB, HTML o LaTeX, hecho por Pandoc (\menu{Como informe (Word, ODT,
+  LaTeX\ldots)} y \menu{El aparato crítico (Word, ODT, LaTeX\ldots)}),
+  en el formato del tipo elegido en el diálogo;
 \item como datos (JSON), para volver a importarlas, en este programa o en
   \texttt{py-annotate};
 \item como XFDF, el formato en que los programas de PDF intercambian
@@ -1881,6 +1889,20 @@ Cada página puede ser tan grande como su imagen, o del tamaño de un papel
 
 \shot{images_es}{0.75}{Un PDF a partir de tres escaneos.}
 
+\subsection{Un PDF a partir de un documento}
+
+\index{pdf a partir de un documento@PDF a partir de un documento}\index{pandoc@Pandoc}%
+\menu{Archivo\then Nuevo\then PDF nuevo a partir de un documento} hace
+un PDF de un documento en Markdown, Word (\texttt{.docx}), ODT, HTML,
+EPUB, LaTeX, reStructuredText, Org, RTF y los demás formatos que lee
+Pandoc, y lo abre en una pestaña. Pandoc compone el documento de nuevo:
+conserva su texto, sus títulos, listas, tablas, notas e imágenes, pero no
+el aspecto del original (los márgenes, las fuentes y los estilos de un
+archivo de Word). El PDF lo hace el primero que esté instalado de
+LuaLaTeX, XeLaTeX y Typst; con LaTeX, en una fuente que tenga griego y
+cirílico, si hay una instalada (Libertinus Serif, Noto Serif, DejaVu
+Serif\ldots). Necesita Pandoc; sin él, la entrada queda desactivada.
+
 \subsection{Copias más pequeñas}
 
 \index{copias mas pequenas@copias más pequeñas}%
@@ -1929,7 +1951,13 @@ se abre en una pestaña nueva. En la línea de órdenes es
 \item su texto: \menu{Texto (Markdown)} (adivinando sus títulos y listas)
   o \menu{Texto (simple, UTF-8)}, con las páginas separadas por un salto de
   página; cualquiera de los dos diálogos puede guardarlo también como HTML,
-  o en el otro formato.
+  o en el otro formato;
+\item su texto como documento, con Pandoc: \menu{Texto como documento
+  (Word, ODT, EPUB\ldots)}, con sus títulos, listas e imágenes, como
+  archivo de Word, ODT, EPUB, HTML o LaTeX (un archivo LaTeX lleva sus
+  imágenes en una carpeta junto a él, \texttt{NOMBRE\_files}). Los títulos
+  y las listas se adivinan del PDF, como con Markdown; la composición de
+  las páginas no se conserva.
 \end{itemize}
 
 \shot{export_es}{0.45}{Exportar las páginas como imágenes.}

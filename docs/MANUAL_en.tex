@@ -341,7 +341,7 @@ $ uv run py-pdftools --help
 
 \subsection{What else it can use}
 
-Three programs, installed apart, add what they do; without them,
+Four programs, installed apart, add what they do; without them,
 \texttt{py-pdftools} works without that:
 
 \index{fedora (copr, rpm)@Fedora (Copr, RPM)}\index{tesseract@Tesseract}\index{ghostscript@Ghostscript}\index{verapdf@veraPDF}\index{ocr@OCR}\index{ocr@OCR!languages}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}\index{language of the interface}%
@@ -350,7 +350,11 @@ Three programs, installed apart, add what they do; without them,
   (\texttt{tesseract-langpack-\ldots} on Fedora, \texttt{tesseract-ocr-\ldots}
   on Debian and Ubuntu);
 \item \textbf{Ghostscript}, for copies as PDF/A and PDF/X;
-\item \textbf{veraPDF}, if it is installed, to check the PDF/A copies.
+\item \textbf{veraPDF}, if it is installed, to check the PDF/A copies;
+\item \textbf{Pandoc}, to export the text and the annotations as Word,
+  ODT, EPUB, HTML or LaTeX documents, and to make PDFs of documents; for
+  these it needs a program that makes PDFs too: LuaLaTeX
+  (\texttt{texlive-luatex}), XeLaTeX or Typst.
 \end{itemize}
 
 \noindent\index{appimage@AppImage}\index{installers}\index{pyhanko@pyHanko}\index{digital signatures}%
@@ -1185,6 +1189,10 @@ the links} takes every link out of the document.
   with what they mark and their comments;
 \item as a table (CSV), for a spreadsheet;
 \item as the critical apparatus (Markdown);
+\item the report and the critical apparatus also as a document: Word,
+  ODT, EPUB, HTML or LaTeX, made by Pandoc (\menu{As a report (Word, ODT,
+  LaTeX\ldots)} and \menu{The critical apparatus (Word, ODT,
+  LaTeX\ldots)}), the format by the type chosen in the dialog;
 \item as data (JSON), to import them again, in this program or in
   \texttt{py-annotate};
 \item as XFDF, the format in which PDF programs exchange annotations (tags
@@ -1780,6 +1788,20 @@ read its text at once.
 
 \shot{images_en}{0.75}{A PDF from three scans.}
 
+\subsection{A PDF from a document}
+
+\index{pdf from a document@PDF from a document}\index{pandoc@Pandoc}%
+\menu{File\then New\then New PDF from a document} makes a PDF of a
+document in Markdown, Word (\texttt{.docx}), ODT, HTML, EPUB, LaTeX,
+reStructuredText, Org, RTF and the other formats Pandoc reads, and opens
+it in a tab. Pandoc lays the document out anew: its text, headings, lists,
+tables, notes and pictures are kept, but not how the original looked
+(the margins, fonts and styles of a Word file). The PDF is made with the
+first of LuaLaTeX, XeLaTeX and Typst that is installed; with LaTeX, in a
+font that has Greek and Cyrillic, if one is installed (Libertinus Serif,
+Noto Serif, DejaVu Serif\ldots). This needs Pandoc; without it, the entry
+is turned off.
+
 \subsection{Smaller copies}
 
 \index{smaller copies}%
@@ -1825,7 +1847,12 @@ saved; once written, it opens in a new tab. On the command line it is
   it;
 \item its text: \menu{Text (Markdown)} (with its headings and lists
   guessed) or \menu{Text (plain, UTF-8)}, the pages apart by a form feed;
-  either dialog can also save it as HTML, or in the other of the two.
+  either dialog can also save it as HTML, or in the other of the two;
+\item its text as a document, with Pandoc: \menu{Text as a document (Word,
+  ODT, EPUB\ldots)}, with its headings, lists and pictures, as a Word, ODT,
+  EPUB, HTML or LaTeX file (a LaTeX file gets its pictures in a folder
+  beside it, \texttt{NAME\_files}). The headings and lists are guessed
+  from the PDF, as with Markdown; the layout of the pages is not kept.
 \end{itemize}
 
 \shot{export_en}{0.45}{Exporting the pages as pictures.}

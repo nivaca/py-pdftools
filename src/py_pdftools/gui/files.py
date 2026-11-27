@@ -787,11 +787,13 @@ class FilesMixin:
         if self.f_kind.currentData() != annots.OTHER:  # (links and the like, only if the list shows only them)
             chosen = [a for a in chosen if a.kind != annots.OTHER]
         # El aparato crítico solo reúne las anotaciones con una entrada de crítica textual.
-        if kind == "apparatus":
+        if kind in ("apparatus", "apparatus-doc"):
             chosen = [a for a in chosen if a.critical]
         if not chosen:
             self.status(tr("There are no annotations to export"), error=True)
             return False
+        if kind in ("report-doc", "apparatus-doc"):  # (en Markdown, convertido por Pandoc)
+            return self._export_annotations_document(kind, chosen)
         target = self._ask_target(tr("Export the annotations"),
                                   # (Skim busca book.skim junto a book.pdf: el mismo nombre, sin más)
                                   {"pdf": "-summary", "apparatus": "-apparatus", "skim": ""}.get(kind, "-annotations"),
@@ -831,6 +833,105 @@ class FilesMixin:
         self.status(ntr("{count} annotation exported to {path}", "{count} annotations exported to {path}",
                         len(chosen), path=target))
         return True
+
+    # ----------------------------------------------------------------- documents, through Pandoc
+
+    def ask_document_target(self, title: str, name: str) -> Path | None:
+        """Where to write a document that Pandoc makes (Word at first; the format by the type chosen, or by the
+        extension written)."""
+        from ..core import pandoc
+
+        filters = [tr(shown) for _, shown in pandoc.OUTPUTS.values()]
+        path, chosen = QFileDialog.getSaveFileName(self, title, str(Path(self.last_dir()) / f"{name}.docx"),
+                                                   ";;".join(filters))
+        if not path:
+            return None
+        target = Path(path)
+        if target.suffix.lower().lstrip(".") not in pandoc.OUTPUTS:
+            ext = next((e for e, (_, shown) in pandoc.OUTPUTS.items() if tr(shown) == chosen), "docx")
+            target = target.with_name(target.name + f".{ext}")
+        return target
+
+    def _export_annotations_document(self, kind: str, chosen: list) -> bool:
+        """The report of the annotations CHOSEN (KIND 'report-doc') or their critical apparatus
+        ('apparatus-doc') as a document made by Pandoc."""
+        from ..core import pandoc
+        from .redact import background
+
+        apparatus = kind == "apparatus-doc"
+        target = self.ask_document_target(tr("Export the annotations"),
+                                          self.path.stem + ("-apparatus" if apparatus else "-annotations"))
+        if target is None:
+            return False
+        text = exchange.apparatus(self.doc, self.file, chosen) if apparatus else \
+            exchange.report(self.doc, self.file, chosen, color_name)
+        try:
+            background.run(self, tr("Making the document…"), pandoc.from_markdown, text, target, thread=True)
+        except pandoc.PandocError as e:
+            self.status(str(e), error=True)
+            return False
+        count = sum(1 for a in chosen if a.critical) if apparatus else len(chosen)
+        self.status(ntr("{count} annotation exported to {path}", "{count} annotations exported to {path}",
+                        count, path=target))
+        return True
+
+    def export_document_dialog(self) -> Path | None:
+        """File > Export > Text as a document: the text of the pages (headings, lists, pictures) as Markdown,
+        made a Word, ODT, EPUB, HTML or LaTeX document by Pandoc."""
+        from ..core import pandoc
+        from ..pages import export
+        from .redact import background
+
+        if self.path is None:
+            return None
+        target = self.ask_document_target(tr("Export the text as a document"), self.path.stem)
+        if target is None:
+            return None
+        title = (self.doc.metadata or {}).get("title") or ""
+        try:
+            with tempfile.TemporaryDirectory(prefix="py-pdftools-text-") as tmp:
+                background.run(self, tr("Making the document…"), _text_document, self.file, target,
+                               self.password, Path(tmp), title, thread=True)
+        except (export.ExportError, pandoc.PandocError, OSError) as e:
+            self.status(str(e), error=True)
+            return None
+        self.status(tr("Saved {path}", path=target))
+        return target
+
+    def ask_document_source(self) -> Path | None:
+        from ..core import pandoc
+
+        patterns = " ".join(f"*.{ext}" for ext in pandoc.INPUTS)
+        name, _ = QFileDialog.getOpenFileName(self, tr("New PDF from a document"), self.last_dir(),
+                                              tr("Documents ({patterns})", patterns=patterns) + ";;"
+                                              + tr("All files (*)"))
+        return Path(name) if name else None
+
+    def from_document_dialog(self):
+        """File > New > PDF from a document: the document chosen made a PDF by Pandoc, and opened. Returns its
+        window."""
+        from ..core import pandoc
+        from .redact import background
+
+        source = self.ask_document_source()
+        if source is None:
+            return None
+        if pandoc.input_kind(source) is None:
+            self.status(tr("{path}: not a kind of document {command} can read", path=source.name,
+                           command=pandoc.COMMAND), error=True)
+            return None
+        target = self.ask_new_pdf(tr("New PDF from a document"), f"{source.stem}.pdf")
+        if target is None or self.path is not None and self._same_file(target) or target == source:
+            return None
+        try:
+            maker = background.run(self, tr("Making the PDF…"), pandoc.to_pdf, source, target, thread=True)
+        except pandoc.PandocError as e:
+            self.status(str(e), error=True)
+            return None
+        made = self.open_made(target)
+        if made is not None:
+            made.status(tr("Saved {path}", path=target) + f" ({pandoc.COMMAND}, {maker})")
+        return made
 
     def import_dialog(self, kind: str) -> bool:
         """Bring in annotations from a JSON file (KIND 'json'), an XFDF file ('xfdf'), Skim's notes ('skim') or
@@ -880,3 +981,13 @@ class FilesMixin:
                     + (" — " + ntr("{count} was here already", "{count} were here already", len(found) - len(new))
                        if len(found) > len(new) else ""))
         return True
+
+
+def _text_document(source: Path, target: Path, password: str, pictures: Path, title: str) -> None:
+    """(In the background.) The text of SOURCE, with its pictures (written in the folder PICTURES), made the
+    document TARGET by Pandoc."""
+    from ..core import pandoc
+    from ..pages import export
+
+    text = export.markdown(source, password=password, pictures=pictures)
+    pandoc.from_markdown(text, target, title=title, resources=pictures)

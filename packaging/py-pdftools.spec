@@ -42,6 +42,9 @@ Requires:       hicolor-icon-theme
 # (for OCR: the tesseract program, and its English; the other languages as needed)
 Recommends:     tesseract
 Recommends:     tesseract-langpack-eng
+# (for documents exported as Word, ODT, EPUB, LaTeX, and made PDFs: Pandoc, and LuaLaTeX for the PDFs)
+Suggests:       pandoc
+Suggests:       texlive-luatex
 
 %description
 py-pdftools edits PDF documents. It brings together, in one window and one

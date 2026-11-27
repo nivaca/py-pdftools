@@ -167,11 +167,23 @@ def export_images(source: Path, folder: Path, pages: list[int] | None = None, sm
 
 # ----------------------------------------------------------------- the text
 
-def _markdown(page: pymupdf.Page, body: float) -> str:
+SMALLEST_PICTURE = 32  # pixels: pictures narrower or lower than this (rules, ornaments) are left out of the text
+
+
+def _markdown(page: pymupdf.Page, body: float, pictures: Path | None = None) -> str:
     """The text of PAGE as Markdown: headings for the lines in letters larger than the body's (BODY), bold
-    and italic kept, lists of bullets as lists, words cut at the end of a line joined again."""
+    and italic kept, lists of bullets as lists, words cut at the end of a line joined again. With PICTURES (a
+    folder), the pictures of the page too, written there and named in the text where they are."""
     out = []
-    for block in page.get_text("dict", flags=pymupdf.TEXTFLAGS_TEXT)["blocks"]:
+    flags = pymupdf.TEXTFLAGS_TEXT | (pymupdf.TEXT_PRESERVE_IMAGES if pictures is not None else 0)
+    for block in page.get_text("dict", flags=flags)["blocks"]:
+        if block.get("type") == 1 and pictures is not None:
+            data, ext = block.get("image") or b"", block.get("ext") or "png"
+            if data and min(block.get("width", 0), block.get("height", 0)) >= SMALLEST_PICTURE:
+                name = f"page{page.number + 1}-{len(out) + 1}.{ext}"
+                (pictures / name).write_bytes(data)
+                out.append(f"![]({name})")
+            continue
         if block.get("type") != 0:
             continue
         lines, sizes = [], []
@@ -222,6 +234,17 @@ def _body_size(doc: pymupdf.Document, pages: list[int]) -> float:
                 for span in line["spans"]:
                     count[round(span["size"], 1)] += len(span["text"].strip())
     return count.most_common(1)[0][0] if count else 11.0
+
+
+def markdown(source: Path, pages: list[int] | None = None, password: str = "",
+             pictures: Path | None = None) -> str:
+    """The text of PAGES (all if None) of SOURCE as Markdown (see _markdown); with PICTURES, a folder where its
+    pictures are written, and named in the text."""
+    with _open(source, password) as doc:
+        pages = list(range(doc.page_count)) if pages is None else pages
+        size = _body_size(doc, pages)
+        parts = [_markdown(doc[n], size, pictures) for n in pages]
+    return "\n\n".join(p for p in parts if p) + "\n"
 
 
 def export_text(source: Path, target: Path, fmt: str = "", pages: list[int] | None = None,

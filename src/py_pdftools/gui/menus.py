@@ -65,7 +65,8 @@ def regroup(window):
     window.m_import_annots.setTitle(tr("Annotations"))
     window.m_export = QMenu(tr("Export"), window)
     window.m_export.setToolTipsVisible(True)
-    _fill(window, window.m_export, ["a_export_pages", "a_export_images", "a_export_text", "a_export_text_txt", SEP,
+    _fill(window, window.m_export, ["a_export_pages", "a_export_images", "a_export_text", "a_export_text_txt",
+                                    "a_export_document", SEP,
                                     "m_export_annots"])
     window.m_import = QMenu(tr("Import"), window)
     window.m_import.setToolTipsVisible(True)
@@ -83,7 +84,7 @@ def regroup(window):
         (tr("Compare"), ["a_compare", "a_visual_compare"])])
     moved = frozenset(_all(window.m_utils) | found)
     _fill(window, window.m_file, [
-        "a_open", "a_open_tab", "a_reopen_tab", "m_recent", (tr("New"), ["a_images", "a_combine"]), SEP,
+        "a_open", "a_open_tab", "a_reopen_tab", "m_recent", (tr("New"), ["a_images", "a_from_document", "a_combine"]), SEP,
         "a_save", "a_save_as", "m_save_copy", "m_export", "m_import", SEP,
         (tr("Security"), ["a_protect", SEP, "a_sign", "a_check_signatures", "a_make_id"]),
         "a_doc_props", "a_print", SEP, "a_close", "a_quit"], skip=moved)

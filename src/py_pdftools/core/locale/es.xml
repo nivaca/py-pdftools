@@ -14588,4 +14588,128 @@ Should the saved PDF also contain the annotations?</en>
     <en>Unchecked, they are saved in the PDF itself. Changing it saves them at once, when the settings are applied</en>
     <tr>Sin marcar, se guardan en el PDF mismo. Cambiarlo las guarda enseguida, al aplicar la configuración</tr>
   </text>
+  <text>
+    <en>A PDF made by Pandoc from a document in Markdown, Word, ODT, HTML, EPUB, LaTeX and others: laid out anew, not as the original looked</en>
+    <tr>Un PDF hecho por Pandoc de un documento en Markdown, Word, ODT, HTML, EPUB, LaTeX y otros: compuesto de nuevo, no como se veía el original</tr>
+  </text>
+  <text>
+    <en>As a report (Word, ODT, LaTeX…)…</en>
+    <tr>Como informe (Word, ODT, LaTeX…)…</tr>
+  </text>
+  <text>
+    <en>Documents ({patterns})</en>
+    <tr>Documentos ({patterns})</tr>
+  </text>
+  <text>
+    <en>E-books (*.epub)</en>
+    <tr>Libros electrónicos (*.epub)</tr>
+  </text>
+  <text>
+    <en>Export the text as a document</en>
+    <tr>Exportar el texto como documento</tr>
+  </text>
+  <text>
+    <en>Install LuaLaTeX (texlive-luatex) or Typst</en>
+    <tr>Instale LuaLaTeX (texlive-luatex) o Typst</tr>
+  </text>
+  <text>
+    <en>Install pandoc (pandoc on Fedora, Debian and Ubuntu)</en>
+    <tr>Instale pandoc (pandoc en Fedora, Debian y Ubuntu)</tr>
+  </text>
+  <text>
+    <en>LaTeX documents (*.tex)</en>
+    <tr>Documentos LaTeX (*.tex)</tr>
+  </text>
+  <text>
+    <en>Making the document…</en>
+    <tr>Haciendo el documento…</tr>
+  </text>
+  <text>
+    <en>Needs a program to make the PDF: LuaLaTeX, XeLaTeX or Typst; install one</en>
+    <tr>Necesita un programa que haga el PDF: LuaLaTeX, XeLaTeX o Typst; instale uno</tr>
+  </text>
+  <text>
+    <en>Needs {command}: install it</en>
+    <tr>Necesita {command}: instálelo</tr>
+  </text>
+  <text>
+    <en>New PDF from a document</en>
+    <tr>PDF nuevo a partir de un documento</tr>
+  </text>
+  <text>
+    <en>New PDF from a document…</en>
+    <tr>PDF nuevo a partir de un documento…</tr>
+  </text>
+  <text>
+    <en>No program to make them</en>
+    <tr>Ningún programa para hacerlos</tr>
+  </text>
+  <text>
+    <en>Not found: text and annotations can't be exported as documents, nor documents made PDFs</en>
+    <tr>No se encontró: el texto y las anotaciones no se pueden exportar como documentos, ni los documentos hacerse PDF</tr>
+  </text>
+  <text>
+    <en>OpenDocument texts (*.odt)</en>
+    <tr>Textos OpenDocument (*.odt)</tr>
+  </text>
+  <text>
+    <en>PDFs from documents</en>
+    <tr>PDF a partir de documentos</tr>
+  </text>
+  <text>
+    <en>Pandoc (Word, ODT, EPUB, LaTeX)</en>
+    <tr>Pandoc (Word, ODT, EPUB, LaTeX)</tr>
+  </text>
+  <text>
+    <en>Text as a document (Word, ODT, EPUB…)…</en>
+    <tr>Texto como documento (Word, ODT, EPUB…)…</tr>
+  </text>
+  <text>
+    <en>The critical apparatus (Word, ODT, LaTeX…)…</en>
+    <tr>El aparato crítico (Word, ODT, LaTeX…)…</tr>
+  </text>
+  <text>
+    <en>The entries of textual criticism, in the order of the text, as a Word, ODT, EPUB, HTML or LaTeX document, made by Pandoc</en>
+    <tr>Las entradas de crítica textual, en el orden del texto, como documento Word, ODT, EPUB, HTML o LaTeX, hecho por Pandoc</tr>
+  </text>
+  <text>
+    <en>The report, as a Word, ODT, EPUB, HTML or LaTeX document, made by Pandoc</en>
+    <tr>El informe, como documento Word, ODT, EPUB, HTML o LaTeX, hecho por Pandoc</tr>
+  </text>
+  <text>
+    <en>The text of the pages, with its headings, lists and pictures, as a Word, ODT, EPUB, HTML or LaTeX document, made by Pandoc</en>
+    <tr>El texto de las páginas, con sus títulos, listas e imágenes, como documento Word, ODT, EPUB, HTML o LaTeX, hecho por Pandoc</tr>
+  </text>
+  <text>
+    <en>Web pages (*.html)</en>
+    <tr>Páginas web (*.html)</tr>
+  </text>
+  <text>
+    <en>Word documents (*.docx)</en>
+    <tr>Documentos de Word (*.docx)</tr>
+  </text>
+  <text>
+    <en>no PDF was made</en>
+    <tr>no se hizo ningún PDF</tr>
+  </text>
+  <text>
+    <en>{command} could not be run: {error}</en>
+    <tr>{command} no se pudo ejecutar: {error}</tr>
+  </text>
+  <text>
+    <en>{command} failed: {error}</en>
+    <tr>{command} falló: {error}</tr>
+  </text>
+  <text>
+    <en>{command} took too long, and was stopped</en>
+    <tr>{command} tardó demasiado, y se detuvo</tr>
+  </text>
+  <text>
+    <en>{path}: not a format that can be written</en>
+    <tr>{path}: no es un formato que se pueda escribir</tr>
+  </text>
+  <text>
+    <en>{path}: not a kind of document {command} can read</en>
+    <tr>{path}: no es un tipo de documento que {command} pueda leer</tr>
+  </text>
 </interface>

@@ -1,7 +1,8 @@
 """Revisión de la configuración (Configuración > General > Revisar la configuración): qué tiene py-pdftools
 para trabajar y si sus ajustes están bien. Revisa la versión de Python y de las bibliotecas, pyHanko (las
 firmas), el archivo de configuración (si se lee, si la carpeta admite escribir, qué valores no valen o no se
-conocen), tesseract y los idiomas del OCR, Ghostscript (PDF/A y PDF/X) y el espacio de la carpeta temporal.
+conocen), tesseract y los idiomas del OCR, Ghostscript (PDF/A y PDF/X), Pandoc (los documentos) y el espacio
+de la carpeta temporal.
 Cada revisión da un Check: su estado, lo que se revisó, lo que se halló y, si algo falla, qué hacer. La
 ventana añade las suyas (los atajos repetidos: véase gui/health_dialog.py)."""
 
@@ -216,6 +217,27 @@ def ghostscript() -> Check:
     return Check(OK, title, pdf2iso.find_ghostscript())
 
 
+def documents() -> list[Check]:
+    """Pandoc (documents exported as Word, ODT, EPUB, HTML or LaTeX, and made PDFs), and what makes its PDFs."""
+    from . import pandoc
+
+    title = tr("Pandoc (Word, ODT, EPUB, LaTeX)")
+    if not pandoc.available():
+        return [Check(INFO, title, tr("Not found: text and annotations can't be exported as documents, nor "
+                                      "documents made PDFs"),
+                      tr("Install pandoc (pandoc on Fedora, Debian and Ubuntu)"))]
+    out = [Check(OK, title, f"{pandoc.version()} ({pandoc.program()})")]
+    maker = pandoc.engine()
+    what = tr("PDFs from documents")
+    if maker is None:
+        out.append(Check(INFO, what, tr("No program to make them"),
+                         tr("Install LuaLaTeX (texlive-luatex) or Typst")))
+    else:
+        font = pandoc.serif_font() if maker in ("lualatex", "xelatex") else None
+        out.append(Check(OK, what, maker + (f" ({font})" if font else "")))
+    return out
+
+
 def temporary() -> Check:
     folder = tempfile.gettempdir()
     title = tr("Temporary folder")
@@ -232,7 +254,7 @@ def temporary() -> Check:
 
 def run() -> list[Check]:
     """Every check, in the order they are shown."""
-    return [python(), *libraries(), signatures(), *configuration(), *ocr(), ghostscript(), temporary()]
+    return [python(), *libraries(), signatures(), *configuration(), *ocr(), ghostscript(), *documents(), temporary()]
 
 
 def report(checks: list[Check]) -> str:
