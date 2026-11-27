@@ -86,6 +86,10 @@ they do.
 | [tessdata_best](https://github.com/tesseract-ocr/tessdata_best) | Apache-2.0 | The more accurate models of Tesseract, downloaded from Settings when wished |
 | [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Copies as PDF/A and PDF/X (through pdf2iso), with its ICC profiles |
 | [veraPDF](https://verapdf.org) | GPL-3.0-or-later OR MPL-2.0 | Checking PDF/A copies, if it is installed |
+| [Pandoc](https://pandoc.org), by John MacFarlane and contributors | GPL-2.0-or-later | Documents: the text and the annotations exported as Word, ODT, EPUB, HTML or LaTeX, and PDFs made from documents |
+| [LuaTeX](https://www.luatex.org) and [XeTeX](https://tug.org/xetex/) (of [TeX Live](https://tug.org/texlive/)), [Typst](https://typst.app) | GPL-2.0-or-later; MIT; Apache-2.0 | Making the PDFs of Pandoc (the first one installed) |
+| [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/) (`fc-list`) | MIT | Finding a font with Greek for those PDFs |
+| [Libertinus](https://github.com/alerque/libertinus), [Noto](https://notofonts.github.io), [DejaVu](https://dejavu-fonts.github.io), [GNU FreeFont](https://www.gnu.org/software/freefont/) | OFL-1.1; OFL-1.1; Bitstream Vera licence; GPL-3.0-or-later with the font exception | The font of those PDFs, if one of them is installed (none is included) |
 
 
 Data
@@ -109,6 +113,23 @@ py-pdftools:
 [py-pdfocr](https://github.com/nivaca/py-pdfocr),
 [pdf-word-finder](https://github.com/nivaca/pdf-word-finder) and
 [pdf2iso](https://github.com/nivaca/pdf2iso).
+
+
+Projects it learnt from
+-----------------------
+
+Other free programs whose source was read, or whose ideas were taken, while
+py-pdftools was made. Where nothing says that code was copied, it was only
+read: what was learnt was written anew, in Python, for this program.
+
+| Project | Authors | Licence | What was taken |
+|---|---|---|---|
+| [Okular](https://okular.kde.org) | KDE (Albert Astals Cid and contributors) | GPL-2.0-or-later | Source read: the arrangement of its toolbars, its default keys, the find bar, the magnifier, Trim margins, and the choice of the backend that draws a document |
+| [Skim](https://skim-app.sourceforge.io) | Michael O. McCracken, Christiaan Hofman and contributors | BSD-3-Clause | Source read: the idea of keeping the annotations in a file apart; the format of its notes (`.skim`), read and written; its notes kept in extended attributes |
+| [PDFCraft](https://github.com/storytold/pdfcraft) | ArtCraft Team and the PdfCraft contributors | MIT OR Apache-2.0 | Source read: the navigation (bookmarks, links, history, tabs, split view, reloading), security, combining files and PDFs of pictures, the names of menus and tools, the steps of Escape, ideas for large documents |
+| [calibre](https://calibre-ebook.com) | Kovid Goyal and contributors | GPL-3.0-only | Source read: its themes and icon themes, the palette of tooltips, the dialog of errors, Qt's Fusion style under colours of its own. Copied and made longer: its list of the kinds of files that run when opened (`core/runnable.py`) |
+| [Visual Studio Code](https://github.com/microsoft/vscode) | Microsoft and contributors | MIT | An idea only: the find bar that slides down from the top, and Ctrl+Shift+P |
+| [KDE Plasma](https://kde.org/plasma-desktop/) (System Settings) | KDE | GPL-2.0-or-later | An idea only: the button Apply of the Settings dialog, off until something changes |
 
 
 Building, testing and packaging

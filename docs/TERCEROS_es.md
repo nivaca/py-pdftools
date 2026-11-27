@@ -86,6 +86,10 @@ ejecuta como programas propios, y funciona sin ellos, sin lo que hacen.
 | [tessdata_best](https://github.com/tesseract-ocr/tessdata_best) | Apache-2.0 | Los modelos más precisos de Tesseract, descargados desde la configuración si se quiere |
 | [Ghostscript](https://www.ghostscript.com) | AGPL-3.0 | Las copias PDF/A y PDF/X (por medio de pdf2iso), con sus perfiles ICC |
 | [veraPDF](https://verapdf.org) | GPL-3.0-or-later OR MPL-2.0 | La comprobación de las copias PDF/A, si está instalado |
+| [Pandoc](https://pandoc.org), de John MacFarlane y colaboradores | GPL-2.0-or-later | Los documentos: el texto y las anotaciones exportados como Word, ODT, EPUB, HTML o LaTeX, y los PDF hechos de documentos |
+| [LuaTeX](https://www.luatex.org) y [XeTeX](https://tug.org/xetex/) (de [TeX Live](https://tug.org/texlive/)), [Typst](https://typst.app) | GPL-2.0-or-later; MIT; Apache-2.0 | Hacer los PDF de Pandoc (el primero que esté instalado) |
+| [fontconfig](https://www.freedesktop.org/wiki/Software/fontconfig/) (`fc-list`) | MIT | Hallar una fuente con griego para esos PDF |
+| [Libertinus](https://github.com/alerque/libertinus), [Noto](https://notofonts.github.io), [DejaVu](https://dejavu-fonts.github.io), [GNU FreeFont](https://www.gnu.org/software/freefont/) | OFL-1.1; OFL-1.1; licencia de Bitstream Vera; GPL-3.0-or-later con la excepción de las fuentes | La fuente de esos PDF, si una de ellas está instalada (no se incluye ninguna) |
 
 
 Datos
@@ -109,6 +113,23 @@ py-pdftools:
 [py-pdfocr](https://github.com/nivaca/py-pdfocr),
 [pdf-word-finder](https://github.com/nivaca/pdf-word-finder) y
 [pdf2iso](https://github.com/nivaca/pdf2iso).
+
+
+Proyectos de los que aprendió
+-----------------------------
+
+Otros programas libres cuyo código se leyó, o de los que se tomaron ideas,
+mientras se hacía py-pdftools. Donde no se dice que se copió código, solo se
+leyó: lo aprendido se escribió de nuevo, en Python, para este programa.
+
+| Proyecto | Autores | Licencia | Qué se tomó |
+|---|---|---|---|
+| [Okular](https://okular.kde.org) | KDE (Albert Astals Cid y colaboradores) | GPL-2.0-or-later | Código leído: la disposición de sus barras, sus teclas por omisión, la barra de búsqueda, la lupa, Recortar márgenes y la elección del motor que dibuja un documento |
+| [Skim](https://skim-app.sourceforge.io) | Michael O. McCracken, Christiaan Hofman y colaboradores | BSD-3-Clause | Código leído: la idea de guardar las anotaciones en un archivo aparte; el formato de sus notas (`.skim`), leído y escrito; sus notas en atributos extendidos |
+| [PDFCraft](https://github.com/storytold/pdfcraft) | ArtCraft Team y los colaboradores de PdfCraft | MIT OR Apache-2.0 | Código leído: la navegación (marcadores, enlaces, historial, pestañas, vista dividida, recarga), la seguridad, combinar archivos y los PDF de imágenes, los nombres de menús y herramientas, los pasos de Escape, ideas para los documentos grandes |
+| [calibre](https://calibre-ebook.com) | Kovid Goyal y colaboradores | GPL-3.0-only | Código leído: sus temas y temas de iconos, la paleta de las ayudas emergentes, el diálogo de errores, el estilo Fusion de Qt bajo colores propios. Copiada y alargada: su lista de los tipos de archivo que se ejecutan al abrirlos (`core/runnable.py`) |
+| [Visual Studio Code](https://github.com/microsoft/vscode) | Microsoft y colaboradores | MIT | Solo una idea: la barra de búsqueda que baja desde arriba, y Ctrl+Shift+P |
+| [KDE Plasma](https://kde.org/plasma-desktop/) (Preferencias del sistema) | KDE | GPL-2.0-or-later | Solo una idea: el botón Aplicar del diálogo de Configuración, desactivado hasta que algo cambia |
 
 
 Para hacerlo, probarlo y empaquetarlo
