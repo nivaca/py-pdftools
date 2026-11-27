@@ -79,7 +79,8 @@ def annotated(sample, tmp_path):
                           Annotation("note", 0, (100, 100, 116, 116), "#ffd54f", contents="second",
                                      replies=(Reply("B", "yes"),)),
                           Annotation("ellipse", 1, (200, 200, 260, 240), "#0000ff", contents="third")], path)
-    return path, annots.read(annots.open_pdf(path))
+    with annots.open_pdf(path) as doc:  # (closed: Windows won't replace a file that is open)
+        return path, annots.read(doc)
 
 
 def test_combined_with_the_pdf(sample, tmp_path):
@@ -110,11 +111,14 @@ def test_what_another_program_did(sample, tmp_path):
     doc = annots.open_pdf(path)
     first, second, third = editable(in_pdf)
     keep(path, doc, [first, second, third], in_pdf)
+    doc.close()  # (Windows won't let another program replace a file that is open)
     # Another program saves the PDF whole (new numbers for its objects) and adds an annotation of its own.
     with pikepdf.open(path, allow_overwriting_input=True) as pdf:
         pdf.save(path, object_stream_mode=pikepdf.ObjectStreamMode.generate)
     added = tmp_path / "added.pdf"
-    annots.write(path, annots.read(annots.open_pdf(path)) + [Annotation("rect", 2, (5, 5, 50, 50), "#00ff00")], added)
+    with annots.open_pdf(path) as doc:
+        now = annots.read(doc)
+    annots.write(path, now + [Annotation("rect", 2, (5, 5, 50, 50), "#00ff00")], added)
     os.replace(added, path)
     doc = annots.open_pdf(path)
     in_pdf = annots.read(doc)
