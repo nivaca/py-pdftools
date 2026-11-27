@@ -777,7 +777,7 @@ class FilesMixin:
 
     def export_dialog(self, kind: str) -> bool:
         """Export the annotations the list shows (all, if nothing is filtered) as KIND: 'json',
-        'md', 'csv', 'xfdf', or 'pdf' (a summary of the comments)."""
+        'md', 'csv', 'xfdf', 'skim' (Skim's notes), or 'pdf' (a summary of the comments)."""
         if self.doc is None:
             return False
         self.canvas.commit_text()
@@ -793,7 +793,8 @@ class FilesMixin:
             self.status(tr("There are no annotations to export"), error=True)
             return False
         target = self._ask_target(tr("Export the annotations"),
-                                  {"pdf": "-summary", "apparatus": "-apparatus"}.get(kind, "-annotations"),
+                                  # (Skim busca book.skim junto a book.pdf: el mismo nombre, sin más)
+                                  {"pdf": "-summary", "apparatus": "-apparatus", "skim": ""}.get(kind, "-annotations"),
                                   "md" if kind == "apparatus" else kind)
         if target is None:
             return False
@@ -807,6 +808,17 @@ class FilesMixin:
                 exchange.export_csv(self.doc, chosen, target, colors.color_meaning)
             elif kind == "xfdf":
                 exchange.export_xfdf(self.doc, self.file, chosen, target)
+            elif kind == "skim":
+                from ..annotate import skim
+
+                written = skim.export_skim(self.doc, chosen, target)
+                left = len(chosen) - written
+                self.status(ntr("{count} annotation exported to {path}", "{count} annotations exported to {path}",
+                                written, path=target)
+                            + (" — " + ntr("{count} has no kind in Skim, and was left out",
+                                           "{count} have no kind in Skim, and were left out", left)
+                               if left else ""))
+                return True
             elif kind == "apparatus":
                 exchange.export_apparatus(self.doc, self.file, chosen, target)
             elif kind == "pdf":

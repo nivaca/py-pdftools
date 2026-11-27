@@ -3,6 +3,7 @@ as annotations in their places."""
 
 from __future__ import annotations
 
+import dataclasses
 import datetime
 import plistlib
 
@@ -152,3 +153,82 @@ def test_not_skim(tmp_path, sample):
 
 def test_rtf():
     assert skim.rtf_text(RTF) == "Long text, with an é and — a dash\nsecond line"
+
+
+# --------------------------------------------------------------------- export
+
+def made(page=0):
+    """Annotations of every kind Skim has, on PAGE of SAMPLE, as py-pdftools keeps them."""
+    A = annots.Annotation
+    return [
+        A("rect", page, (100, 100, 150, 140), "#ff0000", fill="#00ff00", width=2.0, contents="a box",
+          author="Ana", modified="D:20261126123000Z", dashed=True),
+        A("ellipse", page, (200, 100, 260, 150), "#0000ff", width=1.0),
+        A("highlight", page, (72, 60, 272, 88), "#ffeb3b", opacity=0.5,
+          quads=((72, 60, 272, 74), (72, 74, 200, 88)), contents="marked"),
+        A("strikeout", page, (72, 200, 172, 214), "#ff0000", quads=((72, 200, 172, 214),)),
+        A("line", page, annots.frame("line", (((100, 300), (200, 350)),), 1.5), "#000000",
+          paths=(((100, 300), (200, 350)),), ends=("Circle", "ClosedArrow")),
+        A("ink", page, annots.frame("ink", (((50, 400), (60, 420), (90, 440)),), 1.5), "#0000ff",
+          paths=(((50, 400), (60, 420), (90, 440)),)),
+        A("note", page, (300, 300, 316, 316), "#ffd54f", icon="Key", contents="Label\n\nThe long text, with é — "
+          "and 😀\nand a second line"),
+        A("freetext", page, (300, 500, 450, 540), "#0000ff", fill="#ffff00", width=0.0, contents="Typed {here}",
+          font="tiro", font_size=14.0, align="center"),
+    ]
+
+
+def comparable(a):
+    """What a round trip through Skim keeps of A."""
+    return (a.kind, a.page, tuple(round(v, 1) for v in a.rect), a.color, a.fill, a.contents, a.author,
+            a.modified, a.dashed, a.icon, a.ends, a.font, a.font_size, a.align, round(a.opacity, 2),
+            tuple(tuple(round(v, 1) for v in q) for q in a.quads),
+            tuple(tuple((round(x, 1), round(y, 1)) for x, y in path) for path in a.paths))
+
+
+@pytest.mark.parametrize("page", [0, 2])  # (page 3 of SAMPLE is turned 90 degrees)
+def test_export_and_back(sample, tmp_path, page):
+    doc = annots.open_pdf(sample)
+    mine = made(page)
+    target = tmp_path / "sample.skim"
+    assert skim.export_skim(doc, mine, target) == len(mine)
+    data = target.read_bytes()
+    assert data.startswith(b"bplist00")  # (the binary property list, as Skim writes it)
+    notes = plistlib.loads(data, aware_datetime=True)
+    # Cada color con sus cuatro componentes: Skim lee siempre cuatro.
+    for note in notes:
+        for key in ("color", "interiorColor", "fontColor"):
+            assert key not in note or len(note[key]) == 4
+    assert [n["type"] for n in notes] == ["Square", "Circle", "Highlight", "StrikeOut", "Line", "Ink", "Note",
+                                          "FreeText"]
+    assert notes[6]["contents"] == "Label" and notes[6]["iconType"] == 1
+    assert notes[0]["modificationDate"] == WHEN.replace(minute=30, second=0)
+    back = skim.import_skim(doc, target)
+    for one, other in zip(mine, back):
+        if one.kind in ("line", "ink"):  # (their frame is made again, from the points)
+            one = dataclasses.replace(one, rect=other.rect)
+        assert comparable(one) == comparable(other), one.kind
+
+
+def test_export_what_skim_lacks(sample, tmp_path):
+    A = annots.Annotation
+    doc = annots.open_pdf(sample)
+    target = tmp_path / "other.skim"
+    items = [A("squiggly", 0, (72, 60, 172, 74), quads=((72, 60, 172, 74),)),
+             A("polygon", 0, (10, 10, 60, 60), paths=(((10, 10), (60, 10), (35, 60)),)),
+             A("area", 0, (100, 100, 200, 200), "#ffeb3b", opacity=0.4),
+             A("callout", 0, (300, 300, 400, 340), "#000000", contents="said", paths=(((250, 250),),)),
+             A("caret", 0, (10, 10, 20, 20)), A("stamp", 0, (10, 10, 100, 50), stamp="Draft"),
+             A("rect", 7, (10, 10, 20, 20))]  # (no such page)
+    assert skim.export_skim(doc, items, target) == 4
+    notes = plistlib.loads(target.read_bytes())
+    assert [n["type"] for n in notes] == ["Underline", "Ink", "Square", "FreeText"]
+    # El polígono se cierra: su trazo vuelve al primer punto.
+    assert notes[1]["pointLists"][0][0] == notes[1]["pointLists"][0][-1]
+    assert notes[2]["interiorColor"][3] == 0.4 and notes[2]["color"][3] == 0
+    assert [a.kind for a in skim.import_skim(doc, target)] == ["underline", "ink", "rect", "freetext"]
+
+
+def test_rtf_back():
+    text = "a\\b {x}\né — 😀\tend"
+    assert skim.rtf_text(skim.rtf_of(text)) == text

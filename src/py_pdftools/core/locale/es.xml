@@ -14572,4 +14572,20 @@ Should the saved PDF also contain the annotations?</en>
     <en>For documents that have no separate file of annotations yet (NAME.pdf.pdfnotes); unchecked, their annotations are saved in the PDF itself. One that has the file is always saved there</en>
     <tr>Para los documentos que aún no tienen un archivo aparte de anotaciones (NOMBRE.pdf.pdfnotes); sin marcar, sus anotaciones se guardan en el PDF mismo. El que tiene ese archivo se guarda siempre allí</tr>
   </text>
+  <text>
+    <en>For Skim (.skim)…</en>
+    <tr>Para Skim (.skim)…</tr>
+  </text>
+  <text>
+    <en>Notes for Skim, the PDF reader of the Mac, in a .skim file with the name of the PDF: Skim, opening the PDF, offers to read them. Replies, tags and categories, and the kinds Skim lacks, are left out</en>
+    <tr>Notas para Skim, el lector de PDF del Mac, en un archivo .skim con el nombre del PDF: Skim, al abrir el PDF, ofrece leerlas. Las respuestas, las etiquetas y las categorías, y las clases que Skim no tiene, se dejan fuera</tr>
+  </text>
+  <text>
+    <en>{count} has no kind in Skim, and was left out</en>
+    <tr>{count} no tiene clase en Skim, y se dejó fuera</tr>
+  </text>
+  <text>
+    <en>{count} have no kind in Skim, and were left out</en>
+    <tr>{count} no tienen clase en Skim, y se dejaron fuera</tr>
+  </text>
 </interface>

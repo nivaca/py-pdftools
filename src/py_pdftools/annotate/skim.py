@@ -1,5 +1,5 @@
-"""Las notas de Skim (el lector de PDF del Mac), leídas de un archivo .skim
-para importarlas como anotaciones.
+"""Las notas de Skim (el lector de PDF del Mac): leídas de un archivo .skim
+para importarlas como anotaciones, y escritas en uno para llevarlas a Skim.
 
 Skim guarda sus notas fuera del PDF: en los atributos extendidos del archivo
 o, si se le pide, en un ``libro.skim`` junto a él. Ese archivo es una lista
@@ -14,6 +14,15 @@ las de sus puntos (de una línea, de los cuadriláteros de un resaltado, de los
 trazos de tinta) se cuentan desde la esquina de su recuadro. Los tipos que
 py-pdftools no tiene (los campos de formulario, Widget) se dejan fuera; el
 texto con formato se toma como texto simple.
+
+Al exportar se escribe la lista de propiedades binaria, la forma que Skim
+escribe hoy por omisión, con los colores siempre de cuatro componentes (Skim
+lee cuatro aunque la lista traiga tres). Skim no tiene todas las clases de
+py-pdftools: un subrayado ondulado sale como subrayado, un resaltado de zona
+como rectángulo relleno, los polígonos, nubes, polilíneas y resaltados a mano
+alzada como trazos de tinta, y una llamada como cuadro de texto; las
+inserciones de texto, los sellos y los archivos adjuntos se dejan fuera, como
+las respuestas, las etiquetas y las categorías, que Skim no tiene.
 """
 
 from __future__ import annotations
@@ -168,7 +177,9 @@ def rtf_text(data: bytes) -> str:
         else:
             out.append(ch)
             i += 1
-    return "".join(out).strip()
+    joined = "".join(out).strip()
+    # Un carácter fuera del plano básico llega como dos \\uN (un par sustituto): se unen aquí.
+    return joined.encode("utf-16", "surrogatepass").decode("utf-16", "replace")
 
 
 def _hex(color) -> str:
@@ -312,3 +323,187 @@ def annotation_of(note: dict, doc: pymupdf.Document) -> Annotation | None:
 def import_skim(doc: pymupdf.Document, source: Path) -> list[Annotation]:
     """The notes of the .skim file SOURCE, as annotations of the document DOC (raises AnnotateError)."""
     return [a for a in (annotation_of(n, doc) for n in read_notes(source)) if a is not None]
+
+
+# --------------------------------------------------------------------- export
+
+# Cada clase de py-pdftools con la de Skim que la representa (las que faltan no tienen ninguna).
+EXPORT_TYPES = {"highlight": "Highlight", "underline": "Underline", "strikeout": "StrikeOut",
+                "squiggly": "Underline", "area": "Square", "note": "Note", "freetext": "FreeText",
+                "callout": "FreeText", "rect": "Square", "ellipse": "Circle", "line": "Line", "arrow": "Line",
+                "ink": "Ink", "marker": "Ink", "polyline": "Ink", "polygon": "Ink", "cloud": "Ink"}
+_FONT_NAMES = {"helv": "Helvetica", "tiro": "Times-Roman", "cour": "Courier"}
+
+
+def _rgba(color: str, alpha: float = 1.0) -> list[float]:
+    """The colour #RRGGBB as Skim's list of four numbers (red, green, blue, alpha) from 0 to 1."""
+    value = color.lstrip("#")
+    if len(value) != 6:
+        return [0.0, 0.0, 0.0, 0.0]
+    return [round(int(value[i:i + 2], 16) / 255, 4) for i in (0, 2, 4)] + [round(max(0.0, min(1.0, alpha)), 4)]
+
+
+def _cocoa(*values: float) -> str:
+    """A point or rectangle written as Cocoa writes them: "{1, 2}", "{{1, 2}, {3, 4}}"."""
+    def n(v: float) -> str:
+        return f"{v:.3f}".rstrip("0").rstrip(".") or "0"
+
+    if len(values) == 2:
+        return f"{{{n(values[0])}, {n(values[1])}}}"
+    return f"{{{{{n(values[0])}, {n(values[1])}}}, {{{n(values[2])}, {n(values[3])}}}}}"
+
+
+def rtf_of(text: str) -> bytes:
+    """TEXT as plain RTF, as Cocoa reads it (the long text of an anchored note of Skim)."""
+    out = []
+    for ch in text:
+        code = ord(ch)
+        if ch in "\\{}":
+            out.append("\\" + ch)
+        elif ch == "\n":
+            out.append("\\\n")
+        elif ch == "\t":
+            out.append("\\tab ")
+        elif 32 <= code < 128:
+            out.append(ch)
+        elif code < 32:
+            continue
+        else:
+            # \uN (con signo, de 16 bits) y ? para quien no lo lea; fuera del plano básico, su par sustituto.
+            units = ch.encode("utf-16-le")
+            for i in range(0, len(units), 2):
+                unit = int.from_bytes(units[i:i + 2], "little")
+                out.append(f"\\u{unit - 65536 if unit > 32767 else unit}?")
+    return ("{\\rtf1\\ansi\\ansicpg1252\\cocoartf2580\n{\\fonttbl\\f0\\fswiss\\fcharset0 Helvetica;}\n"
+            "\\f0\\fs24 " + "".join(out) + "}").encode("ascii")
+
+
+def _when(value: str) -> datetime.datetime | None:
+    """The PDF date VALUE (D:20261126123000Z, with or without its zone) as a date, in UTC."""
+    m = re.match(r"D:(\d{4})(\d{2})?(\d{2})?(\d{2})?(\d{2})?(\d{2})?(?:([Zz+-])(\d{2})?'?(\d{2})?)?", value or "")
+    if m is None:
+        return None
+    year, month, day, hour, minute, second, sign, zh, zm = m.groups()
+    try:
+        when = datetime.datetime(int(year), int(month or 1), int(day or 1), int(hour or 0), int(minute or 0),
+                                 int(second or 0), tzinfo=datetime.UTC)
+    except ValueError:
+        return None
+    if sign in ("+", "-"):
+        offset = datetime.timedelta(hours=int(zh or 0), minutes=int(zm or 0))
+        when = when - offset if sign == "+" else when + offset
+    return when
+
+
+def note_of(a: Annotation, doc: pymupdf.Document) -> dict | None:
+    """The Skim note of the annotation A of DOC, as the dictionary of a .skim file (None if Skim has no kind
+    for it)."""
+    kind = EXPORT_TYPES.get(a.kind)
+    if kind is None or not 0 <= a.page < doc.page_count:
+        return None
+    page = doc[a.page]
+
+    def pdf(point) -> tuple[float, float]:
+        return annots.to_pdf(page, point)
+
+    def corners(rect) -> list[tuple[float, float]]:
+        x0, y0, x1, y1 = rect
+        return [pdf((x0, y0)), pdf((x1, y0)), pdf((x0, y1)), pdf((x1, y1))]
+
+    def origin_of(points) -> tuple[float, float, float, float]:
+        xs, ys = [p[0] for p in points], [p[1] for p in points]
+        return min(xs), min(ys), max(xs) - min(xs), max(ys) - min(ys)
+
+    if a.kind in ("ink", "marker", "polyline", "polygon", "cloud"):
+        strokes = [list(path) + ([path[0]] if a.kind in ("polygon", "cloud") and len(path) > 2 else [])
+                   for path in a.paths if path]
+        if not strokes:
+            return None
+        strokes = [[pdf(p) for p in path] for path in strokes]
+        x, y, w, h = origin_of([p for path in strokes for p in path])
+        pad = max(a.width, 2.0)  # (room for the line, as Skim leaves it)
+        x, y, w, h = x - pad, y - pad, w + 2 * pad, h + 2 * pad
+    elif a.kind in ("line", "arrow"):
+        if not a.paths or len(a.paths[0]) < 2:
+            return None
+        ends = [pdf(a.paths[0][0]), pdf(a.paths[0][-1])]
+        pad = max(a.width, 2.0) + 4.0
+        x, y, w, h = origin_of(ends)
+        x, y, w, h = x - pad, y - pad, w + 2 * pad, h + 2 * pad
+    elif a.kind in annots.MARKUP:
+        quads = [corners(q) for q in (a.quads or (a.rect,))]
+        x, y, w, h = origin_of([p for q in quads for p in q])
+    else:
+        x, y, w, h = origin_of(corners(a.rect))
+    note: dict = {"type": kind, "pageIndex": a.page, "bounds": _cocoa(x, y, w, h)}
+    if a.author:
+        note["userName"] = a.author
+    when = _when(a.modified) or _when(a.created)
+    if when is not None:
+        note["modificationDate"] = when
+    opacity = a.opacity if a.kind in annots.MARKUP or a.kind in ("note", "ink", "marker") else 1.0
+    note["color"] = _rgba(a.color, opacity)
+    contents = a.contents
+    # Línea, borde y trazo: su grosor y si es discontinuo (Skim los guarda solo si hay grosor).
+    stroked = a.kind in ("rect", "ellipse", "line", "arrow", "ink", "marker", "polyline", "polygon", "cloud") or \
+        a.kind in annots.TEXTUAL and a.width > 0
+    if stroked and a.width > 0:
+        note["lineWidth"] = float(a.width)
+        note["borderStyle"] = 1 if a.dashed else 0
+        if a.dashed:
+            note["dashPattern"] = [4.0, 2.0]
+
+    if a.kind in annots.MARKUP:
+        points = []
+        for q in quads:
+            (blx, bly), (brx, bry), (tlx, tly), (trx, try_) = sorted(q, key=lambda p: (p[1], p[0]))
+            # Skim's own order: bottom left, top left, bottom right, top right (from the frame's corner)
+            for px, py in ((blx, bly), (tlx, tly), (brx, bry), (trx, try_)):
+                points.append(_cocoa(px - x, py - y))
+        note["quadrilateralPoints"] = points
+    elif a.kind == "area":
+        note["color"] = _rgba(a.color, 0.0)
+        note["interiorColor"] = _rgba(a.fill or a.color, a.opacity)
+    elif a.kind in ("rect", "ellipse"):
+        if a.fill:
+            note["interiorColor"] = _rgba(a.fill, a.opacity)
+    elif a.kind in ("line", "arrow"):
+        start, end = ends
+        note["startPoint"] = _cocoa(start[0] - x, start[1] - y)
+        note["endPoint"] = _cocoa(end[0] - x, end[1] - y)
+        line_ends = a.ends if a.kind == "line" or a.ends != ("None", "None") else ("None", "OpenArrow")
+        note["startLineStyle"], note["endLineStyle"] = (LINE_STYLES.index(e) if e in LINE_STYLES else 0
+                                                        for e in line_ends)
+    elif note["type"] == "Ink":
+        note["pointLists"] = [[_cocoa(px - x, py - y) for px, py in path] for path in strokes]
+    elif a.kind == "note":
+        note["iconType"] = ICONS.index(a.icon) if a.icon in ICONS else 2
+        # Una nota anclada de Skim tiene un rótulo y un texto: el primer párrafo, y el resto (o todo, si es uno).
+        label, sep, rest = contents.partition("\n\n")
+        contents = label
+        note["text"] = rtf_of(rest if sep else label)
+    elif a.kind in annots.TEXTUAL:
+        # En Skim, el color de un cuadro de texto es su fondo; el del texto es fontColor.
+        note["color"] = _rgba(a.fill, 1.0) if a.fill else [0.0, 0.0, 0.0, 0.0]
+        note["fontColor"] = _rgba(a.color, 1.0)
+        note["fontName"] = _FONT_NAMES.get(a.font, "Helvetica")
+        note["fontSize"] = float(a.font_size)
+        note["alignment"] = ALIGNS.index(a.align) if a.align in ALIGNS else 0
+    note["contents"] = contents
+    return note
+
+
+def export_skim(doc: pymupdf.Document, annotations: list[Annotation], target: Path) -> int:
+    """ANNOTATIONS of DOC written as Skim's notes in the .skim file TARGET. Returns how many were written (those
+    Skim has no kind for are left out)."""
+    found = [n for n in (note_of(a, doc) for a in annotations) if n is not None]
+    data = plistlib.dumps(found, fmt=plistlib.FMT_BINARY, sort_keys=True, aware_datetime=True)
+    # Se escribe en un archivo propio, puesto en su lugar al final: uno a medias no reemplaza al bueno.
+    tmp = target.with_name(target.name + ".part")
+    try:
+        tmp.write_bytes(data)
+        tmp.replace(target)
+    except OSError as e:
+        tmp.unlink(missing_ok=True)
+        raise AnnotateError(str(e)) from None
+    return len(found)

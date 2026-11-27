@@ -735,6 +735,10 @@ def test_print_and_exports(window, tmp_path, sample):
     assert window.export_dialog("xfdf") and window.export_dialog("pdf")
     assert (tmp_path / "out-annotations.xfdf").read_text(encoding="utf-8").count("<square") == 1
     assert pymupdf.open(tmp_path / "out-summary.pdf").page_count == 1
+    # Para Skim: book.skim, el nombre del PDF sin más; importado de vuelta, la nota ya está.
+    assert window.export_dialog("skim") and (tmp_path / "out.skim").read_bytes().startswith(b"bplist00")
+    assert "1 annotation exported" in window.statusBar().currentMessage()
+    assert window.import_from(tmp_path / "out.skim", "skim") and len(window.annotations) == 1
 
 
 def test_many_annotations_are_listed_at_once(window):
