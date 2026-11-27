@@ -5,6 +5,31 @@ Debian package, the RPM, the wheel and the source, are on
 [Codeberg](https://codeberg.org/nivaca/py-pdftools/releases) and
 [GitHub](https://github.com/nivaca/py-pdftools/releases).
 
+## 1.21.0 — 2026-11-26
+
+- The annotations of a document can be kept out of the PDF, in a file of
+  their own beside it: for book.pdf, book.pdf.pdfnotes (XML). The PDF then
+  stays exactly as it was. File > Annotations in a separate file switches a
+  document either way and saves at once; going apart, it asks whether to
+  leave the PDF's own annotations in it or take them out. Nothing is lost
+  either way: the annotations that came from the PDF are edited too, and
+  going back they are changed where they are; those taken out are kept as
+  an exact copy of their objects, and put back as they were, with the keys
+  and looks of other programs.
+- Settings > Documents > Save the annotations: in the PDF itself (as
+  before) or in a separate file, for documents that have none yet.
+- File > Save a copy > With the annotations in the PDF, for a document
+  that keeps them apart.
+- If another program changes the PDF, the annotations kept apart still find
+  their place: those it added are shown too, and those on a page it turned
+  are turned with it. A save of the separate file from another computer
+  (through Dropbox, say) opens the document again.
+- File > Import annotations > From Skim's notes (.skim): the notes of Skim,
+  the PDF reader of the Mac, in both its forms.
+- Importing from another copy of the PDF also reads that copy's separate
+  file, if it has one.
+- The RPM runs its tests in parallel: it is built in about a minute.
+
 ## 1.20.0 — 2026-11-26
 
 - Fixed: a quick move of the eraser left untouched what it crossed between

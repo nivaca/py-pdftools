@@ -10,7 +10,7 @@
 # Build with packaging/build-rpm.sh, which makes the source tarball.
 
 Name:           py-pdftools
-Version:        1.20.0
+Version:        1.21.0
 Release:        1%{?dist}
 Summary:        Edit PDF documents: annotate, redact, label, stamp, arrange and impose their pages
 
@@ -103,6 +103,11 @@ export HOME="$PWD/check-home" PY_PDFTOOLS_CONFIG="$PWD/check-home/config" QT_QPA
 %lang(es) %{_mandir}/es/man1/py-pdftools.1*
 
 %changelog
+* Thu Nov 26 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.21.0-1
+- Version 1.21.0: annotations in a separate file beside the PDF
+  (book.pdf.pdfnotes), switchable both ways without loss; Skim's .skim notes
+  imported
+
 * Thu Nov 26 2026 Nicolas Vaughan <nicolasvaughan@proton.me> - 1.20.0-1
 - Version 1.20.0: faster pages and thumbnails (warm processes, thumbnails on
   disk), plain-text exports, a warning before closing several documents,

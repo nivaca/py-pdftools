@@ -7,6 +7,22 @@ AppImage, el RPM, la rueda y el código fuente, están en
 
 ## Sin publicar
 
+- Las anotaciones de un documento pueden guardarse fuera del PDF, en un
+  archivo propio junto a él: para libro.pdf, libro.pdf.pdfnotes (XML). El
+  PDF queda entonces exactamente como estaba. Archivo > Anotaciones en un
+  archivo aparte pasa un documento de una manera a la otra y guarda
+  enseguida; al pasar al archivo aparte pregunta si las anotaciones propias
+  del PDF se quedan en él o se le quitan. Nada se pierde: las que venían
+  del PDF también se editan, y al volver se cambian donde están; de las que
+  se quitaron se guarda una copia exacta de sus objetos, que vuelve tal
+  cual, con las claves y el aspecto que les dieron otros programas.
+- Configuración > Documentos > Guardar las anotaciones: en el PDF mismo
+  (como antes) o en un archivo aparte, para los documentos que aún no lo
+  tienen.
+- Archivo > Guardar una copia > Con las anotaciones en el PDF, para un
+  documento que las guarda aparte.
+- Archivo > Importar anotaciones > De las notas de Skim (.skim): las notas
+  de Skim, el lector de PDF del Mac, en sus dos formas.
 - Corregido: un movimiento rápido de la goma dejaba sin borrar lo que
   cruzaba entre dos posiciones del ratón; ahora borra en todo el camino.
 - Con las páginas dibujadas por la tarjeta gráfica, los resaltados, las
