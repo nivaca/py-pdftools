@@ -14301,8 +14301,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Para un documento cuyas anotaciones están en un archivo aparte: una copia con ellas escritas en el PDF, para dársela a otros</tr>
   </text>
   <text>
-    <en>For documents that have no separate file of annotations yet (NAME.pdf.annot.xml): one that has it is always saved there. File &gt; Annotations in a separate file changes it for the document open</en>
-    <tr>Para los documentos que aún no tienen un archivo aparte de anotaciones (NOMBRE.pdf.annot.xml): el que lo tiene se guarda siempre allí. Archivo &gt; Anotaciones en un archivo aparte lo cambia para el documento abierto</tr>
+    <en>For documents that have no separate file of annotations yet (NAME.pdf.pdfnotes): one that has it is always saved there. File &gt; Annotations in a separate file changes it for the document open</en>
+    <tr>Para los documentos que aún no tienen un archivo aparte de anotaciones (NOMBRE.pdf.pdfnotes): el que lo tiene se guarda siempre allí. Archivo &gt; Anotaciones en un archivo aparte lo cambia para el documento abierto</tr>
   </text>
   <text>
     <en>In a separate file, beside the PDF</en>
@@ -14329,8 +14329,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Guardar una copia con las anotaciones en el PDF</tr>
   </text>
   <text>
-    <en>Save the annotations beside the PDF, in NAME.pdf.annot.xml, and leave the PDF as it is; unchecked, they are saved in the PDF itself. Changing it saves them at once</en>
-    <tr>Guardar las anotaciones junto al PDF, en NOMBRE.pdf.annot.xml, y dejar el PDF como está; sin marcar, se guardan en el PDF mismo. Al cambiarlo se guardan enseguida</tr>
+    <en>Save the annotations beside the PDF, in NAME.pdf.pdfnotes, and leave the PDF as it is; unchecked, they are saved in the PDF itself. Changing it saves them at once</en>
+    <tr>Guardar las anotaciones junto al PDF, en NOMBRE.pdf.pdfnotes, y dejar el PDF como está; sin marcar, se guardan en el PDF mismo. Al cambiarlo se guardan enseguida</tr>
   </text>
   <text>
     <en>Save the annotations:</en>

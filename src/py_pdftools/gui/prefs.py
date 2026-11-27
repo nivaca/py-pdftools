@@ -467,7 +467,7 @@ class SettingsDialog(QDialog):
         for key, name in (("pdf", N_("In the PDF itself")), ("file", N_("In a separate file, beside the PDF"))):
             self.storage.addItem(tr(name), key)
         self.storage.setCurrentIndex(max(0, self.storage.findData(default_storage())))
-        self.storage.setToolTip(tr("For documents that have no separate file of annotations yet (NAME.pdf.annot.xml): "
+        self.storage.setToolTip(tr("For documents that have no separate file of annotations yet (NAME.pdf.pdfnotes): "
                                    "one that has it is always saved there. File > Annotations in a separate file "
                                    "changes it for the document open"))
         form.addRow(tr("Save the annotations:"), self.storage)

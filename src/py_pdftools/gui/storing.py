@@ -1,6 +1,6 @@
 """Dónde guarda la ventana las anotaciones de su documento (mezclado en
 MainWindow): en el PDF mismo, como siempre (``storage`` "pdf"), o aparte, en
-libro.pdf.annot.xml, junto al PDF, sin tocarlo ("file"; véase
+libro.pdf.pdfnotes, junto al PDF, sin tocarlo ("file"; véase
 annotate/sidecar.py).
 
 Un documento que tiene ese archivo se abre con sus anotaciones; uno que no lo
@@ -140,7 +140,7 @@ class StorageMixin:
 
     def save_apart(self, target: Path, pdf_part: str | None = None) -> bool:
         """Save the annotations apart, for the document at TARGET (which may be the document itself): in
-        TARGET.annot.xml. The PDF is not written if TARGET is the document and it has no changes of its own;
+        TARGET.pdfnotes. The PDF is not written if TARGET is the document and it has no changes of its own;
         else it is written ("copy": as it is; "embed": with the annotations in it; "strip": without them; None:
         asked if the document changed). Then the window goes on with TARGET."""
         self.canvas.commit_text()

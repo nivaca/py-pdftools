@@ -500,7 +500,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                       tr("Write a copy of the document with the annotations, and go on with it"))
         # Guardar aparte, junto al PDF (véase storing.py): una casilla, que guarda enseguida al cambiarla.
         self.a_apart = self._action(m, tr("Annotations in a separate file"), lambda on: self.set_apart(on),
-                                    tip=tr("Save the annotations beside the PDF, in NAME.pdf.annot.xml, and leave "
+                                    tip=tr("Save the annotations beside the PDF, in NAME.pdf.pdfnotes, and leave "
                                            "the PDF as it is; unchecked, they are saved in the PDF itself. "
                                            "Changing it saves them at once"))
         self.a_apart.setCheckable(True)

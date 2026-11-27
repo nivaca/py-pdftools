@@ -1,5 +1,5 @@
 """Las anotaciones de un documento guardadas aparte, en un archivo XML junto al
-PDF (``libro.pdf.annot.xml``), sin tocar el PDF: la otra manera de guardarlas,
+PDF (``libro.pdf.pdfnotes``), sin tocar el PDF: la otra manera de guardarlas,
 que se elige para cada documento (Archivo > Anotaciones en un archivo aparte)
 o para todos los que aún no tienen ese archivo (Ajustes > Documentos).
 
@@ -62,7 +62,7 @@ from ..core.interface import tr
 from .annots import OTHER, AnnotateError, Annotation, Reply
 from .exchange import FORMAT, from_data, same_place, to_data
 
-SUFFIX = ".annot.xml"
+SUFFIX = ".pdfnotes"
 VERSION = 1
 
 # Fields written as elements of their own, not as attributes: long texts.
@@ -89,7 +89,7 @@ class Kept:
 # --------------------------------------------------------------------- where
 
 def beside(pdf: Path) -> Path:
-    """The file of annotations beside the PDF: book.pdf -> book.pdf.annot.xml."""
+    """The file of annotations beside the PDF: book.pdf -> book.pdf.pdfnotes."""
     return pdf.with_name(pdf.name + SUFFIX)
 
 

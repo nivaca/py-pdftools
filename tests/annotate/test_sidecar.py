@@ -1,4 +1,4 @@
-"""Annotations kept apart, in book.pdf.annot.xml: written and read with all their fields, combined with those the
+"""Annotations kept apart, in book.pdf.pdfnotes: written and read with all their fields, combined with those the
 PDF has, put in place on pages turned since, and written into the PDF again."""
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ def keep(path, doc, items, in_pdf=()):
 
 
 def test_names(sample):
-    assert sidecar.beside(sample).name == "sample.pdf.annot.xml"
+    assert sidecar.beside(sample).name == "sample.pdf.pdfnotes"
     assert sidecar.find(sample) is None
     assert sidecar.place_for(sample) == sidecar.beside(sample)
 

@@ -1,4 +1,4 @@
-"""The window with the annotations kept apart (book.pdf.annot.xml): saved there without touching the PDF, opened
+"""The window with the annotations kept apart (book.pdf.pdfnotes): saved there without touching the PDF, opened
 from there, switched to the PDF and back with all of them kept, and with changes of the document itself."""
 
 from __future__ import annotations
@@ -79,7 +79,7 @@ def test_apart_without_touching_the_pdf(make, book):
               Annotation("ellipse", 2, (200, 200, 260, 240), "#0000ff")])
     assert w.save()
     assert book.read_bytes() == before and not w.is_modified()
-    assert "annotations saved in book.pdf.annot.xml" in w.statusBar().currentMessage()
+    assert "annotations saved in book.pdf.pdfnotes" in w.statusBar().currentMessage()
     # Opened again: the annotations of the file apart, not those of the PDF.
     other = make(book)
     assert other.apart()

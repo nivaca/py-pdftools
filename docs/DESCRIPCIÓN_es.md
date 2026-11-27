@@ -74,7 +74,7 @@ Los cuatro programas traían copias de lo mismo (abrir un PDF, rectángulos y co
 
 ### Anotaciones en un archivo aparte
 
-Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `libro.pdf.annot.xml` (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir ocultan las del PDF que siguen iguales, y al volver al PDF se cambian allí. El archivo guarda también el giro de cada página. Se importan además los `.skim` de Skim, plist o NSKeyedArchiver.
+Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `libro.pdf.pdfnotes` (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir ocultan las del PDF que siguen iguales, y al volver al PDF se cambian allí. El archivo guarda también el giro de cada página. Se importan además los `.skim` de Skim, plist o NSKeyedArchiver.
 
 ### OCR
 

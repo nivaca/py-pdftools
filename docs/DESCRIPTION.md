@@ -2683,8 +2683,10 @@ nuisance in all three cases.
 
 Skim's way did not fit as it was. Extended attributes are lost by many
 copies, by mail and by Git, so I chose a visible file beside the PDF:
-`book.pdf.annot.xml`, or, if the folder can't be written, one in the
-configuration's folder. It is XML of the program's own, not XFDF, because
+`book.pdf.pdfnotes`, or, if the folder can't be written, one in the
+configuration's folder. The name keeps the whole name of the PDF, so the
+two sort together and can't be mixed up, and ends in an extension of its
+own rather than `.xml`, so that the desktop can tell these files apart. It is XML of the program's own, not XFDF, because
 XFDF has no place for the tags, categories, groups, layers, attached files
 and textual criticism, and nothing may be lost when going from one way to
 the other. Skim also leaves the PDF's own annotations where they are, and

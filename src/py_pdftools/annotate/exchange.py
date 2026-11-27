@@ -232,7 +232,7 @@ def import_json(source: Path) -> list[Annotation]:
 
 def import_pdf(source: Path, password: str = "") -> list[Annotation]:
     """The annotations of another PDF (another copy of the document, annotated by someone else); if it keeps them
-    apart (SOURCE.annot.xml, see sidecar.py), those."""
+    apart (SOURCE.pdfnotes, see sidecar.py), those."""
     from . import sidecar  # (here: sidecar.py imports this module)
 
     doc = annots.open_pdf(source, password)
