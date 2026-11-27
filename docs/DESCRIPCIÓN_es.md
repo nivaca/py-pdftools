@@ -70,11 +70,11 @@ Varias ideas vienen de PDFCraft y de Calibre. Cada carril tiene varios procesos 
 
 ### Una sola copia de cada cosa
 
-Los cuatro programas traían copias de lo mismo (abrir un PDF, rectángulos y colores, las matrices de PDF, un menú de colores). Se buscaron con pylint y comparando la sintaxis de cada función, y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`).
+Los cuatro programas traían copias de lo mismo (abrir un PDF, las matrices de PDF, un menú de colores); se buscaron con pylint y cada una quedó en un solo lugar (`core/pdfdoc.py`, `core/matrix.py`).
 
 ### Anotaciones en un archivo aparte
 
-Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `.libro.pdf.pdfnotes` (oculto) (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir ocultan las del PDF que siguen iguales, y al volver al PDF se cambian allí; las que se le quitaron vuelven exactas: el archivo guarda sus objetos. Guarda también el giro de cada página. Se importan además los `.skim` de Skim, plist o NSKeyedArchiver.
+Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `.libro.pdf.pdfnotes` (oculto) (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir ocultan las del PDF que siguen iguales, y al volver al PDF se cambian allí; las que se le quitaron vuelven exactas: el archivo guarda sus objetos. Guarda también el giro de cada página. Se aplana también en el documento, con los comentarios al margen. Se importan además los `.skim` de Skim, plist o NSKeyedArchiver.
 
 ### OCR
 
@@ -82,7 +82,7 @@ El OCR, el de py-pdfocr, tiene su modo; usa tesseract en varios procesos a la ve
 
 ## Validación
 
-Hay 916 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 922 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

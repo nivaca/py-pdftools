@@ -438,22 +438,62 @@ class FilesMixin:
         return False
 
     def save_flattened_dialog(self) -> bool:
+        """File > Save a copy > With annotations flattened: the dialog of flattening, a copy chosen."""
+        return self.flatten_dialog(copy=True)
+
+    def ask_flatten(self, candidates: list[int], copy: bool):
+        from .flatten_dialog import ask_flatten
+
+        return ask_flatten(self, self.annotations, candidates, self.selected, copy)
+
+    def flatten_dialog(self, copy: bool = False) -> bool:
+        """Flatten annotations (all, those selected or those of some kinds, with their comments written beside
+        them or not), in the document itself, as a change Undo takes back, or in a copy: see annotate/flatten.py."""
+        from ..annotate import flatten
+
         if self.path is None:
             return False
-        target = self._ask_target(tr("Save a flattened copy"), "-flattened")
-        if target is None or self._same_file(target):
-            return False
-        # Lo que se está escribiendo en la página y en el campo de comentario entra en la copia.
+        # Lo que se está escribiendo en la página y en el campo de comentario entra también.
         self.canvas.commit_text()
         self.keep_comment()
+        # (never the redaction boxes: flattened, a box would only cover what is still in the file)
+        candidates = [i for i, a in enumerate(self.annotations) if a.kind not in (annots.OTHER, "redact")]
+        if not candidates:
+            self.status(tr("There are no annotations to flatten"), error=True)
+            return False
+        choice = self.ask_flatten(candidates, copy)
+        if choice is None or not choice.chosen:
+            return False
+        if choice.copy:
+            target = self._ask_target(tr("Save a flattened copy"), "-flattened")
+            if target is None or self._same_file(target):
+                return False
+            # En la copia, sin los recuadros de censura (unmarked); los índices elegidos, en esa lista.
+            kept = [i for i, a in enumerate(self.annotations) if a.kind != "redact"]
+            listing = [self.annotations[i] for i in kept]
+            chosen = [kept.index(i) for i in choice.chosen]
+            try:
+                count = flatten.flatten(self.file, listing, chosen, target, self.password, choice.comments)
+            except AnnotateError as e:
+                self.status(str(e), error=True)
+                return False
+            self.status(tr("Saved {path}", path=target) + " — "
+                        + ntr("{count} annotation flattened", "{count} annotations flattened", count))
+            return True
+        # In the document itself: a change of the document, on a working copy, as a step of the history.
+        before = self._state()
+        target = self._new_work()
         try:
-            # unmarked(): without the redaction boxes. Flattened, a box would only cover the text, which would
-            # still be in the file.
-            exchange.save_flattened(self.file, self.unmarked(), target, self.password)
+            count = flatten.flatten(self.file, self.annotations, choice.chosen, target, self.password,
+                                    choice.comments)
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False
-        self.status(tr("Saved {path}, with the annotations made part of the pages", path=target))
+        found = self._load_work(target, self.page)
+        if found is None:
+            return False
+        self._step(before, found, ntr("{count} annotation flattened", "{count} annotations flattened", count),
+                   self.page)
         return True
 
     def save_without_dialog(self) -> bool:

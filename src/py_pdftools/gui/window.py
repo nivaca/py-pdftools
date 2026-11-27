@@ -738,6 +738,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self._build_link_tool(self.m_edit, self.m_tool_groups["notes"])
         m.addSeparator()
         self._action(m, tr("Tool properties…"), lambda: self.tool_dialog(self.canvas.mode))
+        self.a_flatten = self._action(m, tr("Flatten annotations…"), lambda: self.flatten_dialog(),
+                                      tip=tr("Make annotations part of the pages (all, those selected or those of "
+                                             "some kinds), with their comments written beside them if wished"))
         m.addSeparator()
         # La búsqueda avanzada, con todas sus opciones: Ctrl+Mayús+F (Ctrl+F es de Buscar mientras se escribe)
         self.a_find = self._action(m, tr("Find and highlight…"), lambda: self.find_in_mode(), "Ctrl+Shift+F",
@@ -3146,6 +3149,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             if len(self._movable()) > 1:
                 menu.addMenu(self.m_align)
             menu.addSeparator()
+            menu.addAction(tr("Flatten…"), lambda: self.flatten_dialog()).setToolTip(
+                tr("Make the annotations selected part of the page (or others: the dialog asks)"))
             menu.addAction(tr("Properties…"), self.properties_dialog)
             all_locked = all(a.locked for a in chosen)
             menu.addAction(tr("Unlock") if all_locked else tr("Lock"), self.toggle_lock)
@@ -4147,6 +4152,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_save.setEnabled(has and self.is_modified())
         self._show_storage()
         self.a_clear_all.setEnabled(bool(self.annotations))
+        self.a_flatten.setEnabled(any(a.kind not in (annots.OTHER, "redact") for a in self.annotations))
         self.a_paste.setEnabled(has and bool(_CLIPBOARD))
         self.a_prev.setEnabled(has and self.page > 0)
         self.a_next.setEnabled(has and self.page < self.count - 1)

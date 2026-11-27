@@ -253,10 +253,18 @@ def test_never_over_the_document(window, sample):
 
 def test_flattened_copies_leave_the_marks_out(window, tmp_path, monkeypatch):
     """A flattened copy would paint a box over what is still in the file: it leaves the marks out."""
+    from py_pdftools.annotate.annots import Annotation
+    from py_pdftools.gui.flatten_dialog import Choice
+
     drag(window, (70, 112), (200, 122))
+    window.annotations = window.annotations + [Annotation("rect", 0, (300, 300, 400, 400), "#ff0000")]
     out = tmp_path / "flat.pdf"
     monkeypatch.setattr(window, "_ask_target", lambda *a, **k: out)
+    chosen = []
+    monkeypatch.setattr(window, "ask_flatten", lambda candidates, copy: chosen.append(candidates) or
+                        Choice(candidates, False, copy))
     assert window.save_flattened_dialog()
+    assert [window.annotations[i].kind for i in chosen[0]] == ["rect"]  # (the box is never offered)
     doc = pymupdf.open(out)
     assert not list(doc[0].annots()) and "Person1" in doc[0].get_text()
 

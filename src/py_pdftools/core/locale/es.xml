@@ -1084,10 +1084,6 @@
     <tr>Guardar una copia aplanada</tr>
   </text>
   <text>
-    <en>Saved {path}, with the annotations made part of the pages</en>
-    <tr>Guardado {path}, con las anotaciones hechas parte de las páginas</tr>
-  </text>
-  <text>
     <en>Search the annotations…</en>
     <tr>Buscar en las anotaciones…</tr>
   </text>
@@ -14463,5 +14459,77 @@ Should the saved PDF also contain the annotations?</en>
 • With annotations: other programs show them too, as they are now.</en>
     <tr>• Sin anotaciones: otros programas muestran el PDF sin ellas.
 • Con anotaciones: otros programas también las muestran, tal como están ahora.</tr>
+  </text>
+  <text>
+    <en>Flatten</en>
+    <tr>Aplanar</tr>
+  </text>
+  <text>
+    <en>Flatten annotations</en>
+    <tr>Aplanar anotaciones</tr>
+  </text>
+  <text>
+    <en>Flatten annotations…</en>
+    <tr>Aplanar anotaciones…</tr>
+  </text>
+  <text>
+    <en>Flattened annotations become part of the pages: every program shows and prints them, but they can no longer be edited, moved or removed.</en>
+    <tr>Las anotaciones aplanadas pasan a ser parte de las páginas: todos los programas las muestran y las imprimen, pero ya no se pueden editar, mover ni quitar.</tr>
+  </text>
+  <text>
+    <en>Flattened, a note keeps only its icon and a highlight only its colour: their texts, and their replies, would be lost. Text boxes and callouts show their text already.</en>
+    <tr>Aplanada, una nota conserva solo su icono y un resaltado solo su color: sus textos, y sus respuestas, se perderían. Los cuadros de texto y las llamadas ya muestran su texto.</tr>
+  </text>
+  <text>
+    <en>Flatten…</en>
+    <tr>Aplanar…</tr>
+  </text>
+  <text>
+    <en>In a copy (this document stays as it is)…</en>
+    <tr>En una copia (este documento queda como está)…</tr>
+  </text>
+  <text>
+    <en>In this document (Undo takes it back; Save keeps it)</en>
+    <tr>En este documento (Deshacer lo revierte; Guardar lo conserva)</tr>
+  </text>
+  <text>
+    <en>Make annotations part of the pages (all, those selected or those of some kinds), with their comments written beside them if wished</en>
+    <tr>Hacer las anotaciones parte de las páginas (todas, las seleccionadas o las de algunos tipos), con sus comentarios escritos al lado si se quiere</tr>
+  </text>
+  <text>
+    <en>Make the annotations selected part of the page (or others: the dialog asks)</en>
+    <tr>Hacer las anotaciones seleccionadas parte de la página (u otras: el diálogo lo pregunta)</tr>
+  </text>
+  <text>
+    <en>The one selected</en>
+    <tr>La seleccionada</tr>
+  </text>
+  <text>
+    <en>The {count} selected</en>
+    <tr>Las {count} seleccionadas</tr>
+  </text>
+  <text>
+    <en>There are no annotations to flatten</en>
+    <tr>No hay anotaciones que aplanar</tr>
+  </text>
+  <text>
+    <en>Those of these kinds:</en>
+    <tr>Las de estos tipos:</tr>
+  </text>
+  <text>
+    <en>Which annotations</en>
+    <tr>Qué anotaciones</tr>
+  </text>
+  <text>
+    <en>Write their comments on the page, in a box beside each</en>
+    <tr>Escribir sus comentarios en la página, en un recuadro junto a cada una</tr>
+  </text>
+  <text>
+    <en>{count} annotation flattened</en>
+    <tr>{count} anotación aplanada</tr>
+  </text>
+  <text>
+    <en>{count} annotations flattened</en>
+    <tr>{count} anotaciones aplanadas</tr>
   </text>
 </interface>

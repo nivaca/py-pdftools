@@ -463,6 +463,9 @@ def test_export_import(window, tmp_path):
     assert window.import_from(tmp_path / "out.json", "json")
     assert [a.kind for a in window.annotations] == ["highlight"]
     assert window.import_from(tmp_path / "out.json", "json") and len(window.annotations) == 1  # (already there)
+    from py_pdftools.gui.flatten_dialog import Choice
+
+    window.ask_flatten = lambda candidates, copy: Choice(candidates, False, copy)
     assert window.save_flattened_dialog()
     flat = annots.open_pdf(tmp_path / "out.pdf")
     assert list(flat[0].annots()) == [] and window.path != tmp_path / "out.pdf"
@@ -1456,3 +1459,28 @@ def test_eraser_between_two_positions(window):
     assert [len(a.paths) for a in window.annotations if a.kind == "ink"] == [2]
     drag(window, (80, 240), (120, 270))  # (one move, from outside the rectangle, across its corner)
     assert [a.kind for a in window.annotations] == ["ink"]
+
+
+def test_flatten_in_the_document(window):
+    from py_pdftools.annotate.annots import Annotation
+    from py_pdftools.gui.flatten_dialog import Choice, FlattenDialog
+
+    window.change([Annotation("rect", 0, (100, 300, 200, 400), "#ff0000", contents="a box"),
+                   Annotation("note", 0, (300, 300, 316, 316), "#ffd54f", contents="a note"),
+                   Annotation("highlight", 1, (60, 100, 300, 114), quads=((60, 100, 300, 114),))])
+    # The dialog: all, those selected, or those of some kinds.
+    window.selected = [1]
+    candidates = list(range(3))
+    dialog = FlattenDialog(window.annotations, candidates, window.selected, window)
+    assert dialog.some.isChecked() and dialog.chosen() == [1]
+    dialog.kind_list.item(0).setCheckState(Qt.CheckState.Checked)  # (rectangles)
+    assert dialog.kinds.isChecked() and dialog.chosen() == [0]
+    dialog.all.setChecked(True)
+    assert dialog.chosen() == [0, 1, 2] and dialog.comments.isChecked() and not dialog.copy.isChecked()
+    # The rectangle, flattened in the document with its comment beside it; Undo brings it back.
+    window.ask_flatten = lambda c, copy: Choice([0], True, False)
+    assert window.flatten_dialog()
+    assert [a.kind for a in window.annotations if a.kind != annots.OTHER] == ["note", "highlight"]
+    assert window.is_modified() and "a box" in window.doc[0].get_text()
+    window.undo()
+    assert sorted(a.kind for a in window.annotations if a.kind != annots.OTHER) == ["highlight", "note", "rect"]

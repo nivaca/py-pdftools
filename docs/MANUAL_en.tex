@@ -1201,9 +1201,21 @@ annotated by someone else; the annotations already in the document are not
 added twice.
 
 \index{links}\index{annotations}\index{flattening}\index{forms}%
-\menu{File\then Save a copy\then With annotations flattened} makes the annotations part of
-the pages: they are seen and printed everywhere, but can't be edited or
-removed any more. \menu{Without annotations} saves the document without
+\index{flattening}%
+\menu{Annotate\then Flatten annotations} (also \menu{Flatten} in the
+right-click menu of those selected, and \menu{File\then Save a copy\then
+With annotations flattened}) makes annotations part of the pages: they are
+seen and printed everywhere, but can't be edited or removed any more. Its
+dialog asks which: all, those selected, or those of some kinds (the
+highlights and drawings, say, leaving the notes editable); the others stay
+annotations, exactly as they were. It also asks whether to write their
+comments on the page: flattened, a note keeps only its icon and a highlight
+only its colour, so their texts and replies would be lost; with this
+option each goes in a small box level with its annotation, in the margin
+beside the text (or under the annotation, if the margins are narrow). And
+where: in the document itself, as a change that \menu{Undo} takes back and
+\menu{Save} writes, or in a copy. Redaction boxes are never flattened.
+\menu{File\then Save a copy\then Without annotations} saves the document without
 any (links and form fields stay). \menu{With the annotations in the PDF},
 for a document that keeps them in a separate file, writes them into a
 copy. \menu{Import\then Annotations\then From another copy of the PDF}
