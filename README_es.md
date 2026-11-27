@@ -267,7 +267,10 @@ cómo se dispone:
   principio, salvo que Configuración > Aspecto lo pida), que se puede
   buscar, filtrar y ordenar; sellos propios, hechos de una imagen o de una
   página de un PDF (un sello oficial, un logotipo), en el menú del botón
-  derecho de la herramienta Sello, junto a los estándar;
+  derecho de la herramienta Sello, junto a los estándar; las anotaciones
+  guardadas en el PDF o, con Archivo > Anotaciones en un archivo aparte,
+  junto a él en `NOMBRE.pdf.annot.xml`, sin tocar el PDF (y de vuelta,
+  conservándolas todas);
 * **Foliar**: los intervalos de etiquetas y la lista de las páginas con sus
   etiquetas, a la derecha; las acciones sobre las páginas elegidas, en la
   barra y en su menú del botón derecho; los encabezados y pies, las marcas

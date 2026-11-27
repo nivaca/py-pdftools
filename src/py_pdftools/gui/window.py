@@ -54,6 +54,7 @@ from .imposing import ImposeMixin
 from .paging import PagesMixin
 from .redacting import RedactMixin
 from .working import DocState, WorkingMixin
+from .storing import StorageMixin
 from .finder import FindDialog
 from .listing import AnnotationModel, Panel
 from .paint import paint
@@ -233,7 +234,7 @@ def tool_name(tool: str) -> str:
 
 
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, AttachmentsMixin,
-                 HistoryMixin, NavigationMixin, WatchMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
+                 HistoryMixin, NavigationMixin, WatchMixin, StorageMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
                  ToolbarsMixin, QMainWindow):
     _asked = False  # (Close document asked about the changes already, before its empty window came: see there)
 
@@ -497,6 +498,12 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                       "they signed)"))
         self.a_save_as = self._action(m, tr("Save as…"), self.save_as_dialog, QKeySequence.StandardKey.SaveAs,
                                       tr("Write a copy of the document with the annotations, and go on with it"))
+        # Guardar aparte, junto al PDF (véase storing.py): una casilla, que guarda enseguida al cambiarla.
+        self.a_apart = self._action(m, tr("Annotations in a separate file"), lambda on: self.set_apart(on),
+                                    tip=tr("Save the annotations beside the PDF, in NAME.pdf.annot.xml, and leave "
+                                           "the PDF as it is; unchecked, they are saved in the PDF itself. "
+                                           "Changing it saves them at once"))
+        self.a_apart.setCheckable(True)
         sub = self.m_save_copy = m.addMenu(tr("Save a copy"))
         sub.setToolTipsVisible(True)
         self.a_flat = self._action(sub, tr("With annotations flattened…"), self.save_flattened_dialog,
@@ -508,6 +515,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.a_version = self._action(sub, tr("As another PDF version…"), lambda: self.save_version_dialog(),
                                       tip=tr("The same document, saying it is another version of PDF (1.3 to "
                                              "2.0), for programs that ask for one"))
+        self.a_embedded = self._action(sub, tr("With the annotations in the PDF…"), self.save_embedded_dialog,
+                                       tip=tr("For a document whose annotations are in a separate file: a copy "
+                                              "with them written in the PDF, to give to others"))
         self.a_bare = self._action(sub, tr("Without annotations…"), self.save_without_dialog,
                                    tip=tr("The document as it is without any annotation (links and form fields "
                                           "stay)"))
@@ -1549,7 +1559,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # la vieja la suelta, para no borrarla al irse.
         state = {"path": self.path, "password": self.password, "annotations": self.annotations,
                  "saved": self.saved, "undo": self.undo_stack, "redo": self.redo_stack, "page": self.page,
-                 "tool": self.canvas.mode, "work": self.work, "work_dir": self._work_dir, "works": self._works}
+                 "tool": self.canvas.mode, "work": self.work, "work_dir": self._work_dir, "works": self._works,
+                 "storage": self.storage, "kept_file": self.kept_file}
         self.work, self._work_dir = None, None
         return state
 
@@ -1564,6 +1575,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                 self.drop_work()
         # The annotations of the old window replace those just read: they include the changes not yet saved.
         self.annotations, self.saved = list(state["annotations"]), list(state["saved"])
+        self.storage, self.kept_file = state.get("storage", "pdf"), state.get("kept_file")
         self.undo_stack, self.redo_stack = list(state["undo"]), list(state["redo"])
         self.refresh()
         self.show_page(state["page"])
@@ -1657,11 +1669,13 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         found = self._load(path, password)
         if found is None:
             return False
+        # Las del archivo aparte, si el documento lo tiene, en lugar de las del PDF (véase storing.py).
+        found = self._read_apart(path, found)
         self.settings.setValue("last_dir", str(path.parent))
         self.add_recent(path)
         self.annotations, self.saved = list(found), list(found)
         used = {a.layer for a in found}  # (the layers of the annotations; not those of the pages' contents)
-        self.layers = {name: on for name, on in annots.layers(self.doc).items() if name in used}
+        self.layers = self.apart_layers({name: on for name, on in annots.layers(self.doc).items() if name in used})
         self.saved_layers = dict(self.layers)
         self.layer = ""
         self.undo_stack, self.redo_stack, self.selected = [], [], []
@@ -1673,7 +1687,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                     + ntr("{count} annotation", "{count} annotations", len(found)) + ")"
                     + (" — " + ntr("signed once: File > Digital signatures > Validate signatures",
                                    "signed {count} times: File > Digital signatures > Validate signatures", signed)
-                       if signed else ""))
+                       if signed else "")
+                    + (" — " + self._kept_note if self._kept_note else ""))
         # Una copia de recuperación igual a lo que tiene el archivo no se ofrece: se guardó después.
         kept = recovery.find(path)
         if kept is not None and kept[1] != found:
@@ -1818,6 +1833,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def save_to(self, target: Path) -> bool:
         """Write the document with the annotations as TARGET (which may be the
         document itself), and go on with TARGET. What was done can still be undone."""
+        if self.apart():  # (beside TARGET, in a file of their own: see storing.py)
+            return self.save_apart(target)
         self.canvas.commit_text()
         self.keep_comment()
         # source es la copia de trabajo, si la hay: lo guardado incluye los cambios del documento mismo.
@@ -4078,6 +4095,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
             w.setEnabled(has and bool(self._rows))
         # Save is enabled only with something to save; Save as, with any document.
         self.a_save.setEnabled(has and self.is_modified())
+        self._show_storage()
         self.a_clear_all.setEnabled(bool(self.annotations))
         self.a_paste.setEnabled(has and bool(_CLIPBOARD))
         self.a_prev.setEnabled(has and self.page > 0)

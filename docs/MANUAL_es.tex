@@ -631,6 +631,54 @@ copia de recuperación cada dos minutos (el intervalo se fija en
 \menu{Configuración\then General}). Si el programa termina sin guardar, la
 próxima vez que se abra el documento ofrecerá recuperar esos cambios.
 
+\subsection{Anotaciones en un archivo aparte}
+\label{sec:apart}
+
+\index{anotaciones!en un archivo aparte}\index{guardar}\index{annot.xml@archivos \texttt{.annot.xml}}%
+Las anotaciones también pueden quedar fuera del PDF, en un archivo propio
+junto a él: para \texttt{libro.pdf}, \texttt{libro.pdf.annot.xml}. El PDF
+sigue entonces exactamente como estaba, byte a byte, por mucho que se
+anote; conviene con un documento ajeno, con uno bajo control de versiones
+o con uno firmado. \menu{Archivo\then Anotaciones en un archivo aparte}
+activa o desactiva esto para el documento abierto, y guarda enseguida:
+
+\begin{itemize}
+\item Al activarlo, escribe el archivo aparte. Si el PDF tiene anotaciones
+  propias, pregunta si se deja el PDF como está o se le quitan (para que
+  otros programas lo muestren sin ellas); en los dos casos, desde entonces
+  están en el archivo aparte y se editan allí.
+\item Al desactivarlo, escribe las anotaciones en el PDF y borra el
+  archivo aparte. Las que venían del PDF se cambian donde están, sin
+  escribirlas de nuevo, y las que se borraron entretanto se le quitan.
+\end{itemize}
+
+\noindent Mientras un documento guarda aparte sus anotaciones,
+\menu{Archivo\then Guardar} escribe solo el archivo aparte. El PDF se
+escribe también únicamente si cambió el documento mismo (páginas movidas o
+giradas, etiquetas de página, encabezados\ldots); entonces el programa
+pregunta si el PDF debe llevar también las anotaciones o solo el archivo
+aparte. \menu{Guardar como} copia el PDF y escribe un archivo aparte junto
+a la copia. \menu{Archivo\then Guardar una copia\then Con las anotaciones
+en el PDF} hace una copia con ellas escritas dentro, para dársela a otro.
+
+\index{anotaciones!en un archivo aparte}%
+Un documento que tiene archivo aparte se abre siempre con él, y se guarda
+allí. \menu{Configuración\then Documentos\then Guardar las anotaciones}
+dice adónde van las de los demás: al PDF mismo (lo de siempre) o a un
+archivo aparte. Si la carpeta del PDF no se puede escribir, el archivo
+aparte va a la carpeta \texttt{annotations} de la configuración (véase la
+sección~\ref{sec:files-kept}).
+
+El archivo aparte es XML y guarda todo de cada anotación: sus respuestas,
+etiquetas, categorías, grupos, capas, crítica textual y archivos adjuntos.
+Si otro programa cambia después el PDF, las anotaciones siguen encontrando
+su sitio: las que ese programa añadió se muestran también, y las de una
+página que giró giran con ella. Si una copia del programa en otro
+ordenador (a través de una carpeta sincronizada, por ejemplo) guarda el
+archivo aparte, eso se nota como un cambio del documento. Un archivo
+aparte que no se puede leer no se pierde: el siguiente guardado lo deja al
+lado, con \texttt{.unreadable} añadido al nombre.
+
 \subsection{El resto del menú Archivo}
 
 \index{contrasenas@contraseñas}\index{aplanar}\index{combinar archivos}\index{pdf a partir de imagenes@PDF a partir de imágenes}\index{copias mas pequenas@copias más pequeñas}\index{version de pdf@versión de PDF}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
@@ -1201,7 +1249,11 @@ veces.
 \menu{Archivo\then Guardar una copia\then Con las anotaciones aplanadas} hace las anotaciones
 parte de las páginas: se ven y se imprimen en todas partes, pero ya no se
 pueden editar ni quitar. \menu{Sin anotaciones} guarda el documento sin
-ninguna (los enlaces y los campos de formulario se quedan).
+ninguna (los enlaces y los campos de formulario se quedan). \menu{Con las
+anotaciones en el PDF}, para un documento que las guarda en un archivo
+aparte, las escribe en una copia. \menu{Importar\then Anotaciones\then
+De otra copia del PDF} lee también el archivo aparte de esa copia, si lo
+tiene.
 
 \subsection{Cada modo, sus anotaciones}
 
@@ -2039,6 +2091,9 @@ Al pie de la pestaña se dice dónde se guarda la configuración
   \menu{Archivo\then Abrir reciente}, y un botón para vaciar la lista.
 \item[Los diálogos de abrir y guardar empiezan en] la última carpeta usada
   o la carpeta del documento.
+\item[Guardar las anotaciones] de un documento que aún no tiene archivo
+  aparte de ellas: en el PDF mismo, o en un archivo aparte junto a él
+  (véase la sección~\ref{sec:apart}).
 \end{description}
 
 \subsection{Colores, Atajos, Categorías}
@@ -2104,7 +2159,9 @@ Windows, o la carpeta que indique la variable de entorno
 un archivo editado a mano no puede detener el programa: un valor que no se
 puede leer se cambia por el que tiene por defecto. Los certificados de los
 firmantes de confianza se guardan en la misma carpeta, en
-\texttt{trusted}. Lo que la ventana guarda de sí misma (la disposición de
+\texttt{trusted}, y en \texttt{annotations} los archivos aparte de
+anotaciones de los documentos cuya carpeta no se puede escribir (véase la
+sección~\ref{sec:apart}). Lo que la ventana guarda de sí misma (la disposición de
 cada modo, las barras de herramientas, los documentos abiertos al
 terminar) va en el mismo \texttt{config.toml}, después de la
 configuración, en las tablas \texttt{[window]} e \texttt{[impose]}. Las

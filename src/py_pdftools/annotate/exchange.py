@@ -231,11 +231,19 @@ def import_json(source: Path) -> list[Annotation]:
 
 
 def import_pdf(source: Path, password: str = "") -> list[Annotation]:
-    """The annotations of another PDF (another copy of the document, annotated by someone else)."""
+    """The annotations of another PDF (another copy of the document, annotated by someone else); if it keeps them
+    apart (SOURCE.annot.xml, see sidecar.py), those."""
+    from . import sidecar  # (here: sidecar.py imports this module)
+
     doc = annots.open_pdf(source, password)
     try:
+        found = annots.read(doc)
+        kept = sidecar.find(source)
+        if kept is not None:
+            found = sidecar.combine(doc, found, sidecar.read(kept)).annotations
         # xref=0: these come from another file, so they are new here.
-        return [dataclasses.replace(a, xref=0) for a in annots.read(doc) if a.kind != annots.OTHER]
+        return [dataclasses.replace(a, xref=0, replies=tuple(dataclasses.replace(r, xref=0) for r in a.replies))
+                for a in found if a.kind != annots.OTHER]
     finally:
         doc.close()
 

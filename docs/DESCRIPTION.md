@@ -8,7 +8,7 @@ their scanned pages, and finds the pages of words for an index. Nicolas
 Vaughan made it in November 2026 by bringing together six earlier programs
 by the same author, each of which did one of those things: py-annotate,
 py-redact, py-foliation, py-imposition, py-pdfocr and pdf-word-finder. Here
-I explain how it was made, in a hundred and thirteen stages.
+I explain how it was made, in a hundred and fourteen stages.
 
 It is free software, under the GNU General Public License, version 3 or
 later. The pages, the annotations and the redaction are the work of
@@ -2671,10 +2671,49 @@ a signature's frame, dragged 150 points wide, was 151.1 there. The mouse
 moves in whole pixels, and at that Mac's zoom a pixel is more than a point;
 the test now allows half a pixel at each end.
 
+114. Annotations in a separate file
+---------------------------------
+
+Skim, the PDF reader for the Mac, keeps its notes outside the PDF: in the
+file's extended attributes, or in a `.skim` file beside it. I read its
+source to see how, and wanted the same here, as a choice: some documents
+are not mine to change, some are under version control, some are signed,
+and an annotated PDF that differs byte for byte from the original is a
+nuisance in all three cases.
+
+Skim's way did not fit as it was. Extended attributes are lost by many
+copies, by mail and by Git, so I chose a visible file beside the PDF:
+`book.pdf.annot.xml`, or, if the folder can't be written, one in the
+configuration's folder. It is XML of the program's own, not XFDF, because
+XFDF has no place for the tags, categories, groups, layers, attached files
+and textual criticism, and nothing may be lost when going from one way to
+the other. Skim also leaves the PDF's own annotations where they are, and
+lets you edit them only after converting them. Here the separate file holds
+the whole state of the annotations, and those of the PDF are edited too:
+each one that came from the PDF keeps its object number and a fingerprint
+of how it was. On opening, the PDF's annotations that are still as they
+were give way to those of the file, changed or deleted; those that another
+program added or changed are shown as well. The fingerprint, not the
+number, recognises them, since a program that saves the PDF whole
+renumbers its objects. Going back to the PDF is then an ordinary save: the
+annotations that came from it are changed where they are, as py-pdftools
+always does, and the deleted ones are taken out.
+
+File > Annotations in a separate file switches a document from one way to
+the other and saves at once. When the PDF has annotations of its own, it
+asks whether to leave them in it or take them out, so that other programs
+show it clean. A change of the document itself (pages turned or moved,
+labels) still has to write the PDF, and then the program asks whether the
+annotations go into it as well. The file also keeps the rotation of each
+page, because the coordinates of an annotation are those of the page as
+shown: a page turned later by another program would otherwise carry its
+annotations to the wrong place. The window watches the separate file too,
+so that a save from my other computer, through Dropbox, opens it again.
+
 Testing
 -------
 
-The program has 890 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 906 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2686,7 +2725,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, pages made pictures, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, and the switch both ways), the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -2695,5 +2734,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 187 files of Python, around 52,000 lines (about a tenth of them
-comments), and 3,527 texts of the interface in Spanish.
+program has 189 files of Python, around 53,000 lines (about a tenth of them
+comments), and 3,562 texts of the interface in Spanish.

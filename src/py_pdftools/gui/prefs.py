@@ -461,6 +461,16 @@ class SettingsDialog(QDialog):
             self.dialogs.addItem(tr(name), key)
         self.dialogs.setCurrentIndex(max(0, self.dialogs.findData(appearance.value("dialogs"))))
         form.addRow(tr("Open and save dialogs start in:"), self.dialogs)
+        from .storing import default_storage
+
+        self.storage = QComboBox()
+        for key, name in (("pdf", N_("In the PDF itself")), ("file", N_("In a separate file, beside the PDF"))):
+            self.storage.addItem(tr(name), key)
+        self.storage.setCurrentIndex(max(0, self.storage.findData(default_storage())))
+        self.storage.setToolTip(tr("For documents that have no separate file of annotations yet (NAME.pdf.annot.xml): "
+                                   "one that has it is always saved there. File > Annotations in a separate file "
+                                   "changes it for the document open"))
+        form.addRow(tr("Save the annotations:"), self.storage)
         return page
 
     def _clear_recent(self):
@@ -483,7 +493,8 @@ class SettingsDialog(QDialog):
                   "annot_panel": self.annot_panel.isChecked(),
                   "opening": self.opening.currentData(),
                   "places": self.places.isChecked(), "ask_links": self.ask_links.isChecked(),
-                  "recent": self.recent.value(), "dialogs": self.dialogs.currentData()}
+                  "recent": self.recent.value(), "dialogs": self.dialogs.currentData(),
+                  "annot_storage": self.storage.currentData()}
         changed = {k: v for k, v in values.items() if v != appearance.value(k)}
         if changed:
             try:

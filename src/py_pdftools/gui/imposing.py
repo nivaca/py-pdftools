@@ -80,7 +80,8 @@ class ImposeMixin:
         if self.path is None:
             return None
         # Nothing unsaved: the document's own file is imposed as it is, with no copy.
-        if self.work is None and self.annotations == self.saved:
+        # (not if they are saved apart: then the PDF hasn't them)
+        if self.work is None and self.annotations == self.saved and not self.apart():
             return self.path
         # La copia va a la carpeta temporal de la ventana, con las copias de trabajo; cada clave nueva deja otra, y
         # drop_work las borra todas juntas.

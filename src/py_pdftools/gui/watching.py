@@ -1,7 +1,8 @@
 """The document's file watched (mixed into MainWindow): when another program changes it on disk, the window
 opens it again as it is now, at the same place, if nothing here is unsaved and the settings say so (Settings
 > General, on by default); else it asks first. Its own saves are not taken for changes: the file's time and
-size after each opening or saving are kept, and a change that leaves them so is no change."""
+size after each opening or saving are kept, and a change that leaves them so is no change. The file of its annotations
+apart, if it has one (see storing.py), is watched with it."""
 
 from __future__ import annotations
 
@@ -42,14 +43,24 @@ class WatchMixin:
         self._disk_stamp: tuple[int, int] | None = None
         self._asking_reload = False
 
+    def _watched(self) -> list[Path]:
+        """The files watched: the document's, and that of its annotations apart, if it has one."""
+        if self.path is None:
+            return []
+        kept = getattr(self, "kept_file", None)
+        return [self.path] + ([kept] if kept is not None and kept.is_file() else [])
+
+    def _stamps(self) -> tuple:
+        return tuple(stamp(p) for p in self._watched())
+
     def watch_file(self):
         """Watch the document's file (another's no longer), as it is now."""
         old = self._watcher.files()
         if old:
             self._watcher.removePaths(old)
         if self.path is not None:
-            self._watcher.addPath(str(self.path))
-            self._disk_stamp = stamp(self.path)
+            self._watcher.addPaths([str(p) for p in self._watched()])
+            self._disk_stamp = self._stamps()
 
     def file_changed(self) -> bool:
         """The file changed on disk: opened again (or asked), unless the change was ours. True if reopened."""
@@ -65,8 +76,10 @@ class WatchMixin:
             return False
         self._gone_once = False
         # (a file replaced by a new one, as many programs save, is no longer watched: it is watched again)
-        if str(self.path) not in self._watcher.files():
-            self._watcher.addPath(str(self.path))
+        for p in self._watched():
+            if str(p) not in self._watcher.files():
+                self._watcher.addPath(str(p))
+        now = self._stamps()
         if now == self._disk_stamp:
             return False
         self._disk_stamp = now  # (asked once for this change, not again)

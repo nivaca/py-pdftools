@@ -607,6 +607,54 @@ recovery copy of it every two minutes (the time is set in
 \menu{Settings\then General}). If the program ends without saving, the next
 time the document is opened it offers to bring those changes back.
 
+\subsection{Annotations in a separate file}
+\label{sec:apart}
+
+\index{annotations!in a separate file}\index{saving}\index{annot.xml@\texttt{.annot.xml} files}%
+The annotations can also be kept out of the PDF, in a file of their own
+beside it: for \texttt{book.pdf}, \texttt{book.pdf.annot.xml}. The PDF
+then stays exactly as it was, byte for byte, however much it is annotated,
+which suits a document that is not yours, one under version control, or
+one that is signed. \menu{File\then Annotations in a separate file} turns
+this on or off for the document open, and saves at once:
+
+\begin{itemize}
+\item Turned on, it writes the separate file. If the PDF has annotations
+  of its own, it asks whether to leave the PDF as it is or to take them
+  out of it (so that other programs show the PDF without them); either
+  way they are in the separate file from then on, and edited there.
+\item Turned off, it writes the annotations into the PDF and removes the
+  separate file. Those that came from the PDF are changed where they are,
+  not written again, and those deleted meanwhile are taken out of it.
+\end{itemize}
+
+\noindent While a document keeps its annotations apart, \menu{File\then
+Save} writes only the separate file. The PDF is written as well only when
+the document itself has changed (pages moved or turned, page labels,
+headers\ldots); then the program asks whether the PDF should have the
+annotations in it too, or only the separate file. \menu{Save as} copies the
+PDF and writes a separate file beside the copy. \menu{File\then Save a
+copy\then With the annotations in the PDF} makes a copy with them written
+in it, to give to someone else.
+
+\index{annotations!in a separate file}%
+A document that has a separate file is always opened with it, and saved
+there. \menu{Settings\then Documents\then Save the annotations} says where
+the annotations of the others go: in the PDF itself (the usual way) or in
+a separate file. If the folder of the PDF can't be written, the separate
+file goes to the folder \texttt{annotations} of the configuration (see
+section~\ref{sec:files-kept}).
+
+The separate file is XML, and holds everything about each annotation: its
+replies, tags, categories, groups, layers, textual criticism and attached
+files. If another program changes the PDF afterwards, the annotations
+still find their place: those it added are shown too, and those on a page
+it turned are turned with it. A copy of the program on another computer
+(through a synchronised folder, for instance) that saves the separate file
+is noticed as a change of the document. A separate file that can't be read
+is not lost: the next save keeps it beside, with \texttt{.unreadable}
+added to its name.
+
 \subsection{The rest of the menu File}
 
 \index{passwords}\index{flattening}\index{combining files}\index{pdf from pictures@PDF from pictures}\index{smaller copies}\index{pdf version@PDF version}\index{pdf/a@PDF/A}\index{pdf/x@PDF/X}%
@@ -1136,7 +1184,10 @@ someone else; the annotations already in the document are not added twice.
 \menu{File\then Save a copy\then With annotations flattened} makes the annotations part of
 the pages: they are seen and printed everywhere, but can't be edited or
 removed any more. \menu{Without annotations} saves the document without
-any (links and form fields stay).
+any (links and form fields stay). \menu{With the annotations in the PDF},
+for a document that keeps them in a separate file, writes them into a
+copy. \menu{Import\then Annotations\then From another copy of the PDF}
+also reads the separate file of that copy, if it has one.
 
 \subsection{Each mode, its own annotations}
 
@@ -1933,6 +1984,9 @@ section~\ref{sec:files-kept}).
   shows, and a button to clear the list.
 \item[Open and save dialogs start in] the last folder used, or the
   folder of the document.
+\item[Save the annotations] of a document that has no separate file of
+  them yet: in the PDF itself, or in a separate file beside it (see
+  section~\ref{sec:apart}).
 \end{description}
 
 \subsection{Colours, Shortcuts, Categories}
@@ -1992,7 +2046,9 @@ the folder named by the environment variable \texttt{PY\_PDFTOOLS\_CONFIG}.
 Each setting is checked when it is read, so a file edited by hand can't
 stop the program: a value that can't be read is replaced by its default.
 The certificates of the signers trusted are kept in the same folder, in
-\texttt{trusted}. What the window keeps of itself (how each mode arranges
+\texttt{trusted}, and in \texttt{annotations} the separate files of
+annotations of documents whose folder can't be written (see
+section~\ref{sec:apart}). What the window keeps of itself (how each mode arranges
 it, the toolbars, the documents open at the end) goes in the same
 \texttt{config.toml}, after the settings, in the tables
 \texttt{[window]} and \texttt{[impose]}. Older versions kept it in a second
