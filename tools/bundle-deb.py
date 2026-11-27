@@ -3,8 +3,8 @@
 
     uv run python tools/bundle-deb.py [--appimage APPIMAGE] [-o CARPETA]
 
-El paquete es dist/py-pdftools_VERSIÓN-1_amd64.deb. Se hace de la AppImage (tools/bundle-appimage.py;
-dist/py-pdftools-VERSIÓN-x86_64.AppImage), que se desempaca: py-pdftools necesita Python 3.14, que Debian y
+El paquete es build/release/py-pdftools_VERSIÓN-1_amd64.deb. Se hace de la AppImage (tools/bundle-appimage.py;
+build/release/py-pdftools-VERSIÓN-x86_64.AppImage), que se desempaca: py-pdftools necesita Python 3.14, que Debian y
 casi todos los Ubuntu no tienen, así que el paquete lo trae, con Qt y las bibliotecas, como la AppImage. Instala:
 
     /opt/py-pdftools/                      los archivos de la AppImage: su Python, con py-pdftools dentro
@@ -33,7 +33,7 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DIST = ROOT / "dist"
+DIST = ROOT / "build" / "release"  # (no dist/, que solo guarda el RPM)
 VERSION = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"]
 REVISION = "1"  # (the Debian revision: the package's own, after the program's version)
 APP = "py-pdftools"
@@ -185,7 +185,7 @@ def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Make the Debian package of py-pdftools, from its AppImage.")
     parser.add_argument("--appimage", type=Path, default=DIST / f"{APP}-{VERSION}-x86_64.AppImage",
                         help="the AppImage to make it from (tools/bundle-appimage.py)")
-    parser.add_argument("-o", "--output", type=Path, default=DIST, help="the folder of the package (dist)")
+    parser.add_argument("-o", "--output", type=Path, default=DIST, help="the folder of the package (build/release)")
     args = parser.parse_args(argv)
     if not args.appimage.is_file():
         sys.exit(f"bundle-deb.py: there is no {args.appimage} (make it first: tools/bundle-appimage.py)")
@@ -203,7 +203,7 @@ def main(argv=None) -> int:
         target = args.output / deb_name()
         ar(target, [("debian-binary", b"2.0\n"), ("control.tar.xz", work / "control.tar.xz"),
                     ("data.tar.xz", work / "data.tar.xz")])
-    # Solo el paquete de esta versión en dist/: los de versiones anteriores se van
+    # Solo el paquete de esta versión en la carpeta: los de versiones anteriores se van
     for old in args.output.glob(f"{APP}_*_amd64.deb"):
         if old.name != deb_name():
             old.unlink()
