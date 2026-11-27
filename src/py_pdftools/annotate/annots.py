@@ -244,6 +244,9 @@ class Annotation:
     repeat: str = ""
     replies: tuple[Reply, ...] = ()  # in the order they were made
     xref: int = 0  # of the annotation in the document it was read from; 0 if new
+    # De una anotación sacada del PDF a un archivo aparte: la copia exacta de sus objetos que ese archivo guarda,
+    # para devolverla tal cual al PDF (véase sidecar.py); '' si no tiene
+    origin: str = ""
 
     def name(self) -> str:
         if self.kind == "caret" and self.intent == "Replace":
@@ -1356,7 +1359,7 @@ def same(a: Annotation, b: Annotation, tolerance: float = 1.0) -> bool:
         return [v for item in items for p in item for v in (p if isinstance(p, tuple) else (p,))]
 
     # Campos que cambian solos al escribir, o que se comparan aparte, con tolerancia.
-    ignore = {"xref", "created", "modified", "image", "rect", "quads", "paths", "replies", "width", "popup"}
+    ignore = {"xref", "created", "modified", "image", "rect", "quads", "paths", "replies", "width", "popup", "origin"}
     fields = [f.name for f in dataclasses.fields(Annotation) if f.name not in ignore]
     # The colour of a stamp is not compared: MuPDF draws the standard stamps in colours of their own.
     if any(getattr(a, f) != getattr(b, f) for f in fields if not (f == "color" and a.kind == "stamp")):
@@ -1570,16 +1573,21 @@ def save_doc(doc: pymupdf.Document, target: Path) -> None:
 def write(source: Path, annotations: list[Annotation], target: Path, password: str = "",
           kept: set[int] | None = None, result: list[Annotation] | None = None,
           original: list[Annotation] | None = None, shown: dict[str, bool] | None = None,
-          edit=None) -> int:
+          edit=None, prepare=None) -> int:
     """SOURCE with ANNOTATIONS (see apply), saved as TARGET; EDIT, if given, makes another change
     to the document (EDIT(doc), before it is saved: one that leaves its annotations as they are). Into SOURCE itself, the
     changes are added at its end (an incremental save: what was signed stays as it was
     signed), unless the file can't take that or has a password; else it is written whole
     (safely, through a file of its own). KEPT: see apply. RESULT, if given, gets the annotations as
     TARGET has them (as read() gives them: no need to read the file again). Returns how many
-    annotations were written. ORIGINAL: see apply. SHOWN: the layers to show or hide (see set_layers)."""
+    annotations were written. ORIGINAL: see apply. SHOWN: the layers to show or hide (see set_layers). PREPARE,
+    if given: PREPARE(doc, annotations) puts objects in DOC before the annotations are applied, and returns them as
+    they then are (see sidecar.restore); the annotations of DOC are then read again."""
     doc = open_pdf(source, password)
     try:
+        if prepare is not None:
+            annotations = prepare(doc, annotations)
+            original = None
         # SAME: lo que apply dejó como estaba, para no leer otra vez esas anotaciones en RESULT.
         same: dict[int, Annotation] = {}
         written = apply(doc, annotations, kept=kept, untouched=same, original=original)

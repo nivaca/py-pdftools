@@ -188,3 +188,72 @@ def test_imported_from_a_copy_that_keeps_them_apart(sample, tmp_path):
     keep(path, doc, [dataclasses.replace(first, contents="changed"), third], in_pdf)
     found = exchange.import_pdf(path)
     assert [(a.contents, a.xref) for a in found] == [("changed", 0), ("third", 0)]
+
+
+def foreign(sample, tmp_path):
+    """A copy of SAMPLE with a note answered once and a rectangle, both with keys of another program."""
+    path = tmp_path / "foreign.pdf"
+    annots.write(sample, [Annotation("note", 0, (100, 100, 116, 116), "#ffd54f", contents="note",
+                                     replies=(Reply("B", "an answer"),)),
+                          Annotation("rect", 1, (10, 10, 60, 60), "#ff0000", contents="box")], path)
+    with pymupdf.open(path) as d:
+        for page in d:
+            for xref, _, _ in page.annot_xrefs():
+                d.xref_set_key(xref, "NM", f"(other-{xref})")
+                d.xref_set_key(xref, "OtherProgram", "<< /Kept true /Count 3 >>")
+        d.save(path, incremental=True, encryption=pymupdf.PDF_ENCRYPT_KEEP)
+    return path
+
+
+def objects_of(doc, xref):
+    """What the annotation XREF of DOC is, without its numbers: its keys, and its look decoded."""
+    keys = {k: doc.xref_get_key(xref, k)[1] for k in doc.xref_get_keys(xref) if k not in ("P", "Popup", "IRT", "AP")}
+    ap = doc.xref_get_key(xref, "AP/N")
+    look = doc.xref_stream(int(ap[1].split()[0])) if ap[0] == "xref" else None
+    return keys, look
+
+
+def test_taken_out_and_put_back_exactly(sample, tmp_path):
+    path = foreign(sample, tmp_path)
+    doc = annots.open_pdf(path)
+    in_pdf = annots.read(doc)
+    note, box = editable(in_pdf)
+    before = {a.contents: objects_of(doc, a.xref) for a in (note, box)}
+    raws = {}
+    kept = []
+    for a in (note, box):
+        raw = sidecar.capture(doc, a)
+        raws[raw.id] = raw
+        kept.append(dataclasses.replace(bare([a])[0], origin=raw.id))
+    assert len(raws[kept[0].origin].objects) >= 4  # (the note, its pop-up, its reply, their looks)
+    # Taken out of the PDF; kept apart, through the XML.
+    bare_pdf = tmp_path / "bare.pdf"
+    annots.write(path, [a for a in in_pdf if a.kind == annots.OTHER], bare_pdf)
+    assert editable(annots.read(annots.open_pdf(bare_pdf))) == []
+    target = sidecar.beside(bare_pdf)
+    doc = annots.open_pdf(bare_pdf)
+    sidecar.write(target, doc, bare_pdf.name, kept, {}, raws=raws)
+    back = sidecar.read(target)
+    assert back.annotations == kept and back.raws == raws
+    # Put back: the rectangle as it was, the note changed (its text) and with a second answer.
+    changed = dataclasses.replace(back.annotations[0], contents="note, changed",
+                                  replies=back.annotations[0].replies + (Reply("C", "another"),))
+    out = tmp_path / "back.pdf"
+    annots.write(bare_pdf, [changed, back.annotations[1]], out,
+                 prepare=lambda d, items: sidecar.restore(d, back.raws, items))
+    doc = annots.open_pdf(out)
+    got = editable(annots.read(doc))
+    assert [(a.kind, a.contents) for a in got] == [("note", "note, changed"), ("rect", "box")]
+    assert [r.contents for r in got[0].replies] == ["an answer", "another"]
+    keys, look = objects_of(doc, got[1].xref)
+    assert (keys, look) == before["box"]  # (the rectangle: exactly as it was, its look too)
+    keys, _ = objects_of(doc, got[0].xref)
+    assert keys["NM"] == before["note"][0]["NM"] and keys["OtherProgram"] == before["note"][0]["OtherProgram"]
+    assert doc.xref_get_key(got[0].replies[0].xref, "NM")[1].startswith("other-")  # (the old answer, its own)
+    # (each put back once: the page lists the note, its pop-up and its answers, no more)
+    assert len(doc[0].annot_xrefs()) == len({x for x, _, _ in doc[0].annot_xrefs()})
+
+
+def test_refs_not_in_strings():
+    text = "<< /A 12 0 R /S (see 3 0 R \\) and 4 0 R) /H <0A0B> /K [5 0 R 6 1 R] /N 7 >>"
+    assert [ref for _, _, ref in sidecar._refs(text)] == [12, 5, 6]

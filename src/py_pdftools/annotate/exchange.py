@@ -210,6 +210,7 @@ def export_json(doc: pymupdf.Document, path: Path, annotations: list[Annotation]
     items = []
     for a in annotations:
         data = to_data(a)
+        data.pop("origin", None)  # (a copy kept apart for this document only: see sidecar.py)
         data["page_label"] = page_label(doc, a.page)
         data["marked_text"] = marked_text(doc, a)
         items.append(data)

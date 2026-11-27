@@ -1563,7 +1563,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         state = {"path": self.path, "password": self.password, "annotations": self.annotations,
                  "saved": self.saved, "undo": self.undo_stack, "redo": self.redo_stack, "page": self.page,
                  "tool": self.canvas.mode, "work": self.work, "work_dir": self._work_dir, "works": self._works,
-                 "storage": self.storage, "kept_file": self.kept_file}
+                 "storage": self.storage, "kept_file": self.kept_file, "kept_raws": self.kept_raws}
         self.work, self._work_dir = None, None
         return state
 
@@ -1579,6 +1579,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         # The annotations of the old window replace those just read: they include the changes not yet saved.
         self.annotations, self.saved = list(state["annotations"]), list(state["saved"])
         self.storage, self.kept_file = state.get("storage", "pdf"), state.get("kept_file")
+        self.kept_raws = dict(state.get("kept_raws") or {})
         self.undo_stack, self.redo_stack = list(state["undo"]), list(state["redo"])
         self.refresh()
         self.show_page(state["page"])
@@ -1850,8 +1851,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         kept: set[int] = set()
         try:
             result: list[Annotation] = []
+            # (those taken out of the PDF before, kept apart, go back exactly as they were: see storing.py)
             written = annots.write(source, self.annotations, target, self.password, kept=kept, result=result,
-                                   original=known, shown=self.layers)
+                                   original=known, shown=self.layers, prepare=self.restorer())
         except AnnotateError as e:
             # The document was closed above: show it again from SOURCE before reporting the error.
             if replacing:

@@ -101,7 +101,7 @@ def test_taken_out_of_the_pdf(make, book):
     w.answers["strip"] = "strip"
     assert w.set_apart(True)
     assert editable(annots.read(annots.open_pdf(book))) == []  # (other programs show the PDF bare)
-    got = [dataclasses.replace(a, xref=0, replies=tuple(dataclasses.replace(r, xref=0) for r in a.replies))
+    got = [dataclasses.replace(a, xref=0, origin="", replies=tuple(dataclasses.replace(r, xref=0) for r in a.replies))
            for a in editable(w.annotations)]
     assert got == kept and not w.is_modified()
     other = make(book)
@@ -187,3 +187,27 @@ def test_import_skim_notes(make, book, tmp_path):
     assert [a.contents for a in editable(w.annotations)] == ["first", "second", "from Skim"]
     assert w.import_from(source, "skim")  # (twice: not added again)
     assert len(editable(w.annotations)) == 3
+
+
+def test_taken_out_and_back_exactly(make, book):
+    with pymupdf.open(book) as d:
+        for page in d:
+            for xref, _, _ in page.annot_xrefs():
+                d.xref_set_key(xref, "OtherProgram", "(kept)")
+        d.save(book, incremental=True, encryption=pymupdf.PDF_ENCRYPT_KEEP)
+    w = make(book)
+    w.answers["strip"] = "strip"
+    assert w.set_apart(True)
+    assert editable(annots.read(annots.open_pdf(book))) == []
+    assert all(a.origin in w.kept_raws for a in editable(w.annotations))
+    # Opened again from the file apart, the second one changed, and back into the PDF.
+    other = make(book)
+    assert len(other.kept_raws) == 2
+    first, second = editable(other.annotations)
+    other.change([first, dataclasses.replace(second, contents="second, changed")])
+    assert other.set_apart(False)
+    doc = annots.open_pdf(book)
+    back = editable(annots.read(doc))
+    assert [a.contents for a in back] == ["first", "second, changed"]
+    assert [doc.xref_get_key(a.xref, "OtherProgram")[1] for a in back] == ["kept", "kept"]
+    assert back[1].replies[0].contents == "yes"

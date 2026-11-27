@@ -187,7 +187,7 @@ class WorkingMixin:
         try:  # (the annotations of the window go into the document first: the change may move their pages)
             if not same:
                 annots.write(self.file, self.annotations, written, self.password, shown=self.layers,
-                             original=self.known_in_file())
+                             original=self.known_in_file(), prepare=self.restorer())
             with pikepdf.open(written, password=self.password) as pdf:
                 change(pdf, *args)
                 # Si el documento estaba cifrado, la copia conserva el mismo cifrado (encryption=True).
@@ -220,7 +220,7 @@ class WorkingMixin:
         result: list[Annotation] = []
         try:
             annots.write(self.file, self.annotations, target, self.password, shown=self.layers, result=result,
-                         original=self.known_in_file(), edit=edit)
+                         original=self.known_in_file(), edit=edit, prepare=self.restorer())
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False

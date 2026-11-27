@@ -68,6 +68,9 @@ class StorageMixin:
     _kept_layers: dict[str, bool] | None = None
     _kept_note = ""  # (what the opening found, for the status bar: see open_path)
     _kept_unreadable = False
+    # {id: copy} of the objects of the annotations taken out of the PDF, to put them back exactly (see
+    # sidecar.capture and Annotation.origin)
+    kept_raws: dict[str, sidecar.Raw] = {}
 
     def apart(self) -> bool:
         """Whether the annotations are saved apart, not in the PDF."""
@@ -80,6 +83,7 @@ class StorageMixin:
         its file apart, if it has one, else FOUND; and where they are to be saved."""
         self.kept_file, self._kept_layers, self._kept_note = sidecar.find(path), None, ""
         self._kept_unreadable = False
+        self.kept_raws = {}
         if self.kept_file is None:
             self.storage = default_storage()
             return found
@@ -94,6 +98,7 @@ class StorageMixin:
             return found
         out = sidecar.combine(self.doc, found, kept)
         self._kept_layers = kept.layers
+        self.kept_raws = dict(kept.raws)
         notes = [tr("annotations from {file}", file=self.kept_file.name)]
         if out.new_in_pdf:
             notes.append(ntr("{count} more in the PDF, new or changed since",
@@ -122,8 +127,38 @@ class StorageMixin:
             # (el archivo que no se pudo leer queda al lado, por si se quiere)
             os.replace(place, place.with_name(place.name + ".unreadable"))
             self._kept_unreadable = False
-        sidecar.write(place, self.doc, pdf.name, items, base, self.layers)
+        sidecar.write(place, self.doc, pdf.name, items, base, self.layers, self.kept_raws)
         return place
+
+    def restorer(self):
+        """For annots.write: the annotations taken out of the PDF put back first, exactly (see sidecar.restore);
+        None if there are none."""
+        raws = self.kept_raws
+        if not raws or not any(a.origin in raws for a in self.annotations):
+            return None
+        return lambda doc, items: sidecar.restore(doc, raws, items)
+
+    def _capture(self, source: Path, mine: list[Annotation], known: list[Annotation] | None) -> list[Annotation]:
+        """(Taking the annotations MINE out of the PDF SOURCE.) A copy of the objects of each that SOURCE has,
+        kept apart; MINE as new annotations, each naming its copy."""
+        try:
+            doc = annots.open_pdf(source, self.password)
+        except AnnotateError:
+            return _fresh(mine)
+        try:
+            # Las del archivo, tal como read() las da: sus xref y los de sus respuestas son los de SOURCE.
+            in_file = {a.xref: a for a in (known if known is not None else annots.read(doc)) if a.kind != OTHER}
+            out = []
+            for m, a in zip(mine, _fresh(mine)):
+                theirs = in_file.get(m.xref) if m.xref else None
+                if theirs is not None:
+                    raw = sidecar.capture(doc, theirs)
+                    self.kept_raws[raw.id] = raw
+                    a = dataclasses.replace(a, origin=raw.id)
+                out.append(a)
+            return out
+        finally:
+            doc.close()
 
     def ask_pdf_part(self) -> str | None:
         """(Saving apart a document whose PDF must be written too: it has changes of its own.) Whether the PDF
@@ -154,6 +189,9 @@ class StorageMixin:
                 return False
         source, page, old = self.file, self.page, self.path
         known = self.known_in_file()
+        mine = [a for a in self.annotations if a.kind != OTHER]
+        # Lo que se quita del PDF se copia antes, exacto, para poder devolverlo tal cual.
+        taken = self._capture(source, mine, known) if pdf_part == "strip" else None
         if replacing:  # (the file is about to change under the open document)
             self._close_doc(carry=True)
         try:
@@ -161,7 +199,8 @@ class StorageMixin:
                 _copy(source, target)
             else:
                 keep = self.annotations if pdf_part == "embed" else [a for a in self.annotations if a.kind == OTHER]
-                annots.write(source, keep, target, self.password, original=known, shown=self.layers)
+                annots.write(source, keep, target, self.password, original=known, shown=self.layers,
+                             prepare=self.restorer() if pdf_part == "embed" else None)
         except (AnnotateError, OSError) as e:
             if replacing:
                 self._load_work(source, page)
@@ -171,10 +210,9 @@ class StorageMixin:
         found = self._load(target, self.password, page, carry=True)
         if found is None:
             return False
-        mine = [a for a in self.annotations if a.kind != OTHER]
         # Lo que el archivo aparte guarda: con el PDF copiado, las anotaciones tal cual (sus xref siguen valiendo);
         # con ellas dentro del PDF, las que el PDF tiene ahora; sin ellas, todas como nuevas.
-        items = {"copy": mine, "embed": [a for a in found if a.kind != OTHER], "strip": _fresh(mine)}[pdf_part]
+        items = {"copy": mine, "embed": [a for a in found if a.kind != OTHER], "strip": taken}[pdf_part]
         base = sidecar.base_of(found)
         try:
             self.kept_file = self._write_kept(target, items, base)
@@ -245,7 +283,7 @@ class StorageMixin:
         self.keep_comment()
         try:
             written = annots.write(self.file, self.annotations, target, self.password,
-                                   original=self.known_in_file(), shown=self.layers)
+                                   original=self.known_in_file(), shown=self.layers, prepare=self.restorer())
         except AnnotateError as e:
             self.status(str(e), error=True)
             return False
@@ -300,7 +338,7 @@ class StorageMixin:
                     sidecar.remove(self.path)
                 except OSError as e:
                     self.status(tr("{path} cannot be removed: {error}", path=self.kept_file, error=e), error=True)
-                self.kept_file = None
+                self.kept_file, self.kept_raws = None, {}
                 self.watch_file()
                 self.status(tr("The annotations are in the PDF now: {path}", path=self.path.name))
             else:

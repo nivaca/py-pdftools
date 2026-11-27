@@ -622,10 +622,15 @@ this on or off for the document open, and saves at once:
 \item Turned on, it writes the separate file. If the PDF has annotations
   of its own, it asks whether to leave the PDF as it is or to take them
   out of it (so that other programs show the PDF without them); either
-  way they are in the separate file from then on, and edited there.
+  way they are in the separate file from then on, and edited there. Taken
+  out, they are not reduced to what this program knows of them: the
+  separate file keeps an exact copy of their objects (their look, their
+  pop-up windows, the keys other programs put in them).
 \item Turned off, it writes the annotations into the PDF and removes the
   separate file. Those that came from the PDF are changed where they are,
   not written again, and those deleted meanwhile are taken out of it.
+  Those that were taken out are put back exactly as they were, and only
+  then changed, where they are, as you changed them.
 \end{itemize}
 
 \noindent While a document keeps its annotations apart, \menu{File\then

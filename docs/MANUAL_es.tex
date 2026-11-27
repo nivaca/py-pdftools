@@ -646,10 +646,15 @@ activa o desactiva esto para el documento abierto, y guarda enseguida:
 \item Al activarlo, escribe el archivo aparte. Si el PDF tiene anotaciones
   propias, pregunta si se deja el PDF como está o se le quitan (para que
   otros programas lo muestren sin ellas); en los dos casos, desde entonces
-  están en el archivo aparte y se editan allí.
+  están en el archivo aparte y se editan allí. Al quitarlas, no se reducen
+  a lo que este programa sabe de ellas: el archivo aparte guarda una copia
+  exacta de sus objetos (su aspecto, sus ventanas emergentes, las claves
+  que otros programas les pusieron).
 \item Al desactivarlo, escribe las anotaciones en el PDF y borra el
   archivo aparte. Las que venían del PDF se cambian donde están, sin
   escribirlas de nuevo, y las que se borraron entretanto se le quitan.
+  Las que se habían quitado se devuelven tal como estaban, y solo
+  entonces se cambian, donde están, como usted las cambió.
 \end{itemize}
 
 \noindent Mientras un documento guarda aparte sus anotaciones,
