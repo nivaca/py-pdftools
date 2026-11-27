@@ -44,6 +44,8 @@ ARRANGE_MENU = (("rotate", N_("Rotate…")), ("delete", N_("Delete…")), ("move
                 ("blank", N_("Insert blank pages…")), ("insert", N_("Insert pages from file…")),
                 ("replace", N_("Replace pages…")),
                 (None, None), ("extract", N_("Extract pages…")), ("split", N_("Split…")))
+# Those that the right-click menu of the pages has already, outside its submenu "More page actions"
+IN_PAGES_MENU = ("extract", "move", "insert", "replace")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -863,11 +865,15 @@ class PagesMixin:
         self.status(ntr("Saved {count} file: {path}", "Saved {count} files: {path}", len(parts), path=parts[0][0]))
         return True
 
-    def _fill_arrange(self, menu: QMenu):
-        """MENU: all the operations on the pages chosen, with their dialogs."""
+    def _fill_arrange(self, menu: QMenu, skip: tuple[str, ...] = ()):
+        """MENU: all the operations on the pages chosen, with their dialogs (but those of SKIP)."""
         menu.clear()
         pages = self.selected_pages() if self.path is not None else []
-        for mode, text in ARRANGE_MENU:
+        items = [(mode, text) for mode, text in ARRANGE_MENU if mode not in skip]
+        # (no separator first or last, nor two in a row, once some are skipped)
+        items = [it for i, it in enumerate(items) if it[0] is not None
+                 or 0 < i < len(items) - 1 and items[i - 1][0] is not None]
+        for mode, text in items:
             if mode is None:
                 menu.addSeparator()
             else:
@@ -988,7 +994,8 @@ class PagesMixin:
                             lambda *_: self.remove_stamps(stamps.WATERMARK, pages))
         a.setEnabled(bool(self.pages_with(stamps.WATERMARK) & set(pages)))
 
-        self._fill_arrange(menu.addMenu(tr("More page actions")))
+        # Sin lo que este menú ya tiene arriba o en sus submenús (Extraer, Mover antes de, Insertar, Reemplazar).
+        self._fill_arrange(menu.addMenu(tr("More page actions")), skip=IN_PAGES_MENU)
         self.add_view_menus(menu.addMenu(tr("Initial view")), pages[0], heading=False)
         return menu
 

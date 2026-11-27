@@ -222,6 +222,10 @@ def test_the_menu_of_pages_in_groups(window):
                     "Initial view"]
     labels_menu = next(a.menu() for a in menu.actions() if a.text() == "Labels")
     assert "Number this page…" in all_texts(labels_menu) and len(top) < 14
+    # "More page actions" has only what the menu has nowhere else (no Extract, Move…, Insert from file, Replace).
+    more = next(a.menu() for a in menu.actions() if a.text() == "More page actions")
+    assert [a.text() or "-" for a in more.actions()] == ["Rotate…", "Delete…", "Duplicate…", "Reverse pages…",
+                                                          "New order…", "-", "Insert blank pages…", "-", "Split…"]
     for row in (3, 4, 5, 8):
         window.page_list.item(row).setSelected(True)
     menu = window.build_pages_menu()
