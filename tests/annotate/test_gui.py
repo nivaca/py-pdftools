@@ -1279,12 +1279,15 @@ def test_signature(window):
     mouse(window, QEvent.Type.MouseButtonPress, (100, 300))
     mouse(window, QEvent.Type.MouseMove, (250, 330))
     frame = window.canvas._drag["item"]
+    # (the mouse moves in whole pixels: each end may be half a pixel off, more than a point at a low zoom, as on
+    # GitHub's Mac, where it was 151.1)
+    near = max(1.0, 1.5 / window.canvas.zoom())
     assert isinstance(frame, QGraphicsRectItem) and frame.pen().style() == Qt.PenStyle.DashLine
-    assert abs(frame.rect().width() - 150) < 1 and frame.scene() is not None
+    assert abs(frame.rect().width() - 150) < near and frame.scene() is not None
     mouse(window, QEvent.Type.MouseButtonRelease, (250, 330))
     assert frame.scene() is None and len(window.annotations) == 3
     xs = [x for x, _ in window.annotations[2].paths[0]]
-    assert abs(max(xs) - min(xs) - 150) < 1
+    assert abs(max(xs) - min(xs) - 150) < near
 
 
 def test_find_dialog_steps_and_history(window):
