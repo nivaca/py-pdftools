@@ -413,7 +413,8 @@ def shoot(lang: str, out: Path, work: Path):
 
     s = SettingsDialog(w.prefs, w)
     tabs = s.findChild(QTabWidget)
-    for i, name in enumerate(("settings_general", "settings_appearance", "settings_documents")):
+    for i, name in enumerate(("settings_general", "settings_appearance", "settings_documents",
+                                     "settings_annotations")):
         tabs.setCurrentIndex(i)
         s.show()
         settle(app, 0.4)

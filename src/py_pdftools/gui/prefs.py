@@ -471,10 +471,6 @@ class SettingsDialog(QDialog):
 
         page = QWidget()
         form = QFormLayout(page)
-        intro = QLabel(tr("The annotations can be saved in the PDF itself, or in a separate file beside it "
-                          "(NAME.pdf.pdfnotes), which leaves the PDF as it is"))
-        intro.setWordWrap(True)
-        form.addRow(intro)
         # (la del documento abierto: solo si la ventana tiene uno; se aplica al aceptar, y guarda enseguida)
         self._apart_window = window if getattr(window, "path", None) is not None and hasattr(window, "apart") \
             else None

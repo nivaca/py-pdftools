@@ -14581,10 +14581,6 @@ Should the saved PDF also contain the annotations?</en>
     <tr>Guardar las de los documentos nuevos en un archivo aparte</tr>
   </text>
   <text>
-    <en>The annotations can be saved in the PDF itself, or in a separate file beside it (NAME.pdf.pdfnotes), which leaves the PDF as it is</en>
-    <tr>Las anotaciones pueden guardarse en el PDF mismo o en un archivo aparte, junto a él (NOMBRE.pdf.pdfnotes), que deja el PDF como está</tr>
-  </text>
-  <text>
     <en>Unchecked, they are saved in the PDF itself. Changing it saves them at once, when the settings are applied</en>
     <tr>Sin marcar, se guardan en el PDF mismo. Cambiarlo las guarda enseguida, al aplicar la configuración</tr>
   </text>
