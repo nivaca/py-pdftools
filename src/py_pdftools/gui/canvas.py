@@ -510,7 +510,7 @@ class PageItem(QGraphicsRectItem):
 
 class TextEditor(QGraphicsTextItem):
     """Where the text of a text box, a callout, a note or a caret is written, on the page:
-    Ctrl+Enter, or a click elsewhere, keeps it; Escape gives it up."""
+    Ctrl+Enter, Escape or a click elsewhere keeps it (Undo takes it back)."""
 
     def __init__(self, canvas: PageCanvas, parent, rich: bool = False):
         super().__init__(parent)
@@ -531,7 +531,9 @@ class TextEditor(QGraphicsTextItem):
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
-            self.canvas.cancel_text()
+            # Escape vuelve al documento guardando lo escrito (sin texto, una anotación nueva no se crea).
+            self.canvas.commit_text()
+            self.canvas.setFocus(Qt.FocusReason.OtherFocusReason)
             return
         # Rich-text shortcuts only for text boxes; notes and carets keep plain text.
         keys = {Qt.Key.Key_B: "bold", Qt.Key.Key_I: "italic", Qt.Key.Key_U: "underline"}

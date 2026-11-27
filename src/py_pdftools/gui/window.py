@@ -13,7 +13,7 @@ from collections import Counter
 from pathlib import Path
 
 import pymupdf
-from PySide6.QtCore import QByteArray, QItemSelection, QItemSelectionModel, QPoint, QSize, Qt, QTimer
+from PySide6.QtCore import QByteArray, QEvent, QItemSelection, QItemSelectionModel, QObject, QPoint, QSize, Qt, QTimer
 from PySide6.QtGui import QAction, QActionGroup, QColor, QIcon, QImage, QKeySequence, QPainter, QPen, QPixmap
 from PySide6.QtWidgets import (
     QAbstractItemView, QApplication, QColorDialog, QComboBox, QDialog, QDockWidget, QFileDialog, QHBoxLayout,
@@ -233,6 +233,29 @@ def tool_name(tool: str) -> str:
     return tr(TOOL_NAMES[tool]) if tool in TOOL_NAMES else tr(NAMES[tool])
 
 
+
+class EscapeToDocument(QObject):
+    """(An event filter on the fields of the panel Annotations.) Escape takes the keyboard back to the pages,
+    keeping what was typed: the comment and the tags are kept, a reply typed is added."""
+
+    def __init__(self, win):
+        super().__init__(win)
+        self.win = win
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.KeyPress and event.key() == Qt.Key.Key_Escape:
+            # Se guarda aquí mismo, sin esperar a que el campo pierda el foco (en una ventana inactiva no llega).
+            p = self.win.listing
+            if obj is p.comment:
+                self.win.keep_comment()
+            elif obj is p.tags:
+                self.win.keep_tags()
+            elif obj is p.reply_edit and obj.text().strip():
+                self.win.add_reply()
+            self.win.canvas.setFocus(Qt.FocusReason.OtherFocusReason)
+            return True
+        return False
+
 class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, ResultsMixin, AttachmentsMixin,
                  HistoryMixin, NavigationMixin, WatchMixin, StorageMixin, WorkingMixin, FilesMixin, LinkEditMixin, FormMixin, SignMixin,
                  ToolbarsMixin, QMainWindow):
@@ -440,6 +463,10 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.color_button.menu().aboutToShow.connect(self._color_menu)
         self.comment.finished.connect(self.keep_comment)
         p.tags.editingFinished.connect(self.keep_tags)
+        # Escape in the comment, the tags or a reply: back to the document, keeping what was typed.
+        self._escape_filter = EscapeToDocument(self)
+        for field in (p.comment, p.tags, p.reply_edit):
+            field.installEventFilter(self._escape_filter)
         p.reply_button.clicked.connect(lambda: self.add_reply())
         p.reply_edit.returnPressed.connect(lambda: self.add_reply())
         p.replies.itemDoubleClicked.connect(lambda item: self.edit_reply(p.replies.row(item)))

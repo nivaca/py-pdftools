@@ -570,13 +570,42 @@ def test_text_written_on_the_page(window):
     assert canvas.editing()
     canvas.commit_text("Written again")
     assert window.annotations[0].contents == "Written again" and len(window.undo_stack) == 2
-    # a note: Escape gives it up
+    # a note: Escape keeps what was written, and goes back to the pages; with nothing written, no note
+    from PySide6.QtGui import QKeyEvent
+
+    def escape():
+        canvas._editor["item"].keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape,
+                                                       Qt.KeyboardModifier.NoModifier))
+
     window.set_tool("note")
     click(window, (100, 600))
     assert canvas.editing()
-    canvas.cancel_text()
-    assert len(window.annotations) == 1
+    canvas._editor["item"].setPlainText("Kept with Escape")
+    escape()
+    assert not canvas.editing() and [a.contents for a in window.annotations] == ["Written again", "Kept with Escape"]
+    click(window, (100, 700))
+    assert canvas.editing()
+    escape()
+    assert not canvas.editing() and len(window.annotations) == 2
     assert isinstance(canvas, PageCanvas)
+
+
+def test_escape_in_the_panel(window, app):
+    from PySide6.QtTest import QTest
+
+    window.set_tool("rect")
+    drag(window, (100, 300), (250, 400))  # (the new one is selected)
+    p = window.listing
+    window.panel.show()
+    for field, text in ((p.comment, "A comment"), (p.tags, "one, two"), (p.reply_edit, "A reply")):
+        field.setFocus()
+        app.processEvents()
+        QTest.keyClicks(field, text)
+        QTest.keyClick(field, Qt.Key.Key_Escape)
+        app.processEvents()
+    a = window.annotations[0]
+    assert a.contents == "A comment" and a.tags == ("one", "two")
+    assert [r.contents for r in a.replies] == ["A reply"] and p.reply_edit.text() == ""
 
 
 def test_replies_status_and_tags_in_the_panel(window, sample):
