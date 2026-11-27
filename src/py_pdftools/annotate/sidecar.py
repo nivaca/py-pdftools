@@ -66,6 +66,7 @@ from pathlib import Path
 import pymupdf
 
 from ..core import config
+from ..core.replacing import replace  # (os.replace, tried again for a moment on Windows)
 from ..core.interface import tr
 from . import annots
 from .annots import OTHER, AnnotateError, Annotation, Reply
@@ -280,7 +281,7 @@ def write(target: Path, doc: pymupdf.Document, pdf_name: str, annotations: list[
         with os.fdopen(fd, "wb") as f:
             ET.ElementTree(root).write(f, encoding="utf-8", xml_declaration=True)
             f.write(b"\n")
-        os.replace(tmp, target)
+        replace(tmp, target)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise

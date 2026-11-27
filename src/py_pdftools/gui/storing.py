@@ -28,6 +28,7 @@ from PySide6.QtWidgets import QMessageBox
 from ..annotate import annots, recovery, sidecar
 from ..annotate.annots import OTHER, AnnotateError, Annotation
 from ..core import config
+from ..core.replacing import replace  # (os.replace, tried again for a moment on Windows)
 from ..core.interface import ntr, tr
 
 STORAGES = ("pdf", "file")
@@ -54,7 +55,7 @@ def _copy(source: Path, target: Path) -> None:
     os.close(fd)
     try:
         shutil.copyfile(source, tmp)
-        os.replace(tmp, target)
+        replace(tmp, target)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
@@ -125,7 +126,7 @@ class StorageMixin:
         place = sidecar.place_for(pdf)
         if self._kept_unreadable and place.is_file():
             # (el archivo que no se pudo leer queda al lado, por si se quiere)
-            os.replace(place, place.with_name(place.name + ".unreadable"))
+            replace(place, place.with_name(place.name + ".unreadable"))
             self._kept_unreadable = False
         sidecar.write(place, self.doc, pdf.name, items, base, self.layers, self.kept_raws)
         return place
