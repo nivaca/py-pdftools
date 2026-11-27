@@ -24,8 +24,6 @@ class OcrMixin:
 
     def _build_ocr(self) -> Mode:
         """The mode OCR: its panel (what to read and how), its toolbar and its menu."""
-        from .ocr_dialog import OcrOptions
-
         self.a_recognise = self._action(None, tr("Recognise text (OCR)"), self.recognise_from_panel,
                                         "Ctrl+Shift+O",
                                         tip=tr("Read the text of the pages chosen in the panel with tesseract and "
@@ -44,19 +42,12 @@ class OcrMixin:
             m.addAction(act)
         self.menuBar().insertMenu(self.m_layers.menuAction(), m)
         bars = [self.toolbar_of("ocr", tr("OCR"), [self.a_recognise, self.a_ocr, self.a_ocr_languages])]
-        self.ocr_options = OcrOptions(self.prefs.ocr_language, self)
-        self.ocr_summary = QLabel()
-        self.ocr_summary.setWordWrap(True)
-        self.ocr_summary.setStyleSheet("color: palette(placeholder-text);")
-        read = QPushButton(tr("Recognise text"))
-        read.clicked.connect(self.recognise_from_panel)
-        self.ocr_read_button = read
+        # El panel se llena la primera vez que se entra en el modo (ocr_panel): sus opciones preguntan a tesseract
+        # sus idiomas, y el arranque no tiene por qué esperarlo. El panel mismo existe ya: la disposición guardada
+        # de cada modo lo busca por su nombre.
         inner = QWidget()
-        lay = QVBoxLayout(inner)
-        lay.addWidget(self.ocr_summary)
-        lay.addWidget(self.ocr_options)
-        lay.addWidget(read)
-        lay.addStretch(1)
+        QVBoxLayout(inner)
+        self._ocr_inner = inner
         dock = QDockWidget(tr("OCR"), self)
         dock.setObjectName("ocr")
         dock.setWidget(inner)
@@ -68,6 +59,27 @@ class OcrMixin:
         # Nada es suyo: las anotaciones se ven, pero no se tocan en este modo.
         return Mode(KIND, lambda a: False, bars=bars, docks=[dock], menus=[m.menuAction()],
                     actions=[self.a_recognise], entered=lambda: self.ocr_refresh(full=True))
+
+    def ocr_panel(self):
+        """The options of the panel of the mode OCR, made the first time they are needed."""
+        options = getattr(self, "ocr_options", None)
+        if options is not None:
+            return options
+        from .ocr_dialog import OcrOptions
+
+        self.ocr_options = OcrOptions(self.prefs.ocr_language, self)
+        self.ocr_summary = QLabel()
+        self.ocr_summary.setWordWrap(True)
+        self.ocr_summary.setStyleSheet("color: palette(placeholder-text);")
+        read = QPushButton(tr("Recognise text"))
+        read.clicked.connect(self.recognise_from_panel)
+        self.ocr_read_button = read
+        lay = self._ocr_inner.layout()
+        lay.addWidget(self.ocr_summary)
+        lay.addWidget(self.ocr_options)
+        lay.addWidget(read)
+        lay.addStretch(1)
+        return self.ocr_options
 
     def scanned_pages(self) -> list[int]:
         """The scanned pages without text (0-based), found once for each state of the file (reading the text
@@ -82,9 +94,11 @@ class OcrMixin:
     def ocr_refresh(self, full: bool = False):
         """The panel of the mode OCR as the document is now: the pages chosen, the one shown (FULL: also the
         scanned pages, and tesseract's languages)."""
-        if not hasattr(self, "ocr_options") or self.mode != KIND:
+        if self.mode != KIND or not hasattr(self, "_ocr_inner"):
             return
-        if full:
+        made = getattr(self, "ocr_options", None) is None
+        self.ocr_panel()
+        if full and not made:  # (just made, its languages are those of now)
             self.ocr_options.fill_languages(self.ocr_options.language() or self.prefs.ocr_language)
             self.ocr_options.refresh_osd()
         has = self.doc is not None and ocr.available()
@@ -105,11 +119,11 @@ class OcrMixin:
 
     def recognise_from_panel(self) -> bool:
         """The button of the panel (and its action): read what the panel says, and write the text."""
-        if self.path is None or not hasattr(self, "ocr_options"):
+        if self.path is None or not hasattr(self, "_ocr_inner"):
             return False
         if self.mode != KIND:  # (Ctrl+Shift+O elsewhere: the mode OCR, with its panel)
             self.set_mode(KIND)
-        options = self.ocr_options
+        options = self.ocr_panel()
         if not options.check():
             return False
         done = self.recognise_and_write(options.page_list(), options.language(), options.rotate.isChecked(),

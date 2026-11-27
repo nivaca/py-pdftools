@@ -9,7 +9,7 @@ import time
 
 import pymupdf
 import pytest
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QDockWidget
 
 from py_pdftools.annotate import annots
 from py_pdftools.core import interface, once
@@ -163,3 +163,14 @@ def test_first_drawing_without_the_pause(window, tmp_path):
     assert window.canvas.render_timer.interval() == 0
     window.canvas._render_visible()
     assert window.canvas.render_timer.interval() == canvas.RENDER_MS == 90
+
+
+def test_ocr_panel_made_when_first_entered(window):
+    """The panel of the mode OCR is there from the start (the layouts of the modes find it by name), but its
+    options, which ask tesseract for its languages, are made the first time the mode is entered."""
+    assert window.findChild(QDockWidget, "ocr") is not None
+    assert getattr(window, "ocr_options", None) is None
+    window.set_mode("ocr")
+    options = window.ocr_options
+    assert options is not None and window.ocr_panel() is options  # (made once)
+    window.set_mode("read")
