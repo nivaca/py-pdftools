@@ -2710,10 +2710,20 @@ shown: a page turned later by another program would otherwise carry its
 annotations to the wrong place. The window watches the separate file too,
 so that a save from my other computer, through Dropbox, opens it again.
 
+Skim's own `.skim` files can be imported as well (File > Import
+annotations > From Skim's notes). Skim writes them in two forms: a property
+list, with colours as lists of numbers and the text of a note in RTF, or
+an archive of NSKeyedArchiver, with Cocoa's colours, fonts and dates
+archived as objects. Python's plistlib reads both, and the archived objects
+are rebuilt by a small unarchiver. The points of a line, of a highlight and
+of an ink stroke are counted from the corner of the note's rectangle, in
+the PDF's space; once placed on the page as shown, they are ordinary
+annotations.
+
 Testing
 -------
 
-The program has 906 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
+The program has 912 tests (`uv run python tools/test.py` runs them at once, each file in a process of its own, in some twenty seconds; `uv run pytest`, one after the other): those of the four programs,
 moved into the new package (96 of annotations, 71 of redaction, 115 of
 pages, labels and layers, 87 of imposition), and those of what is new: the
 command line as a whole and its completion in bash and fish, the modes of
@@ -2725,7 +2735,7 @@ layers, passwords), the toolbars, combining files and PDFs of pictures,
 smaller copies, pages made pictures, links, forms and signatures, the menus and toolbars, the
 exports, splitting and the PDF version, the start in the background and the
 settings, the toolbar of the pages, the tooltips, quick find, the check of the configuration, the properties of a
-PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, and the switch both ways), the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
+PDF, the word index, what the start leaves for later, what the window keeps of itself in the file of configuration, the annotations kept in a separate file (every field there and back, with the PDF changed by another program, a page turned since, and the switch both ways), Skim's notes in both their forms, the start with the session on Windows (in a registry made in the test) and the events of macOS, the signing of a release (with a key made in the test), the check for a new version (against an answer made in the test: the tests never go to the network), the Spanish interface (every text translated, and none left over)
 and the packaging. The windows of the four modes are tested as a user would
 use them, with mouse events on the pages; the redacted copy is also written
 in a process of its own, as the window does it, and imposition runs its
@@ -2734,5 +2744,5 @@ each mode in both languages, and the user manual was compared, sentence by
 sentence, with the menus, the keys and the dialogs of the program. The RPM runs all the tests again with Fedora's
 packages (without pyHanko, so the tests of the signatures are skipped
 there). The Linux installer was run in a home folder made for the test. The
-program has 189 files of Python, around 53,000 lines (about a tenth of them
-comments), and 3,562 texts of the interface in Spanish.
+program has 190 files of Python, around 53,500 lines (about a tenth of them
+comments), and 3,566 texts of the interface in Spanish.

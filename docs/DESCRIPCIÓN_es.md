@@ -36,11 +36,11 @@ Censurar busca texto solo cubierto (bajo un recuadro, una imagen o una anotació
 
 ## Implementación
 
-Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 189 archivos de Python, unas 53 000 líneas (una décima parte, comentarios), y 3562 textos de la interfaz traducidos al español.
+Está escrito en Python 3.14 o superior, con PyMuPDF, pikepdf, reportlab y PySide6 (Qt 6). Son 190 archivos de Python, unas 53 500 líneas (una décima parte, comentarios), y 3566 textos de la interfaz traducidos al español.
 
 ### Del código antiguo al paquete nuevo
 
-Un script copió los módulos de cada programa y reescribió sus importaciones. Dos módulos con el mismo nombre hacían cosas distintas: las listas de páginas de py-imposition rechazaban una página más allá de la última, y las de py-redact la dejaban fuera; el módulo común hace las dos cosas. Las cuatro traducciones se unieron en un archivo, y de 35 textos con dos traducciones se eligió una, salvo donde el sentido cambiaba (*izquierda* como alineación, *izquierdo* como margen). Las claves que los programas antiguos escriben en un PDF conservan su nombre, para que sus documentos se sigan leyendo.
+Un script copió los módulos de cada programa y reescribió sus importaciones. Dos módulos homónimos diferían: las listas de páginas de py-imposition rechazaban una página más allá de la última y las de py-redact la omitían; el común hace las dos cosas. Las cuatro traducciones se unieron en un archivo, y de 35 textos con dos traducciones se eligió una, salvo donde el sentido cambiaba (*izquierda* como alineación, *izquierdo* como margen). Las claves que los programas antiguos escriben en un PDF conservan su nombre, para que sus documentos se sigan leyendo.
 
 ### La línea de órdenes
 
@@ -66,7 +66,7 @@ El PyMuPDF de Fedora (1.28) leía mal el `/Type /PageLabel` de un intervalo: las
 
 ### Documentos grandes
 
-Varias ideas vienen de PDFCraft y de Calibre. Cada carril tiene varios procesos de dibujo, que arrancan con el programa; una página que tarda más de 20 segundos, o hace caer su proceso, se muestra en gris con la causa. Con mucho zoom, la página se dibuja entera a 2048 píxeles a lo sumo, y la parte que se ve, en teselas de 1024. Cada página tiene una huella (`core/pageprint.py`): un resumen de lo que la dibuja, ajeno a la numeración de los objetos. Tras un cambio, al deshacer o al guardar, las páginas con la misma huella no se dibujan otra vez, y las miniaturas pueden guardarse en el disco.
+Varias ideas vienen de PDFCraft y de Calibre. Cada carril tiene varios procesos de dibujo, que arrancan con el programa; una página que tarda más de 20 s o hace caer su proceso se muestra en gris con la causa. Con mucho zoom, la página se dibuja entera a 2048 píxeles a lo sumo, y la parte que se ve, en teselas de 1024. Cada página tiene una huella (`core/pageprint.py`): un resumen de lo que la dibuja, ajeno a la numeración de los objetos. Tras un cambio, al deshacer o al guardar, las páginas con la misma huella no se dibujan otra vez, y las miniaturas pueden guardarse en el disco.
 
 ### Una sola copia de cada cosa
 
@@ -74,7 +74,7 @@ Los cuatro programas traían copias de lo mismo (abrir un PDF, rectángulos y co
 
 ### Anotaciones en un archivo aparte
 
-La idea viene de Skim. Las anotaciones pueden guardarse fuera del PDF, en `libro.pdf.annot.xml` (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir, ocultan las del PDF que siguen iguales, y al volver al PDF se cambian donde están. El archivo guarda también el giro de cada página.
+Idea de Skim: las anotaciones pueden guardarse fuera del PDF, en `libro.pdf.annot.xml` (`annotate/sidecar.py`), un XML propio con todos sus campos. Las que vinieron del PDF guardan su xref y una huella: al abrir ocultan las del PDF que siguen iguales, y al volver al PDF se cambian allí. El archivo guarda también el giro de cada página. Se importan además los `.skim` de Skim, plist o NSKeyedArchiver.
 
 ### OCR
 
@@ -82,7 +82,7 @@ El OCR, el de py-pdfocr, tiene su modo; usa tesseract en varios procesos a la ve
 
 ## Validación
 
-Hay 906 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
+Hay 912 pruebas automáticas (`tools/test.py` las corre a la vez, unos 20 s): las de los cuatro programas, trasladadas al paquete nuevo (96 de anotaciones, 71 de censura, 115 de páginas, etiquetas y capas, 87 de imposición), y las de lo nuevo: la línea de órdenes entera y su completado en bash y fish, los modos de la ventana, los recuadros como marcas de redacción, las copias de trabajo con deshacer y rehacer, la navegación (marcadores, enlaces, historial, vistas, pestañas), la seguridad (texto solo cubierto, capas ocultas, contraseñas), las barras de herramientas, la combinación de archivos, los PDF de imágenes, las copias más pequeñas, los enlaces, los formularios, las firmas, los menús y las barras, las exportaciones, la partición y la versión de PDF, la interfaz en español (cada texto traducido y ninguno de sobra) y el empaquetado.
 
 Las pruebas de pdf-word-finder vinieron con él, sobre un documento hecho con PyMuPDF. La ventana se prueba manejándola como lo haría un usuario, con eventos del ratón sobre las páginas, en cada modo. La copia censurada se escribe también en un proceso propio, como lo hace la ventana, y se comprueba que nada de lo que había debajo de los recuadros pueda leerse; la imposición ejecuta sus órdenes en otro proceso. Una prueba comprueba que el manual siga siendo la ayuda de la línea de órdenes.
 

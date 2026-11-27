@@ -591,6 +591,9 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                           lambda: self.import_dialog("json"))
         self.a_import_xfdf = self._action(sub, tr("From another PDF program (XFDF)…"),
                                           lambda: self.import_dialog("xfdf"))
+        self.a_import_skim = self._action(sub, tr("From Skim's notes (.skim)…"), lambda: self.import_dialog("skim"),
+                                          tip=tr("The notes that Skim, the PDF reader of the Mac, keeps in a .skim "
+                                                 "file beside the PDF"))
         self.a_import_pdf = self._action(sub, tr("From another copy of the PDF…"), lambda: self.import_dialog("pdf"),
                                          tip=tr("Bring in the annotations of another copy of this document, such as "
                                                 "one annotated by someone else; those already here are left out"))
@@ -4076,7 +4079,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         has = self.doc is not None
         for w in (self.a_save_as, self.a_first, self.a_last, self.a_fit, self.a_fit_width, self.a_zoom_in,
                   self.a_zoom_out, self.a_page_number, self.a_flat, self.a_bare, self.a_import_json, self.a_import_pdf,
-                  self.a_import_xfdf, self.a_print, self.a_doc_props, self.a_word_index, self.a_sorter, self.a_find, self.a_find_bar, self.a_compare,
+                  self.a_import_xfdf, self.a_import_skim, self.a_print, self.a_doc_props, self.a_word_index, self.a_sorter, self.a_find, self.a_find_bar, self.a_compare,
                   *self.tool_actions.values()):
             w.setEnabled(has)
         if not has:

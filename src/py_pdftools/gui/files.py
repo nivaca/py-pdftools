@@ -781,11 +781,12 @@ class FilesMixin:
         return True
 
     def import_dialog(self, kind: str) -> bool:
-        """Bring in annotations from a JSON file (KIND 'json'), an XFDF file ('xfdf') or another PDF ('pdf')."""
+        """Bring in annotations from a JSON file (KIND 'json'), an XFDF file ('xfdf'), Skim's notes ('skim') or
+        another PDF ('pdf')."""
         if self.doc is None:
             return False
         filters = {"json": tr("Annotations (*.json)"), "xfdf": tr("XFDF files (*.xfdf)"),
-                   "pdf": tr("PDF files (*.pdf)")}[kind]
+                   "skim": tr("Notes of Skim (*.skim)"), "pdf": tr("PDF files (*.pdf)")}[kind]
         name, _ = QFileDialog.getOpenFileName(self, tr("Import annotations"), self.last_dir(), filters)
         if not name:
             return False
@@ -797,6 +798,10 @@ class FilesMixin:
                 found = exchange.import_json(source)
             elif kind == "xfdf":
                 found = exchange.import_xfdf(self.doc, source)
+            elif kind == "skim":
+                from ..annotate import skim
+
+                found = skim.import_skim(self.doc, source)
             else:
                 password = ""
                 while True:

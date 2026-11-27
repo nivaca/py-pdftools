@@ -174,3 +174,16 @@ def test_unreadable_file_kept(make, book):
     assert w.save()
     assert xml.with_name(xml.name + ".unreadable").read_text(encoding="utf-8") == "<annotations"
     assert len(sidecar.read(xml).annotations) == 1
+
+
+def test_import_skim_notes(make, book, tmp_path):
+    import plistlib
+
+    source = tmp_path / "book.skim"
+    source.write_bytes(plistlib.dumps([{"type": "Square", "pageIndex": 0, "bounds": "{{100, 700}, {50, 40}}",
+                                        "contents": "from Skim", "color": [1, 0, 0, 1]}]))
+    w = make(book)
+    assert w.import_from(source, "skim")
+    assert [a.contents for a in editable(w.annotations)] == ["first", "second", "from Skim"]
+    assert w.import_from(source, "skim")  # (twice: not added again)
+    assert len(editable(w.annotations)) == 3

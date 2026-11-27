@@ -14416,4 +14416,20 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <en>{path} cannot be removed: {error}</en>
     <tr>No se puede borrar {path}: {error}</tr>
   </text>
+  <text>
+    <en>From Skim's notes (.skim)…</en>
+    <tr>De las notas de Skim (.skim)…</tr>
+  </text>
+  <text>
+    <en>Notes of Skim (*.skim)</en>
+    <tr>Notas de Skim (*.skim)</tr>
+  </text>
+  <text>
+    <en>The notes that Skim, the PDF reader of the Mac, keeps in a .skim file beside the PDF</en>
+    <tr>Las notas que Skim, el lector de PDF del Mac, guarda en un archivo .skim junto al PDF</tr>
+  </text>
+  <text>
+    <en>not a file of notes of Skim</en>
+    <tr>no es un archivo de notas de Skim</tr>
+  </text>
 </interface>
