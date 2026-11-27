@@ -166,12 +166,17 @@ class StorageMixin:
     def ask_pdf_part(self) -> str | None:
         """(Saving apart a document whose PDF must be written too: it has changes of its own.) Whether the PDF
         gets the annotations as well ("embed") or none ("strip"); None: cancelled."""
-        box = QMessageBox(QMessageBox.Icon.Question, tr("Annotations in a separate file"),
-                          tr("The document itself has changed, so its PDF is written again. Should it have the "
-                             "annotations in it too, as they are now, or only the separate file?"),
+        names = {"pdf": self.path.name, "file": sidecar.place_for(self.path).name}
+        # Primero lo que pasa, luego una sola pregunta; cada respuesta se explica en el texto de abajo.
+        box = QMessageBox(QMessageBox.Icon.Question, tr("The PDF is saved too"),
+                          tr("You changed the document itself (its pages, labels or layout), so {pdf} is saved "
+                             "as well. The annotations stay in {file}.\n\nShould the saved PDF also contain the "
+                             "annotations?", **names),
                           QMessageBox.StandardButton.Cancel, self)
-        embed = box.addButton(tr("In the PDF too"), QMessageBox.ButtonRole.AcceptRole)
-        strip = box.addButton(tr("Only in the separate file"), QMessageBox.ButtonRole.AcceptRole)
+        box.setInformativeText(tr("• Without annotations: other programs show the PDF without them.\n"
+                                  "• With annotations: other programs show them too, as they are now."))
+        strip = box.addButton(tr("Without annotations"), QMessageBox.ButtonRole.AcceptRole)
+        embed = box.addButton(tr("With annotations"), QMessageBox.ButtonRole.AcceptRole)
         box.setDefaultButton(strip)
         box.exec()
         return {embed: "embed", strip: "strip"}.get(box.clickedButton())
@@ -299,16 +304,21 @@ class StorageMixin:
     def ask_strip(self, count: int) -> str | None:
         """(Going apart.) Whether the PDF keeps its own COUNT annotations ("keep") or they are taken out of it
         ("strip"), now that the separate file has them; None: cancelled."""
-        box = QMessageBox(QMessageBox.Icon.Question, tr("Annotations in a separate file"),
-                          ntr("The PDF has {count} annotation of its own. From now on it is in the separate file "
-                              "too, and edited there. Take it out of the PDF, so that other programs show the PDF "
-                              "without it?",
-                              "The PDF has {count} annotations of its own. From now on they are in the separate "
-                              "file too, and edited there. Take them out of the PDF, so that other programs show "
-                              "the PDF without them?", count),
+        names = {"pdf": self.path.name, "file": sidecar.place_for(self.path).name}
+        # Primero lo que pasa, luego una sola pregunta; cada respuesta se explica en el texto de abajo.
+        box = QMessageBox(QMessageBox.Icon.Question, tr("Move the annotations out of the PDF"),
+                          tr("From now on, the annotations of {pdf} are saved in {file}, beside it. Annotating "
+                             "no longer changes the PDF.", **names) + "\n\n"
+                          + ntr("The PDF already contains {count} annotation. What should happen to it inside "
+                                "the PDF?",
+                                "The PDF already contains {count} annotations. What should happen to them inside "
+                                "the PDF?", count),
                           QMessageBox.StandardButton.Cancel, self)
-        keep = box.addButton(tr("Leave the PDF as it is"), QMessageBox.ButtonRole.AcceptRole)
-        strip = box.addButton(tr("Take them out of the PDF"), QMessageBox.ButtonRole.DestructiveRole)
+        box.setInformativeText(tr("• Leave them: other programs still show them.\n"
+                                  "• Remove them: other programs show the PDF without annotations. Nothing is "
+                                  "lost: they are in {file}, and can be put back exactly.", **names))
+        keep = box.addButton(tr("Leave them"), QMessageBox.ButtonRole.AcceptRole)
+        strip = box.addButton(tr("Remove them"), QMessageBox.ButtonRole.DestructiveRole)
         box.setDefaultButton(keep)
         box.exec()
         return {keep: "keep", strip: "strip"}.get(box.clickedButton())

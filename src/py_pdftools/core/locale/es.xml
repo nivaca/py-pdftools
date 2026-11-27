@@ -14313,18 +14313,6 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>En el PDF mismo</tr>
   </text>
   <text>
-    <en>In the PDF too</en>
-    <tr>También en el PDF</tr>
-  </text>
-  <text>
-    <en>Leave the PDF as it is</en>
-    <tr>Dejar el PDF como está</tr>
-  </text>
-  <text>
-    <en>Only in the separate file</en>
-    <tr>Solo en el archivo aparte</tr>
-  </text>
-  <text>
     <en>Save a copy with the annotations in the PDF</en>
     <tr>Guardar una copia con las anotaciones en el PDF</tr>
   </text>
@@ -14337,24 +14325,8 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
     <tr>Guardar las anotaciones:</tr>
   </text>
   <text>
-    <en>Take them out of the PDF</en>
-    <tr>Quitarlas del PDF</tr>
-  </text>
-  <text>
-    <en>The PDF has {count} annotation of its own. From now on it is in the separate file too, and edited there. Take it out of the PDF, so that other programs show the PDF without it?</en>
-    <tr>El PDF tiene {count} anotación propia. Desde ahora está también en el archivo aparte, y se edita allí. ¿Quitarla del PDF, para que otros programas muestren el PDF sin ella?</tr>
-  </text>
-  <text>
-    <en>The PDF has {count} annotations of its own. From now on they are in the separate file too, and edited there. Take them out of the PDF, so that other programs show the PDF without them?</en>
-    <tr>El PDF tiene {count} anotaciones propias. Desde ahora están también en el archivo aparte, y se editan allí. ¿Quitarlas del PDF, para que otros programas muestren el PDF sin ellas?</tr>
-  </text>
-  <text>
     <en>The annotations are in the PDF now: {path}</en>
     <tr>Las anotaciones están ahora en el PDF: {path}</tr>
-  </text>
-  <text>
-    <en>The document itself has changed, so its PDF is written again. Should it have the annotations in it too, as they are now, or only the separate file?</en>
-    <tr>El documento mismo cambió, así que su PDF se escribe de nuevo. ¿Debe llevar también las anotaciones, tal como están ahora, o solo el archivo aparte?</tr>
   </text>
   <text>
     <en>With the annotations in the PDF…</en>
@@ -14439,5 +14411,57 @@ repetirse u omitirse; 10-1 va hacia atrás).</tr>
   <text>
     <en>Name them .NAME.pdf.pdfnotes, which Linux and macOS hide, and mark them hidden on Windows; a file already saved changes at its next save</en>
     <tr>Llamarlos .NOMBRE.pdf.pdfnotes, que Linux y macOS ocultan, y marcarlos como ocultos en Windows; un archivo ya guardado cambia en su siguiente guardado</tr>
+  </text>
+  <text>
+    <en>From now on, the annotations of {pdf} are saved in {file}, beside it. Annotating no longer changes the PDF.</en>
+    <tr>Desde ahora, las anotaciones de {pdf} se guardan en {file}, junto a él. Anotar ya no cambia el PDF.</tr>
+  </text>
+  <text>
+    <en>Leave them</en>
+    <tr>Dejarlas</tr>
+  </text>
+  <text>
+    <en>Move the annotations out of the PDF</en>
+    <tr>Sacar las anotaciones del PDF</tr>
+  </text>
+  <text>
+    <en>The PDF already contains {count} annotation. What should happen to it inside the PDF?</en>
+    <tr>El PDF ya contiene {count} anotación. ¿Qué debe pasar con ella dentro del PDF?</tr>
+  </text>
+  <text>
+    <en>The PDF already contains {count} annotations. What should happen to them inside the PDF?</en>
+    <tr>El PDF ya contiene {count} anotaciones. ¿Qué debe pasar con ellas dentro del PDF?</tr>
+  </text>
+  <text>
+    <en>The PDF is saved too</en>
+    <tr>El PDF también se guarda</tr>
+  </text>
+  <text>
+    <en>With annotations</en>
+    <tr>Con anotaciones</tr>
+  </text>
+  <text>
+    <en>Without annotations</en>
+    <tr>Sin anotaciones</tr>
+  </text>
+  <text>
+    <en>You changed the document itself (its pages, labels or layout), so {pdf} is saved as well. The annotations stay in {file}.
+
+Should the saved PDF also contain the annotations?</en>
+    <tr>Usted cambió el documento mismo (sus páginas, etiquetas o disposición), así que {pdf} también se guarda. Las anotaciones siguen en {file}.
+
+¿Debe el PDF guardado contener también las anotaciones?</tr>
+  </text>
+  <text>
+    <en>• Leave them: other programs still show them.
+• Remove them: other programs show the PDF without annotations. Nothing is lost: they are in {file}, and can be put back exactly.</en>
+    <tr>• Dejarlas: otros programas las siguen mostrando.
+• Quitarlas: otros programas muestran el PDF sin anotaciones. Nada se pierde: están en {file}, y pueden devolverse tal cual.</tr>
+  </text>
+  <text>
+    <en>• Without annotations: other programs show the PDF without them.
+• With annotations: other programs show them too, as they are now.</en>
+    <tr>• Sin anotaciones: otros programas muestran el PDF sin ellas.
+• Con anotaciones: otros programas también las muestran, tal como están ahora.</tr>
   </text>
 </interface>
