@@ -527,13 +527,19 @@ class TextEditor(QGraphicsTextItem):
                 event.key() in (Qt.Key.Key_B, Qt.Key.Key_I, Qt.Key.Key_U):
             event.accept()
             return True
+        # Escape too: the window has it as Deselect all, which would take it before the editor sees it.
+        if event.type() == QEvent.Type.ShortcutOverride and event.key() == Qt.Key.Key_Escape:
+            event.accept()
+            return True
         return super().sceneEvent(event)
 
     def keyPressEvent(self, event):
         if event.key() == Qt.Key.Key_Escape:
-            # Escape vuelve al documento guardando lo escrito (sin texto, una anotación nueva no se crea).
+            # Escape vuelve al documento guardando lo escrito (sin texto, una anotación nueva no se crea), y deja
+            # la herramienta: la ventana vuelve a Seleccionar (escaped).
             self.canvas.commit_text()
             self.canvas.setFocus(Qt.FocusReason.OtherFocusReason)
+            self.canvas.escaped.emit()
             return
         # Rich-text shortcuts only for text boxes; notes and carets keep plain text.
         keys = {Qt.Key.Key_B: "bold", Qt.Key.Key_I: "italic", Qt.Key.Key_U: "underline"}
@@ -694,6 +700,7 @@ class PageCanvas(TextSelectMixin, LinksMixin, ScrollingMixin, QGraphicsView):
     double_clicked = Signal(int, int, tuple)  # index of the annotation (-1: none), page, (x, y) on it
     menu_asked = Signal(int, object, int, object)  # index (-1: none), place on the screen, page, place on it
     text_done = Signal(int, object)  # index (-1: a new one), the annotation with the text written
+    escaped = Signal()  # Escape while writing on the page: the text kept, the tool to be left
 
     def __init__(self, parent=None):
         super().__init__(parent)

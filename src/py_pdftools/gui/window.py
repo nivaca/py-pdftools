@@ -234,6 +234,9 @@ def tool_name(tool: str) -> str:
 
 
 
+# The tools that Escape leaves for Select (see leave_tool): those that make annotations, and Link and Eraser.
+LEFT_WITH_ESCAPE = set(ANNOTATING) | {"typewriter", "mark", "signature", "replace", "link", "eraser"}
+
 class EscapeToDocument(QObject):
     """(An event filter on the fields of the panel Annotations.) Escape takes the keyboard back to the pages,
     keeping what was typed: the comment and the tags are kept, a reply typed is added."""
@@ -411,6 +414,7 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
         self.canvas.menu_asked.connect(self.annotation_menu)
         self.canvas.page_changed.connect(self._page_shown)
         self.canvas.text_done.connect(self.text_done)
+        self.canvas.escaped.connect(self.leave_tool)
         self.canvas.zoom_changed.connect(self._show_zoom)
         # La casilla del zoom: un porcentaje escrito, o uno de la lista, o un ajuste (página, ancho, alto...).
         self.zoom_label = QComboBox()
@@ -687,7 +691,8 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
                                          QKeySequence.StandardKey.SelectAll)
 
         self.a_select_kind = self._action(m, tr("Select same kind on this page"), self.select_kind)
-        self.a_select_none = self._action(m, tr("Deselect all"), lambda: self.pick([], False), "Escape")
+        # Escape: one step back each time (as in PDFCraft): the selection first, then the tool (see escape_step).
+        self.a_select_none = self._action(m, tr("Deselect all"), self.escape_step, "Escape")
         self.m_align = m.addMenu(tr("Align"))
         # Un par vacío marca un separador del menú.
         for key, name in (("left", N_("Align left")), ("hcenter", N_("Centre horizontally")),
@@ -2398,6 +2403,19 @@ class MainWindow(ImposeMixin, PagesMixin, RedactMixin, OcrMixin, OutlineMixin, R
     def add(self, annotation: Annotation):
         self.change(self.annotations + [annotation], [len(self.annotations)])
         self._after_making(annotation.kind)
+
+    def leave_tool(self):
+        """Back to Select from a tool that makes annotations (Escape: see escape_step and TextEditor)."""
+        if self.canvas.mode in LEFT_WITH_ESCAPE:
+            self.set_tool("select")
+
+    def escape_step(self):
+        """Escape (Edit > Deselect all): the selection cleared; with nothing selected, the tool that makes
+        annotations left for Select."""
+        if self.selected:
+            self.pick([], False)
+        else:
+            self.leave_tool()
 
     def _after_making(self, kind: str):
         """What the tool does once it has made an annotation: open something, and go back to Select."""

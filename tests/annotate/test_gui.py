@@ -570,24 +570,37 @@ def test_text_written_on_the_page(window):
     assert canvas.editing()
     canvas.commit_text("Written again")
     assert window.annotations[0].contents == "Written again" and len(window.undo_stack) == 2
-    # a note: Escape keeps what was written, and goes back to the pages; with nothing written, no note
-    from PySide6.QtGui import QKeyEvent
+    # Escape, pressed as a key (through the window's shortcuts, where Escape is also Deselect all): the text
+    # kept, the tool left for Select; with nothing written, nothing made
+    from PySide6.QtTest import QTest
 
-    def escape():
-        canvas._editor["item"].keyPressEvent(QKeyEvent(QEvent.Type.KeyPress, Qt.Key.Key_Escape,
-                                                       Qt.KeyboardModifier.NoModifier))
-
+    for tool, place in (("note", (60, 420)), ("freetext", (60, 560)), ("callout", (330, 420)),
+                        ("typewriter", (330, 600))):
+        window.set_tool(tool)
+        click(window, place)
+        assert canvas.editing(), tool
+        QTest.keyClicks(canvas.viewport(), "Kept")
+        QTest.keyClick(canvas.viewport(), Qt.Key.Key_Escape)
+        assert not canvas.editing() and canvas.mode == "select", tool
+        assert window.annotations[-1].contents == "Kept", tool
+    count = len(window.annotations)
     window.set_tool("note")
-    click(window, (100, 600))
-    assert canvas.editing()
-    canvas._editor["item"].setPlainText("Kept with Escape")
-    escape()
-    assert not canvas.editing() and [a.contents for a in window.annotations] == ["Written again", "Kept with Escape"]
-    click(window, (100, 700))
-    assert canvas.editing()
-    escape()
-    assert not canvas.editing() and len(window.annotations) == 2
+    click(window, (400, 700))
+    QTest.keyClick(canvas.viewport(), Qt.Key.Key_Escape)
+    assert not canvas.editing() and len(window.annotations) == count
     assert isinstance(canvas, PageCanvas)
+
+
+def test_escape_steps_back(window):
+    """Escape with nothing being written: the selection first, then the tool."""
+    window.set_tool("rect")
+    drag(window, (100, 300), (250, 400))
+    window.set_tool("ellipse")
+    window.selected = [0]
+    window.escape_step()
+    assert window.selected == [] and window.canvas.mode == "ellipse"
+    window.escape_step()
+    assert window.canvas.mode == "select"
 
 
 def test_escape_in_the_panel(window, app):
