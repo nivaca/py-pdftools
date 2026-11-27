@@ -226,3 +226,20 @@ def test_hidden_or_not(make, book):
     other.change(other.annotations[:1])
     assert other.save()
     assert shown.is_file() and not hidden.exists() and other.kept_file == shown
+
+
+def test_settings_menu(make, book):
+    # Las tres casillas están en Configuración > Anotaciones en un archivo aparte, ninguna en Archivo.
+    w = make(book)
+    assert w.a_apart not in w.m_file.actions()
+    assert [a for a in w.m_apart.actions() if not a.isSeparator()] == [w.a_apart, w.a_apart_default,
+                                                                        w.a_hide_notes]
+    w._show_apart_settings()
+    assert not w.a_apart_default.isChecked() and w.a_hide_notes.isChecked()
+    w.a_apart_default.trigger()
+    w.a_hide_notes.trigger()
+    assert config.get("annot_storage") == "file" and config.get("hide_notes") is False
+    w._show_apart_settings()
+    assert w.a_apart_default.isChecked() and not w.a_hide_notes.isChecked()
+    # (the document open stays as it was: the default is for those without a file yet)
+    assert not w.apart()

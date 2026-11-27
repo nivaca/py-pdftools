@@ -4,9 +4,9 @@ libro.pdf.pdfnotes, junto al PDF, sin tocarlo ("file"; véase
 annotate/sidecar.py).
 
 Un documento que tiene ese archivo se abre con sus anotaciones; uno que no lo
-tiene, como digan los ajustes (Ajustes > Documentos, en el PDF por omisión).
-Archivo > Anotaciones en un archivo aparte pasa de una manera a la otra, y
-guarda enseguida: hacia el archivo aparte, pregunta si el PDF se queda con sus
+tiene, como digan los ajustes (Configuración > Anotaciones en un archivo
+aparte > Para los documentos nuevos; en el PDF por omisión). Para este
+documento, en ese mismo menú, pasa de una manera a la otra, y guarda enseguida: hacia el archivo aparte, pregunta si el PDF se queda con sus
 anotaciones o se le quitan; hacia el PDF, las escribe en él (las que vinieron
 del PDF, cambiadas donde están) y borra el archivo aparte.
 
@@ -35,7 +35,7 @@ STORAGES = ("pdf", "file")
 
 
 def default_storage() -> str:
-    """Where the annotations of a document without a file of them apart are saved (Settings > Documents)."""
+    """Where the annotations of a document without a file of them apart are saved (Settings > Annotations in a separate file)."""
     try:
         value = config.get("annot_storage")
     except config.ConfigError:

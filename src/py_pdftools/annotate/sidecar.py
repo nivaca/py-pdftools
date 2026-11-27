@@ -119,7 +119,7 @@ class Kept:
 # --------------------------------------------------------------------- where
 
 def hidden() -> bool:
-    """Whether the files of annotations beside their PDF are hidden (Settings > Documents)."""
+    """Whether the files of annotations beside their PDF are hidden (Settings > Annotations in a separate file)."""
     try:
         return bool(config.get("hide_notes"))
     except config.ConfigError:
