@@ -54,6 +54,11 @@ def own_config(tmp_path, monkeypatch):
     """A configuration folder of its own, so the tests don't read or change the user's."""
     monkeypatch.setenv("PY_PDFTOOLS_CONFIG", str(tmp_path / "config"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
+    # And a socket of its own (see gui/instance.py): else a test that starts the program would hand its files to
+    # the user's py-pdftools running in the background, which opened them (a test's PDF in the user's recent files).
+    import uuid
+
+    monkeypatch.setenv("PY_PDFTOOLS_SOCKET", f"py-pdftools-test-{uuid.uuid4().hex[:8]}")
     from py_pdftools.core import interface
 
     interface.use(None)
