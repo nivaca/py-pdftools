@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Make the screenshots of the READMEs, in English and Spanish:
+"""Hace las capturas de los README, en inglés y en español:
 
     uv run python tools/screenshots.py [-o FOLDER]
 
-It writes docs/img/MODE_LANG.png (MODE: annotate, redact, pages, impose;
-LANG: en, es): the window in each mode, on a sample document made here (a
-short essay of five pages), drawn offscreen with a configuration of its own
-(the user's is not read).
+Escribe docs/img/MODE_LANG.png (MODE: annotate, redact, pages, impose;
+LANG: en, es): la ventana en cada modo, sobre un documento de muestra hecho
+aquí (un ensayo corto, de cinco páginas), dibujada sin pantalla y con una
+configuración propia (la del usuario no se lee).
 """
 
 from __future__ import annotations

@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Make the manual pages of py-pdftools from the help of its command line:
+"""Hace las páginas de manual de py-pdftools con la ayuda de su línea de órdenes:
 
     uv run python tools/manpage.py [--check]
 
-It writes packaging/man/py-pdftools.1 (English) and
-packaging/man/es/py-pdftools.1 (Spanish), which the RPM installs. Each
-holds the help of the program and of every command, at both levels
-(py-pdftools labels set, py-pdftools impose booklet), as the command line
-prints it, so the manual can't say anything the program doesn't.
---check only says whether the files are up to date (the tests use it).
-(From py-foliation's.)
+Escribe packaging/man/py-pdftools.1 (en inglés) y packaging/man/es/py-pdftools.1
+(en español), que instala el RPM. Cada una trae la ayuda del programa y la de
+cada orden, en los dos niveles (py-pdftools labels set, py-pdftools impose
+booklet), tal como la imprime la línea de órdenes; así el manual no puede decir
+nada que el programa no diga. --check solo dice si los archivos están al día
+(lo usan las pruebas). (Viene del de py-foliation.)
 """
 
 from __future__ import annotations

@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
-"""Make the pictures of the user manual (docs/MANUAL_en.tex, docs/MANUAL_es.tex), in English and Spanish:
+"""Hace las imágenes del manual del usuario (docs/MANUAL_en.tex, docs/MANUAL_es.tex), en inglés y en español:
 
     uv run python tools/manual_images.py [-o FOLDER]
 
-It writes docs/img/manual/NAME_LANG.png: the window in each mode and with its panels, and the dialogs the
-manual explains, on sample documents made here (an essay with bookmarks and labels, a form, a scanned page,
-a page with text only covered), drawn offscreen with a configuration of its own: the user's settings are
-never read or written (HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME and PY_PDFTOOLS_CONFIG all point to a folder
-of its own).
+Escribe docs/img/manual/NAME_LANG.png: la ventana en cada modo y con sus paneles, y los diálogos que el manual
+explica, sobre documentos de muestra hechos aquí (un ensayo con marcadores y etiquetas, un formulario, una página
+escaneada, una página con texto solo cubierto), dibujados sin pantalla y con una configuración propia: nunca lee
+ni escribe la del usuario (HOME, XDG_CONFIG_HOME, XDG_CACHE_HOME y PY_PDFTOOLS_CONFIG apuntan todas a una
+carpeta suya).
 """
 
 from __future__ import annotations

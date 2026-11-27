@@ -1,24 +1,23 @@
 #!/usr/bin/env python3
-"""Make an AppImage of py-pdftools, for Linux:
+"""Hace una AppImage de py-pdftools, para Linux:
 
     uv run python tools/bundle-appimage.py [-o FOLDER] [--python APPIMAGE]
                                           [--python-version 3.14] [--appimagetool APPIMAGE]
 
-The AppImage is build/release/py-pdftools-VERSION-x86_64.AppImage (the version of
-pyproject.toml; --output gives another folder). It holds a Python of its own
-(a relocatable Python of the python-appimage project,
-https://github.com/niess/python-appimage) with py-pdftools and everything it
-needs installed into it (PyMuPDF, pikepdf, reportlab, PySide6), so it runs
-on any recent Linux (glibc 2.34 or later: Ubuntu 22.04, Debian 12, Fedora 35
-and later) without installing anything.
+La AppImage es build/release/py-pdftools-VERSION-x86_64.AppImage (la versión de
+pyproject.toml; --output da otra carpeta). Lleva un Python propio (un Python
+reubicable del proyecto python-appimage, https://github.com/niess/python-appimage)
+con py-pdftools y todo lo que necesita instalado en él (PyMuPDF, pikepdf,
+reportlab, PySide6), de modo que corre en cualquier Linux reciente (glibc 2.34 o
+posterior: Ubuntu 22.04, Debian 12, Fedora 35 y posteriores) sin instalar nada.
 
-    py-pdftools.AppImage [file.pdf]                 the window
-    py-pdftools.AppImage impose booklet book.pdf    a command of the command line
+    py-pdftools.AppImage [file.pdf]                 la ventana
+    py-pdftools.AppImage impose booklet book.pdf    una orden de la línea de órdenes
 
-What it needs is downloaded the first time and kept in the user's cache
-folder (~/.cache/py-pdftools-build): the Python and appimagetool
-(https://github.com/AppImage/appimagetool). The program's wheel is made with
-"uv build", and its dependencies come from PyPI (so this needs the network).
+Lo que necesita se descarga la primera vez y se guarda en la carpeta de caché del
+usuario (~/.cache/py-pdftools-build): el Python y appimagetool
+(https://github.com/AppImage/appimagetool). La rueda del programa la hace
+"uv build", y sus dependencias vienen de PyPI (por eso hace falta la red).
 """
 
 from __future__ import annotations
